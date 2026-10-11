@@ -1,117 +1,117 @@
-# Contexto local nativo do dano — evidências estáticas
+# Native local damage context — static evidence
 
-2026-10-11. Usuário autorizou reutilizar configuração nativa LOCAL, sem rede.
-Somente leitura offline; sem jogo/canal, RPC, inventário, escrita de offset ou edição
-de main.lua. Steam ausente impede oracle vivo; não iniciar/login pelo usuário.
+2026-10-11. The user authorized reusing the LOCAL native configuration, without network.
+Offline reading only; no game/channel, RPC, inventory, offset writes or editing
+main.lua. Steam being closed prevents a live oracle; do not start it/log in for the user.
 
-## Objeto e inicialização
+## Object and initialization
 
-`/Script/War.ServerSettings` é um **SaveGame passivo**, não serviço de rede.
-Classe nativa size0x7f8, StaticClass0x14121e6b0; super thunk0x1406f1560 aponta
-Engine.SaveGame0x142b1e920. Wrapperctor0x14121f380 chama0x14099d6b0.
-Constructor inicializa campos e chama constructor WarTweakables0x14099bff0 em+0x118.
-WarTweakables: struct0x5a0,340propriedades; o exportador antigo limitava80 e omitira
-este schema, não ausência no cliente.
+`/Script/War.ServerSettings` is a **passive SaveGame**, not a network service.
+Native class size 0x7f8, StaticClass 0x14121e6b0; the super thunk 0x1406f1560 points to
+Engine.SaveGame 0x142b1e920. The ctor wrapper 0x14121f380 calls 0x14099d6b0.
+The constructor initializes fields and calls the WarTweakables constructor 0x14099bff0 at +0x118.
+WarTweakables: struct 0x5a0, 340 properties; the old exporter was limited to 80 and had left out
+this schema, not because it is absent from the client.
 
-Auditoria do corpo0x14099d6b0–0x14099da89: chamadas baseSaveGame/UObject,
-FText vazio/limpeza de referência e data/calendário NextWarTime; nenhuma chamada
-RPC/socket/request/servidor. Constructor WarTweakables termina0x14099cc23 e não
-tem CALL algum: escreve defaults compilados e inicializa containers.
-WarServerSettings não tem UFunctions próprias. Não há necessidade comprovada
-de chamar initializer de GameInstance ou rede para inicializar esses defaults.
-Isto demonstra constructor passivo; comportamento global posterior à associação
-em GI precisa ser observado, não presumido.
+Audit of the body 0x14099d6b0–0x14099da89: calls to base SaveGame/UObject,
+empty FText/reference cleanup and the NextWarTime date/calendar; no
+RPC/socket/request/server call. The WarTweakables constructor ends at 0x14099cc23 and has
+no CALL at all: it writes compiled defaults and initializes containers.
+WarServerSettings has no UFunctions of its own. There is no proven need
+to call a GameInstance or network initializer to initialize these defaults.
+This shows a passive constructor; global behavior after the association
+with the GI needs to be observed, not assumed.
 
-## Campos efetivamente consumidos no dano SimVehicle
+## Fields actually consumed in SimVehicle damage
 
-Damageinterface0x140d81a00 obtém ponteiro WarTweakables via0x14113e570.
-Decomp externa `rifle-decomp/140d81a00.c`, confirmado com disassembly:
+Damage interface 0x140d81a00 gets the WarTweakables pointer through 0x14113e570.
+External decomp `rifle-decomp/140d81a00.c`, confirmed with disassembly:
 
-|Campo WarTweakables|Offset|Default nativo|Uso estático|
+|WarTweakables field|Offset|Native default|Static use|
 |---|---|---|---|
-|MinTankArmourMultiplier|0x218|1.0|limite inferior de desgaste de blindagem|
-|BallisticPenetrationMaxDistance|0x29c|4000.0|distância de penetração quando não há override|
-|BallisticPenetrationDistanceExponent|0x2a0|1.5|expoente do fator de distância|
-|BallisticPenetrationMaxAngleBonus|0x2a4|≈0.4|bônus de ângulo|
-|BallisticPenetrationMaxRangeBonus|0x2a8|≈0.4|bônus de alcance|
+|MinTankArmourMultiplier|0x218|1.0|lower limit of armor wear|
+|BallisticPenetrationMaxDistance|0x29c|4000.0|penetration distance when there is no override|
+|BallisticPenetrationDistanceExponent|0x2a0|1.5|exponent of the distance factor|
+|BallisticPenetrationMaxAngleBonus|0x2a4|≈0.4|angle bonus|
+|BallisticPenetrationMaxRangeBonus|0x2a8|≈0.4|range bonus|
 
-Defaults comprovados em0x14099c421/55b/565/56f/579 (bits3f800000,
-457a0000,3fc00000,3ecccccd,3ecccccd). NÃO copiar esses números para uma fórmula
-Lua: são evidência de que criar instância nativa entrega os valores.
-ServerSettings.SpawnInvulnerabilityTime também tem default nativo3.0 (+f4).
-Nenhum custo/economia próprio aparece nessa lista do cálculo de impacto.
+Defaults proven at 0x14099c421/55b/565/56f/579 (bits 3f800000,
+457a0000, 3fc00000, 3ecccccd, 3ecccccd). Do NOT copy these numbers into a Lua
+formula: they are evidence that creating a native instance delivers the values.
+ServerSettings.SpawnInvulnerabilityTime also has a native default of 3.0 (+f4).
+No cost/economy of our own appears in this list of the impact calculation.
 
-## Perfil de dano já no cliente
+## Damage profile already in the client
 
-Getter0x1408f8e80 carrega e guarda classe
-`/Game/Blueprints/Data/BPDamageProfiles.BPDamageProfiles_C`, devolve CDO.
-DamageProfiles.DataTable é ObjectProperty+0x218, aponta ao perfil tabelado;
-DTDamageProfiles e BPDamageProfiles estão no pak, linhas1785/1786.
-`DamageProfile` struct0x58 tem LightVehicle(+8), Tier1Tank(+c), Tier2Tank(+10),
-estruturas/navios etc. Lookup0x1409066d0 escolhe row pelo enumDamageType e
-cache0x140912da0; aplicação0x140914060 escolhe coluna ArmourType.
-Os valores das células AINDA não foram exportados/validados; presença dos assets
-e consumo nativo estão comprovados, valores não devem ser adivinhados.
+Getter 0x1408f8e80 loads and keeps the class
+`/Game/Blueprints/Data/BPDamageProfiles.BPDamageProfiles_C`, returns the CDO.
+DamageProfiles.DataTable is an ObjectProperty at +0x218, pointing to the tabled profile;
+DTDamageProfiles and BPDamageProfiles are in the pak, lines 1785/1786.
+The `DamageProfile` struct 0x58 has LightVehicle (+8), Tier1Tank (+c), Tier2Tank (+10),
+structures/ships etc. Lookup 0x1409066d0 picks the row by enum DamageType and
+cache 0x140912da0; application 0x140914060 picks the ArmourType column.
+The cell values have NOT been exported/validated yet; the presence of the assets
+and native consumption are proven, values must not be guessed.
 
-Ordem de guards observada: Health>0 → CDO SimDamageType válido → actor autoridade/
-bCanBeDamaged/mundo+proteção temporária → regra de friendly team/contexto →
-ServerSettings/WarTweakables não nulo → aplicação Engine/callbacks → perfil
-DamageType/ArmourType → blindagem/penetração/subsistemas → débito de Health/morte.
-ServerSettings não nulo não certifica sozinho os demais contratos.
+Order of guards observed: Health>0 → valid SimDamageType CDO → actor authority/
+bCanBeDamaged/world + temporary protection → friendly team/context rule →
+non-null ServerSettings/WarTweakables → Engine application/callbacks → DamageType/ArmourType
+profile → armor/penetration/subsystems → Health debit/death.
+Non-null ServerSettings alone does not certify the other contracts.
 
-## Oracle futuro mínimo (não executado)
+## Minimal future oracle (not run)
 
-1. Steam já aberto/logado pelo usuário; lab exclusivamente offline.
-2. Confirmar GI.ServerSettings continua nulo; conservar valor original exato.
-3. Construir **instância própria** da classe nativa com OuterGI (não CDO), pelo
-   StaticConstructObject nativo suportado pela versão UE4SS; ler classe/IsValid,
-   campos acima e SpawnInvulnerabilityTime. Gate: defaults íntegros e não NaN.
-4. Associar temporariamente GI.ServerSettings à instância. Não alterar campos de
-   rede, CDO, bypass de spawn, fórmulas, nem chamar initializer online.
-5. Truck exclusivo com HP900/contexto correto, uma aplicação de dano tipo real;
-   ler HP antes/depois e retorno. Não escrever HP ou creditar destruição manualmente.
-6. Garantir restauração do valor original GI.ServerSettings em sucesso OU erro,
-   remover somente o ator exclusivo e referências locais; conferir restauração.
+1. Steam already open/logged in by the user; lab strictly offline.
+2. Confirm GI.ServerSettings is still null; keep the exact original value.
+3. Build **our own instance** of the native class with Outer GI (not the CDO), through the
+   native StaticConstructObject supported by the UE4SS version; read class/IsValid,
+   the fields above and SpawnInvulnerabilityTime. Gate: intact, non-NaN defaults.
+4. Temporarily attach GI.ServerSettings to the instance. Do not change network fields,
+   CDO, spawn bypass, formulas, nor call an online initializer.
+5. Exclusive truck with HP 900/correct context, one application of a real damage type;
+   read HP before/after and the return. Do not write HP or credit destruction by hand.
+6. Ensure the original GI.ServerSettings value is restored on success OR error,
+   remove only the exclusive actor and local references; check the restore.
 
-Não implementado no mod e nenhum resultado vivo certificado. Fontes protegidas
-fora do repo: `damage-settings-native-ctor.txt`, `damage-settings-props.txt`,
+Not implemented in the mod and no certified live result. Protected sources
+outside the repo: `damage-settings-native-ctor.txt`, `damage-settings-props.txt`,
 `damage-tweakables-props.txt`, `damage-profile-props.txt`, `rifle-decomp/140d81a00.c`,
-todos em `D:/tools/foxhole-lab/`. Relatório anterior conserva diagnóstico dos guards.
+all in `D:/tools/foxhole-lab/`. The previous report keeps the diagnosis of the guards.
 
-## Crash do primeiro oracle: ramo debug e lifetime pendente
+## Crash of the first oracle: debug branch and pending lifetime
 
-PID24924: gate vivo de constructor/nested structs passou. Oracle seguinte caiu
-nativamente; buffer perdido impede atribuir com certeza o último comando concluído.
-Stack CrashContext `UE4CC-Windows-608B38A24B507F2999BD40955C73B6EF_0000`:
-b5d5bc → b64277 → d613df → d82713 → d96e1c →2550198→2a527dc.
+PID24924: the live gate of constructor/nested structs passed. The next oracle crashed
+natively; the lost buffer prevents attributing with certainty the last completed command.
+CrashContext stack `UE4CC-Windows-608B38A24B507F2999BD40955C73B6EF_0000`:
+b5d5bc → b64277 → d613df → d82713 → d96e1c → 2550198 → 2a527dc.
 
-Ramo estático identificado: fim do dano0x140d81a00 chama lambda0x140d61310;
-ela lê `WarTweakables.bEnableDamageDebug` e chama helperSimGameMode0x140b68780
-→0x140b641f0→lookup0x140b5d530. Lookup procura chave string num TMap privado
-ServerSettings+0x80. Crash0x140b5d5bc lê elemento de mapa, não efeito físico/RPC.
-UHT setter141272610 comprova flagDebug+0x428; constructor14099c8b0 a defineTRUE.
-Não desativar debug para esconder a causa; não alterar mapa privado/offsets.
+Static branch identified: the end of damage 0x140d81a00 calls lambda 0x140d61310;
+it reads `WarTweakables.bEnableDamageDebug` and calls the SimGameMode helper 0x140b68780
+→ 0x140b641f0 → lookup 0x140b5d530. The lookup searches a string key in a private TMap
+ServerSettings +0x80. Crash 0x140b5d5bc reads a map element, not a physical/RPC effect.
+UHT setter 141272610 proves the debug flag at +0x428; constructor 14099c8b0 sets it TRUE.
+Do not turn off debug to hide the cause; do not change the private map/offsets.
 
-Constructor inicializa TMap vazio coerente: this+0x80 ponteiro0, +0x88 num/cap0,
-+0xa0/+0xa8 zero, +0xb0 freeindex=-1, +0xb4 freecount0, +0xc0 hashptr0,
-+0xc8 hashsize0. Lookup compara map+8 contra map+0x34; num0==freecount0 sai
-ANTES da busca. Constructor fresco não explica sozinho um índice enorme.
+The constructor initializes a coherent empty TMap: this+0x80 pointer 0, +0x88 num/cap 0,
++0xa0/+0xa8 zero, +0xb0 freeindex=-1, +0xb4 freecount 0, +0xc0 hashptr 0,
++0xc8 hashsize 0. The lookup compares map+8 against map+0x34; num 0 == freecount 0 exits
+BEFORE the search. A fresh constructor alone does not explain a huge index.
 
-Leitura do minidump padrão, sem executar processo: R14map=0x2552cacc0a0,
-RCXelems=0x25509a002d8, RBXíndice=0x2b84f1c0. RDI=0x1051daa80 e acesso
-inválido0x25d328d56e0. O heap do mapa não está capturado, portanto NÃO prova
-causa exata; mostra dados/índice incoerentes com mapa vazio inicial.
+Reading the standard minidump, without running a process: R14 map=0x2552cacc0a0,
+RCX elems=0x25509a002d8, RBX index=0x2b84f1c0. RDI=0x1051daa80 and invalid access
+0x25d328d56e0. The map's heap is not captured, so it does NOT prove the
+exact cause; it shows data/index inconsistent with an initially empty map.
 
-Hipótese forte de lifetime: sonda criou settings, manteve apenas `_G` Lua enquanto
-GI.ServerSettings permanecia nulo por12s, depois associou. Lua não é raiz do GC de
-UObject, armadilha já documentada para MID; IsValid pode continuartrue ou endereço
-ser reaproveitado. Nenhuma classe/endereço foi conferida imediatamente antes da
-associação. Isso é hipótese, não resultado confirmado nem prova de corrupção nativa.
+Strong lifetime hypothesis: the probe created the settings, kept only a Lua `_G` while
+GI.ServerSettings stayed null for 12 s, then attached it. Lua is not a GC root for
+UObjects, a pitfall already documented for MIDs; IsValid can stay true or the address
+be reused. No class/address was checked right before the
+association. This is a hypothesis, not a confirmed result nor proof of native corruption.
 
-Próximo oracle mínimo preparado pelo raiz: spawn SOMENTE truck → esperar12s →
-baseline semsettings → criar instânciaNOVA no MESMO chunk do ensaio configurado →
-conferir classe/defaults/endereço e associar IMEDIATAMENTE à UPROPERTYGI → uma
-chamada → restauraroriginal em sucesso/erro e removerator exclusivo. Pré-carregar
-assets antes de criarsettings. Não manter settings solta Lua_G durante espera.
-Checkpoints antes/depois de cada fase, pois pcall NÃO captura crash nativo.
-Nada disso foi executado nesta investigação offline; sem claim de dano aprovado.
+Next minimal oracle prepared by the root agent: spawn ONLY the truck → wait 12 s →
+baseline without settings → create a NEW instance in the SAME chunk as the configured rehearsal →
+check class/defaults/address and attach IMMEDIATELY to the GI UPROPERTY → one
+call → restore the original on success/error and remove the exclusive actor. Preload
+assets before creating the settings. Do not keep loose settings in Lua _G during the wait.
+Checkpoints before/after each phase, since pcall does NOT catch a native crash.
+None of this was run in this offline investigation; no claim of approved damage.

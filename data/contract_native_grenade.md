@@ -1,31 +1,31 @@
-# Contrato de granada — evidência offline e gates pendentes (11/10)
+# Grenade contract — offline evidence and pending gates (10/11)
 
-## Evidência conferida nesta retomada
-- Reflexão extraída: Actor.Owner em +E0; Actor.Instigator em +118;
-  Pawn.Controller em +258; WarProjectile.MyController é WeakObjectProperty +260.
-- Vtable WarProjectile +468 resolve função 140dbe460. Ela registra OnProjectileStop,
-  obtém Instigator por 1422d9d90, inclui o pawn na lista de colisão ignorada e obtém
-  seu Controller por 1422d9da0 para preencher MyController nativamente.
-  Os dois getters foram conferidos nas instruções do binário do laboratório.
-- BeginPlay 140da4a70 também ignora Owner com 1424435c0 e adiciona peças anexas
-  do personagem à lista ignorada. Portanto Owner e Instigator não são intercambiáveis:
-  ambos precisam ser o lançador antes de FinishSpawning, não o comandante invisível.
-- Aplicação explosiva 140da33d0 exige autoridade, resolve atributos nativos da
-  identidade explosiva e passa MyController ao helper de dano em área 1409dc010.
-  Não escrever WeakObjectProperty nem montar HitInfo/fórmula em Lua.
-- `trace_binding_launch.txt`: GrenadeW fuse4/min390/max1100/range0;
-  GrenadeC fuse4/min390/max1200/range0. `schema_projectiles_native.txt` associa
-  Grenade_C a GrenadeC e BPGrenadeW_C a GrenadeW. Candidato agora usa cada facção.
+## Evidence checked in this session
+- Extracted reflection: Actor.Owner at +E0; Actor.Instigator at +118;
+  Pawn.Controller at +258; WarProjectile.MyController is a WeakObjectProperty at +260.
+- WarProjectile vtable +468 resolves to function 140dbe460. It registers OnProjectileStop,
+  gets the Instigator through 1422d9d90, adds the pawn to the ignored-collision list and gets
+  its Controller through 1422d9da0 to fill MyController natively.
+  Both getters were checked in the instructions of the lab binary.
+- BeginPlay 140da4a70 also ignores the Owner with 1424435c0 and adds the character's attached
+  parts to the ignored list. Therefore Owner and Instigator are not interchangeable:
+  both must be the thrower before FinishSpawning, not the invisible commander.
+- Explosive application 140da33d0 requires authority, resolves the native attributes of the
+  explosive identity and passes MyController to the area damage helper 1409dc010.
+  Do not write the WeakObjectProperty nor build HitInfo/a formula in Lua.
+- `trace_binding_launch.txt`: GrenadeW fuse 4/min 390/max 1100/range 0;
+  GrenadeC fuse 4/min 390/max 1200/range 0. `schema_projectiles_native.txt` maps
+  Grenade_C to GrenadeC and BPGrenadeW_C to GrenadeW. The candidate now uses each faction's.
 
-Fontes protegidas externas, não redistribuídas: D:/tools/foxhole-lab/explosivo-decomp,
-D:/tools/foxhole-lab/re-agent/explosivo-owner-props.txt e explosivo-pawn-props.txt.
-Nenhum offset executado; somente leitura/decompilação já existente e getters do binário.
+Protected external sources, not redistributed: D:/tools/foxhole-lab/explosivo-decomp,
+D:/tools/foxhole-lab/re-agent/explosivo-owner-props.txt and explosivo-pawn-props.txt.
+No offset executed; only reading/existing decompilation and the binary's getters.
 
-## Ainda não comprovado no main integrado
-- Atribuição/friendlyfire e reação de personagem; ler Owner/Instigator/Controller
-  após FinishSpawning no gate. Configuração/team do alvo não prova equipe do impacto.
-- Overlap/dano em caminhão logístico com ActorEnableCollision false. Comparar com
-  true em ator exclusivo, na mesma run; não religar a frota por suposição.
-- Origem dentro da cápsula, trajetória curta/longa, morte do lançador, granadas de
-  classes diferentes simultâneas, reset durante voo e restauração do contexto.
-- Oráculo antigo sem Instigator não certifica esse fluxo completo.
+## Not proven yet in the integrated main
+- Attribution/friendly fire and character reaction; read Owner/Instigator/Controller
+  after FinishSpawning in the gate. The target's configuration/team does not prove the impact's team.
+- Overlap/damage on a logistics truck with ActorEnableCollision false. Compare with
+  true on an exclusive actor, in the same run; do not turn the fleet back on by assumption.
+- Origin inside the capsule, short/long trajectory, thrower's death, grenades of
+  different classes at the same time, reset during flight and context restore.
+- The old oracle without an Instigator does not certify this complete flow.

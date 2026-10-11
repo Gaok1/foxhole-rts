@@ -1,11 +1,11 @@
-# Preenchimento residual — proposta isolada, não aplicada
+# Residual fill — isolated proposal, not applied
 
-Usuário relatou piscadas amarelas em unidade não selecionada na troca de grupos.
-A fonte atual desliga CustomDepth mas só grava stencil quando on=true, retendo1
-no componente desmarcado. O jogo reativa CustomDepth nativo (rastro anterior).
-Essa combinação é hipótese de fill residual; ainda não comprova timing/material.
+The user reported yellow blinks on a non-selected unit when switching groups.
+The current source turns CustomDepth off but only writes the stencil when on=true, keeping 1
+on the deselected component. The game reactivates native CustomDepth (earlier trace).
+That combination is a hypothesis for the residual fill; it does not prove timing/material yet.
 
-Mudança mínima candidata em rts.outlineDepth:
+Minimal candidate change in rts.outlineDepth:
 
 ```lua
 if c.CustomDepthStencilValue ~= (on and 1 or 0) then
@@ -13,12 +13,12 @@ if c.CustomDepthStencilValue ~= (on and 1 or 0) then
 end
 ```
 
-test_stencil_clear.py extrai helper real: baseline retém1 após desligamento e
-reativação simulada; proposta limpa0, preserva reseleção1, não repete writes e
-recusa pawn em destruição. Testa estado Lua, NÃO shader ou flicker no engine.
+test_stencil_clear.py extracts the real helper: the baseline keeps 1 after turning off and
+a simulated reactivation; the proposal clears to 0, keeps reselection at 1, does not repeat writes and
+refuses a pawn being destroyed. It tests Lua state, NOT the shader or flicker in the engine.
 
-Antes de integrar: concluir ensaio isolado da ponte de teclas. Depois, carga limpa
-com mudança única de stencil, observar valor real/frame e soldado oculto por veículo.
-Confirmar stencil0sem fill e ausência de reescrita nativa1 entre callbacks.
-Se reescrever, rastrear escritor/ordem de quadro antes de inventar outro timer.
-Não misturar com hipótese do crash.
+Before integrating: finish the isolated rehearsal of the key bridge. Then, a clean load
+with only the stencil change, observe the real value per frame and a soldier hidden by a vehicle.
+Confirm stencil 0 without fill and no native rewrite to 1 between callbacks.
+If it rewrites, trace the writer/frame order before inventing another timer.
+Do not mix with the crash hypothesis.

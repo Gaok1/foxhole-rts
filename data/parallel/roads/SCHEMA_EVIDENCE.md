@@ -1,44 +1,44 @@
-# Evidência recebida (HomeRegionW, 2026-10-09)
+# Evidence received (HomeRegionW, 2026-10-09)
 
-Saídas do dono do laboratório: `D:/tools/foxhole-lab/roads-schema-live.txt` e
-`D:/tools/foxhole-lab/roads-types-live.txt`. Não executadas por este agente.
+Outputs from the lab owner: `D:/tools/foxhole-lab/roads-schema-live.txt` and
+`D:/tools/foxhole-lab/roads-types-live.txt`. Not run by this agent.
 
 - Connections -> LandscapeSplineSegmentConnection: ControlPoint ObjectProperty,
-  TangentLen FloatProperty, SocketName NameProperty. **Cardinalidade não exportada.**
+  TangentLen FloatProperty, SocketName NameProperty. **Cardinality not exported.**
 - SplineInfo -> InterpCurveVector: Points ArrayProperty, bIsLooped BoolProperty,
-  LoopKeyOffset FloatProperty. Tipo de cada ponto ainda desconhecido.
+  LoopKeyOffset FloatProperty. Type of each point still unknown.
 - ControlPoint.Location -> Vector(X,Y,Z floats); Rotation -> Rotator(Pitch,Yaw,Roll).
-- Três control points observados: Width1000, LocalMeshComponent ausente. Não prova
-  ausência de meshes dos segmentos ou estradas, nem tamanho útil transitável.
+- Three control points observed: Width 1000, LocalMeshComponent absent. Does not prove
+  the absence of segment or road meshes, nor a useful passable size.
 
-Sonda preparada `D:/tools/foxhole-lab/t_roads_inner.lua`, sintaxe OK, não executada.
-Encontra tipos internos somente de arrays explicitamente confirmados e schemas
-imediatos dos elementos struct, sem ler valores ou fazer dump recursivo.
-GetInner confirmado na [documentação oficial UE4SS](https://docs.ue4ss.com/lua-api/classes/arrayproperty.html).
-Compatibilidade da versão instalada deve ser verificada pelo dono do laboratório.
+Probe prepared `D:/tools/foxhole-lab/t_roads_inner.lua`, syntax OK, not run.
+It finds inner types only of explicitly confirmed arrays and the immediate schemas
+of the struct elements, without reading values or a recursive dump.
+GetInner confirmed in the [official UE4SS documentation](https://docs.ue4ss.com/lua-api/classes/arrayproperty.html).
+Compatibility of the installed version must be checked by the lab owner.
 
-**Gate cardinalidade Connections:** a [API Lua Property oficial](https://docs.ue4ss.com/dev/lua-api/classes/property.html)
-consultada não expõe GetArrayDim. Não o chamar por inferência de API C++/UE.
-Consultar SDK/header gerado ou dumper de metadata que imprima ArrayDim antes de
-indexar endpoints. O schema permite estudar Connections.ControlPoint do elemento
-representado, mas um endpoint único não define uma aresta; a sonda deliberadamente
-não infere segundo endpoint, offsets nem leitura raw memory.
+**Connections cardinality gate:** the [official Lua Property API](https://docs.ue4ss.com/dev/lua-api/classes/property.html)
+consulted does not expose GetArrayDim. Do not call it by inference from the C++/UE API.
+Consult a generated SDK/header or a metadata dumper that prints ArrayDim before
+indexing endpoints. The schema allows studying Connections.ControlPoint of the
+represented element, but a single endpoint does not define an edge; the probe deliberately
+does not infer a second endpoint, offsets nor raw memory reads.
 
-**Gate geometria:** tipos internos de Points e InterpCurveVector.Points precisam
-ser confirmados; então exportar até três pontos de um segmento. Local->world e
-classificação estrada/mesh continuam requisitos antes de criar grafo transitável.
+**Geometry gate:** the inner types of Points and InterpCurveVector.Points need
+to be confirmed; then export up to three points of a segment. Local->world and
+road/mesh classification remain requirements before creating a passable graph.
 
-## INNER vivo recebido: rota alternativa para endpoints
-`D:/tools/foxhole-lab/roads-inner-live.txt` confirmou ConnectedSegments como array
-de LandscapeSplineConnection, com Segment ObjectProperty e End BoolProperty.
-Portanto incidência **CP->segment** pode identificar endpoints sem ler Connections
-de cardinalidade desconhecida. End true/false é rótulo observado, não orientação
-assumida. Para grafo completo será preciso inventário completo de CP e exigir dois
-CP distintos por segmento; segmento parcial/ambíguo não autoriza uma aresta.
+## Live INNER received: alternative route for endpoints
+`D:/tools/foxhole-lab/roads-inner-live.txt` confirmed ConnectedSegments as an array
+of LandscapeSplineConnection, with Segment ObjectProperty and End BoolProperty.
+So **CP->segment** incidence can identify endpoints without reading Connections
+of unknown cardinality. End true/false is an observed label, not an assumed
+orientation. For a complete graph a full CP inventory will be needed, requiring two
+distinct CPs per segment; a partial/ambiguous segment does not authorize an edge.
 
-Points é array de LandscapeSplineInterpPoint com Center StructProperty. Sonda
-`D:/tools/foxhole-lab/t_roads_incidence.lua` preparada, sintaxe OK, não executada:
-até três CP (Location Vector já comprovado), oito incidências por CP, três segmentos,
-três pontos e nomes de três meshes por segmento. Center só é lido depois de metadata
-comprovar exatamente CoreUObject.Vector e X/Y/Z FloatProperty. Output POINT_LOCAL
-deliberadamente não é world. Sem inferência de estrada ou ligação por proximidade.
+Points is an array of LandscapeSplineInterpPoint with a Center StructProperty. Probe
+`D:/tools/foxhole-lab/t_roads_incidence.lua` prepared, syntax OK, not run:
+up to three CPs (Location Vector already proven), eight incidences per CP, three segments,
+three points and names of three meshes per segment. Center is only read after metadata
+proves exactly CoreUObject.Vector and X/Y/Z FloatProperty. The POINT_LOCAL output
+is deliberately not world. No road inference nor linking by proximity.

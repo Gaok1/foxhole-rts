@@ -1,16 +1,16 @@
-# Colisão do TruckW — leitura viva, antes de iniciar logística
+# TruckW collision — live reading, before starting logistics
 
-HomeRegionW, PID 21456, main 223788476973. Sonda externa `t_truck_collision_values.lua`,
-saída completa `D:/tools/foxhole-lab/truck-collision-values-v41-live.txt`.
-Sem alteração de física e antes de newGame: não é estado de colisão desligada pelo motorista.
+HomeRegionW, PID 21456, main 223788476973. External probe `t_truck_collision_values.lua`,
+full output `D:/tools/foxhole-lab/truck-collision-values-v41-live.txt`.
+No physics change and before newGame: this is not the state with collision turned off by the driver.
 
-- VehicleCollision: BoxComponent, perfil VehicleRoot, CollisionEnabled 3, ObjectType 6.
-  Extents locais e escalados iguais: 400/162/140 cm; escala 1. Resposta Camera/Visibility: 2/2.
-- CollisionCylinder: CapsuleComponent, raio 34 e meia altura 200; perfil VehicleCapsule,
+- VehicleCollision: BoxComponent, profile VehicleRoot, CollisionEnabled 3, ObjectType 6.
+  Local and scaled extents equal: 400/162/140 cm; scale 1. Camera/Visibility response: 2/2.
+- CollisionCylinder: CapsuleComponent, radius 34 and half height 200; profile VehicleCapsule,
   CollisionEnabled 1, Camera/Visibility 1/1.
-- CharacterMesh0 e meshes CabinMesh/TrailerMesh também respondem 2 aos dois canais.
-  Portanto a caixa VehicleCollision sozinha ainda não comprova envelope integral.
+- CharacterMesh0 and the CabinMesh/TrailerMesh meshes also respond 2 to both channels.
+  So the VehicleCollision box alone does not prove the full envelope yet.
 
-Próximo: relacionar caixa/meshes com impactos de traços e obter envelope conservador em coordenadas
-do veículo. Não usar bounds de render como hull físico nem autorizar arestas só com esses extents.
-Ainda faltam curvas reais, acesso às instalações, água/tabuleiro, sweep e obstrução dinâmica.
+Next: relate box/meshes to trace impacts and get a conservative envelope in the vehicle's
+coordinates. Do not use render bounds as the physical hull nor authorize edges with these extents alone.
+Still missing: real curves, access to the installations, water/bridge deck, sweep and dynamic obstruction.

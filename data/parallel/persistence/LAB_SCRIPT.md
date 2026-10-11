@@ -1,44 +1,44 @@
-# PERSISTENCIA — pedido ao LABORATORIO (preparado, NÃO executado)
+# PERSISTENCIA (persistence) — request to LABORATORIO (prepared, NOT run)
 
-Responsável pela execução: agente LABORATORIO (Codex coordenador). O CLAUDE_PERSISTENCIA não abriu o jogo,
-não usou o canal nem tocou `D:\FoxholeLab` ou saves reais. Tudo abaixo é roteiro.
+Responsible for running it: the LABORATORIO agent (Codex coordinator). CLAUDE_PERSISTENCIA did not open the game,
+did not use the channel nor touch `D:\FoxholeLab` or real saves. Everything below is a script.
 
-## Pré-condições
-- Steam aberto e logado; sem botloop; firewall do laboratório intacto (regras do `AGENTS.md`).
-- Candidato integrado pelo coordenador (ordem em `REPORT.md`: ECONOMIA → [IA_LOGISTICA] → PERSISTENCIA),
-  sintaxe + `check_globals.py` + `test_orders.py` + `data/parallel/persistence/test_*.py` PASS.
-- Região: a mesma do lote 17 (CallumsCapeHex: campo ativo, ruínas de refinaria/fábrica, sem caminhões nativos).
-- **Antes de tudo, copiar para fora** os arquivos existentes `War/Binaries/Win64/ue4ss/Mods/FoxholeRTS/save.txt*`
-  da cópia de laboratório (são do laboratório, não do usuário) e registrar SHA256. `restart.sh` só copia o
-  `main.lua`; o save sobrevive ao reinício (conferido lendo o script, não executando).
-- Sonda somente leitura: copiar `data/parallel/persistence/lab/t_persist_state.lua` para `D:/tools/foxhole-lab/`.
-  Chamadas que mudam estado vão pelo canal (`sv.save()`, `sv.load()`, `logi.deploy()`), nunca por teclado.
+## Preconditions
+- Steam open and logged in; no botloop; lab firewall intact (rules in `AGENTS.md`).
+- Candidate integrated by the coordinator (order in `REPORT.md`: ECONOMIA → [IA_LOGISTICA] → PERSISTENCIA),
+  syntax + `check_globals.py` + `test_orders.py` + `data/parallel/persistence/test_*.py` PASS.
+- Region: the same as batch 17 (CallumsCapeHex: active field, refinery/factory ruins, no native trucks).
+- **First of all, copy out** the existing files `War/Binaries/Win64/ue4ss/Mods/FoxholeRTS/save.txt*`
+  of the lab copy (they belong to the lab, not to the user) and record SHA256. `restart.sh` only copies
+  `main.lua`; the save survives the restart (checked by reading the script, not running it).
+- Read-only probe: copy `data/parallel/persistence/lab/t_persist_state.lua` to `D:/tools/foxhole-lab/`.
+  Calls that change state go through the channel (`sv.save()`, `sv.load()`, `logi.deploy()`), never by keyboard.
 
-## Matriz
+## Matrix
 
-| # | Passo | Esperado | Evidência |
+| # | Step | Expected | Evidence |
 |---|---|---|---|
-| L0 | Carga 1: `logi.deploy()` (Alt+L pelo canal), nova partida, deixar ondas e logística rodarem ≥ 90 s | 2 instalações + 3 TruckW; carteira 0/1100 com 5 registros `built` | sonda antes; captura |
-| L1 | Com caminhão carregado em `toDep` e job em curso: `sv.save()` | `true`; `save.txt` começa com `return {`, ASCII, sem `function`/`load`; `.bak` só a partir do 2º save | sonda; SHA256 dos arquivos; tamanho; ms do `sv.save` (amostrador `os.clock`) |
-| L2 | Ler o arquivo fora do jogo: `python -c` com `sv.decode` via lupa (ou a suíte) | decodifica e `sv.validate` aceita; `world` = caminho do CallumsCape; nenhum endereço/ator | saída do comando |
-| L3 | **Reiniciar o jogo** (`restart.sh`), mesma região, sem Alt+L | ruínas visíveis de novo, nenhuma refinaria/fábrica/TruckW ativa (prova de que a infra não sobrevive sozinha) | sonda (atores) |
-| L4 | `sv.load()` | `true`; 5 spawns (refinaria 2700, fábrica 2000, 3 TruckW 900, Team1); ruínas ocultas/sem colisão; carteira 0/1100 (sem débito novo); estoques, job, carga em trânsito, pontos/donos, soldados, fortificações iguais a L1 | sonda depois = sonda L1 (exceto posições de caminhões, que voltam ao estacionamento validado) |
-| L5 | `sv.load()` de novo, mesma carga | nenhum spawn novo, mesma contagem de atores, estoques não dobram | sonda |
-| L6 | Deixar rodar 60 s: o caminhão salvo em `toDep` replaneja e entrega uma vez; fábrica conclui a job sem debitar bmat de novo | entrega única; bmat só cai em job nova | log de entregas; sonda |
-| L7 | Autosave (30 s) e `sv.save()`; conferir `.bak` = save anterior | rotação ok; `.tmp` ausente | listagem e SHA256 |
-| L8 | Reiniciar; **antes** de continuar, `logi.deploy()` (Alt+L) e depois `sv.load()` | Alt+L cobra da carteira nova; `sv.load` reconhece implantação idêntica, não cria nada, carteira volta à do save (0/1100) | sonda |
-| L9 | Recusas com sessão viva (nova partida rodando): (a) save de outra região (copiar save do HomeRegionW), (b) `save.txt` truncado à metade sem `.bak`, (c) `["v"]=3`, (d) ruína movida não é possível ao vivo — pular | `false`, mensagem "Continuar recusado (partida atual e save preservados)", soldados/estoques da sessão viva iguais, arquivos com o mesmo SHA256 | sonda antes/depois; SHA256 |
-| L10 | Falha pós-preflight ao vivo é difícil de provocar sem hotpatch: **não** forçar. Só registrar se aparecer "INCOMPLETA … autosave suspenso" espontâneo | — | log |
-| L11 | Vitória/derrota (ou `sv.clear()` pelo canal no fim) | `save.txt`, `.tmp`, `.bak`, `.corrupt` removidos | listagem |
-| L12 | Fim: restaurar os arquivos de save copiados no início; encerrar só o PID da cópia | — | SHA256 igual ao inicial |
+| L0 | Load 1: `logi.deploy()` (Alt+L through the channel), new match, let waves and logistics run ≥ 90 s | 2 installations + 3 TruckW; wallet 0/1100 with 5 `built` records | probe before; screenshot |
+| L1 | With a loaded truck in `toDep` and a job running: `sv.save()` | `true`; `save.txt` starts with `return {`, ASCII, no `function`/`load`; `.bak` only from the 2nd save | probe; SHA256 of the files; size; ms of `sv.save` (`os.clock` sampler) |
+| L2 | Read the file outside the game: `python -c` with `sv.decode` via lupa (or the suite) | decodes and `sv.validate` accepts; `world` = CallumsCape's path; no address/actor | command output |
+| L3 | **Restart the game** (`restart.sh`), same region, no Alt+L | ruins visible again, no active refinery/factory/TruckW (proof that the infra does not survive by itself) | probe (actors) |
+| L4 | `sv.load()` | `true`; 5 spawns (refinery 2700, factory 2000, 3 TruckW 900, Team 1); ruins hidden/without collision; wallet 0/1100 (no new debit); stocks, job, cargo in transit, points/owners, soldiers, fortifications equal to L1 | probe after = probe L1 (except truck positions, which return to the validated parking) |
+| L5 | `sv.load()` again, same load | no new spawn, same actor count, stocks do not double | probe |
+| L6 | Let it run 60 s: the truck saved in `toDep` replans and delivers once; the factory finishes the job without debiting bmat again | single delivery; bmat only drops on a new job | delivery log; probe |
+| L7 | Autosave (30 s) and `sv.save()`; check `.bak` = previous save | rotation ok; `.tmp` absent | listing and SHA256 |
+| L8 | Restart; **before** continuing, `logi.deploy()` (Alt+L) and then `sv.load()` | Alt+L charges the new wallet; `sv.load` recognizes an identical deployment, creates nothing, the wallet goes back to the save's (0/1100) | probe |
+| L9 | Refusals with a live session (new match running): (a) save from another region (copy the HomeRegionW save), (b) `save.txt` truncated in half without `.bak`, (c) `["v"]=3`, (d) moved ruin is not possible live — skip | `false`, message "Continuar recusado (partida atual e save preservados)", live session's soldiers/stocks equal, files with the same SHA256 | probe before/after; SHA256 |
+| L10 | A post-preflight failure live is hard to provoke without a hotpatch: do **not** force it. Only record it if "INCOMPLETA … autosave suspenso" appears spontaneously | — | log |
+| L11 | Victory/defeat (or `sv.clear()` through the channel at the end) | `save.txt`, `.tmp`, `.bak`, `.corrupt` removed | listing |
+| L12 | End: restore the save files copied at the start; close only the copy's PID | — | SHA256 equal to the initial one |
 
-## Medições pedidas
-- Tempo de `sv.save()` e `sv.load()` no game thread (offline: ~11 ms para 120 unidades em lupa; ao vivo é gate).
-- `os.rename`/`os.remove`/`io.open("wb")`/`f:seek` no Lua do UE4SS no Windows: o código assume que `os.rename`
-  **não** sobrescreve (MSVCRT) e remove o destino antes; registrar o retorno real.
-- `World:GetFullName()` no hex (formato `World /Game/Maps/Master/<Hex>.<Hex>`) e após reinício (igual).
-- Ruína/rotação idênticas entre cargas (a restauração exige ruína a ≤ 2 m e yaw ≤ 1° do salvo).
+## Measurements requested
+- Time of `sv.save()` and `sv.load()` on the game thread (offline: ~11 ms for 120 units in lupa; live is a gate).
+- `os.rename`/`os.remove`/`io.open("wb")`/`f:seek` in UE4SS's Lua on Windows: the code assumes `os.rename`
+  does **not** overwrite (MSVCRT) and removes the destination first; record the real return.
+- `World:GetFullName()` in the hex (format `World /Game/Maps/Master/<Hex>.<Hex>`) and after a restart (equal).
+- Identical ruin/rotation between loads (restoring requires a ruin within ≤ 2 m and yaw ≤ 1° of the saved one).
 
-## Não validado por este roteiro
-Rotas por estrada (driver da ESTRADAS ainda não integrado; caminhões continuam em reta), equilíbrio, cadeia
-inimiga ao vivo (IA_LOGISTICA), queda do processo exatamente entre os dois renames (só offline), UI/teclado real.
+## Not validated by this script
+Road routes (the ESTRADAS driver is not integrated yet; trucks still go straight), balance, the enemy
+chain live (IA_LOGISTICA), a process crash exactly between the two renames (offline only), UI/real keyboard.

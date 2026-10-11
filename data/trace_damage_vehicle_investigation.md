@@ -1,27 +1,27 @@
-# Investigação offline: dano nativo de veículo (2026-10-10)
+# Offline investigation: native vehicle damage (2026-10-10)
 
-Escopo: leitura de evidências locais; nenhum comando ao jogo, nenhuma chamada RPC,
-nenhuma edição de `main.lua`. Aplicados Como retomar, universal-modder (kb search
-foxhole), reverse-engineering/oráculos, playbook Unreal e ponytail.
+Scope: reading local evidence; no command to the game, no RPC call,
+no edit of `main.lua`. Applied: How to resume, universal-modder (kb search
+foxhole), reverse-engineering/oracles, the Unreal playbook and ponytail.
 
-## O que existe de verdade
+## What really exists
 
-- `dados/esquema_combate_nativo.txt:70–77`: `/Script/War.SimVehicle.Health` é
-  IntProperty; `OnRep_Health` não é RPC e não tem parâmetros. Isso autoriza investigar
-  a notificação local, não pressupõe que a morte seja segura ou que seja o aplicador de dano.
-- `D:/tools/foxhole-lab/data_dump.txt:930`: TruckW tem MaxHealth900, TankArmour0,
-  MinorDamagePercent0.1875 e MajorDamagePercent≈0.7. São dados extraídos da tabela
-  BPVehicleDynamicData, não fórmulas recriadas.
-- `re-agent/props_SimDamageType.txt`: classe nativa SimDamageType tem Type,
+- `data/schema_combat_native.txt:70–77`: `/Script/War.SimVehicle.Health` is an
+  IntProperty; `OnRep_Health` is not an RPC and has no parameters. This authorizes investigating
+  the local notification; it does not presume the death is safe or that it is the damage applier.
+- `D:/tools/foxhole-lab/data_dump.txt:930`: TruckW has MaxHealth 900, TankArmour 0,
+  MinorDamagePercent 0.1875 and MajorDamagePercent ≈0.7. These are data extracted from the
+  BPVehicleDynamicData table, not recreated formulas.
+- `re-agent/props_SimDamageType.txt`: the native SimDamageType class has Type,
   bCanPenetrateArmour, bApplyTankArmourMechanics, bApplyTankArmourAngleRangeBonuses,
   bCanDisableSubsystems, bDisableVehicleCollisionsIfKilledBy, bCanCauseLeaks etc.
-  A identificação de um asset não prova seus valores em CDO nem comportamento.
+  Identifying an asset does not prove its CDO values nor its behavior.
 
-### Correspondência de munição e DamageType comprovada no dump
+### Ammunition and DamageType mapping proven in the dump
 
-Fonte `D:/tools/foxhole-lab/data_dump.txt`, seção BPAmmoDynamicData:
+Source `D:/tools/foxhole-lab/data_dump.txt`, section BPAmmoDynamicData:
 
-| Linha | Munição | Damage | DamageType |
+| Line | Ammunition | Damage | DamageType |
 |---|---|---:|---|
 |1082|RifleAmmo|45|BPLightKineticDamageType_C|
 |1083|MGAmmo|55|BPHeavyKineticDamageType_C|
@@ -31,124 +31,124 @@ Fonte `D:/tools/foxhole-lab/data_dump.txt`, seção BPAmmoDynamicData:
 |1074|HEGrenade|240|BPExplosiveDamageType_C|
 |1077|RpgAmmo|550|BPExplosivePenetratingDamageType_C|
 
-Assets correspondentes listados em `pak_files.txt:1739,1754,1762,1765,1773`.
-Exemplo de caminho candidato verificável:
+Matching assets listed in `pak_files.txt:1739,1754,1762,1765,1773`.
+Example of a verifiable candidate path:
 `/Game/Blueprints/DamageTypes/BPLightKineticDamageType.BPLightKineticDamageType_C`.
-Usar a classe real obtida/carregada, nunca assumir que nome basta.
+Use the real class obtained/loaded, never assume a name is enough.
 
-## Diferença para o mod atual
+## Difference from the current mod
 
-- `logi.hit` subtrai diretamente `tr.hp` e oculta o pawn quando chega a zero;
-  NÃO consulta nem debita SimVehicle.Health. Explosão visual e contador de corte
-  também são próprios. Esse é o sistema reinventado, a substituir após oracle.
-- `logi.blast` faz distância e multiplicador fixo x2, igualmente próprios.
-- O combate de personagens já usa GameplayStatics.ApplyDamage, porém passa nil
-  em DamageType; isso é mecanismo Engine nativo com decisão/tiro simulado do mod,
-  não comprova disparo nativo Foxhole nem contrato de mitigação veicular.
-- ReceiveAnyDamage/ReceivePointDamage/ReceiveRadialDamage são callbacks refletidos:
-  não chamar como se fossem substitutos de TakeDamage. AllFire sem parâmetros pode
-  ser efeito/notificação; metadata sozinha não prova disparo físico.
-- `ServerFire` e métodos Multicast/Server/Client estão fora do escopo pedido.
+- `logi.hit` subtracts directly from `tr.hp` and hides the pawn when it reaches zero;
+  it does NOT query nor debit SimVehicle.Health. The visual explosion and the cut counter
+  are also our own. This is the reinvented system, to be replaced after the oracle.
+- `logi.blast` does distance and a fixed x2 multiplier, equally our own.
+- Character combat already uses GameplayStatics.ApplyDamage, but passes nil
+  as DamageType; this is a native Engine mechanism with the mod's decision/simulated shot,
+  it does not prove native Foxhole firing nor the vehicle mitigation contract.
+- ReceiveAnyDamage/ReceivePointDamage/ReceiveRadialDamage are reflected callbacks:
+  do not call them as substitutes for TakeDamage. AllFire without parameters may
+  be an effect/notification; metadata alone does not prove a physical shot.
+- `ServerFire` and Multicast/Server/Client methods are out of the requested scope.
 
-## Oracle mínimo para o agente responsável pelo laboratório
+## Minimal oracle for the agent in charge of the lab
 
-1. Ator TruckW isolado vivo, não destruindo, fora dos caminhões contábeis; registrar
-   Health, bCanBeDamaged, classe, posição e autoridade. Nada de modificar `tr.hp`.
-2. Confirmar schema GameplayStatics.ApplyDamage (preflight já preparado externamente),
-   carregar a classe de DamageType e ler seu CDO Type/flags seguros.
-3. Aplicar UM pulso baixo com tipo de munição correto, atirador e causer vivos.
-   Registrar retorno, Health antes/depois, flag de destruição imediatamente e após
-   pequeno atraso. Não exigir que diferença seja igual ao número recebido.
-4. A/B Engine genérico versus LightKinetic versus HeavyKinetic pode separar contrato
-   Foxhole de simples callback, sem envolver rede. Se não houver diferença de Health,
-   seguir rastro nativo; não substituir por escrita de HP.
-5. Só depois validar impacto/ponto/radial e morte/subsistemas. Não repetir zeroHP num
-   ator com caches vivos. A segurança de OnRep_Health no personagem não transfere
-   automaticamente ao veículo.
+1. An isolated live TruckW actor, not being destroyed, outside the accounted trucks; record
+   Health, bCanBeDamaged, class, position and authority. No modifying `tr.hp`.
+2. Confirm the GameplayStatics.ApplyDamage schema (preflight already prepared externally),
+   load the DamageType class and read its CDO Type/safe flags.
+3. Apply ONE low pulse with the right ammunition type, shooter and causer alive.
+   Record the return, Health before/after, the destruction flag immediately and after
+   a short delay. Do not require the difference to equal the number received.
+4. A/B generic Engine versus LightKinetic versus HeavyKinetic can separate the Foxhole contract
+   from a simple callback, without involving the network. If Health does not change,
+   follow the native trace; do not replace it with an HP write.
+5. Only then validate impact/point/radial and death/subsystems. Do not repeat zero HP on an
+   actor with live caches. The safety of OnRep_Health on the character does not transfer
+   automatically to the vehicle.
 
-Faltam prova dinâmica de redução real, classificação/mitigação, impacto, destruição
-nativa, integração contábil sem débito duplo e origem nativa do disparo. Este relatório
-NÃO certifica nenhum deles.
+Still missing: dynamic proof of real reduction, classification/mitigation, impact, native
+destruction, accounting integration without a double debit and the native origin of the shot. This report
+certifies NONE of them.
 
-## Localização para investigação nativa posterior
+## Location for a later native investigation
 
-`re-agent/class_natives.txt:5895`: SimVehicle size0x12f0, StaticClass0x141248990.
-OnRep_Health wrapper0x1412499a0. `native_tables.txt:2683` registra exec wrapper
-0x141248100; não confundir os dois com TakeDamage virtual.
-`strings_all.txt` tem `Vehicle DamageDebug` em0x36362b0 e formato de PenChance
-em0x3636390. `DecompStrRefs.java` pode procurar essas strings e seus callers;
-nenhuma decompilação existente pesquisada provou esse fluxo nesta investigação.
-Manter toda decompilação fora do repositório conforme skill reverse-engineering.
+`re-agent/class_natives.txt:5895`: SimVehicle size 0x12f0, StaticClass 0x141248990.
+OnRep_Health wrapper 0x1412499a0. `native_tables.txt:2683` records the exec wrapper
+0x141248100; do not confuse either with the virtual TakeDamage.
+`strings_all.txt` has `Vehicle DamageDebug` at 0x36362b0 and a PenChance format
+at 0x3636390. `DecompStrRefs.java` can look for these strings and their callers;
+no existing decompilation searched proved this flow in this investigation.
+Keep all decompilation outside the repository as per the reverse-engineering skill.
 
-## Avanço estático posterior: fluxo de dano localizado
+## Later static progress: damage flow located
 
-Disassembly offline via ferramentas existentes `re-agent/pe.py` (PE/Capstone), sem
-processo do jogo nem injeção. Evidência externa `D:/tools/foxhole-lab/damage-native-static.txt`.
-Não é decompilação publicável nem autoriza chamadas nativas por endereço.
+Offline disassembly with the existing tools `re-agent/pe.py` (PE/Capstone), without
+a game process nor injection. External evidence `D:/tools/foxhole-lab/damage-native-static.txt`.
+It is not publishable decompilation nor does it authorize native calls by address.
 
-1. execApplyDamage0x142a52670 chama0x142550100, que constrói FDamageEvent e
-   chama virtual do alvo no offset0x570 (slot174).
-2. Constructor real SimVehicle0x140d5be40 instala vtable0x1436290f8;
-   slot0x570 aponta0x140d96d80, candidato TakeDamage demonstrado pelo caller.
-3. Este converte evento com0x140a104b0 e despacha a interface EMBUTIDA em
-   this+0x8f8, vtable0x1435fb920, método+0x10→0x140d81a00. Não é UObject
-   componente: não procurar FindAllOf pelo endereço.
-4. Dispatch verifica Health(original this+0xb08)>0 e resolve tipo em0x140a257b0.
-   A resolução exige CDO IsA SimDamageType, confirmado classdb.json para
-   StaticClass0x1411c8be0. Dano com EngineDamageType genérico pode ser recusado.
-5. Guard virtual original this+0x688→0x140d94b00→0x140dc0cb0→0x142781620.
-   O último exige byteRole+0xf0>=3, bCanBeDamaged bit+0x5a&1, dmg diferente
-   de zero e ponteiro World(vtable+0x150)+0x128 não nulo. Esse ponteiro é
-   candidato AuthGameMode, ainda requer confirmação refletida; falta dele é
-   hipótese concreta de rejeição, não impossibilidade de dano offline.
-6. Guard War exige this+0x808==0 OU byteCDO+0x48!=0. Corresponde provavelmente
-   a proteção de spawn e bypass, mas o significado exato não está provado.
-   NÃO alterar offsets diretamente; confirmar nomes refletidos primeiro.
+1. execApplyDamage 0x142a52670 calls 0x142550100, which builds an FDamageEvent and
+   calls the target's virtual at offset 0x570 (slot 174).
+2. The real SimVehicle constructor 0x140d5be40 installs vtable 0x1436290f8;
+   slot 0x570 points to 0x140d96d80, a TakeDamage candidate shown by the caller.
+3. It converts the event with 0x140a104b0 and dispatches the EMBEDDED interface at
+   this+0x8f8, vtable 0x1435fb920, method +0x10 → 0x140d81a00. It is not a UObject
+   component: do not search FindAllOf by the address.
+4. The dispatch checks Health (original this+0xb08) > 0 and resolves the type at 0x140a257b0.
+   The resolution requires the CDO IsA SimDamageType, confirmed by classdb.json for
+   StaticClass 0x1411c8be0. Damage with the generic EngineDamageType may be refused.
+5. Original virtual guard this+0x688 → 0x140d94b00 → 0x140dc0cb0 → 0x142781620.
+   The last one requires byte Role +0xf0 >= 3, bCanBeDamaged bit +0x5a&1, dmg different
+   from zero and a non-null World (vtable+0x150) +0x128 pointer. That pointer is a
+   candidate AuthGameMode, still requiring reflected confirmation; its absence is a
+   concrete rejection hypothesis, not the impossibility of offline damage.
+6. The War guard requires this+0x808==0 OR byte CDO+0x48 != 0. It probably matches
+   spawn protection and bypass, but the exact meaning is not proven.
+   Do NOT change offsets directly; confirm the reflected names first.
 
-Próxima sonda segura é SOMENTE observação: Role/GetLocalRole/HasAuthority, World
-e AuthGameMode refletidos, propriedade invulnerável refletida se existir, CDO real
-SimDamageType e Type. Não repetir dezenas de ApplyDamage antes desses guards.
+The next safe probe is ONLY observation: reflected Role/GetLocalRole/HasAuthority, World
+and AuthGameMode, a reflected invulnerability property if it exists, the real
+SimDamageType CDO and Type. Do not repeat dozens of ApplyDamage before these guards.
 
-Oracle do responsável pelo lab: ApplyDamage45 com LightKinetic/HeavyKinetic/Explosive
-retornou0, TruckW manteve900HP; ApplyRadialDamage75 retornoutrue, mas Health900.
-Fontes `dados/rastro_dano_veiculo_nativo.txt` e `dados/rastro_dano_veiculo_radial.txt`.
-Retorno true radial NÃO prova dano; Team255 permaneceu255, portanto não foi A/B
-entre equipes. Nenhuma integração nativa entregue nesta investigação.
+The lab owner's oracle: ApplyDamage 45 with LightKinetic/HeavyKinetic/Explosive
+returned 0, TruckW kept 900 HP; ApplyRadialDamage 75 returned true, but Health 900.
+Sources `data/trace_damage_vehicle_native.txt` and `data/trace_damage_vehicle_radial.txt`.
+A true radial return does NOT prove damage; Team 255 stayed 255, so it was not an A/B
+between teams. No native integration delivered in this investigation.
 
-## Continuação offline: guards delimitados (2026-10-10)
+## Offline continuation: guards delimited (2026-10-10)
 
-- Oracle posterior confirmou Role3/HasAuthoritytrue/SimGameMode válido, TeamId0
-  e, após12s, HP900/dano0. CDOs vivos Type1/2/7/3/8/18 confirmados, todos bypassfalse.
-  Portanto autoridade e nome de DamageType já não explicam sozinhos o resultado.
-- Setter UHT de `bBypassesSpawnInvulnerability` comprovado por parâmetro nativo
-  em0x1436e9e50: SetBit0x1405efab0 faz `CDO+0x48=1`. Não é inferência por nome.
-- Actor+0x808 NÃO é UProperty exposta no dump WarCharacter (10 propriedades).
-  Constructor WarCharacter0x140d9f5b0 zera a flag. Setter local0x140dc3d80
-  recebe duração float positiva, seta808=1, registra timerhandle800 com callback
-  0x140dac120; callback zera808 e limpa timer. O único caller direto localizado
-  está em helper de spawn0x140b95100, call0x140b951fb. Não há prova de flag ativa
-  no truck12s depois nem autorização para alterar offsets/manualmente cancelar timer.
-- `DamageAttributes` constructor0x140a104b0 copia Damage recebido direto em+0;
-  guarda FDamageEvent em+0x20. NÃO possui ramo de ID0 que zere dano. Resolvedor
-  0x140a257b0 lê DamageEvent+8 (DamageTypeClass), CDO e IsA SimDamageType;
-  também serve ao evento genérico. Não declarar genérico intrinsecamente incapaz.
-- **Guard distinto ainda não observado:** damageinterface0x140d81ae0 chama
-  `world → SimGameMode → WarGameInstance → ServerSettings`; retorno nulo em
-  0x140d81afb salta à saída zero0x140d82719 ANTES de mitigação. Contexto é
-  resolvido por0x14113e570→0x141192be0→0x140b61090→0x1411409c0.
-  O último lê `WarGameInstance+0x3d0`; extração UHT comprova nome `ServerSettings`
-  ObjectProperty e classe ServerSettings. SimGameMode válido não prova essa
-  propriedade não nula. Evidência externa `damage-gameinstance-props.txt:14`.
-- Isso é descoberta estática de requisito de contexto local, **não proposta de
-  implementar servidor, RPC, configurar rede ou perseguir sistemas online**.
-  Limite desta investigação: observar propriedade JÁ existente, sem fabricar
-  objeto/configuração para passar guard. Se nula, causa concreta da recusa;
-  a decisão de reaproveitamento nativo exige respeitar escopo offline do usuário.
+- A later oracle confirmed Role 3/HasAuthority true/valid SimGameMode, TeamId 0
+  and, after 12 s, HP 900/damage 0. Live CDOs Type 1/2/7/3/8/18 confirmed, all bypass false.
+  So authority and the DamageType name no longer explain the result by themselves.
+- The UHT setter of `bBypassesSpawnInvulnerability` proven by a native parameter
+  at 0x1436e9e50: SetBit 0x1405efab0 does `CDO+0x48=1`. It is not an inference from the name.
+- Actor+0x808 is NOT an exposed UProperty in the WarCharacter dump (10 properties).
+  The WarCharacter constructor 0x140d9f5b0 zeroes the flag. The local setter 0x140dc3d80
+  takes a positive float duration, sets 808=1, registers timer handle 800 with callback
+  0x140dac120; the callback zeroes 808 and clears the timer. The only direct caller located
+  is in the spawn helper 0x140b95100, call 0x140b951fb. There is no proof of the flag being active
+  on the truck 12 s later nor authorization to change offsets/cancel the timer by hand.
+- The `DamageAttributes` constructor 0x140a104b0 copies the received Damage directly to +0;
+  keeps the FDamageEvent at +0x20. It has NO ID 0 branch that zeroes damage. Resolver
+  0x140a257b0 reads DamageEvent+8 (DamageTypeClass), the CDO and IsA SimDamageType;
+  it also serves the generic event. Do not declare the generic one intrinsically incapable.
+- **A distinct guard not observed yet:** damage interface 0x140d81ae0 calls
+  `world → SimGameMode → WarGameInstance → ServerSettings`; a null return at
+  0x140d81afb jumps to the zero exit 0x140d82719 BEFORE mitigation. The context is
+  resolved by 0x14113e570 → 0x141192be0 → 0x140b61090 → 0x1411409c0.
+  The last one reads `WarGameInstance+0x3d0`; the UHT extraction proves the name `ServerSettings`,
+  an ObjectProperty of class ServerSettings. A valid SimGameMode does not prove this
+  property is non-null. External evidence `damage-gameinstance-props.txt:14`.
+- This is a static discovery of a local context requirement, **not a proposal to
+  implement a server, RPC, configure the network or chase online systems**.
+  Limit of this investigation: observe an ALREADY existing property, without fabricating an
+  object/configuration to pass the guard. If null, it is the concrete cause of the refusal;
+  the decision to reuse native code must respect the user's offline scope.
 
-Próximo mínimo oracle recomendado: registrar GameInstance classe e ServerSettings
-IsValid, sem aplicar dano. Se válido, rastrear resultado de guard/profiler local
-antes de um novo oracle com impacto. Nenhum PointDamage com HitInfo inventado.
+Next minimal oracle recommended: record the GameInstance class and ServerSettings
+IsValid, without applying damage. If valid, trace the result of the local guard/profiler
+before a new oracle with impact. No PointDamage with an invented HitInfo.
 
-Disassembly/extrações ficam externos: `war808-refs.txt`, `damage-waractor-props.txt`,
-`damage-gameinstance-props.txt` e `damage-native-static.txt`. Nenhum processo do jogo,
-canal, offset write, RPC ou alteração de `main.lua` nesta continuação.
+Disassembly/extractions stay external: `war808-refs.txt`, `damage-waractor-props.txt`,
+`damage-gameinstance-props.txt` and `damage-native-static.txt`. No game process,
+channel, offset write, RPC or change to `main.lua` in this continuation.

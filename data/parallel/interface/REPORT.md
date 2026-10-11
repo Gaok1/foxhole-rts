@@ -1,43 +1,43 @@
-# INTERFACE — entrega offline, 2026-10-09
+# INTERFACE — offline delivery, 2026-10-09
 
-## Evidência existente / contrato
+## Existing evidence / contract
 
-- `main.lua:4550–4684`: HUD Slate nativo não expõe TextBlocks; renderer do mod clona `CrosshairWidget_C`, usa `WidgetTree.RootWidget` (CanvasPanel), `StaticConstructObject(UMG.TextBlock)`, `AddChildToCanvas`, `SetAutoSize`, `SetPosition`, `SetText`, `SetVisibility` e `AddToViewport(50)`. Métodos já utilizados e registro de captura no código; nenhuma sessão nova certificada por esta task.
-- `hudTick`: 0,25 s **tempo real**, inclusive pausa; remove widget quando RTS desliga. Troca de mapa ainda precisa gate específico: não confundir IsValid do widget antigo com dono/world atual.
-- `logi.hudLine`: hoje concatena a logística numa linha extensa. Proposta `painel.patch` substitui só essa função, aproveitando TextBlock existente com linhas para produção, estoque físico/meta, caixas versus unidades e cada caminhão/carga/destino. Não cria actor, API UMG nova, tecla ou estoque.
-- Uma tarefa de produção (`logi.job`), não fila arbitrária: debitada ao iniciar, caixa acrescentada ao completar. Não chamar isso de fila de pedidos do jogador.
-- `fac.ammo`, `fac.shirts`, `tr.cargo` = **caixas**. `depot.ammo` = suprimento de munição; `depot.shirts` = camisas individuais; receita de camisa tem `units=10`. `logi.need` desconta trânsito; indicador do painel usa estoque físico e meta, não afirma escassez não atendida.
-- `logi.depots()` cria/reusa depósitos dos pontos aliados via `depotOf`; proposta não introduz mutação adicional além da função já usada no HUD. Transporte destruído mostra carga perdida, não fictícia entrega pendente.
+- `main.lua:4550–4684`: the native Slate HUD does not expose TextBlocks; the mod's renderer clones `CrosshairWidget_C`, uses `WidgetTree.RootWidget` (CanvasPanel), `StaticConstructObject(UMG.TextBlock)`, `AddChildToCanvas`, `SetAutoSize`, `SetPosition`, `SetText`, `SetVisibility` and `AddToViewport(50)`. Methods already used and capture recorded in the code; no new session certified by this task.
+- `hudTick`: 0.25 s of **real time**, including pause; removes the widget when the RTS turns off. A map change still needs a specific gate: do not confuse IsValid of the old widget with the current owner/world.
+- `logi.hudLine`: today concatenates logistics into one long line. The proposal `painel.patch` replaces only that function, reusing the existing TextBlock with lines for production, physical stock/target, crates versus units and each truck/cargo/destination. It creates no actor, new UMG API, key or stock.
+- One production task (`logi.job`), not an arbitrary queue: debited at start, crate added on completion. Do not call it the player's order queue.
+- `fac.ammo`, `fac.shirts`, `tr.cargo` = **crates**. `depot.ammo` = ammo supply; `depot.shirts` = individual shirts; the shirt recipe has `units=10`. `logi.need` discounts transit; the panel's indicator uses physical stock and target, it does not claim unmet scarcity.
+- `logi.depots()` creates/reuses depots of allied points through `depotOf`; the proposal introduces no mutation beyond the function already used in the HUD. A destroyed transport shows lost cargo, not a fictitious pending delivery.
 
-## Caixa de seleção: solução mínima, ainda NÃO implementada
+## Selection box: minimal solution, NOT implemented yet
 
-`mouseTick` guarda **ponto de chão**, e `selectBox` testa retângulo XY no mundo com margem 50 cm. Desenhar retângulo entre posições de tela pode divergir em relevo/câmera. Rastrear antes de mudar semântica. Preferência: projetar quatro cantos do mesmo retângulo XY/margem sobre o chão e renderizar bordas não interativas no Canvas; se projeção não estiver disponível, definir/testar seleção em coordenadas de tela como alteração explícita de comportamento.
+`mouseTick` stores a **ground point**, and `selectBox` tests an XY rectangle in the world with a 50 cm margin. Drawing a rectangle between screen positions can diverge with terrain/camera. Trace before changing semantics. Preference: project the four corners of the same XY rectangle/margin onto the ground and render non-interactive edges on the Canvas; if projection is not available, define/test selection in screen coordinates as an explicit behavior change.
 
-Sondas exigidas ao LABORATORIO (nenhuma executada pelo agente):
-1. Inspecionar **somente UFunctions conhecidas/refletidas** do PlayerController/WidgetLayoutLibrary para projeção, conversão viewport/DPI e saída dos parâmetros. `GetMousePosition` já aparece no código, com saída na primeira tabela; projeção e escala NÃO estão comprovadas. Não chamar nomes presumidos no main.lua.
-2. Descobrir classe e propriedades de UMG Image/Border e CanvasSlot: prova de construtor, tinta/transparência, posição/tamanho e hit-testing. Nenhuma chamada nova desses tipos neste patch.
-3. Oráculo: usuário arrasta nos quatro sentidos; gravar pontos inicial/final de chão, coordenadas de tela, quatro cantos projetados e elenco selecionado; câmera estática/depois movida durante arrasto, zoom baixo/alto, terreno irregular e DPI/resolução diferentes.
-4. A caixa deve surgir apenas após DRAG_MIN, sumir ao soltar/RTS desligar/mapa mudar, Shift somar sem bloquear direita/câmera, sem widget capturar mouse. Atualizar cada frame, não a cada 0,25 s.
+Probes required from LABORATORIO (none run by the agent):
+1. Inspect **only known/reflected UFunctions** of PlayerController/WidgetLayoutLibrary for projection, viewport/DPI conversion and parameter output. `GetMousePosition` already appears in the code, with output in the first table; projection and scale are NOT proven. Do not call presumed names in main.lua.
+2. Find the class and properties of UMG Image/Border and CanvasSlot: proof of constructor, tint/transparency, position/size and hit-testing. No new call of these types in this patch.
+3. Oracle: the user drags in all four directions; record start/end ground points, screen coordinates, the four projected corners and the selected cast; static camera/then moved during the drag, low/high zoom, uneven terrain and different DPI/resolution.
+4. The box must appear only after DRAG_MIN, vanish on release/RTS off/map change, Shift adds without blocking right click/camera, no widget capturing the mouse. Update every frame, not every 0.25 s.
 
-## Foco e alertas
+## Focus and alerts
 
-Reusar controles existentes Ctrl+L/Q/E/Espaço; o patch os explicita, não finge que linhas de texto são botões. Botões de foco de cada caminhão/instalação e alertas de estoque com deduplicação permanecem subtasks abertas: requerem contrato de ação/destino válido e gate de input. Não produzir alertas repetidos a cada refresh nem referências a atores destruídos.
+Reuse the existing Ctrl+L/Q/E/Space controls; the patch makes them explicit, it does not pretend text lines are buttons. Focus buttons for each truck/installation and deduplicated stock alerts remain open subtasks: they require a valid action/destination contract and an input gate. Do not produce repeated alerts on each refresh nor references to destroyed actors.
 
-## Gate de integração / visual / usuário
+## Integration / visual / user gate
 
-- Offline: `PYTHONPATH=D:/tools/pylibs python data/parallel/interface/test_interface.py` PASS: produção, unidades, trânsito, destruição, metas, inatividade, não alteração de estoques.
-- Integrador: aplicar `painel.patch` só após estabilidade; conferir fontes/âncoras e executar suíte existente. São zero novos locais de topo.
-- Laboratório: painel em partida/logística ativa, pausa, logística desligada, mapa novo, depósito perdido, caminhão morto/recriado; registrar captura e dados do mesmo instante. Checar sobreposição, largura/altura nos vários zooms/resoluções, ajuda F5 e alertas nativos. Multilinha usa HUD atual, sem clipping/scroll provados. Se elenco exceder altura: ajustar layout antes de aprovar, não esconder estoques/veículos silenciosamente.
-- Usuário: esquerda/Shift/direita/câmera/F5/Ctrl+L/Q/E/Espaço continuam funcionando. **Nenhuma entrada real foi testada aqui.** Caixa requer sondas anteriores, não está entregue.
-- Status geral: proposta testada, NÃO feature integrada/concluída. main.lua não alterado; jogo/canal/processos não acessados.
+- Offline: `PYTHONPATH=D:/tools/pylibs python data/parallel/interface/test_interface.py` PASS: production, units, transit, destruction, targets, inactivity, stocks unchanged.
+- Integrator: apply `painel.patch` only after stability; check sources/anchors and run the existing suite. Zero new top-level locals.
+- Lab: panel in a match/active logistics, pause, logistics off, new map, lost depot, dead/recreated truck; record a capture and data from the same instant. Check overlap, width/height at various zooms/resolutions, F5 help and native alerts. Multiline uses the current HUD, with no proven clipping/scroll. If the cast exceeds the height: adjust the layout before approving, do not silently hide stocks/vehicles.
+- User: left/Shift/right/camera/F5/Ctrl+L/Q/E/Space keep working. **No real input was tested here.** The box requires the probes above, it is not delivered.
+- Overall status: tested proposal, NOT an integrated/finished feature. main.lua unchanged; game/channel/processes not accessed.
 
 ## Universal-modder
 
-Consultados reverse-engineering (oráculos/rastro real), mod-any-game e playbook Unreal. `um kb search foxhole` encontrou a nota existente; busca "foxhole widget" não retornou match. Coordenador deve registrar Gotcha na nota compartilhada (para evitar escrita simultânea): painel mistura caixas e unidades; retângulo XY do seletor não equivale automaticamente a retângulo de tela; chamadas UMG de projeção/DPI/borda ainda exigem sonda. Executar kb check no fim do lote.
+Consulted reverse-engineering (oracles/real trace), mod-any-game and the Unreal playbook. `um kb search foxhole` found the existing note; the search "foxhole widget" returned no match. The coordinator must record a Gotcha in the shared note (to avoid simultaneous writes): the panel mixes crates and units; the selector's XY rectangle is not automatically a screen rectangle; UMG projection/DPI/border calls still require a probe. Run kb check at the end of the batch.
 
-## Revisão de preservação funcional
+## Functional preservation review
 
-- Mantida linha de carga inimiga e aviso de comboio fora do assalto, iguais ao contrato anterior. Não afirma quantidade/posição que a fonte não fornece.
-- Auditados todos os estados aliados: idle/res inicia coleta; idle/sup retorna ou aguarda fábrica (não afirmar que já chegou); toField, loading, toRef, toDep, dead. Destinos derivados de estado quando tr.dest não existe. nomes dos pontos vêm de pt.name -> dep.name; base usa "base".
-- job.total sempre é produzido por factoryStep, mas snapshot/restore atuais NÃO persistem job nem total (restore chama start/reset). Proposta agora mostra apenas tempo restante quando total ausente, sem inventar duração reconstruída. Persistência incompleta é outra task, não corrigida pela UI.
-- Testes adicionados: cada estado aliado, nomes de ponto, job.total ausente, carga inimiga, comboio e ocultação no assalto. PASS.
+- Kept the enemy cargo line and the convoy warning outside the assault, equal to the previous contract. It does not claim a quantity/position the source does not provide.
+- Audited all allied states: idle/res starts collection; idle/sup returns or waits for the factory (do not claim it already arrived); toField, loading, toRef, toDep, dead. Destinations derived from state when tr.dest does not exist. Point names come from pt.name -> dep.name; the base uses "base".
+- job.total is always produced by factoryStep, but the current snapshot/restore do NOT persist job or total (restore calls start/reset). The proposal now shows only the remaining time when total is absent, without inventing a reconstructed duration. Incomplete persistence is another task, not fixed by the UI.
+- Tests added: each allied state, point names, missing job.total, enemy cargo, convoy and hiding during the assault. PASS.

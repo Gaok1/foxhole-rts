@@ -1,43 +1,43 @@
-# Granada nativa — candidato offline, NÃO publicado
+# Native grenade — offline candidate, NOT published
 
 Base SHA256 `2F1C74D6BB205FA5610957A9B126720731CFA34DF4775329B2DDA7A82101F956`.
-Montar: `python data/parallel/native_grenade/assemble.py`.
+Assemble: `python data/parallel/native_grenade/assemble.py`.
 Mocks: `PYTHONPATH=D:/tools/pylibs python data/parallel/native_grenade/test_grenade.py`.
 
-Substitui granada mesh/arco manual/shell de dano próprio por BPGrenadeW deferred,
-FuseTimer da row real ANTES FinishSpawning, solver CustomArc e ProjectileMovement.
-Não agenda strikes, ApplyDamage, logi.blast ou FX artificiais de explosão. Morteiro
-continua abstrato e explicitamente separado como dívida. Cooldown/contador/animação
-só confirmam após ator finalizado e acompanhamento aceito; falhas limpam apenas
-ator criado pelo próprio fluxo e liberam reserva. `fire` continua tiro normal se
-granada for recusada, em vez de perder a ação silenciosamente.
+Replaces the mesh grenade/manual arc/our own damage shell with a deferred BPGrenadeW,
+FuseTimer from the real row BEFORE FinishSpawning, the CustomArc solver and ProjectileMovement.
+It schedules no strikes, ApplyDamage, logi.blast or artificial explosion FX. The mortar
+stays abstract and explicitly separated as debt. Cooldown/counter/animation
+only confirm after the actor is finished and tracking accepted; failures clean up only the
+actor created by the flow itself and release the reservation. `fire` keeps normal fire if
+the grenade is refused, instead of silently losing the action.
 
-## Dependência a integrar pelo principal
+## Dependency to be integrated by the main agent
 
-- `rts.nativeAcquire()` → bool, reserva uma pendência e ancora ServerSettings fresca.
-- `rts.nativeRelease()` desfaz reserva em falha, restaura somente contexto próprio.
-- `rts.nativeTrack(actor)` → bool, transfere reserva para acompanhamento por nome/classe.
-- Tick/clear/reset do principal devem manter contexto enquanto granadas estiverem
-  vivas, não escrever em cache de UObject morto; restore original somente se a GI
-  ainda apontar para settings própria. Este candidato NÃO implementa outro lifetime.
-- MyController fraco não é escrito: binding/atribuição de instigador permanecem
-  gate. Owner m.pawn é passado pelo parâmetro nativo já provado com playerPawn;
-  isso não prova equipe correta contra soldados nem concessão de killcredit.
+- `rts.nativeAcquire()` → bool, reserves a pending slot and anchors a fresh ServerSettings.
+- `rts.nativeRelease()` undoes the reservation on failure, restores only our own context.
+- `rts.nativeTrack(actor)` → bool, transfers the reservation to tracking by name/class.
+- The main agent's tick/clear/reset must keep the context while grenades are
+  alive, not write into a dead UObject's cache; restore the original only if the GI
+  still points to our own settings. This candidate does NOT implement another lifetime.
+- The weak MyController is not written: binding/instigator attribution remain a
+  gate. Owner m.pawn is passed through the native parameter already proven with playerPawn;
+  this does not prove the right team against soldiers nor the granting of kill credit.
 
-## Batch vivo posterior — ainda pendente
+## Later live batch — still pending
 
-1. Integrar helpers de lifetime e candidato junto do restante do lote, sem lançar
-   laboratório só para este helper. Validar uma única publicação/reinicialização.
-2. Arremesso real a partir de soldado, aliados/inimigos, cobertura, alcance curto/
-   longo. Não substituir solver recusado por teleporte/arco manual.
-3. Registrar timer4s, trajetória/colisão/bounce e HP nativo de alvos; confirmar
-   dano/efeito nativo também no soldado, morte/cleanup/animação via fluxo existente.
-4. Confirmar equipe/friendlyfire/Owner/MyController/killcredit; contador `gdmg`
-   antigo não mede dano nativo automaticamente e NÃO certifica ausência de dano.
-5. Reset/saída/morte do lançador com projétil em voo, várias granadas simultâneas,
-   falha de spawn/solver/Finish e contexto externo trocado enquanto lease ativa.
-6. Validar GIsettings restaurada só quando todas pendências terminarem, sem crash;
-   fechar somente PID laboratório após batch. Sem mouse/teclado automatizado.
+1. Integrate the lifetime helpers and the candidate together with the rest of the batch, without launching
+   the lab just for this helper. Validate one single publish/restart.
+2. Real throw from a soldier, allies/enemies, cover, short/long
+   range. Do not replace a refused solver with a teleport/manual arc.
+3. Record the 4 s timer, trajectory/collision/bounce and the targets' native HP; confirm
+   native damage/effect on the soldier too, death/cleanup/animation through the existing flow.
+4. Confirm team/friendly fire/Owner/MyController/kill credit; the old `gdmg` counter
+   does not measure native damage automatically and does NOT certify absence of damage.
+5. Reset/exit/death of the thrower with a projectile in flight, several simultaneous grenades,
+   spawn/solver/Finish failure and an external context swapped while the lease is active.
+6. Validate GI settings restored only when all pending ones finish, without a crash;
+   close only the lab PID after the batch. No automated mouse/keyboard.
 
-Mocks17PASS provam decisões/limpeza, não Unreal. Evidência viva anterior prova
-somente oracle isolado de lançamento, não este `throwGrenade` integrado.
+17 mocks PASS prove decisions/cleanup, not Unreal. Earlier live evidence proves
+only the isolated launch oracle, not this integrated `throwGrenade`.

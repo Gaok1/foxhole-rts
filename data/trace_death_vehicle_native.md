@@ -1,42 +1,42 @@
-# Morte nativa de veículo — 2026-10-11
+# Native vehicle death — 2026-10-11
 
-Investigação OFFLINE, sem canal/jogo, RPC, HP write, edição main.lua ou chamadas por
-offset. Observação do usuário: caminhão explodiu e deixou algo; objeto não identificado.
+OFFLINE investigation, without channel/game, RPC, HP write, main.lua edit or calls by
+offset. User's observation: the truck exploded and left something; object not identified.
 
-## Fluxo comprovado estaticamente
+## Flow proven statically
 
-1. `SimVehicle` DamageableActor interface0x140d81a00 debita Health real. Ao chegar
-   a zero chama virtual+0xd60, que na vtable nativa0x1436290f8 aponta0x140d970b0.
-2. Esse lifecycle já é chamado automaticamente pela aplicação de dano autoritativa:
-   trata flags do DamageType, collision/effects, ocupantes/componentes e finaliza
-   em helper0x140d6a8c0. Não chamar callback de morte manualmente nem duplicá-lo.
-3. Final0x140d973b7 carrega constante float **15.0** de0x1433eb978 e a passa ao
-   helper0x140d6a8c0. Helper chama virtual+0x378 em0x140d6a9cb, apontando
-   Actor0x1422e85e0. O wrapper refletido Engine.Actor.SetLifeSpan0x1429faac0
-   também chama virtual+0x378: nome comprovado, não palpite pelo timer.
-4. SetLifeSpan escreve InitialLifeSpan e registra timer no caminho de autoridade.
-   Logo ator continuar IsValid/nonbeingDestroyed imediatamente apósHP0 é compatível
-   com **casco transitório e TTL nativo15s**; não prova callback faltante.
+1. `SimVehicle` DamageableActor interface 0x140d81a00 debits the real Health. On reaching
+   zero it calls virtual +0xd60, which in the native vtable 0x1436290f8 points to 0x140d970b0.
+2. That lifecycle is already called automatically by the authoritative damage application:
+   it handles DamageType flags, collision/effects, occupants/components and finishes
+   in helper 0x140d6a8c0. Do not call the death callback by hand nor duplicate it.
+3. The end at 0x140d973b7 loads the float constant **15.0** from 0x1433eb978 and passes it to
+   helper 0x140d6a8c0. The helper calls virtual +0x378 at 0x140d6a9cb, pointing to
+   Actor 0x1422e85e0. The reflected wrapper Engine.Actor.SetLifeSpan 0x1429faac0
+   also calls virtual +0x378: the name is proven, not guessed from the timer.
+4. SetLifeSpan writes InitialLifeSpan and registers a timer on the authority path.
+   So the actor staying IsValid/not being destroyed right after HP 0 is consistent
+   with a **transient hull and a native 15 s TTL**; it does not prove a missing callback.
 
 ## OnRep_Health
 
-SimVehicle.OnRep_Health wrapper0x1412499a0 despacha virtual+0xe88→0x140d83470,
-que atualiza estado e efeitos condicionados por modo/contexto; chama helper0x140d9a270.
-Isso é notificação local refletida, não o aplicador de dano ou gatilho obrigatório
-da morte autoritativa. O caminho de TakeDamage já invocou morte acima.
-Não transportar automaticamente workaround de OnRep do personagem para o caminhão.
+The SimVehicle.OnRep_Health wrapper 0x1412499a0 dispatches virtual +0xe88 → 0x140d83470,
+which updates state and effects conditioned by mode/context; it calls helper 0x140d9a270.
+This is a reflected local notification, not the damage applier nor a mandatory trigger
+of the authoritative death. The TakeDamage path already invoked the death above.
+Do not automatically carry the character's OnRep workaround over to the truck.
 
-## Evidência e limites
+## Evidence and limits
 
-Oracle PID12456 comprovou Health900→873→840→0, sem HP artificial, usando tipos
-nativos. Usuário confirmou explosão/drop. Cleanup removeu ator logo após; **TTL15s
-não foi observado ao vivo**, só identificado estaticamente. Drop desconhecido: não
-presumir inventário/carga/perda contábil; não perseguir sistema de inventário nativo.
+Oracle PID12456 proved Health 900→873→840→0, without artificial HP, using native
+types. The user confirmed explosion/drop. Cleanup removed the actor right after; **the 15 s TTL
+was not observed live**, only identified statically. Unknown drop: do not
+assume inventory/cargo/accounting loss; do not chase the native inventory system.
 
-Gate posterior opcional, no lote adequado: ator exclusivo, morte pelo dano real,
-observar GetLifeSpan, Health, classe/posição/Hidden e destructionflag por>15s SEM
-cleanup antecipado; nunca escrever lifespan/Health nem chamar OnRep/morte manual.
-Tratar Health0 como morto para cache/lógica mesmo que IsValid aindatrue.
+Optional later gate, in a suitable batch: exclusive actor, death by real damage,
+observe GetLifeSpan, Health, class/position/Hidden and the destruction flag for >15 s WITHOUT
+early cleanup; never write lifespan/Health nor call OnRep/death by hand.
+Treat Health 0 as dead for cache/logic even if IsValid is still true.
 
-Disassembly externo protegido: `D:/tools/foxhole-lab/vehicle-death-native-static.txt`.
-Nada integrado ao mod ou anunciado como rifle/impacto completo nesta investigação.
+Protected external disassembly: `D:/tools/foxhole-lab/vehicle-death-native-static.txt`.
+Nothing integrated into the mod or announced as complete rifle/impact in this investigation.

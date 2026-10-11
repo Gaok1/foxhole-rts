@@ -1,101 +1,101 @@
-# Explosivo local nativo — investigação offline (2026-10-11)
+# Native local explosive — offline investigation (2026-10-11)
 
-## Contrato encontrado, ainda sem oracle de explosão
+## Contract found, still without an explosion oracle
 
-- `WarProjectile` e `TimedProjectile` são atores nativos. `BPGrenadeW` é
-  candidato de SpawnActor; schema/CDO vivo foi registrado pelo agente principal
-  em `esquema_projectiles_nativos.txt`: FuseTimer20, ExplosiveCodeNameGrenadeW,
-  ExplosionTemplateGrenadeExplosion, AutoDetonateTime0, ProjectileLife0.
+- `WarProjectile` and `TimedProjectile` are native actors. `BPGrenadeW` is a
+  SpawnActor candidate; the live schema/CDO was recorded by the main agent
+  in `schema_projectiles_native.txt`: FuseTimer 20, ExplosiveCodeName GrenadeW,
+  ExplosionTemplate GrenadeExplosion, AutoDetonateTime 0, ProjectileLife 0.
 - `GrenadeItemComponent.ServerPullPin/ServerThrowGrenade/ServerOnFuseExpired`
-  são RPC e NÃO são a solução proposta.
-- UHT de `WarProjectile.Detonate` e `ApplyExplosiveDamageAndSpawnFx`:
-  flags0x4420401, um parâmetro const/ref `ProjectileHitInfo_NetQuantize`0x38.
-  Não criar uma tabela Lua imitando esse struct. Ambos são locais, não RPC,
-  mas timer/colisão nativos dispensam invocação manual.
+  are RPCs and are NOT the proposed solution.
+- UHT of `WarProjectile.Detonate` and `ApplyExplosiveDamageAndSpawnFx`:
+  flags 0x4420401, one const/ref parameter `ProjectileHitInfo_NetQuantize` 0x38.
+  Do not create a Lua table imitating that struct. Both are local, not RPC,
+  but the native timer/collision make manual invocation unnecessary.
 
-## Caminho real do timer
+## The timer's real path
 
-1. Constructor TimedProjectile140cd8210 chama WarProjectile140d9fb80;
-   este cria SphereComp, ProjectileComp e ParticleComp. Nenhum actor externo
-   precisa criar componentes ou fórmulas.
-2. BeginPlay virtual310 de TimedProjectile140cdd570 chama BeginPlay base
-   140da4a70, exige Role3, obtém TimerManager do World e agenda14296f330
-   com duração FuseTimer+330. Callback140cdc028 chama virtual650=140ce28a0.
-   Evidência Capstone confirma o valorFloat enviado em xmm3 à função de timer;
-   o decomp simplifica o parâmetro como `(int)lVar1`, não interpretar como cast.
-3. Ao expirar,140ce28a0 preenche HitResult INTERNO real+334 quando posição
-   vazia: usa posição RootComponent, normal nativa e Instigator fraco (pode ser
-   nulo). Então chama WarProjectile140dba940.
-4.140dba940 exige Role3 e nãoExploded, converte HitResult real através140db8020
-   em ProjectileHitInfo, chama virtual630=140dac5b0. Desliga movimento/áudio,
-   aplica dano/FX e agenda morte usando ProjectileDeathDelay; notifica estado.
-5.140dac5b0 chama virtual640=140da33d0 para dano radial, depois efeitos
-   virtual638=140dc2c20/140dc2310 e marca bExploded. Não depender somente
-   IsValid após callback: destruction/TTL é assíncrono.
+1. Constructor TimedProjectile 140cd8210 calls WarProjectile 140d9fb80;
+   this one creates SphereComp, ProjectileComp and ParticleComp. No external actor
+   needs to create components or formulas.
+2. BeginPlay virtual 310 of TimedProjectile 140cdd570 calls the base BeginPlay
+   140da4a70, requires Role 3, gets the World's TimerManager and schedules 14296f330
+   with duration FuseTimer +330. Callback 140cdc028 calls virtual 650 = 140ce28a0.
+   Capstone evidence confirms the float value sent in xmm3 to the timer function;
+   the decomp simplifies the parameter as `(int)lVar1`, do not read it as a cast.
+3. On expiry, 140ce28a0 fills the INTERNAL real HitResult +334 when the position is
+   empty: uses the RootComponent position, a native normal and a weak Instigator (can be
+   null). Then it calls WarProjectile 140dba940.
+4. 140dba940 requires Role 3 and not Exploded, converts the real HitResult through 140db8020
+   into ProjectileHitInfo, calls virtual 630 = 140dac5b0. Turns off movement/audio,
+   applies damage/FX and schedules death using ProjectileDeathDelay; notifies state.
+5. 140dac5b0 calls virtual 640 = 140da33d0 for radial damage, then effects
+   virtual 638 = 140dc2c20/140dc2310 and marks bExploded. Do not rely only on
+   IsValid after the callback: destruction/TTL is asynchronous.
 
-## Defaults/dados reais e guardas
+## Real defaults/data and guards
 
-- ExplosiveCodeName é FName refletido+268; MyController é WeakObject Controller
-  refletido+260; FuseTimerFloat330 só existe na classe TimedProjectile.
-- Getter140dacd00 chama InitializeDynamicData140db61c0 se cache não inicializado.
-  Este busca AmmoDynamicData por ExplosiveCodeName, com fallback nativo
+- ExplosiveCodeName is a reflected FName at +268; MyController is a reflected WeakObject Controller
+  at +260; FuseTimer Float 330 only exists in the TimedProjectile class.
+- Getter 140dacd00 calls InitializeDynamicData 140db61c0 if the cache is not initialized.
+  It looks up AmmoDynamicData by ExplosiveCodeName, with the native fallback
   LoadObject `DataTable'/Game/Blueprints/Prototypes/Data/BPAmmoDynamicData.BPAmmoDynamicData'`.
-  Não copiar os valores para uma fórmula Lua. Busca adicional configura perfil
-  de penetração; ausência desse perfil possui fallback nativo.
-- GrenadeW na tabela extraída: Damage200, Suppression20, ExplosionRadius550,
-  DamageTypeBPLightKineticDamageType_C. Granada de fragmentação NÃO usa
-  BPExplosiveDamageType por suposição do mod.
--140da33d0 exige Role3, damage positivo ou tipo especial, radius positivo,
-  DamageTypeClass válida. Resolve MyController via weakgetter1415a2000 e passa
-  resultado ao helper radial1409dc010; não há veto/nullderef explícito de
-  MyController neste corpo. Owner/Instigator ausente é tratado com nullchecks
-  no BeginPlay e montagem do HitResult. Isso não prova todos os filtros
-  downstream de equipe/instigator nem certifica segurança global.
-- ServerSettings precisa referência NATIVA forte GI.ServerSettings durante
-  TODA espera/detonação (lição do oracle anterior). Não guardar apenas em Lua.
+  Do not copy the values into a Lua formula. An additional lookup configures the
+  penetration profile; a missing profile has a native fallback.
+- GrenadeW in the extracted table: Damage 200, Suppression 20, ExplosionRadius 550,
+  DamageType BPLightKineticDamageType_C. The fragmentation grenade does NOT use
+  BPExplosiveDamageType by the mod's assumption.
+- 140da33d0 requires Role 3, positive damage or a special type, positive radius,
+  a valid DamageTypeClass. It resolves MyController through weak getter 1415a2000 and passes the
+  result to the radial helper 1409dc010; there is no explicit veto/null deref of
+  MyController in this body. A missing Owner/Instigator is handled with null checks
+  in BeginPlay and in building the HitResult. This does not prove all the downstream
+  team/instigator filters nor certify global safety.
+- ServerSettings needs a strong NATIVE reference GI.ServerSettings during
+  the WHOLE wait/detonation (lesson from the previous oracle). Do not keep it only in Lua.
 
-## Próxima validação alinhada ao MVP
+## Next validation aligned with the MVP
 
-SpawnActor BPGrenadeW sem inventário/RPC perto de caminhão exclusivo900HP,
-configuração fresca ancorada imediatamente à GI, aguardar timer nativo20s e
-registrar Health/bExploded/atores/FX por25s. Não alterar FuseTimer/CDO/Health,
-não chamar ApplyDamage manualmente e não fabricar HitInfo. Primeiro cenário
-sem MyControllerwrite testa defaults; ausência de HPdelta não autoriza fórmula
-própria. Distância/exposição/LOS e filtro de equipe podem bloquear dano.
+SpawnActor BPGrenadeW without inventory/RPC near an exclusive 900 HP truck,
+fresh configuration anchored immediately to the GI, wait for the native 20 s timer and
+record Health/bExploded/actors/FX for 25 s. Do not change FuseTimer/CDO/Health,
+do not call ApplyDamage by hand and do not fabricate HitInfo. The first scenario
+without a MyController write tests the defaults; no HP delta does not authorize our own
+formula. Distance/exposure/LOS and the team filter can block damage.
 
-## Evidência externa (não publicar decomp)
+## External evidence (do not publish decomp)
 
 - `D:/tools/foxhole-lab/re-agent/explosivo-props.txt`,
   `explosivo-hit-props.txt`, `explosivo-primeiro-static.txt`.
-- `D:/tools/foxhole-lab/explosivo-decomp/*.c`: dois jobs headless readOnly,
-  noanalysis, ambos exit0; nenhuma modificação do projeto persistida.
-- Source main/canal/laboratório não foram tocados por este sub-agente.
+- `D:/tools/foxhole-lab/explosivo-decomp/*.c`: two headless readOnly jobs,
+  noanalysis, both exit 0; no project modification persisted.
+- Source main/channel/lab were not touched by this sub-agent.
 
-## Atualização — oracle vivo e integração de lançamento
+## Update — live oracle and launch integration
 
-- Agente principal registrou oracle PID18148: SpawnActor BPGrenadeW próximo
-  de caminhão900HP, GI.ServerSettings fresca ancorada27s, timer default20s,
-  Health900→780, grenadegone, restore/cleanupPASS. Nenhum ApplyDamage manual,
-  alteração de Owner/MyController ou HitInfo fabricado. Consultar rastro vivo
-  produzido pelo principal para os detalhes e não tratar o resultado como
-  arremesso/trajectory integrado.
-- UHT `GrenadeDynamicData` size0x20 possui cinco Float conhecidos:
-  MinTossSpeed+8, MaxTossSpeed+C, GrenadeFuseTimer+10,
-  GrenadeRangeLimit+14, ArmourDamageModifier+18. Exportar apenas essas colunas.
-- Lookup fallback nativo140906930 carrega exatamente
+- The main agent recorded oracle PID18148: SpawnActor BPGrenadeW near
+  a 900 HP truck, fresh GI.ServerSettings anchored 27 s, default 20 s timer,
+  Health 900→780, grenade gone, restore/cleanup PASS. No manual ApplyDamage,
+  change of Owner/MyController or fabricated HitInfo. See the live trace
+  produced by the main agent for details and do not treat the result as an
+  integrated throw/trajectory.
+- UHT `GrenadeDynamicData` size 0x20 has five known Floats:
+  MinTossSpeed +8, MaxTossSpeed +C, GrenadeFuseTimer +10,
+  GrenadeRangeLimit +14, ArmourDamageModifier +18. Export only these columns.
+- The native fallback lookup 140906930 loads exactly
   `DataTable'/Game/Blueprints/Prototypes/Data/BPGrenadeDynamicData.BPGrenadeDynamicData'`.
-  UItemComponent.InitializeGrenadeDynamicData140a5a300 copia essa row para seu
-  cache. Cooker140a62a00 lê GrenadeFuseTimer+10 e agenda TimerManager. Portanto
-  FuseTimer20 do CDO não prova a duração do arremesso normal do jogo.
-- SetVelocityInLocalSpace é UFunction local de ProjectileMovementComponent,
-  um FVector NewVelocity, flags0x4820400. A trajetória pode usar o movimento
-  do engine, não K2_SetActorLocation/arco manual. Solver de balística/gravidade
-  será verificado pelo principal.
-- FuseTimer é capturado no BeginPlay: escrever depois de SpawnActor não
-  atualiza o timer já agendado. Candidato legítimo: BeginDeferredActorSpawnFromClass,
-  escrever UProperty FuseTimer com row real ANTES de FinishSpawningActor. Esse
-  fluxo ainda precisa validação; não afirmar que o setter do arremesso nativo
-  foi rastreado integralmente. Chamadas de GrenadeItemComponent rastreadas
-  delegam activity/Blueprint/RPC e não autorizam invocá-las.
-- Novos artefatos externos: `explosivo-lancamento-props.txt` e decomp das
-  funções140a62a00/140a5a300/140a6bd30; sem mudança de main/canal pelo sub-agente.
+  UItemComponent.InitializeGrenadeDynamicData 140a5a300 copies that row into its
+  cache. Cooker 140a62a00 reads GrenadeFuseTimer +10 and schedules the TimerManager. Therefore
+  the CDO's FuseTimer 20 does not prove the duration of the game's normal throw.
+- SetVelocityInLocalSpace is a local UFunction of ProjectileMovementComponent,
+  one FVector NewVelocity, flags 0x4820400. The trajectory can use the engine's
+  movement, not K2_SetActorLocation/a manual arc. The ballistics/gravity solver
+  will be checked by the main agent.
+- FuseTimer is captured in BeginPlay: writing it after SpawnActor does not
+  update the already scheduled timer. Legitimate candidate: BeginDeferredActorSpawnFromClass,
+  write the UProperty FuseTimer with the real row BEFORE FinishSpawningActor. This
+  flow still needs validation; do not claim the native throw's setter
+  was fully traced. The traced GrenadeItemComponent calls
+  delegate activity/Blueprint/RPC and do not authorize invoking them.
+- New external artifacts: `explosivo-lancamento-props.txt` and the decomp of
+  functions 140a62a00/140a5a300/140a6bd30; no change to main/channel by the sub-agent.

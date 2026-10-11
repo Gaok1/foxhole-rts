@@ -1,61 +1,61 @@
-# Envelope TruckW: sonda preparada, não executada
+# TruckW envelope: probe prepared, not run
 
-`D:/tools/foxhole-lab/t_truck_collision_schema.lua` escolhe primeiro caminhão vivo
-via logi.scan e enumera PrimitiveComponent usando API já utilizada no mod. Somente
-nomes/classes/metadata de getters de colisão, extents e transformação. Sem bounds
-totais do ator, MasterPoseComponent, AnimClass ou modificação de física.
+`D:/tools/foxhole-lab/t_truck_collision_schema.lua` picks the first live truck
+through logi.scan and enumerates PrimitiveComponents using an API already used in the mod. Only
+names/classes/metadata of collision getters, extents and transform. No total
+actor bounds, MasterPoseComponent, AnimClass or physics modification.
 
-Após saída metadata, preparar leitura dos getters confirmados para **cada** componente,
-não assumir que o primeiro BoxComponent é corpo: pode ser interação ou outro volume.
-Relacionar CollisionEnabled, ObjectType/profile, posição/rotação/escala e extents.
-Envelope candidato deve envolver os componentes físicos que realmente bloqueiam Camera;
-essa última semântica exige trace reproduzível e não é provada pelo nome do componente.
+After the metadata output, prepare reading the confirmed getters for **each** component,
+do not assume the first BoxComponent is the body: it may be an interaction or another volume.
+Relate CollisionEnabled, ObjectType/profile, position/rotation/scale and extents.
+A candidate envelope must enclose the physical components that really block Camera;
+that last semantics requires a reproducible trace and is not proven by the component's name.
 
-BoxExtent local + transformação dá OBB; GetScaledBoxExtent já inclui escala, não aplicar
-escala duas vezes. Sphere/Capsule ou corpo mesh requer geometria física própria; bounds
-render não são collision hull. Usar forma conservadora envolvendo corpo físico para
-varrer trechos, incluindo comprimento nas curvas e largura nos acessos. Uma SphereTrace
-com raio de soldado não prova folga de caminhão. Na ponte, amostras de suporte nas rodas
-e tabuleiro são gate separado do envelope; groundZ central sozinho não basta.
+Local BoxExtent + transform gives an OBB; GetScaledBoxExtent already includes scale, do not apply
+the scale twice. Sphere/Capsule or a mesh body requires its own physical geometry; render
+bounds are not a collision hull. Use a conservative shape enclosing the physical body to
+sweep stretches, including length in the curves and width in the accesses. A SphereTrace
+with a soldier's radius does not prove a truck's clearance. On a bridge, support samples at the wheels
+and the deck are a gate separate from the envelope; a central groundZ alone is not enough.
 
-Este documento define próximo passo após metadata, não autoriza rotas validated=true.
+This document defines the next step after the metadata, it does not authorize validated=true routes.
 
-## Metadata viva recebida
-`D:/tools/foxhole-lab/truck-collision-schema-live.txt`: Truck_2 tem
-CollisionCylinder CapsuleComponent, VehicleCollision BoxComponent, vários meshes,
-partículas e SeatTrigger/TowHitch. Nenhum escolhido por nome como corpo autorizado.
-Box getters scaled/unscaled retornam struct; CapsuleRadius/HalfHeight floats;
-collision profile/enabled/objecttype e transform getters confirmados.
+## Live metadata received
+`D:/tools/foxhole-lab/truck-collision-schema-live.txt`: Truck_2 has
+CollisionCylinder CapsuleComponent, VehicleCollision BoxComponent, several meshes,
+particles and SeatTrigger/TowHitch. None chosen by name as the authorized body.
+Box getters scaled/unscaled return a struct; CapsuleRadius/HalfHeight floats;
+collision profile/enabled/objecttype and transform getters confirmed.
 
-Preparada `D:/tools/foxhole-lab/t_truck_collision_values.lua`, syntax OK, não executada:
-todos os PrimitiveComponents com collision settings/transform; Box extents e capsule
-dimensões locais somente classes exatas. GetCollisionResponseToChannel primeiro
-confirmado via metadata Channel/ReturnValue ByteProperty e então leitura Camera1 e
-Visibility0. Não muda colisão. Valores da instância podem refletir colisão desativada
-pelo motorista atual: distinguir perfil nativo de estado alterado pelo mod antes
-de concluir que Camera não bloqueia o corpo.
+Prepared `D:/tools/foxhole-lab/t_truck_collision_values.lua`, syntax OK, not run:
+all PrimitiveComponents with collision settings/transform; Box extents and capsule
+local dimensions only for exact classes. GetCollisionResponseToChannel first
+confirmed through Channel/ReturnValue ByteProperty metadata and then reading Camera 1 and
+Visibility 0. Does not change collision. Instance values may reflect collision turned off
+by the current driver: tell the native profile apart from a state changed by the mod before
+concluding that Camera does not block the body.
 
-## Retomada 11/10 — rastrear motorista nativo antes de integrar
-Valores de colisão foram lidos (TRUCK_VALUES_20261010.md); scan de raios em
-data/trace_envelope_truck.txt atingiu CharacterMesh0 fora da caixa400/162/140.
-Flags de penetração não são prova do hull integral; nenhuma aresta autorizada.
+## Resumed 10/11 — trace the native driver before integrating
+Collision values were read (TRUCK_VALUES_20261010.md); a ray scan in
+data/trace_envelope_truck.txt hit CharacterMesh0 outside the 400/162/140 box.
+Penetration flags are not proof of the full hull; no edge authorized.
 
-Nova sonda somente leitura: tools/probe_native_truck_movement.lua. Confirma
-assinaturas dos getters RootComponent/MovementComponent antes de chamar, lê
-UpdatedComponent/UpdatedPrimitive somente se ObjectProperty e a flag
-bIgnoreNonRootComponentsDuringVehicleMovement somente se BoolProperty. Enumera
-assinaturas de movimento/input, não executa essas funções. Teste offline PASS;
-NÃO executada no Unreal. Guardar no próximo lote saída antes/depois da logística.
-Root ou UpdatedComponent identificado não prova por si só sweep integral: a
-cápsula34/200, caixa e meshes têm papéis diferentes. Sem mover/desligar colisão
-para forçar sucesso; primeiro rastrear o caminho de movimento já existente.
+New read-only probe: tools/probe_native_truck_movement.lua. It confirms
+the signatures of the RootComponent/MovementComponent getters before calling, reads
+UpdatedComponent/UpdatedPrimitive only if they are ObjectProperty and the flag
+bIgnoreNonRootComponentsDuringVehicleMovement only if BoolProperty. It enumerates
+movement/input signatures, does not run those functions. Offline test PASS;
+NOT run in Unreal. Keep the output before/after logistics in the next batch.
+An identified Root or UpdatedComponent does not prove a full sweep by itself: the
+34/200 capsule, the box and the meshes have different roles. No moving/turning off collision
+to force success; first trace the already existing movement path.
 
-## Sonda executada no lote logístico 2 (11/10)
-Mesmo TruckW observado antes/depois: raiz VehicleCollision(BoxComponent),
-UpdatedComponent/UpdatedPrimitive iguais; RWDVehicleMovementComponent herda
-SimpleVehicleMovementComponent e CharacterMovementComponent. Flag
-bIgnoreNonRootComponentsDuringVehicleMovement=true nos dois estados, ActorCollision
-true antes/false ativo. Rastros próprios em data/rastro_truck_movement_*_20261011.txt.
-Isso distingue escolha nativa da raiz de bounds visuais, não prova clearance/suporte
-ou autoriza flag/rota. Partida posterior caiu; próximo desenvolvimento permanece
-offline, sem reiniciar por esta descoberta.
+## Probe run in logistics batch 2 (10/11)
+The same TruckW observed before/after: root VehicleCollision (BoxComponent),
+UpdatedComponent/UpdatedPrimitive equal; RWDVehicleMovementComponent inherits
+SimpleVehicleMovementComponent and CharacterMovementComponent. Flag
+bIgnoreNonRootComponentsDuringVehicleMovement=true in both states, ActorCollision
+true before/false active. Own traces in data/trace_truck_movement_*_20261011.txt.
+This tells the native choice of root apart from visual bounds, it does not prove clearance/support
+nor authorize a flag/route. A later match crashed; the next development stays
+offline, without restarting for this finding.

@@ -1,28 +1,28 @@
-# Snapshot observacional do lobby, não região jogável
+# Observational snapshot of the lobby, not a playable region
 
-Exportação recebida do coordenador: 127 CP, 122 segmentos, 468 nós com curvas.
-95 segmentos têm somente assets em Environment/Roads; 27 não são classificados
-como estrada. EditorLandscapeResources/SplineEditorMesh explicitamente excluído.
-Incidência completa com dois CP distintos e End diferentes, curva compatível com
-endpoints dentro de 1cm: nenhum segmento rejeitado por ambiguidade nesta exportação.
+Export received from the coordinator: 127 CPs, 122 segments, 468 nodes with curves.
+95 segments only have assets in Environment/Roads; 27 are not classified
+as road. EditorLandscapeResources/SplineEditorMesh explicitly excluded.
+Full incidence with two distinct CPs and different Ends, a curve compatible with
+endpoints within 1 cm: no segment rejected for ambiguity in this export.
 
-Grafo nativo possui componentes de 259/114/45/22/17/10/1 nós; filtrado por estrada
-restam duas componentes conectadas de 259/114 e 95 nós isolados. Não há ligação
-inventada entre componentes: atravessar a lacuna exige acesso/ponte real validado.
-Todas as arestas têm validated=false; não-estrada também blocked=true.
+The native graph has components of 259/114/45/22/17/10/1 nodes; filtered by road,
+two connected components of 259/114 remain and 95 isolated nodes. There is no invented
+link between components: crossing the gap requires a validated real access/bridge.
+All edges have validated=false; non-road ones also blocked=true.
 
-`home-region-snapshot.json` preserva coordenadas/IDs/nome de asset, sem arquivos do
-jogo nem conteúdo de mesh. Epoch combina mundo e hash da exportação; adaptador vivo
-ainda deve adicionar identidade de sessão para rejeitar recarga igual da região.
-Não utilizar esse snapshot como cache para CallumsCapeHex.
+`home-region-snapshot.json` keeps coordinates/IDs/asset names, without game files
+nor mesh content. The epoch combines the world and the export's hash; the live adapter
+must still add a session identity to reject an identical reload of the region.
+Do not use this snapshot as a cache for CallumsCapeHex.
 
-## Acessos possíveis, não autorizados
-Qualquer CP ou ponto intermediário de uma das duas componentes de estrada é
-candidato topológico. Ainda não há exportação das paradas de campo/refinaria/fábrica
-neste snapshot; portanto não se pode afirmar conexão entre instalações e estrada.
-Precisa obter parking exterior real, plano estrito de acesso e confirmar envelope,
-superfície, água/tabuleiro de ponte e obstrução dinâmica. Asset road não comprova isso.
+## Possible accesses, not authorized
+Any CP or intermediate point of one of the two road components is a
+topological candidate. There is no export yet of the field/refinery/factory stops
+in this snapshot; so a connection between installations and road cannot be claimed.
+Need to get real exterior parking, a strict access plan and confirm envelope,
+surface, water/bridge deck and dynamic obstruction. A road asset does not prove this.
 
-`python data/parallel/roads/build_snapshot.py` reproduz conversão da saída externa;
-`python data/parallel/roads/test_snapshot.py` passou contra snapshot real.
-Transporte permanece não integrado/não validado fisicamente.
+`python data/parallel/roads/build_snapshot.py` reproduces the conversion of the external output;
+`python data/parallel/roads/test_snapshot.py` passed against the real snapshot.
+Transport remains not integrated/not physically validated.

@@ -1,64 +1,64 @@
-# Roteiro de laboratório da IA_LOGISTICA (para o agente LABORATORIO)
+# IA_LOGISTICA (logistics AI) lab script (for the LABORATORIO agent)
 
-Este roteiro foi **preparado e não executado**. O CLAUDE_IA_LOGISTICA não abriu o jogo nem usou o canal ou o
-botloop. Quem executa é o dono do laboratório, depois de o coordenador integrar o lote na ordem
-ESTABILIDADE → ECONOMIA → IA_LOGISTICA (ver `REPORT.md` §5). Cada linha é aprovada ou reprovada com
-evidência (log, saída do canal, captura). Registre em cada linha o hash do `main.lua` publicado.
+This script was **prepared and not run**. CLAUDE_IA_LOGISTICA did not open the game nor use the channel or the
+botloop. The lab owner runs it, after the coordinator integrates the batch in the order
+ESTABILIDADE → ECONOMIA → IA_LOGISTICA (see `REPORT.md` §5). Each row is approved or failed with
+evidence (log, channel output, capture). Record the hash of the published `main.lua` on each row.
 
-## Regras do lote
-- Antes de lançar: Steam aberto e logado, cópia em `D:\FoxholeLab\Foxhole`, nenhum `botloop.sh` rodando
-  (`Get-CimInstance Win32_Process`). Publique com `bash D:/tools/foxhole-lab/restart.sh`. Não use Ctrl+R.
-- Não use o canal com o robô ligado. Sonda de leitura: copie `t_logistics_ai.lua` desta pasta para
-  `D:/tools/foxhole-lab/` e rode `sh D:/tools/foxhole-lab/run.sh t_logistics_ai.lua`. Ela só lê estado.
-- Sem injeção de teclado ou mouse. As teclas de partida (Shift+F6, Ctrl+F6, Alt+F6) são do usuário ou de
-  comandos equivalentes no canal que o laboratório já usa. A IA_LOGISTICA não traz tecla nova.
-- Região: a mesma em que a cadeia do jogador foi validada (CallumsCapeHex, lote 17), com o Alt+L já aceito.
-  HomeRegionW serve só como bancada.
-- Terminada a validação, encerre só o PID da cópia. Steam e firewall ficam como estão.
+## Batch rules
+- Before launching: Steam open and logged in, copy at `D:\FoxholeLab\Foxhole`, no `botloop.sh` running
+  (`Get-CimInstance Win32_Process`). Publish with `bash D:/tools/foxhole-lab/restart.sh`. Do not use Ctrl+R.
+- Do not use the channel with the bot on. Read-only probe: copy `t_logistics_ai.lua` from this folder to
+  `D:/tools/foxhole-lab/` and run `sh D:/tools/foxhole-lab/run.sh t_logistics_ai.lua`. It only reads state.
+- No keyboard or mouse injection. The match keys (Shift+F6, Ctrl+F6, Alt+F6) belong to the user or to
+  equivalent channel commands the lab already uses. IA_LOGISTICA brings no new key.
+- Region: the same where the player's chain was validated (CallumsCapeHex, batch 17), with Alt+L already accepted.
+  HomeRegionW is only a test bench.
+- When validation ends, close only the copy's PID. Steam and the firewall stay as they are.
 
-## Matriz técnica (curta, com canal)
+## Technical matrix (short, with the channel)
 
-| ID | Passo | Aprovação |
+| ID | Step | Approval |
 |---|---|---|
-| L1 | Nova partida com logística. Rode a sonda logo no início. | `auditoria=true (razão fechado)`, `ativo=true`, frente m2 c10, bmat 240, frota livre 2. HUD com "INIMIGO: frente equipa 10". Nenhum erro Lua no `UE4SS.log`. |
-| L2 | Espere o 1º comboio (20 s depois do início das ondas, mais o que faltar de carga). | Evento "comboio 1 saiu: N cx". O ator BPTruckC existe, `ator_ativo=true` e a carga aparece na sonda. A retaguarda caiu exatamente as caixas da carga. Alerta "COMBOIO INIMIGO ... (carga)". |
-| L3 | Deixe o comboio chegar sem interferir. | Um único "entregou na frente"; a frente sobe por `units` (caixa de camisas = 10). Rode a sonda 3x seguidas: nenhuma segunda entrega. O caminhão volta e some, e a frota livre volta a 2. `auditoria=true`. |
-| L4 | Emboscada: soldados nossos a menos de 15 m do comboio carregado (ordem de movimento real pelo usuário, ou posição já existente). | "comboio N perdido (destruído): -X munição, -Y camisas" **uma vez**. Alerta "COMBOIO INIMIGO DESTRUÍDO (+25): a frente perde ...". A frente não muda. "reconstruindo 1". `auditoria=true`. |
-| L5 | Morteiro (Ctrl+5) sobre um comboio carregado. | O mesmo de L4. Um morteiro sobre caminhão já destruído não registra segunda perda. |
-| L6 | Espere 30 s ou mais depois da perda. | "caminhão de comboio reconstruído (-100 bmat)" só quando bmat ≥ 100. A fábrica fica parada se não houver caminhão livre e houver reconstrução vencida. |
-| L7 | Ondas com a frente cheia e depois vazia. Compare `#enemies` logo após cada spawn com o registro da onda. | `enviados` = soldados que nasceram de fato. Com a frente vazia: "faltou suprimento ao inimigo: a onda vem com N a menos (falta camisas/munição; K por comboios destruídos)". Onda real no piso de 3, sem soldado a mais. |
-| L8 | Ponto inimigo com reforço (`ai.tick`) e frente seca, depois abastecida. | Sem material, nenhum "REFORÇO INIMIGO". Com material, reforço de 2-3 e a frente debitada pelo número que **nasceu**. |
-| L9 | Save/continue com comboio na estrada: espere um save (30 s), feche e continue (Ctrl+F6). | Evento "cadeia inimiga restaurada do save (reenviar ...)". O pendente é igual à carga que estava na estrada. `auditoria=true`. O próximo comboio leva o pendente. Continuar duas vezes não duplica nada (compare inicial+produzido). |
-| L10 | Ator do comboio inválido: pelo canal, `logi.foes[1].pawn:K2_DestroyActor()` (só esta linha, sonda separada e registrada). | No quadro seguinte: "perdido (ator do caminhão inválido)", sem entrega e `auditoria=true`. Nenhum crash ou erro nativo. |
-| L11 | Assalto (Alt+F6). | Nenhum comboio, frente intacta, nenhum consumo (`ativo=false`). |
-| L12 | Shift+F6 várias vezes e F11 no meio da partida. | Nenhum comboio sobra no mundo (contar `BPTruckC_C` ativos); `logi.en` novo; nenhum erro. |
+| L1 | New match with logistics. Run the probe right at the start. | `auditoria=true (razão fechado)`, `ativo=true`, front m2 c10, bmat 240, free fleet 2. HUD with "INIMIGO: frente equipa 10". No Lua error in `UE4SS.log`. |
+| L2 | Wait for the 1st convoy (20 s after the waves start, plus whatever cargo is missing). | Event "comboio 1 saiu: N cx". The BPTruckC actor exists, `ator_ativo=true` and the cargo shows in the probe. The rear dropped exactly the cargo's crates. Alert "COMBOIO INIMIGO ... (carga)". |
+| L3 | Let the convoy arrive without interfering. | A single "entregou na frente"; the front rises by `units` (shirt crate = 10). Run the probe 3x in a row: no second delivery. The truck returns and vanishes, and the free fleet goes back to 2. `auditoria=true`. |
+| L4 | Ambush: our soldiers within 15 m of the loaded convoy (real move order by the user, or an existing position). | "comboio N perdido (destruído): -X munição, -Y camisas" **once**. Alert "COMBOIO INIMIGO DESTRUÍDO (+25): a frente perde ...". The front does not change. "reconstruindo 1". `auditoria=true`. |
+| L5 | Mortar (Ctrl+5) on a loaded convoy. | The same as L4. A mortar on an already destroyed truck does not record a second loss. |
+| L6 | Wait 30 s or more after the loss. | "caminhão de comboio reconstruído (-100 bmat)" only when bmat ≥ 100. The factory stays idle if there is no free truck and a rebuild is due. |
+| L7 | Waves with the front full and then empty. Compare `#enemies` right after each spawn with the wave record. | `enviados` = soldiers that actually spawned. With the front empty: "faltou suprimento ao inimigo: a onda vem com N a menos (falta camisas/munição; K por comboios destruídos)". Real wave at the floor of 3, no extra soldier. |
+| L8 | Enemy point with reinforcement (`ai.tick`) and a dry front, then supplied. | Without material, no "REFORÇO INIMIGO". With material, reinforcement of 2-3 and the front debited by the number that **spawned**. |
+| L9 | Save/continue with a convoy on the road: wait for a save (30 s), close and continue (Ctrl+F6). | Event "cadeia inimiga restaurada do save (reenviar ...)". The pending amount equals the cargo that was on the road. `auditoria=true`. The next convoy carries the pending amount. Continuing twice duplicates nothing (compare initial+produced). |
+| L10 | Invalid convoy actor: through the channel, `logi.foes[1].pawn:K2_DestroyActor()` (only this line, separate and recorded probe). | On the next frame: "perdido (ator do caminhão inválido)", no delivery and `auditoria=true`. No crash or native error. |
+| L11 | Assault (Alt+F6). | No convoy, front intact, no consumption (`ativo=false`). |
+| L12 | Shift+F6 several times and F11 in the middle of the match. | No convoy left in the world (count active `BPTruckC_C`); new `logi.en`; no error. |
 
-## Matriz de regressão prolongada (combate e equilíbrio, com robô)
+## Long regression matrix (combat and balance, with the bot)
 
-Robô de sempre: `sh D:/tools/foxhole-lab/botloop.sh` em segundo plano, esperando com
-`until grep -q "auto<TAB>false" botrun.log`. Com o robô ligado, não use o canal. Leia a sonda **depois** de
-cada partida. Mínimo: 3 partidas por célula na dificuldade normal e 1 em fácil e 1 em difícil, se der tempo.
+The usual bot: `sh D:/tools/foxhole-lab/botloop.sh` in the background, waiting with
+`until grep -q "auto<TAB>false" botrun.log`. With the bot on, do not use the channel. Read the probe **after**
+each match. Minimum: 3 matches per cell at normal difficulty and 1 at easy and 1 at hard, if time allows.
 
-| Célula | Build | Interdição | Registrar |
+| Cell | Build | Interdiction | Record |
 |---|---|---|---|
-| B0 | main **sem** IA_LOGISTICA (só ESTABILIDADE+ECONOMIA) | a do robô (se ele não ataca comboios, anotar) | vitória/derrota, onda final, abates/perdas, duração, comboios/destruídos |
-| B1 | com IA_LOGISTICA | a do robô | o mesmo de B0 + `logi.eReport()` no fim (ondas: pedido/enviado/faltou/byCut) + `auditoria` |
-| B2 | com IA_LOGISTICA | forçada: o usuário ou a ordem do robô mantém o esquadrão na rota dos comboios | o mesmo de B1; comparar o tamanho das ondas 4-10 com B1 |
-| B3 | com IA_LOGISTICA, `CFG.ECHAIN.free` = 5 (via canal **antes** de ligar o robô) | como B2 | o mesmo; serve para calibrar o piso |
+| B0 | main **without** IA_LOGISTICA (only ESTABILIDADE+ECONOMIA) | the bot's (if it does not attack convoys, note it) | victory/defeat, final wave, kills/losses, duration, convoys/destroyed |
+| B1 | with IA_LOGISTICA | the bot's | the same as B0 + `logi.eReport()` at the end (waves: requested/sent/missing/byCut) + `auditoria` |
+| B2 | with IA_LOGISTICA | forced: the user or the bot's order keeps the squad on the convoy route | the same as B1; compare the size of waves 4-10 with B1 |
+| B3 | with IA_LOGISTICA, `CFG.ECHAIN.free` = 5 (through the channel **before** turning on the bot) | like B2 | the same; used to calibrate the floor |
 
-Aprovação técnica (vale para B1-B3): `auditoria=true` ao fim de **toda** partida; nenhum erro Lua ou crash
-UE4SS em 30 min ou mais; quantidade de BPTruckC ativos ≤ 2 (frota) em qualquer amostra. Para o tempo de
-quadro, amostrador `LoopInGameThreadWithDelay(100)` gravando em `_G` (não pelo canal), comparando B0 e B1.
+Technical approval (applies to B1-B3): `auditoria=true` at the end of **every** match; no Lua error or UE4SS
+crash in 30 min or more; number of active BPTruckC ≤ 2 (fleet) in any sample. For frame time, a
+`LoopInGameThreadWithDelay(100)` sampler writing to `_G` (not through the channel), comparing B0 and B1.
 
-Aprovação de efeito rastreável: em B2, a perda registrada (`perdido` no razão) > 0, há ondas com `byCut` > 0,
-e as ondas 4-10 de B2 são menores que as de B1 no mesmo índice. Depois que a interdição para, alguma onda
-volta a ter `faltaram 0`.
+Traceable effect approval: in B2, the recorded loss (`perdido` in the ledger) > 0, there are waves with `byCut` > 0,
+and waves 4-10 of B2 are smaller than those of B1 at the same index. After the interdiction stops, some wave
+goes back to `faltaram 0`.
 
-Equilíbrio (é decisão do usuário, o roteiro só mede): o resultado de B1 deve ficar perto do histórico B0
-(lote 12: vitória nas 10 ondas, 111/24; lote 13: derrota na onda 10, 83/38). Se B2 ficar trivial (ondas presas
-no piso desde cedo), calibrar `free`, `front0`, `want`, `trip` ou `minLoad` e repetir só a célula afetada.
+Balance (it is the user's decision, the script only measures): the B1 result should stay close to the B0 history
+(batch 12: victory in 10 waves, 111/24; batch 13: defeat at wave 10, 83/38). If B2 becomes trivial (waves stuck
+at the floor early on), calibrate `free`, `front0`, `want`, `trip` or `minLoad` and repeat only the affected cell.
 
-## O que fica fora deste roteiro
-- O trajeto por estrada do comboio depende do driver da ESTRADAS, que não existe ainda; hoje ele anda em reta
-  e sem colisão, como antes.
-- A legibilidade do HUD/painel e a entrada real (emboscada por clique) são validadas pelo usuário.
+## Outside this script
+- The convoy's road route depends on the ESTRADAS (roads) driver, which does not exist yet; today it drives straight
+  and without collision, as before.
+- HUD/panel readability and real input (ambush by click) are validated by the user.

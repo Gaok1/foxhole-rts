@@ -1,88 +1,88 @@
-# ESTRADAS — entrega offline (2026-10-09)
+# ESTRADAS (roads) — offline delivery (2026-10-09)
 
-## Evidência atual
-- `data/trace_regions.txt`: CallumsCapeHex carregou 431 LandscapeSplineSegment e 405
-  LandscapeSplineControlPoint; Deadlands 634/596. Não foram exportadas conexões nem curvas.
-- `tools/inspect_region.lua` enumera nomes/contagens, mas não propriedades de spline.
-- `main.lua:2485`: logi.place usa SetActorLocation sem sweep e teleport=true, chão por groundZ.
-- `main.lua:2760`: logi.drive anda em reta. `:2831` devolve instantaneamente a carga à fábrica
-  quando o destino muda de dono, mesmo longe dela. Ambos contradizem transporte verificável.
-- `kneeClear`/planStart já aceitam nav estrita e orçamento incremental. A altura e esfera de
-  soldado NÃO são folga comprovada de TruckW. A opção estrita ainda consulta groundZ: água,
-  tabuleiro de ponte e telhado precisam de classificação explícita.
+## Current evidence
+- `data/trace_regions.txt`: CallumsCapeHex loaded 431 LandscapeSplineSegment and 405
+  LandscapeSplineControlPoint; Deadlands 634/596. Neither connections nor curves were exported.
+- `tools/inspect_region.lua` enumerates names/counts, but not spline properties.
+- `main.lua:2485`: logi.place uses SetActorLocation without sweep and teleport=true, ground through groundZ.
+- `main.lua:2760`: logi.drive drives straight. `:2831` instantly returns the cargo to the factory
+  when the destination changes owner, even far from it. Both contradict verifiable transport.
+- `kneeClear`/planStart already accept strict nav and an incremental budget. A soldier's height and sphere are
+  NOT proven TruckW clearance. The strict option still queries groundZ: water,
+  bridge deck and roof need explicit classification.
 
-## Código entregue e teste
-`roads.lua` é módulo Lua puro, sem novos locais no main.lua. Dijkstra sobre conexões
-explicitamente validadas, sem conectar vizinhos por distância, sem reta de fallback.
-`advance` propõe um passo limitado; `commit` só progride após confirmação do adaptador.
-Não movimenta atores nem debita/entrega recursos. Rotas carregam epoch para evitar cache do lobby.
-O grafo sintético testa desconexão, epoch, aresta desconhecida/bloqueada, sweep recusado,
-veículo destruído, confirmação e chegada. Teste passado via lupa; não comprova física Unreal.
+## Code delivered and test
+`roads.lua` is a pure Lua module, with no new locals in main.lua. Dijkstra over explicitly
+validated connections, without linking neighbors by distance, without a straight-line fallback.
+`advance` proposes a bounded step; `commit` only progresses after the adapter's confirmation.
+It moves no actors nor debits/delivers resources. Routes carry an epoch to avoid the lobby's cache.
+The synthetic graph tests disconnection, epoch, unknown/blocked edge, refused sweep,
+destroyed vehicle, confirmation and arrival. Test passed through lupa; it does not prove Unreal physics.
 
-## Integração proposta (ainda NÃO aplicada)
-1. No laboratório, exportar reflection/schema das classes spline conhecidas antes de ler campos.
-   Em UE padrão existem Connections/ControlPoint, Points e Location, mas esses nomes/formas
-   são HIPÓTESES nesta build, não acesso autorizado por evidência local. Identificar também
-   transformação local->world do LandscapeSplinesComponent. Não tratar spline decorativa como estrada.
-2. Exportar somente IDs estáveis por snapshot, conexões explícitas, largura e amostras da curva
-   para um grafo da região. A curva precisa de nós intermediários: ligar só os extremos corta curvas.
-   Ponte exige conexão + suporte do tabuleiro confirmado; nunca ligar margens pela proximidade.
-3. Validar trechos por amostras de superfície e envelope orientado do caminhão (bounds físicos,
-   não bounds totais de volumes). Reaproveitar traces Camera medidos e planStart/planStep em
-   fatias para o acesso curto estacionamento->rede. Não fazer A* síncrono de quilômetros no tick.
-4. Instalações recebem parada exterior validada e acesso até estrada, não o centro do prédio.
-   Origem e destino no roads.plan são IDs destas paradas, ambos conectados só após prova de acesso.
-5. `logi.drive`: obter rota; rota ausente mantém parado com motivo. `advance` -> sweep/posição
-   confirmada -> atualizar tr -> commit. Chegada apenas ao terminar rota na parada validada.
-   Não chamar logi.place em cada passo: ele teleporta sem sweep e substitui Z da ponte por groundZ.
-6. Destino perdido muda para retorno físico à fábrica mantendo tr.cargo. Devolver estoque somente
-   na chegada confirmada. Rota ausente mantém carga no caminhão; morte perde carga uma vez.
-   Caminhão nativo inválido/bActorIsBeingDestroyed entra em perda explícita, nunca entrega fantasma.
-7. Troca de mundo invalida epoch, trabalhos e referências. Mesma região recarregada também muda
-   epoch. Reconstrução de caminhão precisa spawn validado/parking, não reexibir pawn morto.
-8. Exportar módulo para env somente se sondas precisarem; reset limpa rotas. Alertas de rota
-   bloqueada/ausente devem ser legíveis sem emitir todo quadro.
+## Proposed integration (NOT applied yet)
+1. In the lab, export reflection/schema of the known spline classes before reading fields.
+   In standard UE there are Connections/ControlPoint, Points and Location, but these names/shapes
+   are HYPOTHESES in this build, not access authorized by local evidence. Also identify the
+   local->world transform of LandscapeSplinesComponent. Do not treat a decorative spline as a road.
+2. Export only stable IDs per snapshot, explicit connections, width and curve samples
+   into a region graph. The curve needs intermediate nodes: linking only the ends cuts curves.
+   A bridge requires a connection + confirmed deck support; never link banks by proximity.
+3. Validate stretches through surface samples and the truck's oriented envelope (physical bounds,
+   not total volume bounds). Reuse measured Camera traces and planStart/planStep in
+   slices for the short parking->network access. No synchronous A* over kilometers in the tick.
+4. Installations get a validated exterior stop and access to the road, not the building's center.
+   Origin and destination in roads.plan are IDs of these stops, both connected only after proof of access.
+5. `logi.drive`: get a route; a missing route keeps it stopped with a reason. `advance` -> sweep/confirmed
+   position -> update tr -> commit. Arrival only on finishing the route at the validated stop.
+   Do not call logi.place on each step: it teleports without sweep and replaces the bridge's Z with groundZ.
+6. A lost destination switches to a physical return to the factory keeping tr.cargo. Return stock only
+   on confirmed arrival. A missing route keeps the cargo on the truck; death loses the cargo once.
+   An invalid native truck/bActorIsBeingDestroyed goes into explicit loss, never a phantom delivery.
+7. A world change invalidates the epoch, jobs and references. The same region reloaded also changes
+   the epoch. Rebuilding a truck needs a validated spawn/parking, not re-showing a dead pawn.
+8. Export the module to env only if probes need it; reset clears routes. Blocked/missing route alerts
+   must be readable without being emitted every frame.
 
-## Matriz solicitada ao dono do laboratório
-- Curva real campo->refinaria->fábrica; registrar caminho, velocidades e posições a 100ms.
-- Prédio/barreira/veículo entre paradas: nenhum salto ou entrega apesar de rota bloqueada.
-- Água sem ponte: recusa; ponte existente: Z acompanha tabuleiro e folga integral validada.
-- Destino capturado: retorno físico, conservação de carga; destruído: perda única.
-- Troca/regarga de região: grafo antigo recusado; câmera/LOS não usadas como prova de estrada.
-- 3 caminhões, obstrução dinâmica e replano com orçamento: medir ms/tick e travamentos.
+## Matrix requested from the lab owner
+- Real curve field->refinery->factory; record the path, speeds and positions at 100 ms.
+- Building/barrier/vehicle between stops: no jump or delivery despite a blocked route.
+- Water without a bridge: refusal; existing bridge: Z follows the deck and full clearance validated.
+- Captured destination: physical return, cargo conserved; destroyed: single loss.
+- Region change/reload: old graph refused; camera/LOS not used as proof of a road.
+- 3 trucks, dynamic obstruction and replanning with a budget: measure ms/tick and stalls.
 
-Task permanece em andamento; descoberta nativa e validação ao vivo são dependências reais.
+The task remains in progress; native discovery and live validation are real dependencies.
 
-## Sonda de metadados preparada, NÃO executada
-`D:/tools/foxhole-lab/t_roads_schema.lua`: somente nomes/tipos de propriedades,
-nomes de funções e herança de três classes já inventariadas. Sintaxe validada por lupa.
-APIs ForEachProperty/GetSuperStruct demonstradas nas sondas anteriores externas
-`t_rebuild_schema.lua`/`rebuild-schema.txt`; ForEachFunction usada em `t_outline_schema.lua`.
-Não há exemplo destas APIs em `tools/` do repositório; a evidência é a sonda e saída
-do laboratório, não uma suposta API nova. Não acessa Connections/Points/Location,
-GetInner, conteúdos de arrays, structs de instância nem transformações especulativas.
+## Metadata probe prepared, NOT run
+`D:/tools/foxhole-lab/t_roads_schema.lua`: only names/types of properties,
+function names and inheritance of three already inventoried classes. Syntax validated through lupa.
+ForEachProperty/GetSuperStruct APIs shown in the previous external probes
+`t_rebuild_schema.lua`/`rebuild-schema.txt`; ForEachFunction used in `t_outline_schema.lua`.
+There is no example of these APIs in the repository's `tools/`; the evidence is the probe and the lab's
+output, not a supposed new API. It does not access Connections/Points/Location,
+GetInner, array contents, instance structs nor speculative transforms.
 
-Gate exato: o dono do laboratório precisa executar essa sonda e conservar a saída.
-Se propriedades de conexões/pontos forem ArrayProperty, ainda falta metadata do tipo
-interno comprovada para definir uma exportação específica; não fazer dump recursivo
-genérico de dados. Campos podem não ser refletidos nesta build. Nesse caso obter schema
-pela reflexão/SDK já existente antes de acessar valores. Mesmo a saída de schema não
-autoriza presumir a semântica de estrada, orientação/local->world ou ponte.
+Exact gate: the lab owner needs to run this probe and keep the output.
+If connection/point properties are ArrayProperty, proven metadata of the inner type is still
+missing to define a specific export; do not do a generic recursive data dump.
+Fields may not be reflected in this build. In that case get the schema
+through the existing reflection/SDK before accessing values. Even the schema output does not
+authorize presuming road semantics, orientation/local->world or bridge.
 
-O módulo isolado é preparação/teste de contrato, NÃO feature integrada de transporte.
+The isolated module is preparation/contract testing, NOT an integrated transport feature.
 
-## Avanço de evidência: schema vivo recebido do coordenador
-`D:/tools/foxhole-lab/roads-schema-live.txt` confirmou em HomeRegionW 122 segmentos,
-127 control points. Segment.Connections é **StructProperty**, não ArrayProperty;
-SplineInfo/Bounds também structs; Points/LocalMeshComponents arrays. ControlPoint
+## Evidence progress: live schema received from the coordinator
+`D:/tools/foxhole-lab/roads-schema-live.txt` confirmed in HomeRegionW 122 segments,
+127 control points. Segment.Connections is a **StructProperty**, not an ArrayProperty;
+SplineInfo/Bounds also structs; Points/LocalMeshComponents arrays. ControlPoint
 Location/Rotation structs, Width FloatProperty, ConnectedSegments/Points arrays,
-LocalMeshComponent ObjectProperty. Não reutilizar estas contagens/posições no hex.
+LocalMeshComponent ObjectProperty. Do not reuse these counts/positions in the hex.
 
-Próxima sonda `D:/tools/foxhole-lab/t_roads_types.lua`, sintaxe OK, não executada:
-até três exemplos de segmento/control point; metadata de structs explicitamente
-confirmados (GetStruct já usado em reconstrução), largura e nome do mesh local.
-Um mesh tem somente schema enumerado, sem ler asset/conteúdo desconhecido.
-Connections não deve ser acessado como array por inferência UE padrão. Gate permanece
-cardinalidade de Connections e tipos internos de Points/ConnectedSegments; classificação
-da rede e transformação local->world ainda não provadas. Preferir validar um trecho
-curvo real antes de exportar o mapa todo.
+Next probe `D:/tools/foxhole-lab/t_roads_types.lua`, syntax OK, not run:
+up to three examples of segment/control point; metadata of explicitly
+confirmed structs (GetStruct already used in rebuilding), width and name of the local mesh.
+A mesh has only its schema enumerated, without reading an unknown asset/content.
+Connections must not be accessed as an array by standard UE inference. The gate remains the
+cardinality of Connections and the inner types of Points/ConnectedSegments; network classification
+and local->world transform still not proven. Prefer validating a real curved stretch
+before exporting the whole map.

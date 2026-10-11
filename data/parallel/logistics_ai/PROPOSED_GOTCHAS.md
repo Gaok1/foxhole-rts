@@ -1,30 +1,30 @@
-# Gotchas propostos (IA_LOGISTICA) para a nota `knowledge/games/foxhole/...`
+# Proposed gotchas (IA_LOGISTICA) for the note `knowledge/games/foxhole/...`
 
-O CLAUDE_IA_LOGISTICA não editou o universal-modder. Quem registra é o coordenador; `um kb check` local, sem PR
-sem autorização do usuário.
+CLAUDE_IA_LOGISTICA did not edit universal-modder. The coordinator records them; local `um kb check`, no PR
+without the user's authorization.
 
-1. **Contador de "carga" não é logística.** O comboio inimigo do mod somava +1 carga ao chegar, sem origem,
-   e o save não guardava esse número (todo continue devolvia `cargo0`). Para a interdição ter efeito
-   rastreável, o caminhão precisa levar caixas debitadas de um estoque que pode acabar, e a perda precisa
-   entrar num razão (inicial + produzido = estoques + trânsito + consumido + perdido) que dê para conferir
-   pelo canal.
-2. **Prioridade entre fábrica e reconstrução de caminhão.** Se a fábrica inicia um job de 80 bmat sempre que
-   pode, um caminhão de 100 bmat (TruckC/TruckW Cloth100) nunca volta sob consumo contínuo, porque o bmat
-   nunca acumula 100. Quando a frota está zerada, reserve bmat para o caminhão. A simulação mostrou isso do
-   lado inimigo; do lado do jogador (mesma ordem) ainda é hipótese.
-3. **Comboio de uma caixa desperdiça caminhão.** Despachar assim que existe uma caixa faz cada emboscada custar
-   um caminhão inteiro por pouca carga, e o produto mais barato monopoliza a fábrica. Exija uma carga mínima
-   ou o pedido completo da frente.
-4. **O save arredonda.** O `sv.ser` grava números não inteiros com 3 casas. Um razão validado no load com
-   tolerância 1e-6 recusa saves legítimos. Valide com folga (0,05) e, ao restaurar, absorva a sobra nos termos
-   de origem para o razão em memória fechar exato. Nunca transforme essa sobra em estoque.
-5. **Atribuir a interdição exige contrafactual.** A carga perdida antes da onda N afeta várias ondas, não só a
-   seguinte. Um contador "perdas desde a última onda" subestima o efeito; use um estoque fantasma que se gasta
-   à medida que as ondas o teriam consumido.
-6. **Teste do chunk inteiro com fronteiras trocadas.** No harness lupa, código acrescentado ao fim do mesmo
-   chunk pode reatribuir `local function` de topo (`spawnEnemies`, `waveSpawnPoint`, `isLocalAuthority`), e
-   as funções do mod enxergam isso como upvalue. Assim dá para trocar só a fronteira de engine e chamar o
-   `waveTick`/`ai.tick`/`sv.load` reais, sem copiar a implementação nem editar o `main.lua`.
-7. **Débito depois do spawn, não antes.** O spawn de soldado ou caminhão pode falhar parcialmente; ator com
-   `IsValid` e `bActorIsBeingDestroyed` não conta. Decida a quantidade antes, debite só o que nasceu e use
-   `combat.wave` inalterado para detectar a onda que nem abriu.
+1. **A "cargo" counter is not logistics.** The mod's enemy convoy added +1 cargo on arrival, with no origin,
+   and the save did not keep that number (every continue returned `cargo0`). For interdiction to have a
+   traceable effect, the truck needs to carry crates debited from a stock that can run out, and the loss needs
+   to enter a ledger (initial + produced = stocks + transit + consumed + lost) that can be checked
+   through the channel.
+2. **Priority between the factory and rebuilding a truck.** If the factory starts an 80 bmat job whenever it
+   can, a 100 bmat truck (TruckC/TruckW Cloth 100) never comes back under continuous consumption, because bmat
+   never accumulates to 100. When the fleet is at zero, reserve bmat for the truck. The simulation showed this on the
+   enemy side; on the player's side (same order) it is still a hypothesis.
+3. **A one-crate convoy wastes a truck.** Dispatching as soon as there is one crate makes each ambush cost
+   a whole truck for little cargo, and the cheapest product monopolizes the factory. Require a minimum load
+   or the front's full order.
+4. **The save rounds.** `sv.ser` writes non-integer numbers with 3 decimals. A ledger validated on load with
+   a 1e-6 tolerance refuses legitimate saves. Validate with slack (0.05) and, when restoring, absorb the leftover in the
+   origin terms so the in-memory ledger closes exactly. Never turn that leftover into stock.
+5. **Attributing interdiction requires a counterfactual.** Cargo lost before wave N affects several waves, not only the
+   next one. A "losses since the last wave" counter underestimates the effect; use a ghost stock that is spent
+   as the waves would have consumed it.
+6. **Testing the whole chunk with swapped boundaries.** In the lupa harness, code appended to the end of the same
+   chunk can reassign top-level `local function`s (`spawnEnemies`, `waveSpawnPoint`, `isLocalAuthority`), and
+   the mod's functions see this as an upvalue. That way you can swap only the engine boundary and call the
+   real `waveTick`/`ai.tick`/`sv.load`, without copying the implementation nor editing `main.lua`.
+7. **Debit after the spawn, not before.** A soldier or truck spawn can partially fail; an actor with
+   `IsValid` and `bActorIsBeingDestroyed` does not count. Decide the quantity first, debit only what spawned and use
+   an unchanged `combat.wave` to detect the wave that never opened.
