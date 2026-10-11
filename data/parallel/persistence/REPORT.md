@@ -1,157 +1,157 @@
-# PERSISTENCIA — salvar infraestrutura e logística regional com segurança (CLAUDE_PERSISTENCIA, 2026-10-09)
+# PERSISTENCIA (persistence) — save infrastructure and regional logistics safely (CLAUDE_PERSISTENCIA, 2026-10-09)
 
-Entrega offline, não integrada. `main.lua` real intacto (SHA256 `33d6c7e5…e679` antes e depois). Sem jogo,
-laboratório, canal, botloop ou saves reais. Consultado o universal-modder no início (`um kb search` save /
-persistence / serialization / atomic write / foxhole); gotchas propostos em `PROPOSED_GOTCHAS.md`.
+Offline delivery, not integrated. The real `main.lua` intact (SHA256 `33d6c7e5…e679` before and after). No game,
+lab, channel, botloop or real saves. Universal-modder consulted at the start (`um kb search` save /
+persistence / serialization / atomic write / foxhole); proposed gotchas in `PROPOSED_GOTCHAS.md`.
 
-## 1. Auditoria do save/continue atual (`mod/FoxholeRTS/Scripts/main.lua`)
+## 1. Audit of the current save/continue (`mod/FoxholeRTS/Scripts/main.lua`)
 
-| # | Onde | Problema |
+| # | Where | Problem |
 |---|---|---|
-| A1 | `sv.parse` 4397-4403 | `load(txt, "save", "t", {})`: ambiente vazio, mas executa o arquivo (laço infinito/memória) e aceita qualquer expressão que dê tabela com `v == 1`. |
-| A2 | `sv.save` 4445-4452 | `io.open(..., "w")` direto no único arquivo: queda/disco cheio no meio trunca o save; retorno de `write` ignorado; sem backup. |
-| A3 | `sv.ser` 4379-4395 | NaN/inf viram `0` e userdata/função vira `nil` em silêncio (perda de dado sem erro). |
-| A4 | `sv.load` 4514-4530, `sv.restore` 4465-4512 | Só confere o nome curto do mapa. `sv.restore` chama `clearSquad` (4466) antes de qualquer checagem de mundo; se `addPoint` (2227-2233) recusar um ponto, os índices andam e os depósitos `pts[i]` (3095) e postos inimigos (4499) caem no ponto errado. `pcall(logi.restore)` ignora falha (4522). |
-| A5 | `logi.restore` 3089-3097 | `logi.start()` (2673) recria estoque de cenário (bmat 240, munição/camisas iniciais) e só depois atribui; sem validação de números. |
-| A6 | `logi.snapshot` 3081-3087 | Sem job (bmat já debitado some), sem caminhões/carga em trânsito, sem estado de reconstrução. (Corrigido pelo schema v2 da ECONOMIA.) |
-| A7 | `logi.deployWallet` 2523-2527, `logi.deploy` 2614-2662 | Carteira chaveada por `GetFullName..GetAddress` (muda a cada carga) e nunca salva; o deploy não registra o que pagou. Após reiniciar, ruínas voltam, carteira renasce com 1100: continuar exige Alt+L de novo e paga outra vez. **Infraestrutura e orçamento não persistem.** |
-| A8 | `logi.start` 2681 | Comboio inimigo volta a `cargo0` a cada continue (carga inimiga recriada). |
-| A9 | `sv.tick` 4533-4550 | Autosave depois de continue incompleto sobrescreve o save bom com a partida degradada. |
-| A10 | `sv.clear` 4462 | Só remove o arquivo principal. |
+| A1 | `sv.parse` 4397-4403 | `load(txt, "save", "t", {})`: empty environment, but it runs the file (infinite loop/memory) and accepts any expression that yields a table with `v == 1`. |
+| A2 | `sv.save` 4445-4452 | `io.open(..., "w")` directly on the single file: a crash/full disk midway truncates the save; the return of `write` ignored; no backup. |
+| A3 | `sv.ser` 4379-4395 | NaN/inf become `0` and userdata/functions become `nil` silently (data loss without an error). |
+| A4 | `sv.load` 4514-4530, `sv.restore` 4465-4512 | Only checks the map's short name. `sv.restore` calls `clearSquad` (4466) before any world check; if `addPoint` (2227-2233) refuses a point, the indexes shift and the depots `pts[i]` (3095) and enemy posts (4499) land on the wrong point. `pcall(logi.restore)` ignores failure (4522). |
+| A5 | `logi.restore` 3089-3097 | `logi.start()` (2673) recreates the scenario stock (bmat 240, starting ammo/shirts) and only then assigns; no number validation. |
+| A6 | `logi.snapshot` 3081-3087 | No job (bmat already debited vanishes), no trucks/cargo in transit, no rebuild state. (Fixed by the ECONOMIA v2 schema.) |
+| A7 | `logi.deployWallet` 2523-2527, `logi.deploy` 2614-2662 | Wallet keyed by `GetFullName..GetAddress` (changes on every load) and never saved; deploy does not record what it paid. After a restart, ruins come back, the wallet is reborn with 1100: continuing requires Alt+L again and pays again. **Infrastructure and budget do not persist.** |
+| A8 | `logi.start` 2681 | The enemy convoy goes back to `cargo0` on every continue (enemy cargo recreated). |
+| A9 | `sv.tick` 4533-4550 | Autosave after an incomplete continue overwrites the good save with the degraded match. |
+| A10 | `sv.clear` 4462 | Only removes the main file. |
 
-Já persistia (v1, por coordenada): pontos/donos/progresso/trincheira/arame inimigo, barreiras, trincheiras,
-postos, arames, soldados dos dois lados, placar, mão de obra, dificuldade, modo.
+Already persisted (v1, by coordinate): points/owners/progress/enemy trench/wire, barriers, trenches,
+posts, wires, soldiers of both sides, score, manpower, difficulty, mode.
 
-## 2. Schema v2 (reconciliado com ECONOMIA e IA_LOGISTICA)
+## 2. Schema v2 (reconciled with ECONOMIA and IA_LOGISTICA)
 
-Mesmo texto `return {...}` do v1; **lido por `sv.decode`** (parser de literais, sem `load`). Top-level `v = 2`:
+Same `return {...}` text as v1; **read by `sv.decode`** (literal parser, no `load`). Top-level `v = 2`:
 
-| Campo | Dono | Conteúdo |
+| Field | Owner | Content |
 |---|---|---|
-| `v, map, diff, wave, kills, losses, elapsed, mp, aimp, shots, hits, nextIn, mode, points, squad, enemies, walls, trenches, tents, wires` | v1 (inalterado) | idem v1 |
-| `world` | PERSISTENCIA (novo) | caminho do mundo sem prefixo de classe (`/Game/Maps/Master/CallumsCapeHex.CallumsCapeHex`); comparação sem caixa |
-| `logi` | **ECONOMIA** (`version=2`, `data/parallel/economy/save.lua`) | sem alteração; validado pela `logi.validateSave` dela, contra os pontos **do save** (proxy), não os vivos |
-| `infra` | PERSISTENCIA (novo, `version=1`) | `budget, bmat, spent` (carteira de implantação) + `built[]` = registros pagos `{kind="site", code="Refinery"/"Factory", x,y,z,yaw}` e `{kind="truck", x,y,z,yaw}` |
-| `elogi` | **IA_LOGISTICA** (`v=1`, `logi.eSnapshot`) | aceito só se o módulo dela estiver integrado e `logi.eValid` aprovar; sem o módulo, recusa ("campo desconhecido: elogi") |
-| `enemy` | PERSISTENCIA (`version=1`, reservado) | `cargo, convoys, cut` do comboio abstrato do main atual; **não é gravado** quando a IA_LOGISTICA está integrada (ela é a dona do estado inimigo via `elogi`) |
+| `v, map, diff, wave, kills, losses, elapsed, mp, aimp, shots, hits, nextIn, mode, points, squad, enemies, walls, trenches, tents, wires` | v1 (unchanged) | same as v1 |
+| `world` | PERSISTENCIA (new) | world path without the class prefix (`/Game/Maps/Master/CallumsCapeHex.CallumsCapeHex`); case-insensitive comparison |
+| `logi` | **ECONOMIA** (`version=2`, `data/parallel/economy/save.lua`) | unchanged; validated by its `logi.validateSave`, against the points **of the save** (proxy), not the live ones |
+| `infra` | PERSISTENCIA (new, `version=1`) | `budget, bmat, spent` (deployment wallet) + `built[]` = paid records `{kind="site", code="Refinery"/"Factory", x,y,z,yaw}` and `{kind="truck", x,y,z,yaw}` |
+| `elogi` | **IA_LOGISTICA** (`v=1`, `logi.eSnapshot`) | accepted only if its module is integrated and `logi.eValid` approves; without the module, refusal ("campo desconhecido: elogi") |
+| `enemy` | PERSISTENCIA (`version=1`, reserved) | `cargo, convoys, cut` of the current main's abstract convoy; **not written** when IA_LOGISTICA is integrated (it owns the enemy state through `elogi`) |
 
-Regras: nenhum ator, userdata, função ou endereço (`sv.pure` + decodificação do próprio texto antes de gravar);
-campo desconhecido no topo, em `infra`, nos registros e em `enemy` = recusa (sem descarte silencioso);
-`bmat + spent == budget` e `spent == Σ custo(built)` (400/400/100 de `CFG.DEPLOY`); instalação única por código.
-Rotas da ESTRADAS **não** são salvas (epoch inclui a sessão): caminhão replaneja (`route/routeDest/pathJob=nil`,
-já feito pela ECONOMIA). Destino do caminhão e depósitos ficam por índice de ponto (contrato da ECONOMIA), com
-identidade estabilizada: preflight garante que todos os pontos voltam e `sv.verify` confere índice→coordenada.
+Rules: no actor, userdata, function or address (`sv.pure` + decoding of the text itself before writing);
+an unknown field at the top, in `infra`, in records and in `enemy` = refusal (no silent discard);
+`bmat + spent == budget` and `spent == Σ cost(built)` (400/400/100 from `CFG.DEPLOY`); a single installation per code.
+ESTRADAS routes are **not** saved (the epoch includes the session): the truck replans (`route/routeDest/pathJob=nil`,
+already done by ECONOMIA). The truck's destination and depots stay by point index (ECONOMIA's contract), with
+stabilized identity: the preflight guarantees all points come back and `sv.verify` checks index→coordinate.
 
-**Versões/migração.** `v=1` (legado, com ou sem `elogi` de uma build com IA): aceito; sem `infra`, a carteira
-não é tocada (comportamento atual); `logi` sem `version` = legado da ECONOMIA. `v>2`, `infra.version>1`,
-`enemy.version>1`: recusa com "versão futura" e arquivo preservado. Para mudar o schema: subir a versão do bloco
-dono e acrescentar a migração em `sv.validate`/carregamento.
+**Versions/migration.** `v=1` (legacy, with or without `elogi` from a build with the AI): accepted; without `infra`, the wallet
+is not touched (current behavior); `logi` without `version` = ECONOMIA legacy. `v>2`, `infra.version>1`,
+`enemy.version>1`: refused with "versão futura" and the file kept. To change the schema: bump the version of the owning
+block and add the migration in `sv.validate`/loading.
 
-## 3. Revalidação antes de restaurar (`sv.preflight`, sem mutação)
+## 3. Revalidation before restoring (`sv.preflight`, no mutation)
 
-1. Arquivo: primeiro válido entre `save.txt`, `.tmp`, `.bak` (`sv.read`); nada é apagado na leitura.
-2. Schema completo (`sv.validate`), incl. ECONOMIA e IA_LOGISTICA pelos validadores deles.
-3. Mundo: `world` igual ao caminho atual (v1: nome curto).
-4. Superfície: cada ponto salvo com `surfaceZ` e sem sobreposição (senão `addPoint` recusaria); chão (`groundZ`)
-   para barreiras, trincheiras e postos.
-5. Infraestrutura (`sv.infraPlan`): carteira da carga atual lida **sem criar** (`logi.walletId`).
-   - Mesma carga com implantação idêntica (sites por código ≤ 2 m, mesma contagem de caminhões): nada a fazer.
-   - Carga com implantação diferente: recusa.
-   - Carga nova: cada instalação paga precisa de ativo (não refaz, não reembolsa) ou ruína da classe certa a
-     ≤ `PERSIST.tol` (200 cm) e yaw ≤ 1°; campo de sucata ativo (nunca inventado); caminhões faltantes só até o
-     número pago, em vagas Landscape validadas (`logi.parking`); classes carregadas.
-6. Logística: com plano vazio, `logi.ready()` precisa achar a cadeia ativa.
+1. File: the first valid one among `save.txt`, `.tmp`, `.bak` (`sv.read`); nothing is deleted on read.
+2. Complete schema (`sv.validate`), incl. ECONOMIA and IA_LOGISTICA through their validators.
+3. World: `world` equal to the current path (v1: short name).
+4. Surface: each saved point with `surfaceZ` and without overlap (otherwise `addPoint` would refuse); ground (`groundZ`)
+   for barriers, trenches and posts.
+5. Infrastructure (`sv.infraPlan`): the current load's wallet read **without creating it** (`logi.walletId`).
+   - Same load with an identical deployment (sites per code ≤ 2 m, same truck count): nothing to do.
+   - Load with a different deployment: refusal.
+   - New load: each paid installation needs an active one (not redone, not refunded) or a ruin of the right class within
+     ≤ `PERSIST.tol` (200 cm) and yaw ≤ 1°; an active salvage field (never invented); missing trucks only up to the
+     paid number, in validated Landscape spots (`logi.parking`); classes loaded.
+6. Logistics: with an empty plan, `logi.ready()` must find the active chain.
 
-Só então: `logi.applyPlan` (rollback próprio: destrói spawns parciais, restaura ocultação/colisão da ruína, não
-mexe na carteira) → carteira := a do save (sem débito novo) → `clearSquad`/`sv.restore` → `sv.verify` →
-`logi.restore` (ECONOMIA, substitui, não soma) só se os pontos conferem → `logi.eRestore(d.elogi)` (IA) ou
-`enemy`. `logi.deploy` foi dividido em `logi.applyPlan` (sem carteira) + `logi.deploy` (debita e registra
-`wallet.built`); comportamento do Alt+L inalterado (suíte `test_orders` PASS).
+Only then: `logi.applyPlan` (own rollback: destroys partial spawns, restores ruin hiding/collision, does not
+touch the wallet) → wallet := the save's (no new debit) → `clearSquad`/`sv.restore` → `sv.verify` →
+`logi.restore` (ECONOMIA, replaces, does not add) only if the points match → `logi.eRestore(d.elogi)` (AI) or
+`enemy`. `logi.deploy` was split into `logi.applyPlan` (no wallet) + `logi.deploy` (debits and records
+`wallet.built`); Alt+L behavior unchanged (`test_orders` suite PASS).
 
-## 4. Tratamento de erro
+## 4. Error handling
 
-- Recusa antes da mutação (arquivo ausente/corrompido/truncado/grande/versão futura, outro mundo, superfície,
-  ruína ausente/movida/girada, campo ausente, sem vaga, caminhões não pagos, implantação divergente, falha de
-  spawn): `false`, aviso "Continuar recusado (partida atual e save preservados)", sessão e arquivos idênticos.
-- Falha depois do preflight (soldado/ponto/fortificação que não volta): partida continua marcada INCOMPLETA,
-  logística só volta se os pontos conferem (senão `logi.reset`, sem estoque fictício), **autosave suspenso**
-  para essa partida (`sv.degraded.start == combat.startT`); Ctrl+F6 tenta de novo sem recobrar/duplicar
-  infraestrutura; Shift+F6 (nova partida) libera o autosave.
-- Gravação: temporário relido e conferido → anterior para `.bak` (ou `.corrupt` se inválido) → temporário vira
-  save (Windows não renomeia por cima: remove o destino antes); falha devolve o anterior. `sv.save` recusa
-  NaN/userdata/schema inválido e mantém o arquivo antigo. Vitória/derrota apaga `save.txt`, `.tmp`, `.bak`, `.corrupt`.
+- Refusal before mutation (missing/corrupted/truncated/large file/future version, another world, surface,
+  missing/moved/rotated ruin, missing field, no spot, unpaid trucks, divergent deployment, spawn
+  failure): `false`, warning "Continuar recusado (partida atual e save preservados)", session and files identical.
+- Failure after the preflight (a soldier/point/fortification that does not come back): the match continues marked INCOMPLETA,
+  logistics only comes back if the points match (otherwise `logi.reset`, no fictitious stock), **autosave suspended**
+  for that match (`sv.degraded.start == combat.startT`); Ctrl+F6 tries again without recharging/duplicating
+  infrastructure; Shift+F6 (new match) releases the autosave.
+- Writing: temporary file reread and checked → previous one to `.bak` (or `.corrupt` if invalid) → the temporary becomes
+  the save (Windows does not rename over: remove the destination first); a failure restores the previous one. `sv.save` refuses
+  NaN/userdata/invalid schema and keeps the old file. Victory/defeat deletes `save.txt`, `.tmp`, `.bak`, `.corrupt`.
 
-## 5. Testado (offline, lupa) e resultado
+## 5. Tested (offline, lupa) and result
 
 ```bash
-# raiz do repositório (Git Bash)
+# repository root (Git Bash)
 PYTHONPATH=D:/tools/pylibs python data/parallel/persistence/build_patch.py
 PYTHONPATH=D:/tools/pylibs python data/parallel/persistence/test_persistence.py
 PYTHONPATH=D:/tools/pylibs python data/parallel/persistence/test_regression.py
 ```
 
-- `test_persistence.py`: **36/36 PASS** = 9 cenários × Lua 5.4 (UE4SS) e 5.5 × 2 pilhas
-  (main+ECONOMIA+PERSISTENCIA e main+ECONOMIA+IA_LOGISTICA+PERSISTENCIA). Cada carga do jogo é um runtime novo
-  com o chunk candidato inteiro; só io/os, atores/spawn/traces e spawn de soldado/ponto/fortificação são falsos.
-  Cenários: parser (sem `load`, sem userdata, 21 entradas maliciosas/corrompidas recusadas, limites); schema e
-  versões futuras/migração v1; **ida e volta** em carga nova (5 spawns, carteira 0/1100 sem débito, razão
-  completo idêntico, entrega única no depósito certo, regravação sem ator/endereço); **restauração repetida**
-  (3×, sem duplicar atores nem estoques; mesma carga; Alt+L antes de continuar); **recusas** preservando sessão
-  e arquivo (mundo errado, caixa diferente aceita, ruína movida/girada, campo ausente, telhado, ponto sem
-  superfície, parede sem chão, implantação divergente, versão futura, truncado, estoque negativo, ausente,
-  `elogi` inválido/sem módulo, caminhões não pagos; com caminhões nativos sem reembolso); **rollback** de spawn
-  parcial; **falha pós-preflight** (autosave suspenso, sem estoque fictício, nova tentativa sem duplicar);
-  **gravação atômica** (abrir/escrever/renomear falhando, queda entre renames recuperada do `.tmp`, corrompido
-  vai para `.corrupt` sem perder `.bak`, NaN não grava); **legado v1**.
-- `test_regression.py`: PASS em `tools/test_orders.py` (pilha sem IA e com IA, com o bloco de comboio trocado
-  pelo da IA como ela faz), `economy/test_integration.py`, `logistics_ai/test_logistics_ai.py` (sobre a pilha
-  com persistência) e `tools/check_globals.py` nos dois candidatos (≤ 180 locais de topo; nenhum local novo).
-- Testes de mutação manuais (não versionados): remover suspensão do autosave, idempotência da infra, conferência
-  da ruína, escrita atômica, conferência de mundo ou restauração da carteira faz a suíte falhar. A guarda
-  `pointsOk` antes de `logi.restore` é redundante hoje (a `validateSave` da ECONOMIA também recusa), mantida
-  como defesa.
-- Custo medido offline: `sv.save` com 120+ unidades ≈ 11 ms; ler+validar ≈ 6 ms (lupa; ao vivo é gate).
+- `test_persistence.py`: **36/36 PASS** = 9 scenarios × Lua 5.4 (UE4SS) and 5.5 × 2 stacks
+  (main+ECONOMIA+PERSISTENCIA and main+ECONOMIA+IA_LOGISTICA+PERSISTENCIA). Each game load is a new runtime
+  with the whole candidate chunk; only io/os, actors/spawn/traces and soldier/point/fortification spawn are fake.
+  Scenarios: parser (no `load`, no userdata, 21 malicious/corrupted inputs refused, limits); schema and
+  future versions/v1 migration; **round trip** on a new load (5 spawns, wallet 0/1100 without debit, ledger
+  completely identical, single delivery at the right depot, rewriting without actor/address); **repeated restore**
+  (3×, without duplicating actors or stocks; same load; Alt+L before continuing); **refusals** keeping the session
+  and file (wrong world, different case accepted, moved/rotated ruin, missing field, roof, point without
+  surface, wall without ground, divergent deployment, future version, truncated, negative stock, missing,
+  invalid `elogi`/without module, unpaid trucks; with native trucks without refund); **rollback** of a partial
+  spawn; **post-preflight failure** (autosave suspended, no fictitious stock, new attempt without duplicating);
+  **atomic write** (open/write/rename failing, crash between renames recovered from `.tmp`, corrupted
+  goes to `.corrupt` without losing `.bak`, NaN does not write); **legacy v1**.
+- `test_regression.py`: PASS in `tools/test_orders.py` (stack without AI and with AI, with the convoy block swapped
+  for the AI's as it does), `economy/test_integration.py`, `logistics_ai/test_logistics_ai.py` (over the stack
+  with persistence) and `tools/check_globals.py` on both candidates (≤ 180 top-level locals; no new local).
+- Manual mutation tests (not versioned): removing the autosave suspension, infra idempotency, the ruin
+  check, atomic write, the world check or the wallet restore makes the suite fail. The guard
+  `pointsOk` before `logi.restore` is redundant today (ECONOMIA's `validateSave` also refuses), kept
+  as a defense.
+- Cost measured offline: `sv.save` with 120+ units ≈ 11 ms; read+validate ≈ 6 ms (lupa; live is a gate).
 
-## 6. NÃO testado (gates ao vivo — ver `LAB_SCRIPT.md`)
+## 6. NOT tested (live gates — see `LAB_SCRIPT.md`)
 
-`io.open("rb"/"wb")`, `f:seek`, `os.rename`/`os.remove` no Lua do UE4SS/Windows; spawn real refazendo a
-infraestrutura numa carga nova do hex e ruína/yaw idênticos entre cargas; `GetFullName` do mundo; carga em
-trânsito retomada com o driver real; custo no game thread; IA_LOGISTICA ao vivo; queda real entre renames.
-Transporte continua em reta até a ESTRADAS integrar o driver. **A task não está concluída** sem a matriz do
-laboratório.
+`io.open("rb"/"wb")`, `f:seek`, `os.rename`/`os.remove` in UE4SS's Lua/Windows; a real spawn redoing the
+infrastructure on a new load of the hex and identical ruin/yaw between loads; the world's `GetFullName`; cargo in
+transit resumed with the real driver; cost on the game thread; IA_LOGISTICA live; a real crash between renames.
+Transport keeps going straight until ESTRADAS integrates the driver. **The task is not finished** without the lab
+matrix.
 
-## 7. Ordem de aplicação
+## 7. Application order
 
-1. ESTABILIDADE (já no main) → 2. **ECONOMIA** → 3. **IA_LOGISTICA** (opcional) → 4. **PERSISTENCIA**.
-- Sem IA: `persistence.patch` (diff sobre main+ECONOMIA). Com IA: `persistence_over_ai.patch` (diff sobre
-  main+ECONOMIA+IA). A PERSISTENCIA substitui a linha de `sv.load` em que a IA ancora, por isso vem depois dela;
-  o `build_on` reconhece as duas variantes. `persistence_complete.patch` = main atual → final (referência).
-- Recomendado aplicar pelo script (`build_patch.build` / `build_with_ia`, âncoras únicas, fail-closed). Os
-  `.patch` são LF; o `main.lua` é CRLF (candidatos em `candidate/` saem CRLF).
-- INTERFACE: as âncoras da PERSISTENCIA não tocam o HUD; o conflito ECONOMIA × INTERFACE (`table.concat(deps,
-  " | "), foe)`) é anterior e não depende desta entrega.
-- Sem tecla nova (Ctrl+F6/Shift+F6 inalterados): `MANUAL_TEST.md` e teste de teclas não mudam. README precisa
-  descrever: save v2 com infraestrutura/carteira, recusas e autosave suspenso em continuação incompleta.
-- Canal: `sv`/`logi` já estão no `env`; as funções novas (`sv.preflight`, `sv.infraPlan`, `sv.decode`,
-  `sv.validate`, `logi.applyPlan`) ficam acessíveis sem mudar `runCommandFile`.
+1. ESTABILIDADE (already in main) → 2. **ECONOMIA** → 3. **IA_LOGISTICA** (optional) → 4. **PERSISTENCIA**.
+- Without the AI: `persistence.patch` (diff over main+ECONOMIA). With the AI: `persistence_over_ai.patch` (diff over
+  main+ECONOMIA+AI). PERSISTENCIA replaces the `sv.load` line the AI anchors on, so it comes after it;
+  `build_on` recognizes both variants. `persistence_complete.patch` = current main → final (reference).
+- Recommended to apply through the script (`build_patch.build` / `build_with_ia`, unique anchors, fail-closed). The
+  `.patch` files are LF; `main.lua` is CRLF (candidates in `candidate/` come out CRLF).
+- INTERFACE: PERSISTENCIA's anchors do not touch the HUD; the ECONOMIA × INTERFACE conflict (`table.concat(deps,
+  " | "), foe)`) is older and does not depend on this delivery.
+- No new key (Ctrl+F6/Shift+F6 unchanged): `MANUAL_TEST.md` and the key test do not change. The README needs to
+  describe: save v2 with infrastructure/wallet, refusals and autosave suspended on an incomplete continue.
+- Channel: `sv`/`logi` are already in `env`; the new functions (`sv.preflight`, `sv.infraPlan`, `sv.decode`,
+  `sv.validate`, `logi.applyPlan`) are reachable without changing `runCommandFile`.
 
-## 8. Riscos
+## 8. Risks
 
-- Mudança de layout do hex/servidor (ruína em outro lugar) torna o save irrecuperável por desenho (recusa, não
-  inventa). Tolerância 2 m / 1° é hipótese a confirmar ao vivo.
-- Continuação incompleta suspende o autosave até Ctrl+F6 bem-sucedido ou partida nova: protege o save, mas o
-  progresso dessa partida não é gravado (avisado na tela).
-- Instalação já ativa nativamente numa carga nova é reutilizada sem reembolso (conservador).
-- Fallback para `.bak`/`.tmp` carrega um save até 30 s mais antigo (avisado como "[lido de save.bak]").
-- `sv.parse` virou só decodificador (contrato usado pelos testes da suíte e da IA); validação do save inteiro é
+- A hex/server layout change (ruin elsewhere) makes the save unrecoverable by design (refusal, it does not
+  invent). The 2 m / 1° tolerance is a hypothesis to confirm live.
+- An incomplete continue suspends the autosave until a successful Ctrl+F6 or a new match: it protects the save, but the
+  progress of that match is not written (warned on screen).
+- An installation already natively active on a new load is reused without refund (conservative).
+- Fallback to `.bak`/`.tmp` loads a save up to 30 s older (warned as "[lido de save.bak]").
+- `sv.parse` became only a decoder (contract used by the suite's and the AI's tests); validation of the whole save is
   `sv.parseSave`.
-- Python pode ter usado o `__pycache__` já existente em `economy/` ao importar o build dela; o build agora
-  desliga a escrita de bytecode.
+- Python may have used the existing `__pycache__` in `economy/` when importing its build; the build now
+  turns off bytecode writing.
 
-## Arquivos
+## Files
 
-`persistence.lua` (módulo `sv`/`CFG.PERSIST`), `deployment.before.lua`/`deployment.after.lua` (divisão do
-deploy), `build_patch.py`, `persistence.patch`, `persistence_over_ai.patch`, `persistence_complete.patch`,
+`persistence.lua` (module `sv`/`CFG.PERSIST`), `deployment.before.lua`/`deployment.after.lua` (deploy
+split), `build_patch.py`, `persistence.patch`, `persistence_over_ai.patch`, `persistence_complete.patch`,
 `candidate/main.lua`, `candidate/main_with_ai.lua`, `harness_test.lua`, `test_persistence.py`,
-`test_regression.py`, `lab/t_persist_state.lua` (sonda só leitura, não executada), `LAB_SCRIPT.md`,
+`test_regression.py`, `lab/t_persist_state.lua` (read-only probe, not run), `LAB_SCRIPT.md`,
 `PROPOSED_GOTCHAS.md`.

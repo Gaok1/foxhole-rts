@@ -1,190 +1,190 @@
-# IA_LOGISTICA: cadeia inimiga e interdição estratégica (proposta isolada, 2026-10-09)
+# IA_LOGISTICA: enemy chain and strategic interdiction (isolated proposal, 2026-10-09)
 
-Agente: CLAUDE_IA_LOGISTICA. Trabalho todo offline. Não editei o `main.lua`, nenhuma doc compartilhada, o
-laboratório nem o universal-modder. Esta pasta tem um módulo que entra no `main.lua` por um gerador com âncoras
-únicas, os testes que executam o `main.lua` candidato **inteiro** em memória (lupa), o roteiro do laboratório e
-os gotchas propostos.
+Agent: CLAUDE_IA_LOGISTICA. All work offline. I did not edit `main.lua`, any shared doc, the
+lab nor universal-modder. This folder has a module that goes into `main.lua` through a generator with unique
+anchors, the tests that run the **whole** candidate `main.lua` in memory (lupa), the lab script and
+the proposed gotchas.
 
-**Estado honesto:** auditoria, design, conservação e efeito rastreável estão provados **offline**. Nada foi
-validado ao vivo: o caminhão BPTruckC real, a rota, o desempenho, o equilíbrio de combate e o save no jogo
-continuam como gates do LABORATORIO (`LAB_SCRIPT.md`). A task fica `[ . ]`.
+**Honest state:** audit, design, conservation and traceable effect are proven **offline**. Nothing was
+validated live: the real BPTruckC truck, the route, performance, combat balance and the in-game save
+remain LABORATORIO gates (`LAB_SCRIPT.md`). The task stays `[ . ]`.
 
-## 1. Auditoria do main.lua atual: estoque real ou bônus abstrato
+## 1. Audit of the current main.lua: real stock or abstract bonus
 
-A auditoria pode ser executada: `test_base_audit.py` roda o `main.lua` atual, sem patch, e confirma
-A1 a A6.
+The audit can be run: `test_base_audit.py` runs the current `main.lua`, without the patch, and confirms
+A1 to A6.
 
-| # | O que existe hoje (linha do main.lua atual) | Classificação |
+| # | What exists today (line of the current main.lua) | Classification |
 |---|---|---|
-| A1 | `logi.convoyTick` (3029-3066): o caminhão inimigo chega à frente e soma `combat.cargo + 1`. O caminhão não carrega nada e nenhum estoque é debitado. Não há retaguarda, produção nem custo. `logi.convoySpawn` (2981) cria um comboio a cada `ECONVOY.every` = 35 s, sem condição. | **Abstrato**: carga criada do nada. Destruir o comboio só impede um +1 futuro. |
-| A2 | `logi.waveCut` (3069-3079), chamado em `waveTick` (4205): cada onda gasta até `perWave`=2 cargas; cada carga que falta tira `cut`=2 soldados; o piso é 3. | **Abstrato**: é um contador. O efeito máximo é −4 soldados por onda. |
-| A3 | `logi.start` (2681) faz `combat.cargo = cargo0 = 2`. `logi.snapshot` (3081) não grava `combat.cargo` nem comboio em trânsito. No continue, `logi.restore`→`start` devolve sempre 2 cargas. | **Abstrato, com bug**: o save/continue dá carga de presente ou apaga carga. |
-| A4 | Tiro inimigo: `fire` e `areaStep` só descontam munição com `if ours` (1649, 1967). | **Abstrato**: munição inimiga infinita. **Não alterado** por esta entrega. |
-| A5 | `spawnEnemies` (3480) não cobra nada. O tamanho da onda sai de uma fórmula (4201-4204). `ai.tick` (4121): `ai.mp` regenera 0,6/s por ponto inimigo e cada reforço custa 20 mp, sem material. | **Abstrato**. Esta entrega passa a exigir material para os soldados pagos (seção 3). `ai.mp` continua como mão de obra abstrata, como a do jogador (1399). |
-| A6 | Morteiro inimigo sem custo (3152-3181). Trincheira e arame inimigos grátis (2179, 2400, 3689). | **Abstrato**. Não alterado. |
-| R1 | Do lado do jogador: sucata, refinaria (2859), receitas com custo real (`CFG.LOGI`, 2438), caminhões com carga, depósitos, perda de carga quando o caminhão é destruído, débito de camisas e munição. Quando o inimigo captura um ponto, o depósito do ponto é zerado (2403). | **Real**. Conta como perda, nunca vai para o inimigo. |
+| A1 | `logi.convoyTick` (3029-3066): the enemy truck reaches the front and adds `combat.cargo + 1`. The truck carries nothing and no stock is debited. There is no rear, production nor cost. `logi.convoySpawn` (2981) creates a convoy every `ECONVOY.every` = 35 s, unconditionally. | **Abstract**: cargo created from nothing. Destroying the convoy only prevents a future +1. |
+| A2 | `logi.waveCut` (3069-3079), called in `waveTick` (4205): each wave spends up to `perWave`=2 cargoes; each missing cargo removes `cut`=2 soldiers; the floor is 3. | **Abstract**: it is a counter. The maximum effect is −4 soldiers per wave. |
+| A3 | `logi.start` (2681) sets `combat.cargo = cargo0 = 2`. `logi.snapshot` (3081) saves neither `combat.cargo` nor a convoy in transit. On continue, `logi.restore`→`start` always gives back 2 cargoes. | **Abstract, with a bug**: save/continue gifts cargo or erases cargo. |
+| A4 | Enemy fire: `fire` and `areaStep` only deduct ammo with `if ours` (1649, 1967). | **Abstract**: infinite enemy ammo. **Not changed** by this delivery. |
+| A5 | `spawnEnemies` (3480) charges nothing. The wave size comes from a formula (4201-4204). `ai.tick` (4121): `ai.mp` regenerates 0.6/s per enemy point and each reinforcement costs 20 mp, no material. | **Abstract**. This delivery now requires material for paid soldiers (section 3). `ai.mp` stays as abstract manpower, like the player's (1399). |
+| A6 | Enemy mortar with no cost (3152-3181). Enemy trench and wire free (2179, 2400, 3689). | **Abstract**. Not changed. |
+| R1 | On the player's side: salvage, refinery (2859), recipes with a real cost (`CFG.LOGI`, 2438), trucks with cargo, depots, cargo loss when the truck is destroyed, shirt and ammo debit. When the enemy captures a point, the point's depot is zeroed (2403). | **Real**. Counts as a loss, never goes to the enemy. |
 
-Achado colateral, sem correção minha: a simulação da cadeia inimiga, que usa a mesma ordem do jogador
-(fábrica antes da reconstrução), mostrou o seguinte. Com consumo contínuo, a fábrica gasta cada 80 bmat assim
-que eles existem, e o caminhão de 100 bmat **nunca é reconstruído**. O lado do jogador tem a mesma ordem:
-`logi.tick` chama `factoryStep` antes de `truckStep`, e o rebuild fica em 2792. Para o jogador isso continua
-sendo **hipótese**, não testada. No inimigo, resolvi reservando bmat para o caminhão (seção 3).
+Side finding, not fixed by me: the simulation of the enemy chain, which uses the same order as the player
+(factory before rebuild), showed the following. With continuous consumption, the factory spends every 80 bmat as soon
+as they exist, and the 100 bmat truck is **never rebuilt**. The player's side has the same order:
+`logi.tick` calls `factoryStep` before `truckStep`, and the rebuild is at 2792. For the player this remains
+a **hypothesis**, not tested. On the enemy, I solved it by reserving bmat for the truck (section 3).
 
-## 2. Contratos com ECONOMIA e ESTRADAS (sem sistema paralelo)
+## 2. Contracts with ECONOMIA and ESTRADAS (no parallel system)
 
-- **Receitas e unidades:** o inimigo usa `CFG.LOGI.recipes` (o mesmo objeto do jogador; com a ECONOMIA
-  aplicada, as mesmas entradas), `LOGI.time`, `LOGI.trip`, `LOGI.refine`, `LOGI.ratio`, `LOGI.cap`,
-  `LOGI.truckCost`, `LOGI.rebuild` e `LOGI.reloads`. Os testes conferem contra `data/game_costs.txt`:
-  RifleAmmo Cloth80/50 s; SoldierSupplies Cloth80, 10 un., 80 s; TruckC Cloth100, 900 HP, carga 15
-  (= `ECONVOY.hp`, `LOGI.cap`, `LOGI.truckCost`). Receita sem custo ou tempo positivo, ou com `units`
-  inválido, **recusa a cadeia inteira**: sem produção e sem comboio, `en.err` aparece no HUD. Erro de
-  schema nunca vira custo zero.
-- **Contabilidade:** é a mesma convenção da ECONOMIA. Caixas fechadas na retaguarda e na carga; unidades de
-  produto na frente (`units` das receitas: munição = 1 caixa, camisas = 10). O débito acontece ao iniciar o
-  job e a caixa só aparece ao concluir. A carga muda de dono só na chegada confirmada. Na destruição, a carga
-  vira perda registrada, nunca volta ao estoque. Os produtos do inimigo são `CFG.ECHAIN.kinds = {ammo, shirts}`,
-  o que a frente consome. Fuzis/bandagens da ECONOMIA não entram: a arma do inimigo é o mesh próprio do mod.
-  Para ampliar, basta mexer em `kinds`/`eNeed`.
-- **Rota:** o comboio anda só por `logi.drive(tr, dest, dt, speed)`, o mesmo driver do jogador, e só entrega
-  quando o driver devolve `true` (chegada). Quando a ESTRADAS trocar o driver, o comboio inimigo herda a rota
-  real sem mudar nada aqui. Contrato extra: o driver pode escrever `tr.routeStatus ∈ {rota_ausente, bloqueado,
-  regiao_invalida}`. Depois de `ECHAIN.stuck` = 20 s nesse estado, o comboio volta carregado e a retaguarda só
-  é creditada quando ele **chega** (`logi.eHome`), igual ao `returnCargo` da ESTRADAS e da ECONOMIA. Ator
-  inválido ou `bActorIsBeingDestroyed` no caminho conta como perda explícita, nunca como entrega. Pendente da
-  ESTRADAS: `logi.convoyRoute` ainda escolhe a retaguarda e a frente por traços de chão em reta (2949-2979).
-  Essas paradas precisam virar paradas validadas do grafo.
-- **Persistência:** `sv.collect` grava `elogi = logi.eSnapshot()` (v=1), aditivo, ao lado do `logi` da
-  ECONOMIA. Nenhum userdata. A PERSISTENCIA precisa reconciliar esse campo no schema regional.
+- **Recipes and units:** the enemy uses `CFG.LOGI.recipes` (the same object as the player; with ECONOMIA
+  applied, the same entries), `LOGI.time`, `LOGI.trip`, `LOGI.refine`, `LOGI.ratio`, `LOGI.cap`,
+  `LOGI.truckCost`, `LOGI.rebuild` and `LOGI.reloads`. The tests check against `data/game_costs.txt`:
+  RifleAmmo Cloth 80/50 s; SoldierSupplies Cloth 80, 10 units, 80 s; TruckC Cloth 100, 900 HP, cargo 15
+  (= `ECONVOY.hp`, `LOGI.cap`, `LOGI.truckCost`). A recipe without a positive cost or time, or with invalid
+  `units`, **refuses the whole chain**: no production and no convoy, `en.err` appears in the HUD. A schema
+  error never becomes zero cost.
+- **Accounting:** the same convention as ECONOMIA. Closed crates in the rear and in the cargo; product
+  units at the front (the recipes' `units`: ammo = 1 crate, shirts = 10). The debit happens when the
+  job starts and the crate only appears on completion. The cargo changes owner only on confirmed arrival. On destruction, the cargo
+  becomes a recorded loss, it never returns to stock. The enemy's products are `CFG.ECHAIN.kinds = {ammo, shirts}`,
+  what the front consumes. ECONOMIA's rifles/bandages do not enter: the enemy's weapon is the mod's own mesh.
+  To widen it, just change `kinds`/`eNeed`.
+- **Route:** the convoy moves only through `logi.drive(tr, dest, dt, speed)`, the same driver as the player, and only delivers
+  when the driver returns `true` (arrival). When ESTRADAS swaps the driver, the enemy convoy inherits the real route
+  without changing anything here. Extra contract: the driver may write `tr.routeStatus ∈ {rota_ausente, bloqueado,
+  regiao_invalida}`. After `ECHAIN.stuck` = 20 s in that state, the convoy returns loaded and the rear is only
+  credited when it **arrives** (`logi.eHome`), like the `returnCargo` of ESTRADAS and ECONOMIA. An invalid
+  actor or `bActorIsBeingDestroyed` on the way counts as an explicit loss, never as a delivery. Pending from
+  ESTRADAS: `logi.convoyRoute` still picks the rear and the front through straight ground traces (2949-2979).
+  Those stops need to become validated graph stops.
+- **Persistence:** `sv.collect` writes `elogi = logi.eSnapshot()` (v=1), additive, next to ECONOMIA's `logi`.
+  No userdata. PERSISTENCIA needs to reconcile this field in the regional schema.
 
-## 3. Design (o que o patch faz)
+## 3. Design (what the patch does)
 
-Tudo fica em `logi.e*` e `CFG.ECHAIN`. Os **locais de topo continuam 178**.
+Everything lives in `logi.e*` and `CFG.ECHAIN`. **Top-level locals stay at 178**.
 
-1. **Retaguarda fora do mapa, com as regras do jogador.** Um caminhão de recurso abstrato traz `LOGI.trip` = 100
-   de sucata a cada `ECHAIN.trip` = 25 s. Refinaria a 4/s, razão 2:1, ou seja, no máximo 2 bmat/s como o
-   jogador. Fábrica com um job por vez: escolhe o produto com menor estoque total sobre o alvo e para quando
-   tudo passa de 2x o alvo. `bmat0` = 240, igual ao jogador.
-2. **Comboio com carga real.** Só sai com caminhão livre (frota `ECHAIN.trucks` = 2 = `LOGI.supply`), com
-   caixas na retaguarda e com pelo menos `minLoad` = 3 caixas (ou tudo o que a frente pede). A retaguarda só é
-   debitada **depois** de o ator BPTruckC nascer válido. Spawn falho, classe ausente ou ator morrendo: nada sai
-   e nada é debitado. Sem carga, tenta de novo em 5 s (`ECONVOY.retry`).
-3. **Interdição.** Tiro, emboscada ou morteiro (`logi.hit` e `logi.blast` de sempre) executam `logi.eLose`.
-   A carga vira perda **uma única vez** (`lostDone`), a frente não recebe nada e o caminhão entra na fila de
-   reconstrução (`LOGI.rebuild` = 30 s e `LOGI.truckCost` = 100 bmat). A reconstrução **tem prioridade** sobre
-   a fábrica quando não sobra caminhão livre. A recompensa de mão de obra ao jogador (+25) fica como estava.
-4. **Frente.** Cada soldado **pago** leva 1 camisa e 1 carregamento (1/`LOGI.reloads` caixa de munição),
-   como o recrutamento e a recarga do jogador. A onda (`logi.waveCut`) recebe `ECHAIN.free` = 3 soldados
-   grátis e, além deles, só o que a frente consegue equipar. O débito (`logi.eCommit`) vem **depois** do spawn
-   e cobre só os soldados pagos que nasceram. Os reforços pelos pontos (`ai.tick`) passam pelo mesmo limite
-   (`eAfford`) e pelo mesmo débito (`eConsume`).
-5. **Rastreabilidade.** Cada onda fica registrada em `logi.en.waves`: pedido, grátis, pagos, enviados,
-   faltaram, produto limitante e **quantos faltaram por interdição** (`byCut`). O `byCut` é um contrafactual:
-   o estoque perdido que ainda não foi "gasto" (`ghost`) mostra quantos soldados a frente teria equipado. O
-   alerta da onda diz quantos faltaram por comboio destruído. `logi.eReport()` e `logi.eAudit()` funcionam no
-   canal. O HUD mostra a frente, a retaguarda, os comboios na estrada e os perdidos. `combat.cargo` continua
-   existindo como alias (= soldados que a frente equipa) para o painel da INTERFACE.
-6. **Conservação.** Por produto: inicial + produzido = retaguarda + trânsito + pendente + frente + consumido +
-   perdido. Também bmat0 + refinado/2 = bmat + gasto, e sucata colhida = sucata + refinada. Frota: livre +
-   reconstruindo + na estrada = 2. Qualquer violação aparece em `logi.eAudit()`.
-7. **Save/continue.** A carga em trânsito vira `pending`: o ator não é recriado e a carga sai no próximo
-   comboio a partir da retaguarda. Caminhões na estrada voltam a ficar livres. A validação é completa (números
-   finitos ≥ 0, frota, job e o **próprio razão do save fechando**) e a restauração **substitui**, nunca soma.
-   O `sv.ser` grava 3 casas decimais, por isso a tolerância é `ECHAIN.tol` = 0,05 e a sobra entra nos termos
-   de origem. Save inválido ou legado (sem `elogi`) recomeça do estoque de cenário com aviso; é o mesmo
-   comportamento antigo do `cargo0`, mas agora registrado no razão como "inicial".
-8. **Inalterado de propósito:** assalto (`combat.mode == "assault"`) e partidas sem logística (`logi.on`
-   falso) mantêm o comportamento abstrato antigo, sem consumo. Onda manual F4, guarnição do assalto, munição
-   no tiro, morteiro e fortificações inimigas também continuam abstratos (A4-A6).
+1. **Off-map rear, with the player's rules.** An abstract resource truck brings `LOGI.trip` = 100
+   salvage every `ECHAIN.trip` = 25 s. Refinery at 4/s, ratio 2:1, i.e. at most 2 bmat/s like the
+   player. Factory with one job at a time: it picks the product with the lowest total stock over its target and stops when
+   everything exceeds 2x the target. `bmat0` = 240, same as the player.
+2. **Convoy with real cargo.** It only leaves with a free truck (fleet `ECHAIN.trucks` = 2 = `LOGI.supply`), with
+   crates in the rear and with at least `minLoad` = 3 crates (or everything the front asks for). The rear is only
+   debited **after** the BPTruckC actor spawns valid. Failed spawn, missing class or dying actor: nothing leaves
+   and nothing is debited. Without cargo, it tries again in 5 s (`ECONVOY.retry`).
+3. **Interdiction.** Fire, ambush or mortar (the usual `logi.hit` and `logi.blast`) run `logi.eLose`.
+   The cargo becomes a loss **a single time** (`lostDone`), the front receives nothing and the truck enters the
+   rebuild queue (`LOGI.rebuild` = 30 s and `LOGI.truckCost` = 100 bmat). The rebuild **has priority** over
+   the factory when no free truck is left. The manpower reward to the player (+25) stays as it was.
+4. **Front.** Each **paid** soldier takes 1 shirt and 1 load (1/`LOGI.reloads` ammo crate),
+   like the player's recruiting and reloading. The wave (`logi.waveCut`) gets `ECHAIN.free` = 3 free
+   soldiers and, beyond them, only what the front can equip. The debit (`logi.eCommit`) comes **after** the spawn
+   and covers only the paid soldiers that spawned. Reinforcements through points (`ai.tick`) go through the same limit
+   (`eAfford`) and the same debit (`eConsume`).
+5. **Traceability.** Each wave is recorded in `logi.en.waves`: requested, free, paid, sent,
+   missing, limiting product and **how many were missing due to interdiction** (`byCut`). `byCut` is a counterfactual:
+   the lost stock not yet "spent" (`ghost`) shows how many soldiers the front would have equipped. The
+   wave alert says how many were missing due to destroyed convoys. `logi.eReport()` and `logi.eAudit()` work through the
+   channel. The HUD shows the front, the rear, the convoys on the road and the lost ones. `combat.cargo` keeps
+   existing as an alias (= soldiers the front equips) for the INTERFACE panel.
+6. **Conservation.** Per product: initial + produced = rear + transit + pending + front + consumed +
+   lost. Also bmat0 + refined/2 = bmat + spent, and salvage collected = salvage + refined. Fleet: free +
+   rebuilding + on the road = 2. Any violation shows in `logi.eAudit()`.
+7. **Save/continue.** The cargo in transit becomes `pending`: the actor is not recreated and the cargo leaves on the next
+   convoy from the rear. Trucks on the road become free again. Validation is complete (finite numbers
+   ≥ 0, fleet, job and the **save's own ledger closing**) and the restore **replaces**, never adds.
+   `sv.ser` writes 3 decimal places, so the tolerance is `ECHAIN.tol` = 0.05 and the leftover goes into the
+   origin terms. An invalid or legacy save (without `elogi`) restarts from the scenario stock with a warning; it is the same
+   old `cargo0` behavior, but now recorded in the ledger as "initial".
+8. **Unchanged on purpose:** assault (`combat.mode == "assault"`) and matches without logistics (`logi.on`
+   false) keep the old abstract behavior, without consumption. Manual wave F4, the assault garrison, ammo
+   when firing, mortar and enemy fortifications also stay abstract (A4-A6).
 
-**Bônus abstratos que restam, todos explícitos:** guarnição de 3 grátis por onda; fórmula do tamanho pedido
-da onda; `ai.mp`; munição inimiga no tiro; morteiro e fortificações inimigas; retaguarda fora do mapa, que não
-pode ser atacada; e o estoque de cenário inicial da frente (2 caixas de munição, 10 camisas), que está no razão.
+**Abstract bonuses that remain, all explicit:** a garrison of 3 free per wave; the formula for the requested wave
+size; `ai.mp`; enemy ammo when firing; enemy mortar and fortifications; the off-map rear, which cannot
+be attacked; and the front's initial scenario stock (2 ammo crates, 10 shirts), which is in the ledger.
 
-## 4. Testes offline: comandos e resultado (saída completa em `TEST_OUTPUT.txt`)
+## 4. Offline tests: commands and result (full output in `TEST_OUTPUT.txt`)
 
-Da raiz do repositório (PowerShell):
+From the repository root (PowerShell):
 
 ```powershell
 $env:PYTHONPATH='D:/tools/pylibs'
-python data/parallel/logistics_ai/build_patch.py          # gera patches + main_candidate.lua; main.lua intacto
-python data/parallel/logistics_ai/test_logistics_ai.py    # PASS nos 2 candidatos
-python data/parallel/logistics_ai/test_orders_candidate.py  # PASS: 4 execuções
-python data/parallel/logistics_ai/test_base_audit.py  # PASS: A1-A6 no main atual
-python tools/check_globals.py data/parallel/logistics_ai/main_candidate.lua  # sem saída = OK
+python data/parallel/logistics_ai/build_patch.py          # generates patches + main_candidate.lua; main.lua intact
+python data/parallel/logistics_ai/test_logistics_ai.py    # PASS on the 2 candidates
+python data/parallel/logistics_ai/test_orders_candidate.py  # PASS: 4 runs
+python data/parallel/logistics_ai/test_base_audit.py  # PASS: A1-A6 on the current main
+python tools/check_globals.py data/parallel/logistics_ai/main_candidate.lua  # no output = OK
 ```
 
-- `test_logistics_ai.py` executa o `main.lua` candidato inteiro duas vezes: main+IA e main+ECONOMIA+IA.
-  Cobre custos do jogo; estoque de cenário; recusa por schema (custo 0 e tempo ausente); produção com débito
-  no início; fábrica parando em 2x; comboio sem caminhão, sem carga, com spawn falho ou com ator morrendo, sem
-  fantasma e sem débito; entrega única; perda única com tiro e morteiro em seguida; reconstrução que espera
-  bmat; ator inválido no caminho; rota ausente (volta carregado, crédito só na chegada); onda via `waveTick`
-  real com spawn falso; spawn recusado sem débito; reforço via `ai.tick` real; assalto e partida sem
-  logística; save via `sv.ser`/`sv.parse` e `sv.collect`/`sv.load` reais; repetir restore sem duplicar;
-  save adulterado ou legado; **25 sementes × 600 passos aleatórios** com `eAudit` depois de cada passo
-  (conservação, sem negativo, frota constante); e quatro partidas completas por `waveTick`.
-- Partidas determinísticas (luta de 45 s por onda, 6 soldados nossos; formato `onda:enviados/pedidos`,
-  `[iN]` = N atribuídos à interdição):
+- `test_logistics_ai.py` runs the whole candidate `main.lua` twice: main+AI and main+ECONOMIA+AI.
+  It covers game costs; scenario stock; schema refusal (cost 0 and missing time); production with debit
+  at the start; factory stopping at 2x; convoy without a truck, without cargo, with a failed spawn or a dying actor, without
+  a phantom and without a debit; single delivery; single loss with fire and then mortar; rebuild waiting for
+  bmat; invalid actor on the way; missing route (returns loaded, credit only on arrival); wave through the real `waveTick`
+  with a fake spawn; spawn refused without debit; reinforcement through the real `ai.tick`; assault and a match without
+  logistics; save through the real `sv.ser`/`sv.parse` and `sv.collect`/`sv.load`; repeating restore without duplicating;
+  tampered or legacy save; **25 seeds × 600 random steps** with `eAudit` after each step
+  (conservation, no negatives, constant fleet); and four complete matches through `waveTick`.
+- Deterministic matches (45 s fight per wave, 6 of our soldiers; format `wave:sent/requested`,
+  `[iN]` = N attributed to interdiction):
 
 ```
-controle                 1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:10/10 8:11/11 9:12/12 10:13/13   (5 comboios, 0 perdidos)
-interdição total         1:6/6 2:6/6 3:7/7 4:3/8[i5] 5:3/9[i6] 6:3/10[i7] 7:3/10[i7] 8:3/11[i5] 9:3/12[i9] 10:3/13[i1]  (4 de 4 destruídos)
-interdição 0-420 s       ... 8:3/11[i5] 9:3/12 10:13/13   (recuperação depois que o corte para)
-escassez (sem bmat)      1:6/6 2:6/6 3:7/7 4..10: 3 (piso)   (a partida continua até o fim, razão OK)
+control                  1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:10/10 8:11/11 9:12/12 10:13/13   (5 convoys, 0 lost)
+total interdiction       1:6/6 2:6/6 3:7/7 4:3/8[i5] 5:3/9[i6] 6:3/10[i7] 7:3/10[i7] 8:3/11[i5] 9:3/12[i9] 10:3/13[i1]  (4 of 4 destroyed)
+interdiction 0-420 s     ... 8:3/11[i5] 9:3/12 10:13/13   (recovery after the cut stops)
+scarcity (no bmat)       1:6/6 2:6/6 3:7/7 4..10: 3 (floor)   (the match continues to the end, ledger OK)
 ```
 
-  Leitura: o corte reduz de forma rastreável os soldados que a onda recebe (alerta + `byCut` + perdas no
-  razão), não só um contador. O "venceu=true" dessas linhas **não diz nada de equilíbrio**, porque o modelo
-  de luta mata toda onda em 45 s.
-- `test_orders_candidate.py` roda `tools/test_orders.py` sem mudança no main puro (controle), em main+IA e
-  em main+ECONOMIA+IA. Troca um único bloco, o do comboio inimigo, cujo contrato abstrato foi removido; o
-  bloco novo está em `test_orders_convoy_block.lua`. Também roda `economy/test_integration.py` sobre
-  main+ECONOMIA+IA: PASS.
-- Sintaxe OK; 178 locais de topo nos três; `check_globals` limpo em main+IA e main+ECONOMIA+IA.
+  Reading: the cut traceably reduces the soldiers the wave receives (alert + `byCut` + losses in the
+  ledger), not just a counter. The "venceu=true" of these lines **says nothing about balance**, because the fight
+  model kills every wave in 45 s.
+- `test_orders_candidate.py` runs `tools/test_orders.py` unchanged on the pure main (control), on main+AI and
+  on main+ECONOMIA+AI. It swaps a single block, the enemy convoy one, whose abstract contract was removed; the
+  new block is in `test_orders_convoy_block.lua`. It also runs `economy/test_integration.py` over
+  main+ECONOMIA+AI: PASS.
+- Syntax OK; 178 top-level locals in all three; `check_globals` clean on main+AI and main+ECONOMIA+AI.
 
-**O que NÃO foi testado (gates ao vivo):** spawn e movimento do BPTruckC com o patch; LOS e alertas;
-desempenho por quadro; o efeito real na frente com soldados de verdade; equilíbrio (o piso de 3 com
-interdição total pode deixar o jogo fácil demais, e a calibração é do laboratório); save/continue real no
-disco com o comboio na estrada; e a integração com o driver da ESTRADAS (que ainda não existe).
+**What was NOT tested (live gates):** BPTruckC spawn and movement with the patch; LOS and alerts;
+per-frame performance; the real effect at the front with real soldiers; balance (the floor of 3 with
+total interdiction may make the game too easy, and calibration belongs to the lab); real save/continue on
+disk with the convoy on the road; and integration with the ESTRADAS driver (which does not exist yet).
 
-## 5. Ordem de aplicação (para o coordenador)
+## 5. Application order (for the coordinator)
 
-1. ESTABILIDADE (já integrada).
+1. ESTABILIDADE (already integrated).
 2. **ECONOMIA** (`data/parallel/economy/build_patch.py`).
-3. **IA_LOGISTICA**: `build_patch.build(source)` ou `logistics_ai.patch` (diff sobre main+ECONOMIA).
-   Nenhuma âncora depende da ECONOMIA: `logistics_ai_base.patch` aplica sobre o main puro, e os dois caminhos
-   foram testados. As âncoras são únicas e fail-closed; só a do HUD é opcional.
-4. INTERFACE: testei num scratch a IA aplicada **depois** do `painel.patch`. Funciona: a âncora do HUD é
-   pulada e o painel continua lendo `combat.cargo`. Recomendo o painel usar `logi.eHud()`.
-   **Conflito que não é meu:** a ECONOMIA falha sobre a INTERFACE (âncora `table.concat(deps, " | "), foe)`).
-5. Trocar em `tools/test_orders.py` o bloco "enemy convoy" pelo de `test_orders_convoy_block.lua` e incluir
-   `test_logistics_ai.py` na bateria. Não há tecla nova, então TESTE_MANUAL e teste de teclas ficam iguais. O
-   README precisa descrever a cadeia inimiga e o alerta novo.
-6. Depois: o driver da ESTRADAS (com `routeStatus`) e o schema da PERSISTENCIA (`elogi`).
+3. **IA_LOGISTICA**: `build_patch.build(source)` or `logistics_ai.patch` (diff over main+ECONOMIA).
+   No anchor depends on ECONOMIA: `logistics_ai_base.patch` applies over the pure main, and both paths
+   were tested. The anchors are unique and fail-closed; only the HUD one is optional.
+4. INTERFACE: I tested in a scratch the AI applied **after** `painel.patch`. It works: the HUD anchor is
+   skipped and the panel keeps reading `combat.cargo`. I recommend the panel use `logi.eHud()`.
+   **Conflict that is not mine:** ECONOMIA fails over INTERFACE (anchor `table.concat(deps, " | "), foe)`).
+5. Swap in `tools/test_orders.py` the "enemy convoy" block for the one in `test_orders_convoy_block.lua` and include
+   `test_logistics_ai.py` in the battery. There is no new key, so MANUAL_TEST and the key test stay the same. The
+   README needs to describe the enemy chain and the new alert.
+6. Then: the ESTRADAS driver (with `routeStatus`) and the PERSISTENCIA schema (`elogi`).
 
-## 6. Riscos
+## 6. Risks
 
-- **Equilíbrio:** a interdição total leva as ondas 4 a 10 ao piso de 3 (antes o máximo era −4 por onda). Os
-  parâmetros de calibração ficam em `CFG.ECHAIN` (`free`, `front0`, `want`, `trip`, `minLoad`) e são
-  comparados no robô (roteiro L9).
-- O comboio continua em reta e sem colisão (driver atual) até a ESTRADAS.
-- `ECHAIN.trip` é um parâmetro abstrato de retaguarda fora do mapa. A retaguarda não pode ser atacada; atacar
-  as instalações inimigas fica para depois.
-- No continue, a carga em trânsito volta a sair da retaguarda, e não do ponto onde o caminhão estava. Isso
-  conserva a carga, mas atrasa a entrega.
-- Diagnóstico `byCut`: é uma atribuição contrafactual, não uma medida física.
+- **Balance:** total interdiction brings waves 4 to 10 down to the floor of 3 (before, the maximum was −4 per wave). The
+  calibration parameters are in `CFG.ECHAIN` (`free`, `front0`, `want`, `trip`, `minLoad`) and are
+  compared on the bot (script L9).
+- The convoy keeps going straight and without collision (current driver) until ESTRADAS.
+- `ECHAIN.trip` is an abstract parameter of the off-map rear. The rear cannot be attacked; attacking
+  enemy installations is left for later.
+- On continue, the cargo in transit leaves the rear again, not from where the truck was. This
+  conserves the cargo, but delays the delivery.
+- `byCut` diagnosis: it is a counterfactual attribution, not a physical measurement.
 
 ## 7. Universal-modder
 
-Consultei no início: `um kb search` com logistics, supply, enemy ai, conservation e foxhole; a nota Foxhole,
-itens 25, 30, 32-38 (TruckC/TruckW spawn, rede de estradas, ruína × ativa, IsValid × spawn). "Rastrear antes
-de reinventar": o Foxhole é só online e não tem bots nem IA de logística para rastrear. A cadeia própria usa
-as **tabelas reais** do jogo (custos, carga e HP do TruckC). Gotchas propostos em `PROPOSED_GOTCHAS.md`;
-não editei a nota.
+Consulted at the start: `um kb search` with logistics, supply, enemy ai, conservation and foxhole; the Foxhole note,
+items 25, 30, 32-38 (TruckC/TruckW spawn, road network, ruin × active, IsValid × spawn). "Trace before
+reinventing": Foxhole is online only and has no bots nor logistics AI to trace. The own chain uses
+the game's **real tables** (costs, TruckC cargo and HP). Gotchas proposed in `PROPOSED_GOTCHAS.md`;
+I did not edit the note.
 
-## Arquivos
+## Files
 
-`logistics_ai.lua` (módulo inserido), `build_patch.py`, `logistics_ai.patch`, `logistics_ai_base.patch`,
-`main_candidate.lua` (só para inspeção/check_globals; **não copiar** sobre o main), `test_logistics_ai.py`,
+`logistics_ai.lua` (inserted module), `build_patch.py`, `logistics_ai.patch`, `logistics_ai_base.patch`,
+`main_candidate.lua` (only for inspection/check_globals; **do not copy** over main), `test_logistics_ai.py`,
 `test_orders_candidate.py`, `test_orders_convoy_block.lua`, `test_base_audit.py`, `TEST_OUTPUT.txt`,
-`t_logistics_ai.lua` (sonda de canal para o laboratório, não executada), `LAB_SCRIPT.md`,
+`t_logistics_ai.lua` (channel probe for the lab, not run), `LAB_SCRIPT.md`,
 `PROPOSED_GOTCHAS.md`.

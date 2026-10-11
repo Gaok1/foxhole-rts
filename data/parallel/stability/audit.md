@@ -1,102 +1,102 @@
-# Auditoria inicial do contorno — 2026-10-09
+# Initial outline audit — 2026-10-09
 
-Leitura estática, não diagnóstico da causa nativa. Não há correção aplicada nem validação ao vivo nova.
+Static reading, not a diagnosis of the native cause. No fix applied and no new live validation.
 
-## Evidência do código atual
+## Evidence from the current code
 
-- `destroyMarker` chama `anim.untrack` e `rts.clearOutline` antes de remover os demais marcadores.
-- `clearOutline` destrói as cópias, apaga `outlineSources` e limpa `outlineParts`.
-- `updateOutline` chama UFunctions em fontes e cópias armazenadas sem revalidar sua vida útil a cada uso.
-  A fonte pode continuar `IsValid` até o GC; esse teste sozinho não prova segurança.
-- `outlineDepth` conserva a lista de componentes até `clearOutline`; equipamentos substituídos enquanto
-  a unidade permanece selecionada merecem reprodução específica.
-- `setOutline` protege a criação com pcall, mas pcall não protege falhas nativas. Seu rollback não é
-  evidência de segurança diante de GC/substituição de componente.
-- O MID de preenchimento é ancorado via `AddOrUpdateBlendable` antes da configuração; os MIDs de cópias
-  são associados aos componentes. Não atribuir as quedas a MID sem demonstrar perda dessas referências.
-- O loop principal usa `LoopInGameThreadAfterFrames`; o erro de Registry do lote 17 exige separar
-  callback persistente do mod e callbacks temporários das sondas. Não repetir hotpatch como prova limpa.
+- `destroyMarker` calls `anim.untrack` and `rts.clearOutline` before removing the other markers.
+- `clearOutline` destroys the copies, erases `outlineSources` and clears `outlineParts`.
+- `updateOutline` calls UFunctions on stored sources and copies without revalidating their lifetime on each use.
+  The source may stay `IsValid` until GC; that test alone does not prove safety.
+- `outlineDepth` keeps the component list until `clearOutline`; equipment replaced while
+  the unit stays selected deserves a specific reproduction.
+- `setOutline` protects creation with pcall, but pcall does not protect native failures. Its rollback is not
+  evidence of safety against GC/component replacement.
+- The fill MID is anchored through `AddOrUpdateBlendable` before configuration; the copies' MIDs
+  are tied to the components. Do not attribute the crashes to MIDs without showing loss of these references.
+- The main loop uses `LoopInGameThreadAfterFrames`; the batch 17 Registry error requires separating
+  the mod's persistent callback from the probes' temporary callbacks. Do not repeat a hotpatch as clean proof.
 
-## Reprodução proposta para o dono do laboratório
+## Proposed reproduction for the lab owner
 
-1. Carga limpa; registrar hash, PID, mapa e início/fim de cada etapa em arquivo fora do repo.
-2. Controle sem seleção; depois um soldado selecionado, sem callbacks de amostragem adicionais.
-3. Alternar seleção e limpar/recriar soldados; registrar contagens de cópias e fontes por etapa.
-4. Morte do selecionado pelo sistema próprio do mod: conferir remoção de referências antes da notificação
-   de saúde, sem acessar AnimInstance/corpo depois da transição.
-5. Testar componentes separadamente em variantes experimentais isoladas, preservando a fonte aprovada.
-6. Testar coleta de memória somente com chamada refletida previamente confirmada e em etapa separada.
-7. Só depois aumentar seleção e medir custo por quadro; estabilidade e aparência são gates distintos.
+1. Clean load; record hash, PID, map and start/end of each step in a file outside the repo.
+2. Control without selection; then one selected soldier, without extra sampling callbacks.
+3. Toggle selection and clear/recreate soldiers; record copy and source counts per step.
+4. Death of the selected one through the mod's own system: check reference removal before the health
+   notification, without accessing the AnimInstance/body after the transition.
+5. Test components separately in isolated experimental variants, keeping the approved source.
+6. Test garbage collection only with a previously confirmed reflected call and in a separate step.
+7. Only then increase selection and measure per-frame cost; stability and appearance are separate gates.
 
-Critério: registrar qual transição falha e reproduzir com carga limpa antes de concluir causa ou corrigir.
-Nenhuma ausência de crash num teste curto prova estabilidade prolongada.
+Criterion: record which transition fails and reproduce on a clean load before concluding a cause or fixing.
+No absence of a crash in a short test proves long-term stability.
 
 
-## Auditoria complementar — agente estabilidade, 2026-10-09
+## Complementary audit — stability agent, 2026-10-09
 
-### Defeito comprovado offline e proposta entregue
+### Defect proven offline and proposal delivered
 
-`updateOutline` (main.lua:3800) não testa pawn/clone em destruição nem validade da fonte antes de chamar
-UFunctions. `test_lifetime.py` executa a função real extraída da fonte: os três casos continuam a acessar
-componentes/atores na versão atual. A substituição `update_outline.before.lua` → `update_outline.after.lua`
-limpa o conjunto antes de qualquer acesso em tais estados. Caso vivo preservado. Resultado: OK em 2026-10-09.
-A proposta não altera main.lua. Gate ao vivo obrigatório antes de dizer que resolveu as quedas.
+`updateOutline` (main.lua:3800) does not test pawn/clone being destroyed nor source validity before calling
+UFunctions. `test_lifetime.py` runs the real function extracted from the source: the three cases keep accessing
+components/actors in the current version. The replacement `update_outline.before.lua` → `update_outline.after.lua`
+clears the set before any access in those states. Live case preserved. Result: OK on 2026-10-09.
+The proposal does not change main.lua. A live gate is mandatory before saying it fixed the crashes.
 
-Limites: fonte ainda IsValid durante destruição não é capturada; componentes substituídos mas vivos também
-não são detectados. `bActorIsBeingDestroyed` é propriedade do ator, não deve ser inventada no componente.
-Não ler MasterPoseComponent/AnimClass. Esta defesa cobre estados observáveis, não demonstra segurança nativa.
+Limits: a source still IsValid during destruction is not caught; components replaced but alive are also
+not detected. `bActorIsBeingDestroyed` is an actor property, it must not be invented on the component.
+Do not read MasterPoseComponent/AnimClass. This defense covers observable states, it does not show native safety.
 
-### Callers e ordem de limpeza
+### Callers and cleanup order
 
-- `setMarker` chama `setOutline`; `stratTick` repete por quadro para aliados/inimigos e limpa CustomDepth do olho.
-- `reap`: `destroyMarker` → `clearOutline` → `anim.retire` → `OnRep_Health` → TTL do corpo. Ordem correta
-  no caminho comum; `anim.retire` só tem esse caller. O teste existente de morte cobre a ordem.
-- `resetCombat`/limpeza de sessão e remoção de inimigos: `destroyMarker` antes de `K2_DestroyActor`.
-- `corpseTick` destrói corpos já retirados de listas e sem contorno; save/continue chama OnRep_Health para HP vivo.
-- Médico, tendas e pontos notificam OnRep_Health com HP positivo. Não foi demonstrado que substituam malhas.
-- `clearOutline` captura clones numa lista, destrói com pcall e zera fontes, depois limpa depth. Se destruição
-  de clone falhar em Lua, referência é descartada mesmo assim; pode sobrar clone. Falha nativa não é contida.
-- `outlineDepth` reutiliza componentes até limpeza. Troca de equipamento enquanto selecionado pode deixar
-  cópias/depth antigos: hipótese funcional a reproduzir, não causa atribuída dos crashes.
-- `outlineFill`: MID referenciado por blendable do volume; MID do clone por material do componente.
-  Cache Lua não garante raiz de GC, mas há ancoragem do engine no código. Não atribuir GC sem teste.
-- Criação testa IsValid mas não bActorIsBeingDestroyed no retorno do spawn do clone; semelhante ao problema
-  documentado dos caminhões. Requer sonda/falha simulada antes de ampliar o patch.
+- `setMarker` calls `setOutline`; `stratTick` repeats per frame for allies/enemies and clears CustomDepth of the eye.
+- `reap`: `destroyMarker` → `clearOutline` → `anim.retire` → `OnRep_Health` → body TTL. Correct order
+  on the common path; `anim.retire` has only that caller. The existing death test covers the order.
+- `resetCombat`/session cleanup and enemy removal: `destroyMarker` before `K2_DestroyActor`.
+- `corpseTick` destroys bodies already removed from lists and without an outline; save/continue calls OnRep_Health for live HP.
+- Medic, tents and points notify OnRep_Health with positive HP. It was not shown that they replace meshes.
+- `clearOutline` captures clones in a list, destroys them with pcall and zeroes sources, then clears depth. If a clone's
+  destruction fails in Lua, the reference is discarded anyway; a clone may remain. A native failure is not contained.
+- `outlineDepth` reuses components until cleanup. An equipment swap while selected may leave old
+  copies/depth: a functional hypothesis to reproduce, not an attributed cause of the crashes.
+- `outlineFill`: MID referenced by the volume's blendable; the clone's MID by the component's material.
+  A Lua cache does not guarantee a GC root, but there is engine anchoring in the code. Do not attribute GC without a test.
+- Creation tests IsValid but not bActorIsBeingDestroyed on the clone spawn's return; similar to the documented
+  truck problem. Requires a probe/simulated failure before widening the patch.
 
-### Callbacks persistentes
+### Persistent callbacks
 
-Há um loop principal `LoopInGameThreadAfterFrames(1, ...)`, hook de animação por ABP, hooks de controller,
-loop do canal `LoopInGameThreadWithDelay(1000, ...)` e callbacks ExecuteInGameThread das teclas.
-Nenhum callback por clone é criado pelas funções de contorno. Portanto número de clones não demonstra
-crescimento de referências de callbacks. `Lua::Registry::get_function_ref` permanece sem origem isolada.
-Hotpatch/sonda com callback extra não é controle limpo para o loop principal.
+There is a main loop `LoopInGameThreadAfterFrames(1, ...)`, an animation hook per ABP, controller hooks,
+the channel loop `LoopInGameThreadWithDelay(1000, ...)` and the keys' ExecuteInGameThread callbacks.
+No per-clone callback is created by the outline functions. So the number of clones does not show
+growth of callback references. `Lua::Registry::get_function_ref` still has no isolated origin.
+A hotpatch/probe with an extra callback is not a clean control for the main loop.
 
-## Matriz de sondas para o coordenador (sem executá-las aqui)
+## Probe matrix for the coordinator (not run here)
 
-Todas em carga limpa, hash/PID/mapa/log inicial e final, sem botloop, sem hotpatch, sem input injetado.
-Variantes temporárias por cópia de fonte preservada; somente dono do laboratório publica.
+All on a clean load, hash/PID/map/log at start and end, no botloop, no hotpatch, no injected input.
+Temporary variants through a copy of the preserved source; only the lab owner publishes.
 
-| Etapa | Variante / transição | Evidência mínima | Gate |
+| Step | Variant / transition | Minimum evidence | Gate |
 |---|---|---|---|
-| A | Sem seleção, 10 min, sem novo callback | log de frame vivo/início-fim, crash/log | controle |
-| B | 1 selecionado, 28 clones, 10 min | contagem peças/fontes, frame/prof, captura | reprodução base |
-| C | Mesma B + patch proposto | mesmos tempos/estado | comparar, não concluir por ausência curta |
-| D | 100 selecionar/desselecionar em máquina de estados do frame | clones criados/destruídos e nil após limpeza | zero referência residual |
-| E | 20 morte/recriação pelo mod | limpeza antes OnRep_Health, sem acesso posterior | lifetime |
-| F | 1 peça por execução: casaco, arma, cabeça, mãos, pernas, costas, capacete | 4 clones/peça e hash variante | isolar peça |
-| G | Clone skinned sem MasterPose vs com MasterPose em execuções distintas | atores/tempo/stack | hipótese MasterPose, aparência só diagnóstico |
-| H | Equipamento substituído enquanto selecionado | lista real antes/depois, fonte de clone atual | cache obsoleto |
-| I | GC refletido somente após confirmar chamada nos dados do jogo | antes/depois e stack/log | hipótese GC |
-| J | 1/3/10/25 selecionados, zoom alto, 60s por degrau | profile stratTick ms/quadro, 28*N atores, capture | custo |
+| A | No selection, 10 min, no new callback | live frame log/start-end, crash/log | control |
+| B | 1 selected, 28 clones, 10 min | part/source count, frame/prof, capture | base reproduction |
+| C | Same as B + proposed patch | same times/state | compare, do not conclude from a short absence |
+| D | 100 select/deselect in a frame state machine | clones created/destroyed and nil after cleanup | zero residual reference |
+| E | 20 death/recreation by the mod | cleanup before OnRep_Health, no later access | lifetime |
+| F | 1 part per run: coat, weapon, head, hands, legs, back, helmet | 4 clones/part and variant hash | isolate the part |
+| G | Skinned clone without MasterPose vs with MasterPose in separate runs | actors/time/stack | MasterPose hypothesis, appearance only diagnostic |
+| H | Equipment replaced while selected | real list before/after, current clone source | stale cache |
+| I | Reflected GC only after confirming the call in the game data | before/after and stack/log | GC hypothesis |
+| J | 1/3/10/25 selected, high zoom, 60 s per step | profile stratTick ms/frame, 28*N actors, capture | cost |
 
-Sondas de medição usam estado por quadro já existente, não dezenas de callbacks UE4SS temporários.
-Não automatizar F/G/I até contrato refletido confirmado. Toda falha repete carga limpa no mesmo hash antes
-de atribuir causa. Separar estabilidade, aparência, input real e desempenho.
+Measurement probes use the existing per-frame state, not dozens of temporary UE4SS callbacks.
+Do not automate F/G/I until the reflected contract is confirmed. Every failure repeats a clean load on the same hash before
+attributing a cause. Separate stability, appearance, real input and performance.
 
-### Gotcha sugerido para universal-modder (integração pelo coordenador)
+### Suggested Gotcha for universal-modder (integration by the coordinator)
 
-Update de contorno chamava UFunctions mesmo com pawn/clone bActorIsBeingDestroyed ou fonte IsValid=false;
-mock reproduz e preflight bloqueia. Isso NÃO explica crashes UE4SS do lote 17; fonte IsValid=true durante
-retirada/troca ainda precisa rastro real. pcall protege erro Lua, não lifetime nativo.
+The outline update called UFunctions even with a pawn/clone bActorIsBeingDestroyed or source IsValid=false;
+a mock reproduces it and a preflight blocks it. This does NOT explain the batch 17 UE4SS crashes; a source IsValid=true during
+removal/swap still needs a real trace. pcall protects Lua errors, not native lifetime.
 
-Revisão do coordenador: guard aplicado também em outlineDepth para limpeza de pawn em destruição não tocar fontes. Teste passou usando clearOutline/outlineDepth REAIS extraídos, não stub de limpeza. Aplicar os dois blocos separados por linha vazia, não substituir documento inteiro.
+Coordinator's review: the guard was also applied in outlineDepth so cleanup of a pawn being destroyed does not touch sources. The test passed using the REAL clearOutline/outlineDepth extracted, not a cleanup stub. Apply the two blocks separated by a blank line, do not replace the whole document.

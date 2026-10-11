@@ -1,63 +1,63 @@
-# ECONOMIA — proposta isolada, 2026-10-09
+# ECONOMIA (economy) — isolated proposal, 2026-10-09
 
-Não integrada. `economy.lua` é módulo puro com três novas receitas e contabilidade; não altera main.lua, não acessa UE4SS/RPC/inventário, não cria material inicial gratuito. `test_economy.py` executa o Lua real e compara schema/custos/conteúdo/tempo com os dados extraídos: PASS.
+Not integrated. `economy.lua` is a pure module with three new recipes and accounting; it does not change main.lua, does not access UE4SS/RPC/inventory, does not create free starting material. `test_economy.py` runs the real Lua and compares schema/costs/content/time with the extracted data: PASS.
 
-## Receitas reais
+## Real recipes
 
-| Produto próprio | CodeName nativo | Custo por caixa | Conteúdo | Tempo nativo |
+| Own product | Native CodeName | Cost per crate | Content | Native time |
 |---|---|---|---|---|
 | rifle | RifleW | Cloth 100 | 20 rifles | 70 s |
-| grenade | GrenadeW | Cloth 100 + Explosive 40 | 20 granadas | 100 s |
-| medical | Bandages | Cloth 80 | 50 bandagens | 40 s |
+| grenade | GrenadeW | Cloth 100 + Explosive 40 | 20 grenades | 100 s |
+| medical | Bandages | Cloth 80 | 50 bandages | 40 s |
 
-Fonte: `data/game_costs.txt`, linhas 74, 12, 66. ESTUDO_MECANICAS mapeia Cloth=bmat, Wood=rmat, Explosive=pó explosivo. FirstAidKit (Cloth60/10/35s) e TraumaKit (Cloth80/10/50s) são ferramentas distintas, não substituem bandagem consumível. BloodPlasma existe, mas reviver não está implementado. Não adicionar consumo de ferramenta por cada cura.
+Source: `data/game_costs.txt`, lines 74, 12, 66. MECHANICS_STUDY maps Cloth=bmat, Wood=rmat, Explosive=explosive powder. FirstAidKit (Cloth 60/10/35 s) and TraumaKit (Cloth 80/10/50 s) are distinct tools, they do not replace the consumable bandage. BloodPlasma exists, but reviving is not implemented. Do not add tool consumption for each heal.
 
-**Bloqueio explícito:** cadeia atual produz só bmat, não Explosive. Granadas ficam impossíveis até ECONOMIA/RE mapear produção própria de explosivo com custo/fluxo e infraestrutura explícitos. O módulo recusa start por falta de Explosive antes de debitar Cloth. Nunca cortar recurso da receita ou fingir que bmat paga tudo. Não chamar isso de cadeia completa integrada.
+**Explicit block:** the current chain produces only bmat, not Explosive. Grenades stay impossible until ECONOMIA/RE maps own explosive production with explicit cost/flow and infrastructure. The module refuses start for lack of Explosive before debiting Cloth. Never cut a resource from the recipe or pretend bmat pays for everything. Do not call this a complete integrated chain.
 
-## Contrato de integração proposto
+## Proposed integration contract
 
-- `factory.materials`: nomes nativos, valores inteiros; reservar todos custos atomicamente em start. Uma job por fábrica; avanço recebe dt simulado, já ajustado por pausa/velocidade pelo chamador. Cancelamento explícito reembolsa uma única vez; destruição não deve chamar cancelamento automaticamente (perda é decisão registrada).
-- `factory.boxes` e `truck.cargo.boxes`: caixas fechadas. `depot.stock`: unidades. Entrega somente no depósito aliado, uma única vez; destino perdido conserva carga para retorno à fábrica. Destruição retorna registro de perda, nunca caixa ao estoque.
-- Estoques atuais ammo/shirts possuem contabilidade distinta; integração deve preservá-los e genericizar logi.nextKind/need/load/deliver/cyclePrio/HUD/snapshot. **Não apenas acrescentar recipes e esperar funções hardcoded funcionarem.** Schema de persistência precisa cobrir material reservado, caixas, unidades, carga/perdas e job.
-- Rifles: usar 1 unidade no recrutamento de fuzileiro na frente, além de 1 camisa atual; reservar recurso antes de spawn e devolver se spawn falhar. Outros papéis não podem usar RifleW indiscriminadamente. Arma do mod permanece mesh próprio; não perseguir inventário real.
-- Granada: transferência de unidades do depósito a `m.grenades`; em throwGrenade consumir 1 só quando ordem válida e strike/projétil for aceito. Hoje cooldown concede granadas infinitas. Fogo cancelado não consome; morte perde carga do soldado.
-- Médico: abastecer `m.bandages`; medicTick gasta 1 por ciclo de tratamento efetivo de aliado ferido, nunca em alvo cheio/inválido/fora de alcance. Esse consumo por ciclo é **regra própria do mod**, não rastro provado da cura nativa; ritmo/gate de equilíbrio necessário. Não descontar uma bandagem por frame. Cura passiva de ponto/posto precisa política explícita de material, senão contorna escassez de médico.
-- E.consume verifica todos custos antes de debitar; chamador só executa efeito após reserva e deve reverter se aplicação/spawn falhar. Módulo não realiza efeito UE nem afirma transação engine verificada.
+- `factory.materials`: native names, integer values; reserve all costs atomically at start. One job per factory; progress receives a simulated dt, already adjusted for pause/speed by the caller. Explicit cancellation refunds a single time; destruction must not call cancellation automatically (loss is a recorded decision).
+- `factory.boxes` and `truck.cargo.boxes`: closed crates. `depot.stock`: units. Delivery only at an allied depot, a single time; a lost destination keeps the cargo for a return to the factory. Destruction returns a loss record, never a crate to stock.
+- The current ammo/shirts stocks have separate accounting; integration must preserve them and genericize logi.nextKind/need/load/deliver/cyclePrio/HUD/snapshot. **Do not just add recipes and expect hardcoded functions to work.** The persistence schema must cover reserved material, crates, units, cargo/losses and the job.
+- Rifles: use 1 unit when recruiting a rifleman at the front, besides the current 1 shirt; reserve the resource before spawning and give it back if the spawn fails. Other roles cannot use RifleW indiscriminately. The mod's weapon stays an own mesh; do not chase the real inventory.
+- Grenade: transfer units from the depot to `m.grenades`; in throwGrenade consume 1 only when the order is valid and the strike/projectile is accepted. Today the cooldown grants infinite grenades. Canceled fire does not consume; death loses the soldier's load.
+- Medic: supply `m.bandages`; medicTick spends 1 per effective treatment cycle of a wounded ally, never on a full/invalid/out-of-range target. This per-cycle consumption is **the mod's own rule**, not a proven trace of native healing; pace/balance gate needed. Do not deduct one bandage per frame. Passive healing at a point/post needs an explicit material policy, otherwise it bypasses medic scarcity.
+- E.consume checks all costs before debiting; the caller only runs the effect after the reservation and must revert if the application/spawn fails. The module performs no UE effect nor claims a verified engine transaction.
 
-## Testes / gates
+## Tests / gates
 
-Offline PASS: parsing fail-closed de receita, explosivo ausente sem débito parcial, fábrica ocupada, produção só no prazo/uma vez, cancelamento/reembolso único, carga/capacidade, destino inimigo, retorno, morte/perda, consumo atômico, custos zero inválidos, dt inválido e conservação. Usa zero dependências novas (lupa já utilizado no repo).
+Offline PASS: fail-closed recipe parsing, missing explosive without partial debit, busy factory, production only on time/once, single cancellation/refund, cargo/capacity, enemy destination, return, death/loss, atomic consumption, invalid zero costs, invalid dt and conservation. Uses zero new dependencies (lupa already used in the repo).
 
-Pendente: patch de integração completo; testes dos efeitos reais spawn/throwGrenade/medicTick, conservação com múltiplos soldados, restauração no save e UI; gate laboratório cadeia sem estoque inicial fictício, corte de transporte -> escassez -> retomada, carga destruída, produção e efeito de combate. Gate visual/input/equilíbrio não foi executado. Nenhuma tecla nova proposta.
+Pending: complete integration patch; tests of the real spawn/throwGrenade/medicTick effects, conservation with multiple soldiers, restore from save and UI; lab gate of the chain without fictitious starting stock, transport cut -> scarcity -> recovery, destroyed cargo, production and combat effect. Visual/input/balance gate not run. No new key proposed.
 
-Universal-modder consultado no começo (nota Foxhole/oráculos/Unreal); registrar Gotcha pelo coordenador: GrenadeW exige Explosive além de Cloth; Bandages consumível não equivale a FirstAidKit; nova receita não funciona só editando CFG.LOGI porque transporte/depósito/prioridade/save estão hardcoded ammo/shirts. Sem escrita concorrente na nota compartilhada.
+Universal-modder consulted at the start (Foxhole note/oracles/Unreal); the coordinator records the Gotcha: GrenadeW requires Explosive besides Cloth; consumable Bandages is not FirstAidKit; a new recipe does not work by just editing CFG.LOGI because transport/depot/priority/save are hardcoded to ammo/shirts. No concurrent writing to the shared note.
 
-## Integração completa proposta — segunda entrega
+## Complete integration proposed — second delivery
 
-`build_patch.py` transforma **fonte atual** em memória (âncoras únicas, fail-closed); gera `economy_integrated.patch`. Não aplica ao main.lua. `functions.lua` e `save.lua` alimentam o gerador, não são um segundo runtime/estoque. `economy.lua` anterior é protótipo de referência, **não deve ser carregado junto** com integração: nenhuma duplicação de contabilidade.
+`build_patch.py` transforms the **current source** in memory (unique anchors, fail-closed); it generates `economy_integrated.patch`. It does not apply to main.lua. `functions.lua` and `save.lua` feed the generator, they are not a second runtime/stock. The earlier `economy.lua` is a reference prototype, **it must not be loaded together** with the integration: no accounting duplication.
 
-### Fluxos efetivos do candidato
+### Effective flows of the candidate
 
-- CFG.LOGI inclui quatro produtos ammo/shirts/rifle/medical. Fuzil e bandagem seguem exatamente receita auditada; granada não tem receita/produção/prioridade porque falta Explosive. Produção utiliza fac/job/bmat existentes; fábrica desconta custo ao iniciar e só produz caixa ao concluir.
-- nextKind, needs, pickDest, carga/capacidade, entrega e retorno genericizados. Conteúdo é caixa em fac/cargo; é unidade de produto em depot. Munição preserva seu contrato antigo de caixa de suprimento/reloads, sem fingir que 40 RifleAmmo nativos equivalem a tiros usados pelo mod. Demandas rifle4 e bandages20 são metas **próprias do mod**, não custos do jogo.
-- Necessidade dos novos produtos usa ceil(falta/unidades), sem -0,5 legado: demandar 20 bandagens com caixa50 exige 1 caixa, não zero. ammo/shirts preservam regra anterior.
-- Shift+L inclui fuzis/bandagens; sem tecla nova. HUD mantém texto antigo/inimigo e acrescenta stocks/cargo novos. Isso precisa reconciliar `extraHud` com patch INTERFACE multilinha; não substituir o painel por versão anterior inadvertidamente.
-- Recrutamento manual de **rifle** exige 1 fuzil+1 camisa; outros papéis continuam consumindo camisa apenas (não usam RifleW indevidamente). Spawn fracassado não debita nada; sucesso debita no game thread síncrono. Mensagem fallback original "sem camisas" também deve ser ajustada pelo integrador quando a falta for fuzil.
-- Médico aliado, com logística ativa, só trata ferido ao alcance se existe depósito aliado com bandagem dentro de POINT_RADIUS do médico. Débito de 1 após aumento efetivo de Health, respeito ao cooldown. Cura inimiga e partidas sem logística preservam behavior anterior. Não há item userdata/inventário nem bolso invisível duplicando bandagens.
-- **Política explicitamente limitada:** cura passiva de pontos/postos ainda gratuita, diferente de médico ativo; spawn de composição inicial/recompensa/F6 grátis não passa por recruit e não consome fuzil. Assim esta entrega não afirma "todo reforço e toda cura dependem de estoque". Ampliar isso exige alterar política de start/ondas/medevac e equilíbrio, não truncar silenciosamente o tutorial/partida.
-- Captura inimiga zera todos produtos do depósito; caminhão destruído perde cargo de todos produtos sem retorno/entrega fictícia.
+- CFG.LOGI includes four products ammo/shirts/rifle/medical. Rifle and bandage follow exactly the audited recipe; grenade has no recipe/production/priority because Explosive is missing. Production uses the existing fac/job/bmat; the factory deducts the cost at start and only produces the crate on completion.
+- nextKind, needs, pickDest, cargo/capacity, delivery and return genericized. Content is crates in fac/cargo; product units in depot. Ammo keeps its old contract of supply crate/reloads, without pretending 40 native RifleAmmo equal the shots used by the mod. Demands rifle 4 and bandages 20 are **the mod's own** targets, not game costs.
+- The need for the new products uses ceil(missing/units), without the legacy -0.5: demanding 20 bandages with a crate of 50 requires 1 crate, not zero. ammo/shirts keep the previous rule.
+- Shift+L includes rifles/bandages; no new key. The HUD keeps the old/enemy text and adds the new stocks/cargo. This needs to reconcile `extraHud` with the INTERFACE multiline patch; do not inadvertently replace the panel with an earlier version.
+- Manual recruiting of a **rifle** requires 1 rifle + 1 shirt; other roles keep consuming only a shirt (they do not use RifleW improperly). A failed spawn debits nothing; success debits on the synchronous game thread. The original fallback message "sem camisas" must also be adjusted by the integrator when what is missing is a rifle.
+- An allied medic, with logistics active, only treats a wounded unit in range if there is an allied depot with bandages within POINT_RADIUS of the medic. Debit of 1 after an effective Health increase, respecting the cooldown. Enemy healing and matches without logistics keep the earlier behavior. There is no item userdata/inventory nor an invisible pocket duplicating bandages.
+- **Explicitly limited policy:** passive healing at points/posts is still free, unlike the active medic; spawning of the starting composition/reward/F6 is free, does not go through recruit and does not consume a rifle. So this delivery does not claim "every reinforcement and every heal depends on stock". Widening that requires changing the start/waves/medevac policy and balance, not silently truncating the tutorial/match.
+- An enemy capture zeroes all depot products; a destroyed truck loses the cargo of all products with no fictitious return/delivery.
 
-### Save/restore necessário à contabilidade
+### Save/restore needed by the accounting
 
-Schema de logi.version=2; aceita legado sem version (novos estoques zero). Snapshot inclui fac/base/pontos novos, job já debitada e tempo restante/total, estado/HP/carga/depósito de destino/sucata/espera/reconstrução dos caminhões. Tabelas copiadas, sem alias/userdata/endereço.
+Schema logi.version=2; accepts legacy without a version (new stocks zero). The snapshot includes fac/base/new points, the already debited job and remaining/total time, the trucks' state/HP/cargo/destination depot/salvage/wait/rebuild. Copied tables, no alias/userdata/address.
 
-Pré-validação completa de números/receita/prioridade/estado/capacidade/destino acontece **antes** de ready/start/reset. Dados negativos, cargo inválida ou versão desconhecida preservam estado corrente. Preflight de mundo indisponível idem. Restore substitui dados, não soma; repetir restore não duplica caixas. Destino perdido mantém caixa fechada no caminhão em returnCargo; fábrica só recebe após chegada confirmada pelo driver. job retomada não debita bmat novamente. Infraestrutura NÃO é reconstruída/persistida aqui; caminhões usam estacionamento de start, não XY/trajeto antigo. IDs de destino são índices dos pontos, como save atual; mudança de mapa/pontos precisa schema regional da task PERSISTENCIA.
+Complete pre-validation of numbers/recipe/priority/state/capacity/destination happens **before** ready/start/reset. Negative data, invalid cargo or an unknown version keep the current state. An unavailable world preflight too. Restore replaces data, it does not add; repeating restore does not duplicate crates. A lost destination keeps a closed crate on the truck in returnCargo; the factory only receives it after an arrival confirmed by the driver. A resumed job does not debit bmat again. Infrastructure is NOT rebuilt/persisted here; trucks use the start parking, not the old XY/path. Destination IDs are point indexes, like the current save; a map/points change needs the regional schema of the PERSISTENCIA task.
 
-**Limite transacional importante:** testes provam pré-validação e recusa de preflight, não rollback de exceção nativa após start/reset. ready/start carregam/checavam mundo no contrato existente; erro nativo/interrupção em spawn engine continua gate. Não apresentar validação Lua como transação engine.
+**Important transactional limit:** the tests prove pre-validation and preflight refusal, not rollback of a native exception after start/reset. ready/start loaded/checked the world in the existing contract; a native error/interruption in an engine spawn remains a gate. Do not present Lua validation as an engine transaction.
 
-### Reproduzir sem aplicar
+### Reproduce without applying
 
-Desde raiz do repositório:
+From the repository root:
 
 ```powershell
 $env:PYTHONPATH='D:/tools/pylibs'
@@ -66,19 +66,19 @@ python data/parallel/economy/test_integration.py
 python data/parallel/economy/test_existing.py
 ```
 
-Todos PASS nesta entrega. Test_integracao executa **todo chunk candidato** main.lua e substitui apenas limites engine (drive/spawn/ready/start) por spies; chama funções reais de produção, truckStep, recruit, medicTick, hit, snapshot/validateSave/restore. Regressão inteira test_orders executada contra candidato em memória também PASS.
+All PASS in this delivery. Test_integracao runs **the whole candidate** main.lua chunk and replaces only engine boundaries (drive/spawn/ready/start) with spies; it calls the real functions of production, truckStep, recruit, medicTick, hit, snapshot/validateSave/restore. The whole test_orders regression run against the in-memory candidate also PASS.
 
-Gates restantes: aplicação sequencial + reconciliação painel; globals/sintaxe; teste ao vivo receita -> produção -> transporte -> rifle recrutado/bandagem tratada sem estoques artificiais; contraste escassez/corte/retomada; save em meio a produção e cargo; falha engine pós-preflight; captura/novo mapa; legibilidade e equilíbrio. Atualizar README/TESTE_MANUAL para prioridade fuzis/bandagens e suprimento ativo médico/recrutamento. Task continua [ . ].
+Remaining gates: sequential application + panel reconciliation; globals/syntax; live test recipe -> production -> transport -> recruited rifle/treated bandage without artificial stocks; scarcity/cut/recovery contrast; save in the middle of production and cargo; engine failure after preflight; capture/new map; readability and balance. Update README/MANUAL_TEST for rifle/bandage priority and active medic/recruiting supply. Task stays [ . ].
 
-## Correção obrigatória de retorno físico (revisão do coordenador)
+## Mandatory physical return fix (coordinator's review)
 
-A devolução instantânea anterior foi removida do candidato, tanto em truckStep quanto restore. Contrato é o mesmo de `data/parallel/roads/RETURN_PATCH.lua`:
+The earlier instant return was removed from the candidate, both in truckStep and restore. The contract is the same as `data/parallel/roads/RETURN_PATCH.lua`:
 
-- destino perdido -> `tr.state="returnCargo"`, `tr.dest=logi.factory`, carga continua no caminhão; invalida route/routeDest/pathJob;
-- estado returnCargo chama driver à fábrica; retorno false (sem rota/bloqueio/ainda andando) mantém tudo sem crédito;
-- somente retorno true (chegada **fisicamente confirmada**) credita caixas na fac e limpa cargo/dest/state; nada em restore move crédito;
-- snapshot/validateSave/restore preservam returnCargo/cargo. `dest=-1` é sentinela **serializada para fábrica**, não endereço. Base=0, pontos=índice legado >0. Não é garantia regional/IDs estáveis; reconciliação com CLAUDE_PERSISTENCIA obrigatória.
+- lost destination -> `tr.state="returnCargo"`, `tr.dest=logi.factory`, the cargo stays on the truck; invalidates route/routeDest/pathJob;
+- the returnCargo state calls the driver to the factory; a false return (no route/blocked/still driving) keeps everything with no credit;
+- only a true return (arrival **physically confirmed**) credits the crates to fac and clears cargo/dest/state; nothing in restore moves credit;
+- snapshot/validateSave/restore keep returnCargo/cargo. `dest=-1` is a **serialized sentinel for the factory**, not an address. Base=0, points=legacy index >0. It is not a regional guarantee/stable IDs; reconciliation with CLAUDE_PERSISTENCIA is mandatory.
 
-Testes atualizados: perda de destino no tick sem crédito; driver false mantém carga/fac0; chegada true devolve uma vez; save com destino perdido restaura returnCargo/fac0; salvar/restaurar durante retorno continua com carga; só chegada posterior retorna. Suite integração e test_orders candidato PASS.
+Updated tests: destination loss in the tick without credit; driver false keeps cargo/fac 0; arrival true returns once; save with a lost destination restores returnCargo/fac 0; save/restore during the return continues with cargo; only the later arrival returns. Integration suite and candidate test_orders PASS.
 
-**Gate impossível de contornar:** driver atual do main ainda anda em reta. Não aplicar este patch como transporte seguro sem integrar driver ESTRADAS com rota/sweep/chegada; testes apenas substituem o driver por false/true controlados. Não usar timeout ou falta de rota como chegada. Nenhum código/bloco CLAUDE foi modificado.
+**Gate that cannot be bypassed:** the main's current driver still drives straight. Do not apply this patch as safe transport without integrating the ESTRADAS driver with route/sweep/arrival; the tests only replace the driver with controlled false/true. Do not use a timeout or lack of a route as arrival. No CLAUDE code/block was modified.

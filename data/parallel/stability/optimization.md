@@ -1,162 +1,162 @@
-# Contorno — custo e opções sem perder aparência
+# Outline — cost and options without losing appearance
 
-## Estado verificado informado pelo coordenador (PID4436)
+## Verified state reported by the coordinator (PID4436)
 
-PASS curto: criação de 28 cópias, desseleção/reseleção, morte/reap com referências removidas,
-recriação e CollectGarbage confirmado por metadados; reseleção aos 89s. Teste de 6 selecionados/168 cópias
-em andamento quando este relatório foi escrito. Causa das quedas originais não isolada; não é certificado
-prolongado nem resultado de seleção grande. Não apliquei mudanças de otimização.
+Short PASS: creation of 28 copies, deselect/reselect, death/reap with references removed,
+recreation and CollectGarbage confirmed by metadata; reselection at 89 s. A test of 6 selected/168 copies
+was in progress when this report was written. Cause of the original crashes not isolated; it is not a long
+certification nor a result of a large selection. I did not apply optimization changes.
 
-## Contagem estática, não benchmark
+## Static count, not a benchmark
 
-Por soldado atual selecionado (7 peças x 4): update consulta câmera 1 vez, transforma fontes 3 x 7,
-escreve clones 3 x 28 = 84 UFunctions. Total update: 106 chamadas refletidas por quadro, além de guards,
-leituras de propriedades e CustomDepth/stencil. Para 6 soldados: 636 chamadas update/quadro.
-`outlineDepth(true)` acrescenta 2 por componente descoberto, inclusive peças sem clone.
-Não selecionados e olho continuam SetRenderCustomDepth(false) por componente/quadro: nativo reativa
-esse estado, conforme rastro real. Número de cópias não demonstra tempo de GPU nem custo de callback.
+Per currently selected soldier (7 parts x 4): update queries the camera once, transforms sources 3 x 7,
+writes clones 3 x 28 = 84 UFunctions. Update total: 106 reflected calls per frame, besides guards,
+property reads and CustomDepth/stencil. For 6 soldiers: 636 update calls/frame.
+`outlineDepth(true)` adds 2 per discovered component, including parts without a clone.
+Unselected units and the eye keep SetRenderCustomDepth(false) per component/frame: the native code re-enables
+that state, according to the real trace. The number of copies does not show GPU time nor callback cost.
 
-## Medir antes de escolher
+## Measure before choosing
 
-Usar profile() já disponível: janelas equivalentes de 60s com 0/1/3/6/10 selecionados, mesmas unidades,
-mesmo mapa/câmera/zoom, parados; repetir em movimento. Cada chamada zera acumuladores. Salvar frames,
-stratTick ms/quadro e total, clones reais e câmera, sem callback extra. Calcular:
+Use the already available profile(): equivalent 60 s windows with 0/1/3/6/10 selected, same units,
+same map/camera/zoom, standing still; repeat while moving. Each call zeroes the accumulators. Save frames,
+stratTick ms/frame and total, real clones and camera, with no extra callback. Compute:
 
-    custo adicional aproximado/cópia = (stratTick_N - stratTick_0)/(28*N)
+    approximate extra cost/copy = (stratTick_N - stratTick_0)/(28*N)
 
-Isso mistura CPU de depth/guards/transformações e não mede GPU; anotar essa limitação. Relatar média
-por janela e repetição, não inventar p95 a partir da média. Comparar 6 unidades não selecionadas com
-as mesmas 6 selecionadas; aumentar unidades e seleção juntos confundiria o custo.
+This mixes CPU of depth/guards/transforms and does not measure GPU; note that limitation. Report the mean
+per window and repetition, do not invent a p95 from the mean. Compare 6 unselected units with
+the same 6 selected; increasing units and selection together would confuse the cost.
 
-## Ordem de otimização proposta
+## Proposed optimization order
 
-1. **Câmera consultada uma vez por stratTick**, passada como parâmetro opcional de updateOutline.
-   Economiza N-1 leituras/quadro, mantém geometria integral; custo pequeno, testar antes de aplicar.
-   Caller direto updateOutline deve continuar funcionando; snapshot só do mesmo quadro, nunca cache eterno.
-2. **Rotation/scale das cópias só quando transformação calculada mudar.** Comparar valores numéricos
-   por peça com último transform, não identidade da tabela. Cópias continuam usando pose MasterPose;
-   fontes e câmera devem ser consultadas a cada quadro. Caso parado pode evitar 56 escritas/soldado/quadro.
-   Risco: engine também muda transform via attachment; pular location sem medir o efeito perde a homotetia.
-   Portanto primeira experiência só escala/rotação, não posição; invalidar cache em limpeza/recriação.
-   Verificar fonte girando, câmera movendo, equip substituído, zoom alto e várias posições da tela.
-3. **Um MID emissivo por conjunto**, aplicado imediatamente às cópias como raiz de engine.
-   Mesma cor, nenhuma aparência diferente; reduz criação de 28 MIDs/soldado para 1, mas não custo contínuo
-   demonstrado. Só útil se medir pico da seleção/GC. Não manter MID apenas em userdata Lua.
-4. **Evitar reescrever stencil quando já é 1**, somente se leitura refletida segura/contrato confirmado.
-   Não remover writes CustomDepth: rastro mostra reativação nativa em amigos/olho.
+1. **Camera queried once per stratTick**, passed as an optional parameter to updateOutline.
+   Saves N-1 reads/frame, keeps full geometry; small cost, test before applying.
+   A direct updateOutline caller must keep working; snapshot only of the same frame, never an eternal cache.
+2. **Copies' rotation/scale only when the computed transform changes.** Compare numeric values
+   per part with the last transform, not table identity. Copies keep using the MasterPose pose;
+   sources and camera must be queried every frame. A standing case can avoid 56 writes/soldier/frame.
+   Risk: the engine also changes the transform through attachment; skipping location without measuring the effect loses the homothety.
+   So the first experiment is only scale/rotation, not position; invalidate the cache on cleanup/recreation.
+   Check a rotating source, moving camera, replaced equipment, high zoom and several screen positions.
+3. **One emissive MID per set**, applied immediately to the copies as an engine root.
+   Same color, no different appearance; reduces the creation of 28 MIDs/soldier to 1, but no continuous cost
+   shown. Only useful if the selection/GC peak is measured. Do not keep a MID only in Lua userdata.
+4. **Avoid rewriting the stencil when it is already 1**, only if a safe reflected read/contract is confirmed.
+   Do not remove CustomDepth writes: the trace shows native re-enabling on friends/the eye.
 
-Sem LOD por retirar peças/cópias e sem atualizar contorno a 10Hz: essas opções reduzem fidelidade ou
-seguimento e não atendem aparência aprovada. Não criar novo scheduler/callback por clone.
+No LOD by removing parts/copies and no updating the outline at 10 Hz: these options reduce fidelity or
+tracking and do not meet the approved appearance. Do not create a new scheduler/callback per clone.
 
-## Alternativas nativas de fato descobertas
+## Native alternatives actually found
 
-`M_OccludedOutline` é material nativo PostProcess já rastreado e ancorado no volume; fornece preenchimento
-encoberto, não borda de partes visíveis. Assim não substitui sozinho as 28 cópias.
-`SetMasterPoseComponent`, attachment KeepWorld e CustomDepth/stencil foram usados e rastreados; nenhum
-shader nativo geral de borda foi demonstrado nos dados atuais. Shader cooked é alternativa de pesquisa,
-não asset pronto nem solução comprovada. Não tentar leitura MasterPoseComponent/AnimClass (crash registrado).
+`M_OccludedOutline` is a native PostProcess material already traced and anchored in the volume; it provides an occluded
+fill, not an edge on visible parts. So it does not replace the 28 copies alone.
+`SetMasterPoseComponent`, KeepWorld attachment and CustomDepth/stencil were used and traced; no
+general native edge shader was shown in the current data. A cooked shader is a research alternative,
+not a ready asset nor a proven solution. Do not try reading MasterPoseComponent/AnimClass (recorded crash).
 
-## Gate para qualquer proposta
+## Gate for any proposal
 
-Teste real das funções, contador refletido mocks antes/depois, mesma fórmula projetada existente;
-integração pelo coordenador, carga limpa, captura comparação e medição. Lifetime antes de performance.
-
-
-## Medição recebida e conferida (PID4436)
-
-`D:/tools/foxhole-lab/stability-group-live.txt`: 32,30255s / 1400 quadros; 6x28 cópias;
-stratTick 16,72ms/quadro, mod 17,70ms/quadro. 94,46% do tempo medido do mod nessa etapa.
-É gargalo real. 16,72/168 = 0,09952ms/cópia como razão BRUTA, não custo incremental sem baseline.
-
-Prioridade revisada: medir controle mesmas 6 sem seleção; então experimentar combinação de transformação
-numa UFunction em vez de 3 por clone. Procurar `K2_SetActorTransform` nos metadados carregados antes de
-chamar: se refletida e contrato confirmado, construir FTransform corretamente (quaternion, não Rotator
-inventado) e comparar com os três setters. Pode reduzir 84→28 escritas/soldado/quadro sem sacrificar
-geometria. Nenhum registro dessa função em data/tools/mod atuais foi encontrado; não é ainda contrato
-local demonstrado. Se faltar, testar setters existentes com comparação numérica de escala/rotação.
-Não retirar validação de vida útil nem depth só para reduzir tempo.
-
-Alternativa arquitetural sem corte visual: um único proxy contendo 7 peças e 4 deslocamentos renderizados
-num shader cooked; elimina atores extras e setters por cópia. Exige asset próprio UE4.24 e prova de pose,
-outline e oclusão, portanto não é mudança imediata segura. Só iniciar cook depois de varrer materiais
-locais e confirmar que não há shader de borda disponível. Sem downloads/instalações nesta análise.
+Real test of the functions, reflected counter with mocks before/after, the same existing projected formula;
+integration by the coordinator, clean load, comparison capture and measurement. Lifetime before performance.
 
 
-## Sonda de schema preparada (não executada)
+## Measurement received and checked (PID4436)
 
-`D:/tools/foxhole-lab/t_outline_transform_schema.lua` enumera parâmetros de K2_SetActorTransform,
-campos Transform/Quat/Rotator e funções KismetMathLibrary filtradas por Quat/Rotator, MakeTransform,
-BreakTransform. Só metadados; nenhuma alteração de ator, chamada setter/conversor ou callback novo.
-Usa ForEachProperty/GetStruct já demonstrados em t_sigs.lua/t_findfn2.lua. Depois da confirmação:
+`D:/tools/foxhole-lab/stability-group-live.txt`: 32.30255 s / 1400 frames; 6x28 copies;
+stratTick 16.72 ms/frame, mod 17.70 ms/frame. 94.46% of the mod's measured time in that step.
+It is a real bottleneck. 16.72/168 = 0.09952 ms/copy as a RAW ratio, not an incremental cost without a baseline.
 
-1. Confirmar ordem/tipos dos parâmetros e layout Rotation/Translation/Scale3D pelo output real.
-2. Confirmar conversor nativo Rotator→Quat (ou MakeTransform) antes de formar FTransform.
-3. Num clone de sonda isolado e saudável, aplicar setters atuais para p/rot/scale conhecidos e ler resultado.
-4. Aplicar setter único com mesma transformação e comparar location/rotation/scale; incluir yaw77,
-   pitch-60/roll13, escala não uniforme e posições negativas. Quaternion roundtrip pode trocar representação;
-   comparar resultado em rotator efetivo/projeção, não somente bytes/quaternion sign.
-5. Só integrar depois de confirmar attachment/KeepWorld e movimento/câmera em quadro real. Converter uma vez
-   por peça, não por cópia; MakeTransform+setter por cópia pode reduzir 3→2, não3→1, se não reutilizar.
+Revised priority: measure the control with the same 6 unselected; then try combining the transform
+into one UFunction instead of 3 per clone. Look for `K2_SetActorTransform` in the loaded metadata before
+calling: if reflected and the contract is confirmed, build the FTransform correctly (quaternion, not an invented
+Rotator) and compare with the three setters. It could reduce 84→28 writes/soldier/frame without sacrificing
+geometry. No record of that function in the current data/tools/mod was found; it is not yet a locally
+shown contract. If missing, test the existing setters with a numeric scale/rotation comparison.
+Do not remove lifetime validation nor depth just to reduce time.
 
-
-## Entrega transformação consolidada
-
-Oráculos nativos do coordenador PASS: outline-transform-oracle-live.txt e
-outline-transform-packed-live.txt (tabela copiada; erro caso3 7,63e-06).
-`transform.before.lua`/`transform.after.lua` substituem updateOutline inteiro: MakeTransform uma vez
-por peça, quaternion copiado em tabela Lua, escala projetada uma vez/peça e Translation por cópia.
-Sem matemática manual de quaternion, sem alterar appearance/cópias/guards. Contagem update:
-1camera +21reads +7MakeTransform +28setter =57/soldado (antes106); redução46,23% de calls da função,
-mas nenhum ganho temporal alegado até nova medição. Cache mathlib no rts, sem local top-level.
-`test_transform.py` PASS: 8cópias/2peças/3câmeras, mesma geometria/rotação/escala; setters72→24,
-6conversões. Mock usa codificação marcador, não implementa quaternion: native oracle é a prova dessa etapa.
-`orders_transform.before.txt`/after.txt adaptam mocks do teste existente em dois blocos; não alterei
-arquivo real. Integrador aplica e executa test_orders com a função integrada.
+Architectural alternative without a visual cut: a single proxy containing 7 parts and 4 offsets rendered
+in a cooked shader; removes extra actors and per-copy setters. Requires an own UE4.24 asset and proof of pose,
+outline and occlusion, so it is not a safe immediate change. Only start cooking after sweeping local
+materials and confirming there is no edge shader available. No downloads/installs in this analysis.
 
 
-## Regressão de custo pós-transições — não alegar ganho sustentável
+## Schema probe prepared (not run)
 
-Log `stability-optimized-after-gc-profile.txt`: 95,4164s desde grupo;1873 quadros,
-stratTick16,40ms/quadro, mod17,46ms/quadro, ainda28cópias por6soldados. Primeira janela otimizada7,91ms
-não representa ganho sustentável. Geometria/setter corretos não provam custo estável.
+`D:/tools/foxhole-lab/t_outline_transform_schema.lua` enumerates the parameters of K2_SetActorTransform,
+Transform/Quat/Rotator fields and KismetMathLibrary functions filtered by Quat/Rotator, MakeTransform,
+BreakTransform. Metadata only; no actor change, setter/converter call or new callback.
+Uses ForEachProperty/GetStruct already shown in t_sigs.lua/t_findfn2.lua. After confirmation:
 
-Hipóteses, NÃO causas:
-- Perfil mede apenas trecho Lua/UFunctions de stratTick, não tick nativo geral/GPU. Mais atores velhos podem
-  atrasar engine/chamadas, mas requisito MasterPose/tick acumulado não é dedutível de média.
-- `clearOutline` apaga refs mesmo quando DestroyActor falha via pcall. Cópias vivas sem referência podem
-  acumular. IsValid true de destruídos é esperado até GC; contar ambos separadamente.
-- Listas de componentes podem se expandir/trocar:28clones não informa quantidade de fontes/depth de pawn.
-- Coleta/reseleção cria pico de spawn/MID; perfil inclui trabalho de criação em stratTick. Média mistura
-  pico e steady-state se não houver reset depois da transição.
-- `profile()` zera acumuladores, mas timestamps externos nem sempre acompanham reset.1873frames não
-  comprovam duração95s da janela; TIME é desde grupo, não último reset.
-
-Sonda preparada `D:/tools/foxhole-lab/t_outline_phase.lua` (não executada): sem callback/hotpatch;
-comando fecha perfil da janela anterior, conta selected/tracked, FindAllOf SkeletalMeshActor ativo/em
-retirada/inválido e vivo não rastreado, depois abre novo timestamp. Primeira janela descartada.
-Contagem não rastreada inclui possíveis atores nativos: comparar baseline, não chamar todos vazamento.
-
-Protocolo comparável:
-1. Carga limpa,6unidades paradas,não selecionadas; iniciar sonda,aguardar60s,sonda (controle).
-2. Selecionar6; aguardar5s assentamento;sonda descarta pico; aguardar60s;sonda (janela S1).
-3. Sem transição,mais60s;sonda(S2);mais60s;sonda(S3). Isso distingue degradação pelo tempo.
-4. Desselecionar/reselecionar uma única vez;aguardar5s;sonda descarta pico;60s;sonda(R1).
-5. Mais60s sem transição;sonda(R2). Se vivos não rastreados crescerem, conferir DestroyActor retorno/log.
-6. GC confirmado em fase separada,aguardar5s,reset por sonda;60s;sonda(G1);mais60s;sonda(G2).
-7. Só depois morte/recriação6;mesmo protocolo. Repetir ordem invertida em carga limpa para separar ordem.
-
-Registrar hash,PID,mapa,frame count e duration real de cada janela. Não capturar a tela nem executar
-buscas amplas durante janela. Não repetir profilagem via callback temporário nem esconder picos:
-pico reportado à parte,steady-state em janela separada. Não tocar MasterPoseComponent/AnimClass.
+1. Confirm the order/types of the parameters and the Rotation/Translation/Scale3D layout from the real output.
+2. Confirm a native Rotator→Quat converter (or MakeTransform) before forming the FTransform.
+3. On an isolated and healthy probe clone, apply the current setters for known p/rot/scale and read the result.
+4. Apply the single setter with the same transform and compare location/rotation/scale; include yaw 77,
+   pitch -60/roll 13, non-uniform scale and negative positions. A quaternion roundtrip may change representation;
+   compare the result as an effective rotator/projection, not only bytes/quaternion sign.
+5. Only integrate after confirming attachment/KeepWorld and movement/camera in a real frame. Convert once
+   per part, not per copy; MakeTransform+setter per copy may reduce 3→2, not 3→1, if not reused.
 
 
-## ComponentToWorld — proposta seguinte, ainda não integrada
+## Consolidated transform delivery
 
-Fase S1 informada pelo coordenador:61,86s/2447frames/stratTick15,72ms;207atores/168rastreados/39nativos,
-sem aumento de contagem. Isso enfraquece acúmulo de atores nessa janela, não exclui outros custos.
-`K2_GetComponentToWorld` retorna FTransform segundo metadados reais de SceneComponent descobertos
-na task ESTRADAS. Oráculo preparado (não executado aqui) compara 3getters+MakeTransform com esse retorno;
-quaternion alinhado por sinal. Artefatos component_transform.before.lua/after.lua propõem substituir4reads/
-conversão por1read/peça, sem mudanças geométricas/guards.36calls/soldado em vez57 update/quadro,
-redução36,84% relativa de calls, sem alegar ms. test_component_transform.py PASS decisões Lua/geometria.
-orders_component.before.txt/after.txt adaptam mocks compartilhados em2blocos, sem editar teste real.
+Coordinator's native oracles PASS: outline-transform-oracle-live.txt and
+outline-transform-packed-live.txt (copied table; case 3 error 7.63e-06).
+`transform.before.lua`/`transform.after.lua` replace the whole updateOutline: MakeTransform once
+per part, quaternion copied into a Lua table, scale projected once/part and Translation per copy.
+No manual quaternion math, no change to appearance/copies/guards. Update count:
+1 camera + 21 reads + 7 MakeTransform + 28 setter = 57/soldier (before 106); 46.23% fewer calls of the function,
+but no time gain claimed until a new measurement. Mathlib cache in rts, no top-level local.
+`test_transform.py` PASS: 8 copies/2 parts/3 cameras, same geometry/rotation/scale; setters 72→24,
+6 conversions. The mock uses marker encoding, it does not implement quaternions: the native oracle is the proof of this step.
+`orders_transform.before.txt`/after.txt adapt the existing test's mocks in two blocks; I did not change
+the real file. The integrator applies them and runs test_orders with the integrated function.
+
+
+## Cost regression after transitions — do not claim a sustainable gain
+
+Log `stability-optimized-after-gc-profile.txt`: 95.4164 s since the group; 1873 frames,
+stratTick 16.40 ms/frame, mod 17.46 ms/frame, still 28 copies for 6 soldiers. The first optimized window at 7.91 ms
+does not represent a sustainable gain. Correct geometry/setter does not prove a stable cost.
+
+Hypotheses, NOT causes:
+- The profile measures only the Lua/UFunction part of stratTick, not the general native tick/GPU. More old actors could
+  slow down the engine/calls, but a MasterPose requirement/accumulated tick cannot be deduced from a mean.
+- `clearOutline` erases refs even when DestroyActor fails through pcall. Live copies without a reference may
+  accumulate. IsValid true for destroyed ones is expected until GC; count both separately.
+- Component lists may grow/swap: 28 clones does not tell the number of sources/depth of a pawn.
+- Collection/reselection creates a spawn/MID peak; the profile includes creation work in stratTick. The mean mixes
+  peak and steady state if there is no reset after the transition.
+- `profile()` zeroes accumulators, but external timestamps do not always follow the reset. 1873 frames do not
+  prove a 95 s window duration; TIME is since the group, not the last reset.
+
+Prepared probe `D:/tools/foxhole-lab/t_outline_phase.lua` (not run): no callback/hotpatch;
+the command closes the previous window's profile, counts selected/tracked, FindAllOf SkeletalMeshActor active/being
+removed/invalid and live untracked, then opens a new timestamp. The first window is discarded.
+The untracked count includes possible native actors: compare against a baseline, do not call them all a leak.
+
+Comparable protocol:
+1. Clean load, 6 units standing still, unselected; start the probe, wait 60 s, probe (control).
+2. Select 6; wait 5 s of settling; the probe discards the peak; wait 60 s; probe (window S1).
+3. No transition, 60 s more; probe (S2); 60 s more; probe (S3). This tells degradation over time apart.
+4. Deselect/reselect a single time; wait 5 s; the probe discards the peak; 60 s; probe (R1).
+5. 60 s more without a transition; probe (R2). If live untracked grows, check the DestroyActor return/log.
+6. Confirmed GC in a separate phase, wait 5 s, reset by probe; 60 s; probe (G1); 60 s more; probe (G2).
+7. Only then death/recreation of 6; same protocol. Repeat in reversed order on a clean load to separate order effects.
+
+Record hash, PID, map, frame count and real duration of each window. Do not capture the screen nor run
+wide searches during a window. Do not repeat profiling through a temporary callback nor hide peaks:
+peak reported separately, steady state in a separate window. Do not touch MasterPoseComponent/AnimClass.
+
+
+## ComponentToWorld — next proposal, not integrated yet
+
+Phase S1 reported by the coordinator: 61.86 s/2447 frames/stratTick 15.72 ms; 207 actors/168 tracked/39 native,
+with no count increase. This weakens actor accumulation in that window, it does not rule out other costs.
+`K2_GetComponentToWorld` returns an FTransform according to real SceneComponent metadata found
+in the ESTRADAS task. A prepared oracle (not run here) compares 3 getters+MakeTransform with that return;
+quaternion aligned by sign. The artifacts component_transform.before.lua/after.lua propose replacing 4 reads/
+conversion with 1 read/part, without geometric/guard changes. 36 calls/soldier instead of 57 update/frame,
+a 36.84% relative reduction in calls, without claiming ms. test_component_transform.py PASS on Lua/geometry decisions.
+orders_component.before.txt/after.txt adapt the shared mocks in 2 blocks, without editing the real test.
