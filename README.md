@@ -79,7 +79,7 @@ Full controls and mechanics: [`mod/README.md`](mod/README.md).
 | `tools/` | Offline tests (`test_orders.py` and friends), probes, cost exporter, `lab.ps1`; `tools/lab/` publish/restart, command channel and regression bot |
 | `skills/` | Agent skills (also in `.claude/skills` and `.agents/skills`): resume, trace, test, lab, wrap-up |
 | `data/` | Data and traces recorded from the game; `data/parallel/` holds parallel agent work, patches and reports |
-| `MODLOG.md` | Development diary, newest first. Read "Como retomar" before working |
+| `MODLOG.md` | Development diary, newest first. Read "How to resume" before working |
 | `ROADMAP.md` | Where the project is going and what is broken now |
 | `AGENTS.md` | Rules and pitfalls for AI agents (and humans) working on the code |
 | `MANUAL_TEST.md` | Manual test checklist |

@@ -1,2516 +1,2531 @@
-# Foxhole RTS — diário do projeto
+# Foxhole RTS — project diary
 
-## 2026-10-11 — Save: HP desconhecido recusa gravação, não ressuscita estado antigo
+## 2026-10-11 — Published on GitHub; repository translated to English; agent skills
 
-- Extensão do teste real reproduziu FAIL: observador suspende transporte com
-  HP NaN/infinito/texto, mas snapshots ignoravam a recusa e salvavam HP/carga antigos.
-- Snapshots de amigos/inimigos agora exigem HP conhecido ou morte já resolvida.
-  sv.save captura falha da coleta e retorna false com log, antes de validar/escrever;
-  arquivo anterior preservado. Não transforma erro de schema em morte/perda/crédito.
-- Teste ampliado cobre ambos os lados, NaN/±infinito/texto, estoque intacto e spy
-  que proíbe gravação/validação do snapshot incompleto. FAIL antes/PASS depois;
-  todos15test_*.py e check_globals PASS. Nenhuma prova de bindings/continue Unreal.
-- Candidato A36E9052562BBB52CAE97304D80CC6742C66EB32B031BE07AC0BE10C7B23205B,
-  não publicado. Backup externo main-before-snapshot-schema-gate.lua. WMI sem lab.
-- Dívida identificada ao rever persistência: unitData não guarda carga manual
-  em m.col; colReset descarta a carga ao continuar. Próxima implementação precisa
-  preservar carga no trabalhador e replanejar entrega física, não creditar refinaria.
+- The user asked to publish the project to invite collaborators from the Foxhole community: public repository,
+  everything uploaded, MIT license, README in English, roadmap with completion percentages (`ROADMAP.md`, `PROGRESS.md`).
+- Docs, reports in `data/parallel/` and this diary translated to English; from now on docs, the diary,
+  comments and commits are written in English (chat with the user stays in Portuguese).
+- What was NOT translated, on purpose: in-game UI strings and log messages (quoted as they appear, e.g.
+  "modo RTS ligado"), and the contents of `data/trace_*.txt` (raw recorded output). Older entries keep their
+  measurements and hashes unchanged; only the prose was translated.
+- Agent content modeled on universal-modder: `AGENTS.md` (shared by Claude/Codex/Gemini), skills under
+  `.claude/skills/` (`resume-work`, `wrap-up`, ...), `CONTRIBUTING.md`.
+- Known limit for outside contributors: `CFG.CMD_FILE` in `main.lua` is still hardcoded to `D:/tools/foxhole-lab`,
+  and the lab scripts (`restart.sh`, `run.sh`, `botloop.sh`) live outside the repository.
+- No change to mod behavior in this entry; no lab session.
 
-## 2026-10-11 — Save: morte de comboio observada antes de salvar carga/carteira
+## 2026-10-11 — Save: unknown HP refuses writing, does not resurrect old state
 
-- Defeito reproduzido offline: eSnapshot convertia carga de ator com Health0 em
-  pendente/frota livre quando a morte ainda não tinha passado pelo tick logístico.
-  Regressão nova FAIL na fonte85D7EEB9; usa eLose/eSnapshot/syncHealth/sv.collect reais.
-- eSnapshot agora observa HP nativo antes de contabilizar cada comboio. sv.collect
-  resolve snapshots antes de copiar manpower: recompensa dessa observação entra
-  na mesma gravação, não só na memória depois de salvar. Sem dano/ator fictício.
-- Testes HP0, ator inválido/destruindo, ferido vivo, save repetido e cópias PASS;
-  perda/carga/reconstrução/crédito únicos. Todos15test_*.py e check_globals PASS.
-  Mocks não provam lifecycle/TTL ou save/continue Unreal; ferimentos ainda não persistem.
-- Fonte candidata01AE83482408D760C9FF22E8BA3226616A4F67016A1077BFCBD702AB22A5E547,
-  backup externo main-before-enemy-snapshot-health.lua. Não publicada, sem restart.
-  Gate vivo acumulado no BATCH_NATIVO para a próxima sessão integrada.
+- Extending the real test reproduced a FAIL: the observer suspends transport with
+  NaN/infinite/text HP, but the snapshots ignored the refusal and saved old HP/cargo.
+- Friendly/enemy snapshots now require known HP or an already resolved death.
+  sv.save catches the collection failure and returns false with a log, before validating/writing;
+  the previous file is kept. A schema error is not turned into death/loss/credit.
+- The widened test covers both sides, NaN/±infinity/text, intact stock and a spy
+  that forbids writing/validating the incomplete snapshot. FAIL before/PASS after;
+  all 15 test_*.py and check_globals PASS. No proof of Unreal bindings/continue.
+- Candidate A36E9052562BBB52CAE97304D80CC6742C66EB32B031BE07AC0BE10C7B23205B,
+  not published. External backup main-before-snapshot-schema-gate.lua. WMI without the lab.
+- Debt identified while reviewing persistence: unitData does not keep the manual cargo
+  in m.col; colReset discards the cargo on continue. The next implementation needs to
+  keep the cargo on the worker and replan the physical delivery, not credit the refinery.
 
-## 2026-10-11 — Movimento: flag sem controlador não substitui localidade
+## 2026-10-11 — Save: convoy death observed before saving cargo/wallet
 
-- Rastreada propriedade nativa bRunPhysicsWithNoController: setter gerado
-  142a314d0 liga bit4/+1f1. No fluxo140ae1d60, personagem não local COM
-  Controller vai ao ramo remoto antes de consultar essa flag. Não desligar
-  bIsLocalPlayerController supondo que essa opção mantém a simulação atual.
-- Oracle CPU executa fragmento real140ae1e16..140ae1e85 e getter de localidade
-  do pawn142778b00: seis combinações posse/localidade/flag PASS. Com posse,
-  flag false/true não muda o ramo; sem Controller ela muda. Getter do controlador
-  e root-motion são shims; não comprova deslocamento, posse, GC ou fix Unreal.
-- Alternativa descartada offline sem mexer em main ou desapossar NPCs. Scripts/
-  saída/decomp externos; nenhuma run. Preservar PlayerState/posse para evitar
-  a regressão histórica de recolhimento do pawn após aproximadamente20s.
+- Defect reproduced offline: eSnapshot turned the cargo of an actor with Health 0 into
+  pending/free fleet when the death had not yet gone through the logistics tick.
+  New regression FAILs on source 85D7EEB9; uses the real eLose/eSnapshot/syncHealth/sv.collect.
+- eSnapshot now observes native HP before accounting each convoy. sv.collect
+  resolves snapshots before copying manpower: the reward of that observation goes into
+  the same write, not only into memory after saving. No damage/fictitious actor.
+- Tests HP0, invalid/destroying actor, wounded alive, repeated save and copies PASS;
+  single loss/cargo/rebuild/credit. All 15 test_*.py and check_globals PASS.
+  Mocks do not prove lifecycle/TTL or Unreal save/continue; wounds still do not persist.
+- Candidate source 01AE83482408D760C9FF22E8BA3226616A4F67016A1077BFCBD702AB22A5E547,
+  external backup main-before-enemy-snapshot-health.lua. Not published, no restart.
+  Live gate accumulated in NATIVE_BATCH for the next integrated session.
 
-## 2026-10-11 — Repositório público no GitHub
+## 2026-10-11 — Movement: the no-controller flag does not replace locality
 
-- Pasta virou repositório git e foi publicada em github.com/Gaok1/foxhole-rts (público, MIT) para chamar
-  colaboradores da comunidade de Foxhole. Subiu tudo, inclusive `data/parallel/`.
-- `README.md` da raiz em inglês (aviso de não afiliação à Siege Camp, sem arquivos do jogo, nunca online).
-- `PROGRESS.md`: checklist pública por fase ([x] = 1, [~] = 0,5, [ ] = 0); `tools/progress.py` recalcula
-  as barras do README. Ponto de partida: fase 1 65%, fase 2 71%, fase 3 54%, fase 4 20%, fase 5 0%, MVP 62%.
-- `.gitattributes` com `* -text` preserva os bytes dos patches e candidatos com SHA256.
+- Traced the native property bRunPhysicsWithNoController: generated setter
+  142a314d0 sets bit 4/+1f1. In flow 140ae1d60, a non-local character WITH a
+  Controller goes to the remote branch before consulting that flag. Do not turn off
+  bIsLocalPlayerController assuming this option keeps the current simulation.
+- A CPU oracle runs the real fragment 140ae1e16..140ae1e85 and the pawn's locality getter
+  142778b00: six possession/locality/flag combinations PASS. With possession,
+  flag false/true does not change the branch; without a Controller it does. The controller getter
+  and root motion are shims; it does not prove displacement, possession, GC or an Unreal fix.
+- Alternative discarded offline without touching main or unpossessing NPCs. Scripts/
+  output/decomp external; no run. Keep PlayerState/possession to avoid
+  the historical regression of the pawn being collected after about 20 s.
 
-## 2026-10-11 — Oracle estendido ao produtor nativo da lista
+## 2026-10-11 — Public repository on GitHub
 
-- Executadas offline as cinco funções reais produtor → bridge → virtual do
-  controlador → encaminhamento → helper. Fixtures fornecem mundo/classes/PS;
-  getters/destrutor/comparador são shims explícitos, nenhuma execução Unreal.
-- Dois PlayerStates com objeto de identificador nulo produzem oito entradas em
-  quatro ticks, com bVoiceChatEnabled false. Sem PlayerSaveGame também acumulam.
-  Ao trocar uma entrada do roster por objeto não nulo, falha read0 no mesmo
-  RVA b2b5f7. Controles roster vazio/PS ausente/objeto válido/deduplicação PASS.
-- Evidência exclui desligar voz ou remover PlayerSaveGame como solução suficiente
-  nesse fluxo emulado. Não confirma população real, controlador culpado, GC ou fix.
-  Próximo passo exige contrato NPC/roster vivo, não fabricar ID nem usar RPC.
-- Script/saída externos: re-agent/test_native_roster_producer.py e
-  logistics2-native-producer-oracle.txt em D:/tools/foxhole-lab. Laboratório
-  ausente confirmado; nenhuma mudança em main/publicação/run.
+- The folder became a git repository and was published at github.com/Gaok1/foxhole-rts (public, MIT) to invite
+  collaborators from the Foxhole community. Everything went up, including `data/parallel/`.
+- Root `README.md` in English (notice of no affiliation with Siege Camp, no game files, never online).
+- `PROGRESS.md`: public checklist per phase ([x] = 1, [~] = 0.5, [ ] = 0); `tools/progress.py` recomputes
+  the README bars. Starting point: phase 1 65%, phase 2 71%, phase 3 54%, phase 4 20%, phase 5 0%, MVP 62%.
+- `.gitattributes` with `* -text` keeps the bytes of patches and SHA256-tracked candidates.
 
-## 2026-10-11 — Crash reproduzido no helper nativo, offline
+## 2026-10-11 — Oracle extended to the list's native producer
 
-- Oracle externo executou os 303 bytes reais de 140b2b5a0 em CPU Unicorn,
-  sem abrir/alterar o jogo. Oito entradas nulas acumulam; entrada não nula
-  depois delas falha lendo endereço zero exatamente no RVA b2b5f7 do minidump.
-- Controles positivos de comparação/deduplicação PASS com comparador fictício.
-  Item válido antes de um nulo também não protege uma entrada diferente.
-- Isso confirma a sequência de falha do helper, NÃO quem produziu os nulos,
-  semântica do identificador real, GC ou correção Unreal. Nenhuma nova run.
-- Script/saída externos: D:/tools/foxhole-lab/re-agent/test_native_null_roster.py
-  e D:/tools/foxhole-lab/logistics2-native-null-oracle.txt. Unicorn em D:/tools/pylibs
-  é ferramenta de pesquisa, não dependência do mod.
+- Ran offline the five real functions producer → bridge → controller virtual
+  → forwarding → helper. Fixtures provide world/classes/PS;
+  getters/destructor/comparator are explicit shims, no Unreal execution.
+- Two PlayerStates with a null identifier object produce eight entries in
+  four ticks, with bVoiceChatEnabled false. Without PlayerSaveGame they also accumulate.
+  When one roster entry is swapped for a non-null object, read 0 fails at the same
+  RVA b2b5f7. Controls empty roster/missing PS/valid object/deduplication PASS.
+- The evidence rules out turning off voice or removing PlayerSaveGame as a sufficient fix
+  in that emulated flow. It does not confirm the real population, the guilty controller, GC or a fix.
+  The next step requires a live NPC/roster contract, not fabricating IDs nor using RPC.
+- External script/output: re-agent/test_native_roster_producer.py and
+  logistics2-native-producer-oracle.txt in D:/tools/foxhole-lab. Lab
+  absence confirmed; no change to main/publish/run.
 
-## 2026-10-11 — Universal-modder atualizado por pedido do usuário
+## 2026-10-11 — Crash reproduced in the native helper, offline
 
-- git pull --ff-only em D:/GitHub/universal-modder: 76b9c7e -> 2c22014,
-  main igual a origin/main. Primeiro pull recusou sobrescrever ajustes locais.
-- Backup externo em D:/tools/um-pull-backup-20261011-180446 e stash mantido.
-  Ajustes um/win.py, um/ps1/WinDrive.ps1 e nota Foxhole reaplicados; conflito
-  apenas no cabeçalho de comandos do WinDrive resolvido preservando min/sleep/idle.
-  Alterações voltaram ao estado não staged; nenhum commit/push/PR criado.
-- Nota Foxhole comparada ao backup: conteúdo idêntico, apenas CRLF/LF mudou.
-  Sintaxe PowerShell/Python PASS; um kb check PASS (183 notas, antes 60).
-  pytest de launch não rodou: módulo pytest ausente no Python atual; não instalar
-  dependências só para este pull nem alegar bateria completa do toolkit.
-- Nenhuma mudança/publicação do mod ou abertura do laboratório nesta atualização.
+- An external oracle ran the 303 real bytes of 140b2b5a0 on a Unicorn CPU,
+  without opening/changing the game. Eight null entries accumulate; a non-null entry
+  after them fails reading address zero exactly at the minidump's RVA b2b5f7.
+- Positive comparison/deduplication controls PASS with a fictitious comparator.
+  A valid item before a null also does not protect a different entry.
+- This confirms the helper's failure sequence, NOT who produced the nulls,
+  the real identifier's semantics, GC or an Unreal fix. No new run.
+- External script/output: D:/tools/foxhole-lab/re-agent/test_native_null_roster.py
+  and D:/tools/foxhole-lab/logistics2-native-null-oracle.txt. Unicorn in D:/tools/pylibs
+  is a research tool, not a mod dependency.
 
-## 2026-10-11 — Inicialização HeadlessLocalPlayer e correção do helper RE
+## 2026-10-11 — Universal-modder updated at the user's request
 
-- Investigação estática do NPC nativo achou HeadlessLocalPlayer com inicialização
-  própria de identificador tipo NULL e opções Headless. Constructor sozinho não
-  executa esse init. Sem UFunctions próprias refletidas e sem prova de ligação ao
-  PlayerState local; não construir LocalPlayer nem perseguir conexão/login/RPC
-  como tentativa de corrigir o crash.
-- Corrigido helper externo pe.vtable_of: antes seguia call de base e confundia
-  LocalPlayer com derivados cujos wrappers escrevem vtable inline. Check anterior
-  FAIL, sete classes PASS após correção. Slots usados no diagnóstico do crash
-  foram reconferidos e permanecem os mesmos. Continua heurístico, não prova live.
-- Rastro próprio em data/trace_crash_logistics2_20261011.txt; scripts/check e
-  decompilação externos. Nenhuma mudança de main, publicação ou nova run.
+- git pull --ff-only in D:/GitHub/universal-modder: 76b9c7e -> 2c22014,
+  main equal to origin/main. The first pull refused to overwrite local adjustments.
+- External backup at D:/tools/um-pull-backup-20261011-180446 and the stash kept.
+  Adjustments to um/win.py, um/ps1/WinDrive.ps1 and the Foxhole note reapplied; conflict
+  only in the WinDrive command header, resolved keeping min/sleep/idle.
+  Changes went back to the unstaged state; no commit/push/PR created.
+- Foxhole note compared to the backup: identical content, only CRLF/LF changed.
+  PowerShell/Python syntax PASS; um kb check PASS (183 notes, before 60).
+  The launch pytest did not run: pytest module missing in the current Python; do not install
+  dependencies just for this pull nor claim the toolkit's full battery.
+- No change/publish of the mod nor opening of the lab in this update.
 
-## 2026-10-11 — Contrato local dos bots; sonda de roster preparada offline
+## 2026-10-11 — HeadlessLocalPlayer initialization and RE helper fix
 
-- RE confirma que SimCharacter testa Controller.IsLocalController no caminho de
-  voz. Headless e SimPlayerController usam o mesmo getter; bIsLocalPlayerController
-  true retorna antes da consulta de NetMode. A flag ligada pelo mod para movimento
-  também expõe o bot ao fluxo local. Não demonstra sozinha qual ator caiu.
-- OnRep_bIsInactive remove/reinsere PlayerState em GameState.PlayerArray; adição
-  recusa inactive. Sem chamar ou usar como solução: participante desconectado não
-  equivale a NPC vivo, efeitos de lifecycle ainda precisam rastreamento.
-- Preparada tools/probe_native_npc_roster.lua para fotografar localidade/Player/
-  Pawn/PlayerState/roster de comandante, tropas e pool. Sem IDs Steam, escrita,
-  RPC, spawn ou timer. Getters conferem assinatura. gs() é GameplayStatics;
-  GameState vem de GetGameState(world()), não confundir helper com estado.
-- tools/test_native_npc_roster_probe.py PASS: assinatura válida/divergente/extra/
-  ausente, deduplicação, membro/pool fora do roster, controlador destruindo,
-  GameState ausente e proxies que proíbem escrita/IDs. São mocks, não prova Unreal.
-- Bateria completa: 14 scripts test_*.py e check_globals.py PASS. main.lua
-  inalterado, nenhum restart, WMI sem processo do laboratório.
+- Static investigation of the native NPC found HeadlessLocalPlayer with its own
+  initialization of a NULL-type identifier and Headless options. The constructor alone does not
+  run that init. No own reflected UFunctions and no proof of a link to the
+  local PlayerState; do not construct a LocalPlayer nor chase connection/login/RPC
+  as an attempt to fix the crash.
+- Fixed the external helper pe.vtable_of: before, it followed the base call and confused
+  LocalPlayer with derived classes whose wrappers write the vtable inline. The earlier check
+  FAILED, seven classes PASS after the fix. The slots used in the crash diagnosis
+  were rechecked and stay the same. Still heuristic, not a live proof.
+- Own trace in data/trace_crash_logistics2_20261011.txt; scripts/check and
+  decompilation external. No change to main, publish or new run.
 
-## 2026-10-11 — Crash: lista de UniqueId no fluxo local de participantes/voz
+## 2026-10-11 — Local contract of the bots; roster probe prepared offline
 
-- Diagnóstico offline readOnly/noanalysis confirmou PlayerState.UniqueId como
-  origem dos pares compartilhados que chegam ao helper do crash, via consulta de
-  proximidade e GameState.PlayerArray. Metadados em
-  data/trace_crash_logistics2_20261011.txt; código protegido apenas externo.
-- PlayerSaveGame.bVoiceChatEnabled (+0x48, setter gerado confirmado) controla
-  somente consulta próxima, NÃO o loop PlayerArray posterior. Desligar voz não
-  resolve por evidência e pode continuar acumulando IDs vazios.
-- Helper não deduplica entrada nula e compara entrada não nula dereferenciando
-  item existente sem guard. IDs vazios de bots são hipótese concreta de produtor;
-  não provada população inteira/identidade do controlador no heap ausente do dump.
-- Próximo: contrato de controlador local (tick consulta virtual+0x690) e lifecycle
-  legítimo PlayerState de NPC; preservar posse, movimento e GC. Não fabricar IDs,
-  chamar RPC ou desligar bIsLocalPlayerController cegamente para esconder o crash.
-- Nenhuma alteração em main.lua, publicação ou restart. Laboratório ausente.
+- RE confirms SimCharacter tests Controller.IsLocalController on the voice
+  path. Headless and SimPlayerController use the same getter; bIsLocalPlayerController
+  true returns before querying NetMode. The flag the mod turns on for movement
+  also exposes the bot to the local flow. It does not show by itself which actor crashed.
+- OnRep_bIsInactive removes/reinserts the PlayerState in GameState.PlayerArray; adding
+  refuses inactive. Not called nor used as a solution: a disconnected participant is not
+  a live NPC, lifecycle effects still need tracing.
+- Prepared tools/probe_native_npc_roster.lua to photograph locality/Player/
+  Pawn/PlayerState/roster of the commander, troops and pool. No Steam IDs, writes,
+  RPC, spawn or timer. Getters check their signature. gs() is GameplayStatics;
+  GameState comes from GetGameState(world()), do not confuse the helper with the state.
+- tools/test_native_npc_roster_probe.py PASS: valid/divergent/extra/
+  missing signature, deduplication, member/pool outside the roster, controller being destroyed,
+  missing GameState and proxies that forbid writes/IDs. They are mocks, not Unreal proof.
+- Complete battery: 14 test_*.py scripts and check_globals.py PASS. main.lua
+  unchanged, no restart, WMI without a lab process.
 
-## 2026-10-11 — Lote logístico 2: contrato RWD confirmado; partida interrompida por crash
+## 2026-10-11 — Crash: UniqueId list in the local participants/voice flow
 
-- Preparados scripts externos t_batch_logistics2_*; sampler1s de trabalhadores/
-  ameaça/carga e resumo10s, syntax/mock PASS. Treze testes offline/globals PASS.
-  Uma publicação/run CallumsCape/PID4696, hashes fonte/lab iguais
+- Offline readOnly/noanalysis diagnosis confirmed PlayerState.UniqueId as the
+  origin of the shared pairs that reach the crash helper, through the
+  proximity query and GameState.PlayerArray. Metadata in
+  data/trace_crash_logistics2_20261011.txt; protected code only external.
+- PlayerSaveGame.bVoiceChatEnabled (+0x48, generated setter confirmed) controls
+  only the nearby query, NOT the later PlayerArray loop. Turning off voice does not
+  solve it per the evidence and may keep accumulating empty IDs.
+- The helper does not deduplicate a null entry and compares a non-null entry by dereferencing
+  an existing item without a guard. Empty bot IDs are a concrete producer hypothesis;
+  the whole population/controller identity in the heap missing from the dump is not proven.
+- Next: the local controller contract (tick queries virtual +0x690) and the legitimate
+  PlayerState lifecycle of an NPC; keep possession, movement and GC. Do not fabricate IDs,
+  call RPC or blindly turn off bIsLocalPlayerController to hide the crash.
+- No change to main.lua, publish or restart. Lab absent.
+
+## 2026-10-11 — Logistics batch 2: RWD contract confirmed; match interrupted by a crash
+
+- Prepared external scripts t_batch_logistics2_*; a 1 s sampler of workers/
+  threat/cargo and a 10 s summary, syntax/mock PASS. Thirteen offline tests/globals PASS.
+  One publish/run CallumsCape/PID4696, source/lab hashes equal
   85D7EEB942704D767402F3EEE31159D80E144C6BB170A1BF90C98BD9FCEA9DEB.
-- Sonda somente leitura antes/depois da logística: mesmo caminhão com ActorCollision
-  true→false; root e UpdatedComponent/Primitive=VehicleCollision(BoxComponent).
-  Movimento RWDVehicleMovementComponent→SimpleVehicleMovementComponent→CharacterMovement;
-  flag bIgnoreNonRootComponentsDuringVehicleMovement=true em ambos estados.
-  Dados em rastro_truck_movement_{before,active}_20261011.txt. Não prova estrada,
-  impacto na frota, envelope/suporte nem permite alterar flag para forçar sucesso.
-- Partida fresca sem save/créditos/velocidade extra interrompida por crash.
-  CrashContext ProcessId4696/158s desde início; autosave próprio em60,043s/onda1,
-  bmat40/sucata0/base19camisas. Relatório final NÃO obtido: amostras estavam em RAM.
-  Não aprova medevac, contratação sob ameaça, entrega ou reconstrução no Unreal.
-- PID ausente/WMI confirmado, canal timeout30s. Crash DE679306…/17:36:33 preservado
-  externamente em logistics2-crash; UE4SSlog copiado. Stack/metadata própria
-  em data/trace_crash_logistics2_20261011.txt, sem minidump/código protegido no repo.
-- Minidump mostra RVA0xb2b5f7/Rcx0: instrução mov rax,[rcx] em140b2b5a0.
-  PCallStack inicia acima com1427c66cb; não confundir retorno do caller com fault.
-  RE readOnly/noanalysis exit0 liga frame ao processamento de lista compartilhada
-  via1427f2a00 e tickSimCharacter140b110c0→140b141a0→140b33df0.
-  Item nulo/contexto na lista comprovado; produtor/causa completa NÃO isolados.
-  Nenhum patch por offset, alteração de proteção ou reinício para tentar de novo.
-- Aprendizado para próximo lote: sampler logistics3 agora escreve/fecha cada linha
-  em arquivo externo, syntax/write PASS, ainda NÃO executado no jogo. Isso preserva
-  diagnóstico parcial se houver crash, não recupera as amostras perdidas deste lote.
-- Sem segunda run. map.txt temporário removido (baseline ausente), comando pendente
-  limpo; nenhum processo lab restante, Steam16104 preservado. README/ROADMAP/BATCH/
-  ENVELOPE/UM atualizados; falhas e novas ideias vão ao próximo trabalho offline.
+- Read-only probe before/after logistics: the same truck with ActorCollision
+  true→false; root and UpdatedComponent/Primitive=VehicleCollision(BoxComponent).
+  Movement RWDVehicleMovementComponent→SimpleVehicleMovementComponent→CharacterMovement;
+  flag bIgnoreNonRootComponentsDuringVehicleMovement=true in both states.
+  Data in trace_truck_movement_{before,active}_20261011.txt. It does not prove the road,
+  impact on the fleet, envelope/support nor allow changing the flag to force success.
+- A fresh match without save/credits/extra speed interrupted by a crash.
+  CrashContext ProcessId 4696/158 s since start; own autosave at 60.043 s/wave 1,
+  bmat 40/salvage 0/base 19 shirts. Final report NOT obtained: the samples were in RAM.
+  It does not approve medevac, hiring under threat, delivery or rebuild in Unreal.
+- PID absent/WMI confirmed, channel timeout 30 s. Crash DE679306…/17:36:33 kept
+  externally in logistics2-crash; UE4SS log copied. Own stack/metadata
+  in data/trace_crash_logistics2_20261011.txt, with no minidump/protected code in the repo.
+- The minidump shows RVA 0xb2b5f7/Rcx 0: instruction mov rax,[rcx] in 140b2b5a0.
+  PCallStack starts above with 1427c66cb; do not confuse the caller's return with the fault.
+  RE readOnly/noanalysis exit 0 ties the frame to processing a shared list
+  through 1427f2a00 and tickSimCharacter 140b110c0→140b141a0→140b33df0.
+  A null item/context in the list proven; producer/complete cause NOT isolated.
+  No patch by offset, protection change or restart to try again.
+- Lesson for the next batch: the logistics3 sampler now writes/closes each line
+  to an external file, syntax/write PASS, still NOT run in the game. This keeps
+  a partial diagnosis if there is a crash, it does not recover the samples lost in this batch.
+- No second run. Temporary map.txt removed (baseline absent), pending command
+  cleared; no lab process left, Steam 16104 kept. README/ROADMAP/BATCH/
+  ENVELOPE/UM updated; failures and new ideas go to the next offline work.
 
-## 2026-10-11 — Reposição automática sob ameaça e gate sem caminhão fantasma (offline)
+## 2026-10-11 — Automatic replacement under threat and a gate without a phantom truck (offline)
 
-- Fluxo rastreado: colMaintain contratava a cada3s até3vivos; spawnSite só decide
-  estoque/local/saída. colFree recusava trabalhador em perigo DEPOIS do nascimento.
-  Lote vivo anterior mostrou reposição esgotando camisas, mas não amostrou ameaça
-  na saída: não afirmar que esse guard sozinho explica/resolverá todas as mortes.
-- colThreat centraliza a distância3500cm já usada por colCalm. Contratação automática
-  verifica saída escolhida antes de criar/debitar; inimigo vivo perto bloqueia e
-  avisa "proteja a base". Não bloqueia contratação manual de combatentes, não muda
-  dano/ondas/imunidade/estoque. Mortos/atores destruindo não seguram contratação.
-  Limite3, intervalo3s, autoridade e rollback permanecem. spawnBlocked no estado
-  registra motivo; retomada limpa após ameaça sumir.
-- test_worker_spawn_threat executa funções reais: fronteira/distância da saída,
- 30s sem gasto, retomada, cadáver/destruição, autoridade, falta de estoque,
-  falha de spawn/commit e limite. Falha com colMaintain anterior, passa no candidato.
-- check_mvp_batch_trace antes aprovava "reconstrução" quando faltava PLAYER_TRUCK res.
-  Agora exige registro único/estado conhecido/HP finito positivo/PAWNtrue; ausência
-  não vira prova. test_mvp_batch_checker usa rastros SINTÉTICOS rotulados e recusa
-  ausente/morto/HP0/inf/semator/duplicado/semcleanup. Não comprova transação ou estrada.
-- Treze test_*.py/globals PASS. Fonte85D7EEB942704D767402F3EEE31159D80E144C6BB170A1BF90C98BD9FCEA9DEB.
-  Backup externo main-before-worker-spawn-threat.lua; sem publicação/run/entrada.
-  Gates vivos continuam negativos; lote seguinte precisa registrar ameaça/saída,
-  camisas, trabalhadores/carga/medevac e provar cadeia fresca em combate.
+- Flow traced: colMaintain hired every 3 s up to 3 alive; spawnSite only decides
+  stock/location/exit. colFree refused a worker in danger AFTER spawning.
+  The earlier live batch showed replacement draining shirts, but did not sample the threat
+  at the exit: do not claim this guard alone explains/will solve all deaths.
+- colThreat centralizes the 3500 cm distance already used by colCalm. Automatic hiring
+  checks the chosen exit before creating/debiting; a live enemy nearby blocks and
+  warns "proteja a base". It does not block manual hiring of combatants, does not change
+  damage/waves/immunity/stock. The dead/actors being destroyed do not hold back hiring.
+  Limit 3, 3 s interval, authority and rollback stay. spawnBlocked in the state
+  records the reason; resumption clears after the threat disappears.
+- test_worker_spawn_threat runs real functions: boundary/distance of the exit,
+  30 s without spending, resumption, corpse/destruction, authority, lack of stock,
+  spawn/commit failure and limit. Fails with the earlier colMaintain, passes on the candidate.
+- check_mvp_batch_trace used to approve a "rebuild" when PLAYER_TRUCK res was missing.
+  Now it requires a single record/known state/finite positive HP/PAWN true; absence
+  does not become proof. test_mvp_batch_checker uses labeled SYNTHETIC traces and refuses
+  missing/dead/HP0/inf/no actor/duplicate/no cleanup. It does not prove a transaction or road.
+- Thirteen test_*.py/globals PASS. Source 85D7EEB942704D767402F3EEE31159D80E144C6BB170A1BF90C98BD9FCEA9DEB.
+  External backup main-before-worker-spawn-threat.lua; no publish/run/input.
+  Live gates stay negative; the next batch needs to record threat/exit,
+  shirts, workers/cargo/medevac and prove a fresh chain in combat.
 
-## 2026-10-11 — Rifle: referências completas distinguem trace/efeito de impacto
+## 2026-10-11 — Rifle: complete references tell trace/impact effect apart
 
-- Retomada offline com UM/reverse-engineering/oráculos/playbook Unreal e ponytail.
-  Quatro jobs Ghidra headless readOnly/noanalysis concluídos exit0; sem jogo/GUI,
-  nenhum offset executado, sem RPC/inventário. Decomp protegida permanece externa.
-- Listadas todas referências diretas conhecidas do projeto, sem cap6: helper
-  1409dcd30 tem dois callers(HMG e1409a71f0); query1409e9860 tem oito callers.
-  Rifle140a691f0 não aparece como caller direto de dano. Não prova ausência de
-  chamadas indiretas nem impossibilidade de executor local.
-- Dois consumidores são FighterWeaponTrace/AirTargetingTrace, outro HitScanMount;
-  não generalizar para rifle. Seguidos callbacks de dois ramos até helpers que
-  gerenciam objeto/posição, sem dano conhecido nos corpos examinados.
-- Guard142407030 não lê Role como142405420: resolve contexto/world e encaminha
-  helper que retorna3 ou1/2. Não chamar timer guardado por3 de Authority sem prova;
-  consistente com apresentação/NetMode, ainda sem validação dinâmica.
-- data/trace_firing_investigation.md atualizado com endereços/limites e próximo
-  recorte autoritativo. Sem mudança/publicação de main.lua ou outra sessão de jogo.
-  Executor local de rifle segue pendente; não substituir por DPS/ApplyDamage temporal.
+- Resumed offline with UM/reverse-engineering/oracles/the Unreal playbook and ponytail.
+  Four headless readOnly/noanalysis Ghidra jobs finished exit 0; no game/GUI,
+  no offset run, no RPC/inventory. Protected decomp stays external.
+- Listed all known direct references of the project, without the cap of 6: helper
+  1409dcd30 has two callers (HMG and 1409a71f0); query 1409e9860 has eight callers.
+  Rifle 140a691f0 does not appear as a direct caller of damage. It does not prove the absence of
+  indirect calls nor the impossibility of a local executor.
+- Two consumers are FighterWeaponTrace/AirTargetingTrace, another HitScanMount;
+  do not generalize to the rifle. Followed callbacks of two branches down to helpers that
+  manage object/position, with no known damage in the bodies examined.
+- Guard 142407030 does not read Role like 142405420: it resolves context/world and forwards to a
+  helper that returns 3 or 1/2. Do not call a timer guarded by Authority's 3 without proof;
+  consistent with presentation/NetMode, still without dynamic validation.
+- data/trace_firing_investigation.md updated with addresses/limits and the next
+  authoritative cut. No change/publish of main.lua nor another game session.
+  The rifle's local executor stays pending; do not replace it with temporal DPS/ApplyDamage.
 
-## 2026-10-11 — Retomada das estradas: contrato de movimento antes de religar colisão
+## 2026-10-11 — Roads resumed: movement contract before turning collision back on
 
-- Consultados UM/roadmap/Como retomar e artefatos de estradas. Grafo real Callums
-  405controles/431segmentos/4013nós está disponível, mas sem prova física de arestas.
-  roads/adapter/snapshot testes PASS. Não integrar reta, cápsula de soldado ou
-  Box450/210/230 como se comprovassem envelope/suporte de caminhão.
-- Recuperada evidência existente: VehicleCollision400/162/140; scan de raios
-  atingiu CharacterMesh0 fora dessa caixa. Root/UpdatedComponent ainda não
-  identificados; sweep do ator sozinho não comprova abrangência desses corpos.
-- Nova tools/probe_native_truck_movement.lua somente leitura: assinatura de
-  getter confirmada antes de raiz/movement; UpdatedComponent/Primitive/flag só
-  por schema específico. Lista funções e parâmetros de input/movimento sem chamar.
-  Não muda colisão, não escreve física/estoque e não usa campos perigosos de mesh.
-- test_native_truck_movement_probe PASS, inclusive recusas de schema/scan. Sonda
-  NÃO executada no Unreal. main.lua não alterado nesta etapa; correção offline de
-  medevac permanece candidata. ENVELOPE_GATE/BATCH/README atualizados.
-- Laboratório mantido fechado, sem nova publicação/run. Próximo lote deve obter
-  contrato nativo e integrar caminho físico, não declarar estradas prontas pelo grafo.
+- Consulted UM/roadmap/How to resume and the roads artifacts. The real Callums graph
+  405 controls/431 segments/4013 nodes is available, but without physical proof of the edges.
+  roads/adapter/snapshot tests PASS. Do not integrate a straight line, a soldier's capsule or
+  Box 450/210/230 as if they proved a truck's envelope/support.
+- Recovered existing evidence: VehicleCollision 400/162/140; a ray scan
+  hit CharacterMesh0 outside that box. Root/UpdatedComponent not yet
+  identified; the actor's sweep alone does not prove it covers those bodies.
+- New read-only tools/probe_native_truck_movement.lua: the getter's signature
+  confirmed before root/movement; UpdatedComponent/Primitive/flag only
+  through a specific schema. Lists input/movement functions and parameters without calling them.
+  Does not change collision, does not write physics/stock and does not use dangerous mesh fields.
+- test_native_truck_movement_probe PASS, including schema/scan refusals. Probe
+  NOT run in Unreal. main.lua not changed at this step; the offline medevac
+  fix stays a candidate. ENVELOPE_GATE/BATCH/README updated.
+- Lab kept closed, no new publish/run. The next batch must obtain the
+  native contract and integrate a physical path, not declare roads ready from the graph.
 
-## 2026-10-11 — Coleta: medevac automático não é ordem do jogador (offline)
+## 2026-10-11 — Collection: automatic medevac is not a player order (offline)
 
-- Causa isolada no log externo native-batch-ue4ss.log, linhas866–867 e890–891:
-  "trabalhador ferido recua sozinho" precede imediatamente as perdas35,8/34,3
-  por "ordem do jogador". rts.medevacStep escreve medevac/retreat, não orderT;
-  colStep antes descartava qualquer retreat/medevac como intervenção humana.
-- Correção em colStep conserva vínculo/carga enquanto medevac está ativo,
-  não coleta/entrega nem substitui rota de evacuação, suspende timeout do trecho.
-  Ao curar retoma campo/refinaria. Mudança de orderT/hold/focus/area/fila/recuo
-  explícito continua cancelando; morte continua perdendo carga uma única vez.
-- test_collection_medevac.py executa funções reais, falha na fonte anterior e
-  passa na candidata: recuo70s, cura/retomada em coleta ou retorno, entrega única
-  na refinaria, morte/ordens explícitas e conservação. Navegação/engine mockados.
-  Dez test_*.py e check_globals PASS. Backup externo main-before-collection-medevac.lua.
-- Sem publicação/restart/entrada injetada. Próximo lote precisa provar conservação
-  e entrega em combate no Unreal; NÃO resolve/prova toda reposição ou cadeia fresca.
-  ROADMAP/README/BATCH atualizados; sem tecla nova. Conhecimento UM registrado local.
+- Cause isolated in the external log native-batch-ue4ss.log, lines 866–867 and 890–891:
+  "trabalhador ferido recua sozinho" immediately precedes the losses 35.8/34.3
+  by "ordem do jogador". rts.medevacStep writes medevac/retreat, not orderT;
+  colStep used to discard any retreat/medevac as human intervention.
+- The fix in colStep keeps the link/cargo while medevac is active,
+  does not collect/deliver nor replace the evacuation route, suspends the stretch timeout.
+  On healing it resumes field/refinery. A change of orderT/hold/focus/area/queue/explicit
+  retreat still cancels; death still loses the cargo a single time.
+- test_collection_medevac.py runs real functions, fails on the earlier source and
+  passes on the candidate: 70 s retreat, healing/resumption while collecting or returning, single delivery
+  at the refinery, death/explicit orders and conservation. Navigation/engine mocked.
+  Ten test_*.py and check_globals PASS. External backup main-before-collection-medevac.lua.
+- No publish/restart/injected input. The next batch needs to prove conservation
+  and delivery in combat in Unreal; it does NOT solve/prove all replacement or a fresh chain.
+  ROADMAP/README/BATCH updated; no new key. UM knowledge recorded locally.
 
-## 2026-10-11 — Batch integrado único; granadas funcionam, MVP logístico falhou
+## 2026-10-11 — Single integrated batch; grenades work, the logistics MVP failed
 
-- Preparadas offline 13 cenas e regressão fresca, sintaxe/máquina mock PASS;
-  nove test_*.py/globals PASS. Uma publicação pelo restart.sh e uma única run
-  CallumsCapeHex/PID19324, sem teclado/mouse/RPC/inventário/HPwrite/ApplyDamage de teste.
-  SHA256 fonte/lab iguais ACB6ADFD3AE05828AB50C3D26CC3970673B09184E8FCD4BBCB3D010042CEFA64.
-- Granadas integradas: Owner/Instigator e fuse4 PASS. WcollisionOn900→788,
-  WcollisionOff900→900, CcollisionOn900→883; classes simultâneas900→771.
-  Reset impediu dano; remover lançador não impediu explosão (não prova morte em
-  combate). Contexto emprestado/trocado preservado; GC refletido em voo PASS.
-  Todas as leases encerradas; sem crash observado durante lote, não estabilidade geral.
-- Soldados hostil E aliado100→1: friendlyfire nativo observado; morte não ocorreu.
-  Não desligar proteção/debug nem afirmar causa do piso1HP sem rastrear.
-- Gate truck_loss FAIL: 16 granadas Colonial deixaram900→850; LOST_DELTA0,
-  sem morte/TTL/carga perdida comprovados. Fixtures explícitas, não equilíbrio.
-  Verificador check_native_batch_trace.py retorna1 corretamente por esse gate.
-- MVP fresco sem save/créditos/velocidade extra: 352,96s,35amostras, derrota onda3,
-  22abates/34perdas, reabastecimento18; inimigo4entregas/15camisas consumidas.
-  Coleta entregou0/perdeu110,0199, bmat permaneceu40, recurso não reconstruído.
-  Auditorias C/E PASS em todas as amostras. Log:35,8+34,3 perdidas por "ordem do
-  jogador",39,9 por morte; reposição esgotou camisas. Causa completa não isolada.
-  check_mvp_batch_trace.py retorna1 para coleta/refino/reconstrução, não exige
-  derrota nem dá PASS ao MVP só porque houve combate. Falhas vão ao próximo lote.
-- Rastros próprios em data/rastro_batch_{nativo,mvp}_integrado.txt. Scripts e
-  log completo externos D:/tools/foxhole-lab/t_batch_*.lua/native-batch-ue4ss.log.
-  Relatórios/fixtures limpos entre cenários. Check final: squad0/enemies0/logi false/
-  context false/settings false/sem relatório pendente. PID19324 encerrado;
-  após3s WMI/processos confirmam nenhum processo do laboratório, Steam16104 mantido.
-  map.txt temporário removido (baseline ausente). Não houve segundo restart.
-- ROADMAP atualizado com prioridade real: coleta fresca, colisão/roads e executor
-  nativo de tiro/perda. Build publicada experimental, não estável. README/BATCH e
-  universal-modder atualizados com evidência/limites; sem PR.
+- Prepared offline 13 scenes and a fresh regression, syntax/mock machine PASS;
+  nine test_*.py/globals PASS. One publish through restart.sh and a single run
+  CallumsCapeHex/PID19324, with no keyboard/mouse/RPC/inventory/HP write/test ApplyDamage.
+  SHA256 source/lab equal ACB6ADFD3AE05828AB50C3D26CC3970673B09184E8FCD4BBCB3D010042CEFA64.
+- Integrated grenades: Owner/Instigator and fuse 4 PASS. W collision on 900→788,
+  W collision off 900→900, C collision on 900→883; simultaneous classes 900→771.
+  Reset prevented damage; removing the thrower did not prevent the explosion (does not prove a death in
+  combat). Borrowed/swapped context kept; reflected GC in flight PASS.
+  All leases closed; no crash observed during the batch, not general stability.
+- Hostile AND allied soldiers 100→1: native friendly fire observed; death did not happen.
+  Do not turn off protection/debug nor claim the cause of the 1 HP floor without tracing.
+- Gate truck_loss FAIL: 16 Colonial grenades left 900→850; LOST_DELTA 0,
+  no death/TTL/lost cargo proven. Explicit fixtures, not balance.
+  The checker check_native_batch_trace.py correctly returns 1 for that gate.
+- Fresh MVP without save/credits/extra speed: 352.96 s, 35 samples, defeat at wave 3,
+  22 kills/34 losses, resupply 18; enemy 4 deliveries/15 shirts consumed.
+  Collection delivered 0/lost 110.0199, bmat stayed 40, resource not rebuilt.
+  Audits C/E PASS in all samples. Log: 35.8+34.3 lost by "ordem do
+  jogador", 39.9 by death; replacement drained shirts. Complete cause not isolated.
+  check_mvp_batch_trace.py returns 1 for collection/refining/rebuild, does not require
+  defeat nor give the MVP a PASS just because there was combat. Failures go to the next batch.
+- Own traces in data/trace_native_batch_integrated.txt and data/trace_batch_mvp_integrated.txt. Scripts and the
+  complete log external D:/tools/foxhole-lab/t_batch_*.lua/native-batch-ue4ss.log.
+  Reports/fixtures cleared between scenarios. Final check: squad 0/enemies 0/logi false/
+  context false/settings false/no pending report. PID19324 closed;
+  after 3 s WMI/processes confirm no lab process, Steam 16104 kept.
+  Temporary map.txt removed (baseline absent). There was no second restart.
+- ROADMAP updated with the real priority: fresh collection, collision/roads and the native
+  firing/loss executor. Published build is experimental, not stable. README/BATCH and
+  universal-modder updated with evidence/limits; no PR.
 
-## 2026-10-11 — Granadas por facção e contrato do lançador; batch parcial preparado
+## 2026-10-11 — Grenades per faction and the thrower's contract; partial batch prepared
 
-- Progresso anterior confirmado na fonte: HP logístico real e remoção do DPS de
-  veículos. Continuada integração, sem reduzir o objetivo a testes verdes.
-- Conferidos offline getter Instigator1422d9d90 e Controller1422d9da0 no binário;
-  PostInitialize WarProjectile140dbe460 ignora Instigator e deriva MyController;
-  BeginPlay140da4a70 ignora Owner/peças. Contrato próprio (sem fonte protegida)
-  em data/contract_native_grenade.md. Nenhum offset executado.
-- Corrigido uso de granada Warden para todo mundo: lançador Colonial usa Grenade_C,
-  identidade GrenadeC e seus próprios limites (max1200 vs1100 Warden), cache por
-  identidade. Equipe desconhecida/row ausente recusam sem gastar lease/cooldown.
-  Owner real é passado ao deferred e Instigator escrito antes FinishSpawning;
-  não escrever MyController fraco. Friendlyfire/atribuição vivos ainda pendentes.
-- Granada24cenários PASS; contexto inclui duas classes simultâneas/explosão parcial/
-  cleanup sem destruir granada estrangeira. Todos os nove test_*.py + globals PASS.
-- Canal expõe throwGrenadeFrom (mesma função real) para oráculo com ator exclusivo,
-  sem inserir caminhão na lista de personagens. Comandos externos t_batch_native_start.lua
-  e t_batch_native_report.lua syntaxPASS (sem BOM), NÃO executados. Quatro casos
-  WcollisionOn/Off, CcollisionOn, resetFlight numa sequência ~80s, espera nativa12s,
-  lançador trabalhador/controller real e cleanup entre casos; sem HPwrite/ApplyDamage.
-- BATCH_NATIVO/README atualizados. Sequência é PARCIAL: não cobre ainda morte do
-  lançador/soldado/friendlyfire/GC/borrowed-context vivo ou regressão MVP no hex.
-  Não publicar/abrir laboratório antes de preparar esses cenários; sem outra run
-  por descoberta. Frota continua sem colisão até comparação A/B integrada.
-- Universal-modder consultado no início; Gotcha acrescentada e kb check local PASS.
-  Laboratório não iniciado, Steam preservado, sem entrada de teclado/mouse ou PR.
+- Earlier progress confirmed in the source: real logistics HP and removal of the vehicle
+  DPS. Integration continued, without reducing the goal to green tests.
+- Checked offline the getters Instigator 1422d9d90 and Controller 1422d9da0 in the binary;
+  PostInitialize WarProjectile 140dbe460 ignores Instigator and derives MyController;
+  BeginPlay 140da4a70 ignores Owner/parts. Own contract (without protected source)
+  in data/contract_native_grenade.md. No offset run.
+- Fixed the use of the Warden grenade for everyone: the Colonial thrower uses Grenade_C,
+  identity GrenadeC and its own limits (max 1200 vs 1100 Warden), cache by
+  identity. Unknown team/missing row refuse without spending a lease/cooldown.
+  The real Owner is passed to the deferred spawn and Instigator written before FinishSpawning;
+  do not write a weak MyController. Live friendly fire/attribution still pending.
+- Grenade 24 scenarios PASS; context includes two simultaneous classes/partial explosion/
+  cleanup without destroying a foreign grenade. All nine test_*.py + globals PASS.
+- The channel exposes throwGrenadeFrom (the same real function) for an oracle with an exclusive actor,
+  without inserting a truck into the character list. External commands t_batch_native_start.lua
+  and t_batch_native_report.lua syntax PASS (no BOM), NOT run. Four cases
+  W collision on/off, C collision on, resetFlight in a ~80 s sequence, native wait 12 s,
+  real worker/controller thrower and cleanup between cases; no HP write/ApplyDamage.
+- NATIVE_BATCH/README updated. The sequence is PARTIAL: it does not yet cover the death of the
+  thrower/soldier/friendly fire/GC/live borrowed context or the MVP regression in the hex.
+  Do not publish/open the lab before preparing those scenarios; no other run
+  per discovery. The fleet stays without collision until an integrated A/B comparison.
+- Universal-modder consulted at the start; Gotcha added and local kb check PASS.
+  Lab not started, Steam kept, no keyboard/mouse input or PR.
 
-## 2026-10-11 — HP nativo na logística; lote ainda offline
+## 2026-10-11 — Native HP in logistics; batch still offline
 
-- Retomada: relidos Como retomar/topo/ROADMAP, skills reverse-engineering e
-  mod-any-game/playbook Unreal; `um kb search foxhole` consultado. Sem entrada
-  injetada, publicação/restart ou laboratório aberto (Steam preservado).
-- Removido `logi.hit`, DPS abstrato de emboscada e multiplicador de morteiro em
-  caminhões. Não encaminhado dano inventado a ApplyDamage. Fuzis próximos agora
-  não cortam comboios: executor nativo continua pendente, regressão funcional
-  deliberada para não manter o sistema rejeitado pelo usuário.
-- `logi.syncHealth` observa Health real antes de drive/truckStep/convoyTick e save.
-  HP parcial atualiza espelho/painel. HP0/perda de ator cancela rota/movimento e
-  debita carga uma vez, agenda reconstrução própria e retira referência ao casco.
-  Não chama OnRep, FX, ocultação ou destruição no observador: TTL do jogo preservado.
-  Ator desaparecido não concede bounty; HP inválido suspende sem inventar morte.
-- Save antigo tinha HP abstrato: não escreve esse valor no ator; estado/carga
-  continuam restaurados, ferimentos nativos ainda NÃO persistem. Morto mostra HP0.
-- Nove `tools/test_*.py` PASS + check_globals; novo test_native_truck_health executa
-  helper real e cobre perda única/HP parcial-zero/schema/destruição/ausência/gates.
-  test_orders atualizado: ator mock com Health, sem expectativa de DPS fictício.
-  Logs externos em D:/tools/foxhole-lab/offline-test_*.log. Backup fonte antes desta
-  alteração: D:/tools/foxhole-lab/main-before-native-health.lua.
-- `NATIVE_BATCH.md` atualizado: colisão dos caminhões está DESLIGADA pelo transporte;
-  não presumir overlap explosivo funcional. Instigator antes FinishSpawning já
-  consta no candidato de granada, mas equipe/atribuição/colisão exigem gate vivo.
-  Não considerar lote pronto/publicado/estável; próxima etapa resolve esse contrato
-  e prepara comandos sequenciais antes da única publicação/run integrada.
-- README/ROADMAP atualizados; sem tecla nova. Gotcha local acrescentada no
-  universal-modder e `um kb check` executado; sem PR.
+- Resumed: reread How to resume/top/ROADMAP, the skills reverse-engineering and
+  mod-any-game/Unreal playbook; `um kb search foxhole` consulted. No injected
+  input, publish/restart or open lab (Steam kept).
+- Removed `logi.hit`, the abstract ambush DPS and the mortar multiplier on
+  trucks. No invented damage forwarded to ApplyDamage. Nearby rifles now
+  do not cut convoys: the native executor stays pending, a deliberate functional
+  regression so as not to keep the system rejected by the user.
+- `logi.syncHealth` observes real Health before drive/truckStep/convoyTick and save.
+  Partial HP updates the mirror/panel. HP 0/actor loss cancels route/movement and
+  debits the cargo once, schedules its own rebuild and drops the reference to the hull.
+  Does not call OnRep, FX, hiding or destruction in the observer: the game's TTL is kept.
+  A vanished actor does not grant a bounty; invalid HP suspends without inventing a death.
+- An old save had abstract HP: that value is not written to the actor; state/cargo
+  are still restored, native wounds do NOT persist yet. The dead show HP 0.
+- Nine `tools/test_*.py` PASS + check_globals; the new test_native_truck_health runs the
+  real helper and covers single loss/partial-zero HP/schema/destruction/absence/gates.
+  test_orders updated: mock actor with Health, no expectation of fictitious DPS.
+  External logs in D:/tools/foxhole-lab/offline-test_*.log. Source backup before this
+  change: D:/tools/foxhole-lab/main-before-native-health.lua.
+- `NATIVE_BATCH.md` updated: truck collision is OFF because of transport;
+  do not presume a working explosive overlap. Instigator before FinishSpawning is already
+  in the grenade candidate, but team/attribution/collision require a live gate.
+  Do not consider the batch ready/published/stable; the next step resolves that contract
+  and prepares sequential commands before the single integrated publish/run.
+- README/ROADMAP updated; no new key. Local Gotcha added to
+  universal-modder and `um kb check` run; no PR.
 
-## 2026-10-11 — Integração offline de granada/contexto; sem publicação
+## 2026-10-11 — Offline grenade/context integration; no publish
 
-- main.lua agora substitui granada mesh/arco/shell próprios por deferred BPGrenadeW,
-  fuse4 dos dados reais antes BeginPlay, solver CustomArc/MovementComp e dano/FX nativos.
-  Fire só abandona o tiro normal se throwGrenade tiver sucesso; falha não gasta recarga.
-- Helpers rts.native* ancoram settings imediatamente em GI.ServerSettings, controlam
-  reservas e rastreiam classe/fullname (sem cache de projétil morto). Tick mantém lease
-  até última granada; reset destrói apenas próprias e restore respeita troca externa.
-- Corrigida falha do candidato: GrenadeRangeLimit0 REAL não significa alcance zero.
-  Valida velocidades/fuse positivos; range0 não acrescenta teto ao limite do mod.
-- tools/test_native_context.py PASS e tools/test_native_grenade.py20cenários PASS
-  na fonte ATUAL; test_orders/globals PASS. Nenhum teste vivo/publicação neste lote.
-  Backup externo main-before-native-grenades.lua; alterações ainda sem gate integrado.
-- NATIVE_BATCH.md reúne critérios/cenários numa única sessão futura. Antes dela faltam
-  Instigator/Owner/colisão do lançador e reação logística ao HP real. Sub-agente estuda
-  esse contrato offline; não confundir oráculos anteriores com teste desse main.
-- README atualizado; métrica antiga de dano da granada não imprime zero enganoso.
-  Fuzil/morteiro/DPS de comboio continuam dívida a remover, não combate nativo entregue.
+- main.lua now replaces the own grenade mesh/arc/shell with a deferred BPGrenadeW,
+  fuse 4 from the real data before BeginPlay, the CustomArc/MovementComp solver and native damage/FX.
+  Fire only abandons the normal shot if throwGrenade succeeds; a failure does not spend the reload.
+- rts.native* helpers anchor settings immediately in GI.ServerSettings, control
+  reservations and track class/fullname (no cache of a dead projectile). The tick keeps the lease
+  until the last grenade; reset destroys only its own and restore respects an external swap.
+- Fixed a candidate failure: a REAL GrenadeRangeLimit 0 does not mean zero range.
+  Validates positive speeds/fuse; range 0 adds no ceiling to the mod's limit.
+- tools/test_native_context.py PASS and tools/test_native_grenade.py 20 scenarios PASS
+  on the CURRENT source; test_orders/globals PASS. No live test/publish in this batch.
+  External backup main-before-native-grenades.lua; changes still without an integrated gate.
+- NATIVE_BATCH.md gathers criteria/scenarios into a single future session. Before it,
+  the thrower's Instigator/Owner/collision and the logistics reaction to real HP are missing. A sub-agent studies
+  that contract offline; do not confuse earlier oracles with a test of this main.
+- README updated; the old grenade damage metric does not print a misleading zero.
+  Rifle/mortar/convoy DPS remain a debt to remove, not delivered native combat.
 
-## 2026-10-11 — Usuário cobrou novamente testes em batch
+## 2026-10-11 — The user asked again for batch testing
 
-- Fluxo recente fragmentou excessivamente os testes; usuário pediu avançar pesquisa/
-  desenvolvimento offline e só depois executar todos os cenários numa única run.
-  Regra reforçada em AGENTS.md: sem restart por sonda/helper/descoberta, cenários e
-  critérios preparados antes, uma publicação e sessão compartilhada, cleanup entre
-  cenários. Ideias novas vão ao próximo lote; exceções somente por impedimento concreto.
-- Cenário já em andamento concluiu restore/cleanup; laboratório encerrado. Sem
-  novos testes ao vivo agora. Trajetória nativa registrada em data/trace_trajectory_native_grenade.txt;
-  integração e seus cenários deverão ser desenvolvidos offline antes do próximo lote.
+- The recent flow fragmented tests too much; the user asked to advance research/
+  development offline and only then run all scenarios in a single run.
+  Rule reinforced in AGENTS.md: no restart per probe/helper/discovery, scenarios and
+  criteria prepared beforehand, one publish and a shared session, cleanup between
+  scenarios. New ideas go to the next batch; exceptions only for a concrete blocker.
+- The scenario already in progress finished restore/cleanup; lab closed. No
+  new live tests now. Native trajectory recorded in data/trace_trajectory_native_grenade.txt;
+  the integration and its scenarios must be developed offline before the next batch.
 
-## 2026-10-11 — Granada nativa explodiu e causou dano pelo próprio timer
+## 2026-10-11 — Native grenade exploded and dealt damage through its own timer
 
-- Laboratório PID18148 HomeRegionW, caminhão exclusivo900HP/Team0/Authoritytrue.
-  SpawnActor BPGrenadeW a180cm do centro, FuseTimer default20, bExplodedfalse.
-  Settings fresca mantida por GI.ServerSettings durante espera; sem ownerpatch.
-- Após27s: caminhãoHealth780, granada não presente entre atores vivos; restore
-  original nulo/cleanup PASS. data/trace_native_grenade_start.txt e fim.txt.
-  NENHUMA ApplyDamage/manual, HPwrite, HitInfoLua, RPC, fórmula ou debugtoggle.
-  Timer do próprio projétil construiu impacto e executou dano/FX nativos.
-- Isso prova explosivo local independente de inventário, não lançamento pelo
-  soldado, trajeto/alcance, fusível real de arremesso ou atribuição ao atirador.
-  Próximo: contrato local de MovementComp e tempo real de fuse para integração
-  throwGrenade, sem substituir disparo de fuzil por outra coisa. main.lua inalterado.
-- Laboratório encerrado pelo PID/caminho confirmado, Steam preservado.
+- Lab PID18148 HomeRegionW, exclusive truck 900 HP/Team 0/Authority true.
+  SpawnActor BPGrenadeW 180 cm from the center, FuseTimer default 20, bExploded false.
+  Fresh settings kept through GI.ServerSettings during the wait; no owner patch.
+- After 27 s: truck Health 780, grenade not present among live actors; original
+  restore null/cleanup PASS. data/trace_native_grenade_start.txt and end.txt.
+  NO manual ApplyDamage, HP write, Lua HitInfo, RPC, formula or debug toggle.
+  The projectile's own timer built the impact and ran native damage/FX.
+- This proves a local explosive independent of inventory, not a throw by the
+  soldier, trajectory/range, the real throw fuse or attribution to the thrower.
+  Next: the local contract of MovementComp and the real fuse time for integrating
+  throwGrenade, without replacing rifle fire with something else. main.lua unchanged.
+- Lab closed by the confirmed PID/path, Steam kept.
 
-## 2026-10-11 — Projéteis explosivos nativos: schema e CDOs confirmados
+## 2026-10-11 — Native explosive projectiles: schema and CDOs confirmed
 
-- tools/probe_native_projectiles.lua syntaxPASS e leitura viva PID22020 HomeRegionW.
-  data/schema_projectiles_native.txt. Sem spawn/detonar/RPC/escrita de CDO.
-- WarProjectile.Detonate e ApplyExplosiveDamageAndSpawnFx recebem HitResult
-  StructProperty (estático ProjectileHitInfo_NetQuantize, NÃO montar tabela Lua).
-  MyController WeakObjectProperty, ExplosiveCodeName NameProperty; templates reais.
-- Grenade/BPGrenadeW/BPHELaunchedGrenade derivam TimedProjectile, FuseTimer20,
-  ProjectileLife0/AutoDetonateTime0. Identidades GrenadeC/GrenadeW/HELaunchedGrenade.
-  BPHEGrenade deriva diretamente WarProjectile, sem fuse, identidade HEGrenade.
-  CDO e template não provam initialization ou explosão: timer/owner ainda rastreados.
-- Sub-agente de explosivos investiga initializer local para não inventar HitInfo,
-  fuse/velocidade/fórmula. main.lua inalterado; laboratório fechado PID/caminho
-  conferido ao retornar offline, Steam preservado.
+- tools/probe_native_projectiles.lua syntax PASS and live read PID22020 HomeRegionW.
+  data/schema_projectiles_native.txt. No spawn/detonate/RPC/CDO write.
+- WarProjectile.Detonate and ApplyExplosiveDamageAndSpawnFx receive a HitResult
+  StructProperty (static ProjectileHitInfo_NetQuantize, do NOT build a Lua table).
+  MyController WeakObjectProperty, ExplosiveCodeName NameProperty; real templates.
+- Grenade/BPGrenadeW/BPHELaunchedGrenade derive from TimedProjectile, FuseTimer 20,
+  ProjectileLife 0/AutoDetonateTime 0. Identities GrenadeC/GrenadeW/HELaunchedGrenade.
+  BPHEGrenade derives directly from WarProjectile, no fuse, identity HEGrenade.
+  CDO and template do not prove initialization or explosion: timer/owner still being traced.
+- An explosives sub-agent investigates the local initializer so as not to invent HitInfo,
+  fuse/speed/formula. main.lua unchanged; lab closed with PID/path
+  checked when going back offline, Steam kept.
 
-## 2026-10-11 — Lifecycle nativo explica casco ainda válido após HP zero
+## 2026-10-11 — Native lifecycle explains a hull still valid after HP zero
 
-- Sub-agente rastreou a aplicação: Health0 despacha virtual+d60 para morte
-  SimVehicle, com efeitos/ocupantes, depois programa SetLifeSpan15s nativo.
-  Actor válido logo após o dano é esperado durante o TTL do casco, NÃO indicação
-  de que falta chamar OnRep_Health ou outro callback manualmente.
-- Explosão/drop observados pelo usuário são coerentes com essa cadeia. Não
-  repetir só para forçar bActorIsBeingDestroyed imediato nem usar cleanup como
-  prova. TTL15s identificado estaticamente, duração ainda sem amostragem viva.
-- Rifle permanece sem executor autoritativo local demonstrado; ponte Lua expõe
-  somente wrapper de invocação e callbacks de replicação. Estudo continua sem RPC.
-  Novo sub-agente rastreia explosivos/projéteis locais nativos, sem inventário,
-  para aproveitar mecanismo real em vez de encaminhar o DPS artificial ao engine.
+- A sub-agent traced the application: Health 0 dispatches virtual +d60 for the SimVehicle
+  death, with effects/occupants, then schedules a native SetLifeSpan 15 s.
+  An actor valid right after the damage is expected during the hull's TTL, NOT an indication
+  that OnRep_Health or another callback needs to be called manually.
+- The explosion/drop observed by the user are consistent with that chain. Do not
+  repeat just to force an immediate bActorIsBeingDestroyed nor use cleanup as
+  proof. TTL 15 s identified statically, duration still not sampled live.
+- The rifle still has no demonstrated local authoritative executor; the Lua bridge exposes
+  only an invocation wrapper and replication callbacks. The study continues without RPC.
+  A new sub-agent traces native local explosives/projectiles, without inventory,
+  to use the real mechanism instead of forwarding the artificial DPS to the engine.
 
-## 2026-10-11 — Usuário confirmou explosão e drop do caminhão
+## 2026-10-11 — The user confirmed the truck's explosion and drop
 
-- Após oracle nativo de HP900→0, usuário observou que o caminhão explodiu e
-  deixou algo no chão. Evidência visual manual positiva da reação de destruição
-  do jogo, além do Health0 registrado. Item/ator do drop ainda não identificado;
-  não afirmar conteúdo, inventário ou persistência. Sem nova intervenção.
+- After the native HP oracle 900→0, the user observed the truck exploded and
+  left something on the ground. Positive manual visual evidence of the game's destruction
+  reaction, besides the recorded Health 0. The drop's item/actor not yet identified;
+  do not claim content, inventory or persistence. No new intervention.
 
-## 2026-10-11 — Três aplicações nativas, HP até zero sem crash
+## 2026-10-11 — Three native applications, HP down to zero without a crash
 
-- tools/oracle_native_vehicle_damage.lua syntaxPASS e vivo PID12456 HomeRegionW,
-  ator exclusivo900HP/Team0/Authoritytrue após12s. Settings fresca associada
-  imediatamente e mantida por UProperty durante todas as chamadas.
-- LightKinetic45 retornou27/HP900→873; HeavyKinetic55 retornou33/HP873→840;
-  Explosive1500 (sobrecarga de TESTE, não munição/fórmula do mod) retornou1050/HP840→0.
-  data/trace_damage_native_repeated.txt. Nenhuma escrita de HP, offset/RPC/debugtoggle.
-- Health0 é comprovado, NÃO lifecycle completo de destruição/wreck: ator ainda
-  não estava bActorIsBeingDestroyed no retorno, e cleanup removeu-o depois.
-  Restore original nulo/cleanup PASS, sem crash nesse oracle. Não extrapolar rifle.
-- Não converter DPS próprio em chamadas nativas e declarar integração concluída:
-  faltam disparo/impacto/munição locais legítimos. Sub-agente retomou executor do rifle.
-  main.lua inalterado. Laboratório encerrado pelo PID/caminho validado, Steam preservado.
+- tools/oracle_native_vehicle_damage.lua syntax PASS and live PID12456 HomeRegionW,
+  exclusive actor 900 HP/Team 0/Authority true after 12 s. Fresh settings bound
+  immediately and kept through the UProperty during all calls.
+- LightKinetic 45 returned 27/HP 900→873; HeavyKinetic 55 returned 33/HP 873→840;
+  Explosive 1500 (a TEST overload, not the mod's ammo/formula) returned 1050/HP 840→0.
+  data/trace_damage_native_repeated.txt. No HP write, offset/RPC/debug toggle.
+- Health 0 is proven, NOT the complete destruction/wreck lifecycle: the actor was still
+  not bActorIsBeingDestroyed on return, and cleanup removed it afterwards.
+  Original restore null/cleanup PASS, no crash in this oracle. Do not extrapolate to the rifle.
+- Do not convert the own DPS into native calls and declare the integration finished:
+  legitimate local firing/impact/ammo are missing. A sub-agent resumed the rifle executor.
+  main.lua unchanged. Lab closed by the validated PID/path, Steam kept.
 
-## 2026-10-11 — Dano nativo de veículo comprovado com configuração fresca
+## 2026-10-11 — Native vehicle damage proven with fresh settings
 
-- Constructor estático comprovou TMap privado inicialmente vazio/seguro. Novo
-  laboratório PID20688 HomeRegionW, Steam20280; caminhão exclusivo900HP/Team0/
-  Authoritytrue, espera12s sem settings guardada só em Lua.
-- No mesmo chunk: baseline ApplyDamage45Explosive sem settings retornou0/HP900;
-  constructor NOVO + associação imediata GI.ServerSettings + mesma chamada
-  retornou31.5 e Health900→869. Não houve escrita de HP, fórmula própria, RPC,
-  mudança de debug/proteção ou offsets. data/trace_damage_settings_fresh.txt.
-- Restore original nulo PASS; ator exclusivo removido, cleanup true. Isto prova
-  aplicação nativa GENÉRICA no veículo, NÃO disparo de fuzil, morte ou integração
-  nas emboscadas do mod. Fonte main.lua continua inalterada.
-- Resultado consistente com hipótese de GC do settings antigo; não prova sozinho
-  o mecanismo exato daquele crash. Na integração, ancorar settings por referência
-  nativa durante toda a vida útil, não cache Lua solto entre chamadas/quadro.
-- Laboratório encerrado pelo PID20688/caminho confirmado após teste; Steam preservado.
+- A static constructor proved the private TMap initially empty/safe. New
+  lab PID20688 HomeRegionW, Steam 20280; exclusive truck 900 HP/Team 0/
+  Authority true, a 12 s wait without settings kept only in Lua.
+- In the same chunk: baseline ApplyDamage 45 Explosive without settings returned 0/HP 900;
+  a NEW constructor + immediate binding to GI.ServerSettings + the same call
+  returned 31.5 and Health 900→869. There was no HP write, own formula, RPC,
+  debug/protection change or offsets. data/trace_damage_settings_fresh.txt.
+- Original restore null PASS; exclusive actor removed, cleanup true. This proves a
+  GENERIC native application on the vehicle, NOT rifle fire, death or integration
+  into the mod's ambushes. The main.lua source stays unchanged.
+- Result consistent with the GC hypothesis for the old settings; it does not prove by itself
+  the exact mechanism of that crash. In the integration, anchor the settings by a native
+  reference during its whole lifetime, not a loose Lua cache between calls/frames.
+- Lab closed by PID20688/path confirmed after the test; Steam kept.
 
-## 2026-10-11 — Hipótese de lifetime no crash do oracle; sem desligar debug
+## 2026-10-11 — Lifetime hypothesis for the oracle's crash; no turning off debug
 
-- Investigação offline do stack chegou ao ramo nativo de debug de dano, que consulta
-  um TMap em ServerSettings. Minidump mostra índice absurdamente alto, compatível com
-  objeto/container inválido; NÃO é prova da causa exata. Constructor tem debug ligado.
-- Hipótese: settings ficaram somente em Lua _G durante a espera de12s. Referência Lua
-  não ancora UObject no GC; Outer sozinho também não certifica lifetime. Não desligar
-  debug nem mudar fórmula para mascarar possível referência inválida.
-- Scripts externos do oracle preparados para criar settings NOVOS no mesmo chunk
-  que os associa imediatamente à UProperty GI.ServerSettings e chama ApplyDamage,
-  sem guardar settings durante espera. Checkpoints log antes/depois das chamadas
-  evitam perder toda evidência quando cmd.out só é escrito ao final. Sintaxe PASS;
-  NÃO executados. Ainda confirmar inicialização do TMap antes de novo laboratório.
-- Nenhuma nova feature/source main alterada; Steam aberto e laboratório fechado.
+- Offline investigation of the stack reached the native damage debug branch, which queries
+  a TMap in ServerSettings. The minidump shows an absurdly high index, consistent with an
+  invalid object/container; it is NOT proof of the exact cause. The constructor has debug on.
+- Hypothesis: the settings stayed only in Lua _G during the 12 s wait. A Lua reference
+  does not anchor a UObject against GC; Outer alone does not certify lifetime either. Do not turn off
+  debug nor change a formula to mask a possible invalid reference.
+- External oracle scripts prepared to create NEW settings in the same chunk
+  that binds them immediately to the UProperty GI.ServerSettings and calls ApplyDamage,
+  without keeping settings during the wait. Log checkpoints before/after the calls
+  avoid losing all evidence when cmd.out is only written at the end. Syntax PASS;
+  NOT run. Still confirm the TMap's initialization before a new lab.
+- No new feature/main source changed; Steam open and lab closed.
 
-## 2026-10-11 — Visibilidade por distância permanece na fila
+## 2026-10-11 — Visibility by distance stays in the queue
 
-- Usuário relata que ainda há coisas sumindo pela distância e pede registro na fila.
-  ROADMAP reforçado: reprodução por afastamento/zoom, separar culling/LOD de LOS/oclusão,
-  identificar atores vivos/carregados e validar visibilidade no alcance do RTS.
-  Sem diagnóstico novo ou correção entregue; não desviar agora da integração nativa do MVP.
+- The user reports things still disappearing with distance and asks to record it in the queue.
+  ROADMAP reinforced: reproduce by moving away/zoom, separate culling/LOD from LOS/occlusion,
+  identify live/loaded actors and validate visibility within the RTS range.
+  No new diagnosis or fix delivered; do not deviate now from the MVP's native integration.
 
-## 2026-10-11 — Defaults nativos confirmados no engine; oracle de dano caiu
+## 2026-10-11 — Native defaults confirmed in the engine; the damage oracle crashed
 
-- Steam aberto pelo usuário, PID20280. restart.sh iniciou laboratório PID24924,
-  HomeRegionW; apenas canal, sem entrada de teclado/mouse por agente.
-- tools/probe_native_settings.lua PASS vivo: instância própria ServerSettings,
-  todos os cinco defaults corretos e binding aninhado WarTweakables funcional.
-  GI.ServerSettings permaneceu nulo. data/trace_settings_defaults_live.txt.
-- Oracle separado: caminhão exclusivo900HP, Team0, Authoritytrue. Após12s,
-  script comparava ApplyDamage45Explosive antes/depois de associação temporária
-  dos settings, com restauração/limpeza ao fim. O processo caiu nativamente;
-  pcall não protege contra isso e o buffer out não foi publicado. NÃO sabemos
-  qual das duas chamadas caiu; não afirmar dano ou restauração comprovados.
+- Steam opened by the user, PID20280. restart.sh started lab PID24924,
+  HomeRegionW; only the channel, no keyboard/mouse input by the agent.
+- tools/probe_native_settings.lua PASS live: own ServerSettings instance,
+  all five defaults correct and the nested WarTweakables binding working.
+  GI.ServerSettings stayed null. data/trace_settings_defaults_live.txt.
+- Separate oracle: exclusive truck 900 HP, Team 0, Authority true. After 12 s,
+  the script compared ApplyDamage 45 Explosive before/after a temporary binding
+  of the settings, with restore/cleanup at the end. The process crashed natively;
+  pcall does not protect against that and the out buffer was not published. We do NOT know
+  which of the two calls crashed; do not claim damage or restore proven.
 - Crash UE4CC-Windows-608B38A24B507F2999BD40955C73B6EF_0000, access violation;
-  stack inclui RVAs b5d5bc,b64277,d613df,d82713,d96e1c (TakeDamage),2550198.
-  data/trace_settings_damage_crash.txt. Não repetir sem isolar callback/contexto.
-  Sub-agente de dano investigando offline; decomp permanece externo.
-- Laboratório ausente após crash, confirmado; Steam preservado. main.lua sem
-  alteração. Configuração própria não foi persistida; não integrar combate ainda.
-
-## 2026-10-11 — Configuração nativa local autorizada; primeiro gate preparado
-
-- Usuário autorizou reutilizar configuração local do cliente, totalmente offline.
-  Isso atualiza o limite anterior de somente observar ServerSettings; NÃO autoriza
-  RPC, rede, servidor externo, inventário, bypass de proteção ou fórmulas próprias.
-- Sub-agente rastreou ServerSettings como SaveGame passivo: constructor nativo
-  preenche SpawnInvulnerabilityTime3 e GlobalRefineYieldModifier1; WarTweakables
-  inicializa MinTankArmourMultiplier1, BallisticPenetrationMaxDistance4000 e
-  BallisticPenetrationDistanceExponent1.5. Não há rede no corpo do constructor.
-  Evidência estática, ainda sem confirmação em instância viva.
-- tools/probe_native_settings.lua preparado: instancia própria por constructor,
-  compara defaults e não associa ao GameInstance, altera CDO ou aplica dano.
-  Sintaxe Lua PASS; check_mvp_trace PASS apenas para a evidência histórica.
-- Continuação offline: tools/test_native_settings_probe.py executa a sonda real
-  com mocks, cobrindo contexto original nulo/válido e recusas de ancestral,
-  constructor inválido e default divergente. PASS; teste NÃO prova binding UE4SS
-  nem dano vivo. Sonda agora também confere identidade do contexto preservado.
-  test_orders.py PASS. Relatório próprio data/trace_context_local_settings.md
-  registra constructor/passividade/defaults/perfis; struct aninhada ainda sem gate vivo.
-- restart.sh fez check de sintaxe/locais e recusou iniciar: Steam não está aberto.
-  Não abriu Steam nem realizou login. Nenhum laboratório iniciado nesta tentativa.
-  Próximo: usuário abrir/logar Steam; executar primeiro gate e só então planejar
-  oracle temporário de associação/dano com restauração do contexto original.
-- main.lua sem nova alteração; nenhum combate nativo integrado ou dano comprovado.
-  Fuzil ainda em investigação: entrada local encontrada também chama possível
-  wrapper RPC, portanto NÃO executar essa entrada como atalho offline.
-  Consumer posterior com dano foi rastreado, mas sem vínculo demonstrado com
-  HitScan; não atribuir ao fuzil. Job headless24045 terminou exit0, artefatos externos.
-
-## 2026-10-10 — Causa concreta de recusa do dano no laboratório
-
-- Dois sub-agentes avançaram estático, sem canal/inventário/RPC. Proteção808 é temporária
-  por timer e CDO48 é bBypassesSpawnInvulnerability comprovado; não alterar offsets nem flags.
-  Conversão genérica NÃO zera dano por ID0: hipótese descartada. Interface real exige também
-  WarGameInstance.ServerSettings não nulo, guarda distinta de Role/SimGameMode.
-- Sonda SOMENTE leitura tools/preflight_native_damage.lua: PID22084 HomeRegionW,
-  BPWarGameInstance vivo, ServerSettings nulo. Guard estático retorna0 nessa condição;
-  explica recusa observada nesse laboratório, não impossibilidade geral de dano nativo.
-  data/trace_context_damage_native.txt. Nenhum objeto de servidor/settings criado ou alterado.
-- tools/export_damage_types.lua executado no engine: CDOs Types1/2/7/3/8/18 para
-  light/heavy/explosive/AT/HE/fire; bypassSpawnfalse emtodos. AT Armourtrue/Penetratefalse,
-  demais Armourfalse/Penetratetrue. Rastro data/trace_export_types_damage.txt; syntaxPASS.
-- Correção importante no relatório disparo: ramo autoritativo localizado é HMG, NÃO fuzil.
-  AuthorityRole3 -> hit válido -> DamageableActor interface com DamageAttributes -> dano;
-  fallback nativo usa PointDamage/TakeDamage. ABI/instância equipada/rifle ainda pendentes.
-  Ghidra headless readOnly/noanalysis terminou, decomp permanece externa. Não usar offsets.
-- Fonte main.lua2F1C74D6 continua inalterada, nenhuma integração de combate nativo entregue.
-  Laboratórios13208(CDO)/22084(preflight+export) encerrados apenas pelos PIDs verificados;
-  ausência conferida, Steam preservado. Ler relatórios antes de repetir ApplyDamage.
-- Próximo: esclarecer contexto local legítimo do cliente necessário ao dano; não construir
-  servidor/RPC nem reiniciar HP artificialmente para fazer teste passar. Guard nulo é diagnóstico,
-  não autorização de bypass, e não impede continuar outros estudos offline do combate.
-
-## 2026-10-10 — Retorno ao fluxo nativo de combate, com dois sub-agentes
-
-- Usuário corrigiu rumo: não reinventar disparos/dano já presentes. MVP grosso não autoriza
-  DPS próprio no lugar do engine. Prioridade corrigida no ROADMAP; main.lua NÃO mudou neste lote.
-  Usuário autorizou sub-agentes; dois investigaram offline disparo e dano, canal exclusivo do raiz.
-- Disparo: HitScanWeaponComponent real, entrada local/consumo nativo/trace/HitNotify/efeitos
-  identificados em decomp existente. PlayerFire é ParticleSystemComponent, NÃO arma.
-  Refletidas ServerStartInvoke/OnRep_SimulatedHitNotify, mas RPC não foi invocada e callback de
-  efeito não prova dano. ABI/contexto owner/equip ainda pendentes; offsets não executados.
-  Relatório data/trace_firing_investigation.md, decomp protegido permanece externo.
-- FindAllOf(Class/ScriptStruct) deu0; enumeração inadequada, não ausência. StaticFindObject
-  por nomes comprovados achou classes e structs WeaponInvoke/HitNotify; schemas em data/.
-  FindAllOf HitScanWeaponComponent/ProjectileItemComponent/HMG deu0 instâncias no HomeRegionW.
-  Não mexer em inventário/RPC para fabricar uma prova.
-- Dano: fluxo estático ApplyDamage -> TakeDamage real de SimVehicle -> interface embutida,
-  não UObject componente. Guards autoridade/mundo/SimDamageType e proteção adicional encontrados;
-  relatório data/trace_damage_vehicle_investigation.md. Receive*Damage são callbacks, não aplicação.
-- PID19220 HomeRegionW: truck exclusivo900HP/bCanBeDamagedtrue. ApplyDamage45 com tipos reais
-  lightkin/heavykin/explosive retornou0 e manteve900; Radial75 retornoutrue, HP900. Cada ator removido.
-  setTeam foi chamado incorretamente com ator, helper espera membro; Team255 permaneceu, não contraste.
-- Nova sonda corrigida TeamId direto0, HasAuthoritytrue/Role3/AuthorityGameModeSimGameMode válido.
-  Após12.197s reais, ApplyDamage45/BPExplosive ainda0/HP900. Ator exclusivo destruído; callback
-  seguinte marcou why ator destruído, mas linha de dano registrada. Não prova impossibilidade nativa:
-  localizar guard/CDO/contexto é próximo passo. Nenhum HP escrito/offset/RPC nem entrada injetada.
-- Regras Steam/firewall preservadas; apenas PID19220 encerrado após sondas. UM atualizado,
-  kb check60PASS. Próximo: resolver contrato nativo em vez de calibrar interdição por DPS inventado.
-
-## 2026-10-10 — Emboscada exclui desarmados; corte ainda não provado
-
-- Auditoria achou dano por proximidade contando trabalhadores dmg0, tanto no ramo
-  de comboio inimigo quanto no dano ao nosso caminhão. Ambos agora exigem weapon.dmg>0.
-  Mantido DPS abstrato do MVP; não implementa disparo/munição/LOS individual contra veículo.
-- tools/test_orders.py ganhou contraste trabalhador/armado nos dois lados: PASS;
-  fonte anterior falha na asserção do worker danificando comboio. check_globals PASS.
-- Publicada2F1C74D6BB205FA5610957A9B126720731CFA34DF4775329B2DDA7A82101F956 pelo restart.
-  PID12944 CallumsCape: implantação nova pelo orçamento do cenário, newGame sem save antigo.
-  Robô tentou perseguir comboios com combatentes, sem teleporte/crédito/dano artificial:
- 148.8s,2entregas inimigas; segundo caminhão900->797.60HP, nenhuma carga perdida, audittrue.
-  Perseguir caminhão rápido NÃO produziu corte; partida terminou em derrota em seguida.
-- Tentativa posterior de contraste no engine recusada por falta de trabalhador vivo;
-  não rodou nem substituiu listas/estoques. Portanto teste específico de worker é offline,
-  publicação/compilação e marcha/dano em comboio real passaram, mas isolamento vivo não.
-  data/trace_mvp_ambush.txt. Não declarar interdição aprovada por esse ensaio.
-- Robô terminou; apenas PID12944 encerrado, ausência conferida, map temporário removido.
-  Próximo teste precisa posicionar emboscada ANTES da passagem, não perseguir caminhão.
-
-## 2026-10-10 — MVP: ciclo logístico em combate no hex
-
-- Sem mudar main.lua597BAF94, publicado/reiniciado CallumsCape PID19620. Save anterior usado
-  apenas para recuperar infraestrutura; newGame reiniciou estoques/cadeias/ondas. Sem créditos,
-  teleporte, alteração de tempo ou entrada na janela. Base começa30camisas/10fuzis, bmat40.
-- Robô limitado36passos/10s reais: recruta usando estoque, marcha de combatentes ao pontoA;
-  NÃO reatribui trabalhadores nem sobrepõe ordens em andamento. Sem morteiro/buff/dano artificial.
-  Rastro data/trace_mvp_cycle.txt; scripts externos t_mvp0/t_mvp_step/t_mvp_final.
-- 403.50s: derrota na onda4,26abates/23perdas; leitura final27abates (simulação segue brevemente
-  após resultado). Três trabalhadores sobreviventes não impediram derrota, como contrato v4.1.
-  Coleta120 entregue/perda0; bmat40->84.69 antes de reconstrução; caminhão de recurso voltou.
-  Estoque de base camisas16->20 após consumo/entrega, fábrica final3caixas de munição.
-  Reabastecimento8.99,5ocorrências sem munição. Caminhão de recurso final57.45HP sob combate.
-- Inimigo4entregas/13camisas consumidas; ondas pediram6/7/8/9, guarnição grátis5 + pagos1/2/3/4.
-  Todas36amostras e final eAudit/colAudittrue. Sem crash nesta rodada. Nenhum comboio cortado;
-  NÃO prova interdicação, vitória, equilíbrio prolongado, estradas ou estabilidade geral.
-- Novo tools/check_mvp_trace.py verifica evidência registrada e explicita limites; PASS.
-  Fonte da mecânica inalterada: este lote comprova integração em combate, não feature nova.
-- Encerrado somente PID19620 após robô terminar; ausência conferida, map temporário removido.
-  Próximo grosso: experimentar corte de abastecimento com combate e expansão/base avançada;
-  chegada refinada continua adiada. MVP completo ainda não declarado.
-
-## 2026-10-10 — Cápsula real, coleta no hex e direção MVP
-
-- CollisionCylinder do soldado mede raio50/altura90. PATH_BODY corrigido32->50 e cápsula
-  do resgate34->50; candidato livre com34 estava ocupado com50. Sem novo teleporte cego.
-- Bitfield bStartPenetrating veio true em hits distantes Time0.776/Distance19400.
-  rts.hitStartsInside usa escalares com resultado true/false/nil; desconhecido não autoriza resgate.
-  BreakHitResult com tabela Lua devolveu escalares corrompidos: não usar como oráculo.
-- Save antigo: trabalhador1HP em medevac continua preso no muro. Sweep Time0/Distance0.045
-  não prova origem penetrada; cápsula da origem livre. Perfil fino falhou3nós. Caso NÃO resolvido.
-- Fonte597BAF948F82EFA079A3DFA79340D2F878E75AAE84F42F494712AE2A3E73E1CC:
-  bateria29/29 PASS/21mutantes. CallumsCape PID19492, nova partida na base correta:
-  coleta120/entrega120/perda0, audittrue; reconstrução criou ator real900HP não destruindo.
-  data/trace_collection_capsule50_final.txt. Isso prova crédito por raio, NÃO chegada à porta:
-  usuário observou três trabalhadores pararem no trilho; sem ordem/velocidade0 após entrega.
-- Caminhão sobe estruturas: drive em reta e place sem sweep; trace central da fábrica/refinaria
-  bate nos telhados Z1389/1382, não terreno600. Box candidato450/210/230 em Zatual penetra piso;
-  elevar250 limpa o teste, mas NÃO certifica envelope/suporte. Não integrar essa caixa como prova.
-- Refinaria tem UseAreaBox centro8477/-45794/Z856, extents750/825/256, yaw-23.49;
-  TransferLocation8684/-47155/Z630. Sondas de piso/cápsula encontraram pontos exteriores e na
-  área nativa, mas sem comprovar rota/porta. Dados/trace_area_use_refinery.txt.
-- Usuário adiou refinamento dos trabalhadores: quer MVP grosso provando conceito. Tarefa
-  de chegada/espera registrada no ROADMAP; próximo lote deve avançar cadeia jogável, não polir
-  esse ponto. Caminhões sem colisão continuam limitação explícita, não cadeia física aprovada.
-
-## 2026-10-10 — VSync e olho no foco; soldados presos continuam pendentes
-
-- Usuário descreveu linha horizontal no meio da tela ao mover câmera; captura estática não mostra.
-  Oracle cvar: r.VSync0/t.MaxFPS60. Teste temporário r.VSync1: usuário confirmou que sumiu.
-  rts.syncVideo agora liga VSync no RTS e restaura valor anterior ao sair, sem gravar config.
-  No engine:1/antigo0 -> gfx(false)0 -> gfx(true)1/antigo0.
-- Caminhão vivo900HP, meshes bVisibletrue/bHiddenInGamefalse, ator bHiddentrue e fora de S.occluders,
-  com olho a~100m: ocultação nativa, não ausência. Olho no foco fez bHiddenfalse e caminhão visível
-  na captura visibility-B-controlled_small.png. Algumas capturas A/B tiveram câmera movida pelo usuário:
-  não tratá-las como comparação pixel a pixel. Nenhuma entrada injetada.
-- eyeTick agora segue foco/chão, não soldado mais próximo. Usa tempo REAL para acompanhar câmera pausada;
-  recusa focoNaN/chão ausente. Base permanece independente. Teste no engine confirmou foco/olho na pausa.
-- Encontrado efeito colateral antigo: spawnSquad vazio usava pawn do olho como origem. Corrigido para
-  rts.base quando S.eye; referência de esquadrão existente/spawn explícito/modo nativo preservados.
-  Final PID19956: base16104/-54440, olho3123/-51134, nova partida nasceu a372cm da base, não no olho.
-- Fonte final F53D35A1FEDB9BC0931EB73AE0AC11A3ACB1F0461B6FC79E0225E1F954ADE2E8 publicada.
-  Bateria29/29 PASS/21mutantes + tools/test_visibility.py PASS (funções reais, VSync/base/pausa).
-  Rastro data/trace_visibility_rts.txt. Visibilidade em toda tela, neve/estruturas/ângulos NÃO aprovada.
-- Usuário reforçou soldados presos. Rastro atual data/trace_stuck_current.txt: três trabalhadores no
-  trecho13k/-50k; coleta inativa/logística suspensa por nossa sonda visual, um alvo de volta à base e
-  um com velocidadeZ-400. Não atribuir imobilidade dessa sonda à autonomia nem descartar relato.
-  Rodada intermediária ECF06A81:120 entregue/perda0/ator900HP, porém partida nasceu no foco da câmera;
-  NÃO usar essa rodada para aprovar navegação geral. Agora prioridade: reproduzir presos com origem/base
-  corretas, auditar marcha comum/medevac dos workers (perfil fino hoje apenas em colGo), depois estradas.
-- Laboratório final PID19956 encerrado e ausência de processos da cópia conferida; map temporário
-  removido, Steam/firewall preservados. Universal-modder atualizado; kb check60notas PASS, sem PR.
-
-
-## 2026-10-10 — Envelope observado e tarefa de visibilidade RTS
-
-- Usuário pediu incluir correção de coisas ficando invisíveis: registrada em ROADMAP.md como falha
-  funcional prioritária junto ao transporte; investigar LOS/oclusão/ocultação, inclusive caminhões longe
-  do grupo e zoom alto. Sem mudança de visibilidade ainda; não confundir ator carregado com imagem.
-- Estradas: adaptador candidato agora exige prova por aresta dirigida/from/to/segment/session;
-  antes prova de um segmento autorizava todas as arestas da spline. test_adapter/roads/snapshot PASS.
-  Candidato separado; main.lua não alterado neste lote.
-- PID15748 CallumsCape: metadata BoxTraceSingle/GetComponentBounds confirmada. Restore para sonda,
-  logística congelada, caminhão orientado yaw0 e colisão habilitada só nele; sem entrada real.
-  Bounds de componentes e scan1166raios/10por quadro: hits CharacterMesh0 ultrapassam caixa400/162/140
-  (X até427.70, Z até-206.22). Flags StartPenetrating em todos os hits: NÃO validar hull por esses hits.
-  Rastro data/trace_envelope_truck.txt; bounds completos externos road-bounds.txt.
-  Envelope integral/superfície/água/sweep continuam pendentes; nenhuma aresta autorizada.
-
-
-## 2026-10-10 — Reconstrução transacional publicada e validada no hex
-
-- Retomada pelo estado mais recente: mocks físicos já presentes nos harnesses. Bateria completa
-  com sensibilidade:29/29 PASS,21mutantes; fonte E048680B41891BC16F136E4316C98334797642B1504D38D682C777A58FC00DEC.
-- Publicada pelo restart.sh. Primeira carga iniciou lobby por map.txt no caminho errado; corrigido
-  no diretório do mod e reiniciado deliberadamente. CallumsCape PID11924 chegou ao RTS.
-- Sonda spawnTruck criou caminhão real HP900/notBeingDestroyed na vaga da fábrica sem débito;
-  truckStep reutilizou o mesmo ator, debitou100 e ativou idle. Crédito100 apenas nessa sonda isolada.
-- Nova partida sem ondas/crédito/intervenção: coleta120/entrega120/perda0; estoque40 inicial refinou
-  até100, comprou caminhão e avançou toField/loading/toRef com ator900HP. O ator físico da sonda foi
-  reaproveitado na mesma carga: NÃO prova segundo spawn limpo. Rastro em data/trace_rebuild_transactional.txt.
-  Transporte continua reto/sem colisão: não aprovar estrada, equilíbrio ou cadeia regional completa.
-- Encerrado somente PID11924 com caminho verificado; removidos map temporários, Steam preservado.
-  Próximo lote: acesso/rota física dos caminhões pela rede nativa, sem confundir estado abstrato com percurso.
-
-
-## 2026-10-10 — Reconstrução sem caminhão fantasma: candidato transacional
-
-- spawnTruck reutiliza parking da fábrica; exige classe/ator íntegro900HP e não destruindo.
-  Retorna sucesso/razão. truckStep só debita100/ativa idle depois do sucesso; falha mantém morto,
-  estoque e tenta em5s. Sem vaga segura também recusa. Caminhão existente íntegro pode ser reaproveitado.
-- Backup externo main-before-resource-transaction.lua. test_orders/check_globals PASS; regressões
-  reais de spawn nil, IsValid porém destruindo e íntegro: duas falhas preservam100/estado morto,
-  sucesso único debita100/ativa ator visível.
-- Bateria completa27/29 PASS: falharam test_coleta_sobre_v4 e test_bmat_caminhao na expectativa de
-  reconstrução. Não publicado. Auditar mocks antigos (transporte abstrato vs ator íntegro) e corrigir
-  a cobertura sem afrouxar o novo contrato; não apresentar esses dois FAIL como PASS.
-- Próximo: atualizar oráculo físico dos harnesses e validar vaga/spawn na fábrica ao vivo numa única carga.
-  Laboratório permaneceu fechado neste lote offline; Steam/firewall inalterados.
-
-## 2026-10-10 — Coleta contornou rochas:120 entregue; caminhão fantasma identificado
-
-- Fonte F39518364CDFEDD88C7008561F1AD2576B0C9B0BDE003A77670AF573CE472F35, bateria29/29 PASS.
-  PID12460, restore/nova partida/sem ondas/intervenção. Três coletores entregaram120, perda0,
-  rotas reais passaram por X11666/Y-53k a-50k, não pelo vão na rocha. Sem micro-resgates.
-  data/trace_collection_50cm.txt e data/trace_routes_50cm.txt. Caminhada até refinaria aprovada neste cenário.
-- NÃO aprovar cadeia completa: recursoTruck mudou para loading/toField/toRef mas pawnfalse.
-  Fabrica debitou100 antes de spawnTruck silencioso; coletores saíram porque estado abstrato parecia vivo.
-  Dados confirmam risco já anotado: economia do transporte seguinte é abstrata, não prova caminhão real.
-- Diagnóstico spawnTruck explícito:pcall true/nil e nenhum pawn. Sonda no local fixo campo+400/+300:
-  classe válida/chão1000, SpawnActor válido porém bActorIsBeingDestroyed=true/Health300.
-  Nenhum veículo íntegro criado. data/trace_spawn_resource.txt; não creditar este diagnóstico como reconstrução.
-- Próximo: reutilizar parking/preflight da implantação, verificar ator íntegro antes de débito/estado vivo,
-  falha mantém morto/estoque e alerta, testar spawn falho e sucesso físico. Depois caminhões pela estrada real.
-- Laboratório encerrado PID12460 verificado; map temporário removido; Steam/firewall mantidos.
-
-## 2026-10-10 — Cápsula livre não resgatou; amostragem fina candidata
-
-- Resgate revisado: anéis80/160cm, desnível90cm, rejeita floor.bStartPenetrating;
-  teleporte excepcional só após sweep penetrado e CapsuleTraceSingle34/90 livre no destino.
-  Corrigido cache loc por quadro após setter: teste de sucesso revelou posição antiga escondendo resgate.
-- Fonte A9A4A2EB3E82...:29/29 PASS incluindo21mutantes. Tests cobrem destino ocupado recusado,
-  livre com origem penetrada aceito/replanejado, carry/legT preservados.
-- PID9648 carregou variante pré-cache, SEM partida/teste; reinício deliberado pela alteração de fonte,
-  não por timeout. PID2368 publicou final, restore/nova partida/sem ondas. Ensaio novamente entrega40,
-  fábrica60, recursoTruck morto, ZERO resgates, dois presos com6tentativas. Não resolveu o caso.
-  data/trace_rescue_capsule_final.txt; usuário confirmou insistência nas rochas e dois presos.
-- Mudança seguinte ainda offline: kneeClear da coleta amostra chão a cada50cm, limita subida proporcional
-  à distância e desvios da linha de interpolação a45cm. Antes amostrava300cm e tolerava290cm por amostra,
-  inclusive nos atalhos simplificados. Perfil de combate/caminhões sem sample permanece igual.
-- test_orders/check_globals PASS: rocha estreita entre amostras antigas é recusada; rampa suave aceita.
-  Precisa bateria completa e validação física; NÃO declarar rota contornando muro aprovada.
-- Laboratório encerrado PID2368 verificado; map temporário removido. Próximo: validar rota fina e acessos
-  no chão, sem substituir cadeia concluída por mera recusa mais segura.
-
-## 2026-10-10 — Micro-resgate ao vivo: sweep recusado por penetração
-
-- Candidato AF6720F17189... publicado, PID13132, restore e nova partida sem ondas/intervenção.
-  360 amostras: entrega40, perda80, fábrica60, recursoTruck morto/pawnfalse. Resgates zero;
-  dois presos esgotaram seis tentativas. Movimento oscilante do terceiro não ativa detector imóvel.
-  Auditoria fecha mas cadeia continua NÃO aprovada. data/trace_micro_rescue.txt.
-- Oracle real: floor vizinho normal.863 com subida68.89cm; limite45 recusa. Muitos traços devolvem
-  ponto igual ao início (delta135cm/normal1): começam penetrando rocha, NÃO piso seguro.
-- Sonda de sweep ao destino de subida68.89: retorno false, bBlockingHit=true, bStartPenetrating=true,
-  posição inalterada. Portanto aumentar só altura NÃO basta: cápsula já está penetrando geometria.
-- CapsuleTraceSingle refletida funciona: raio32/halfHeight90 no destino detectou penetração.
-  Scan8direções80cm rejeitou pisos iniciais penetrados; nenhum candidato seguro demonstrado.
-  Arquivo data/trace_rescue_capsule.txt. Sem teleporte inseguro aplicado.
-- Próximo: resgate curto com cápsula de destino livre e piso real, rejeitando bStartPenetrating;
-  usuário aceita teleporte excepcional, mas não tratar saída ocupada como livre nem creditar carga.
-  Laboratório encerrado PIDexato13132 após sondas; map temporário removido, Steam/firewall mantidos.
-
-## 2026-10-10 — Micro-resgate autorizado, candidato offline
-
-- Usuário autorizou transporte curto exclusivamente quando preso, devido a terreno irregular.
-  Implementado logi.colRecover para trabalhadores: quatro segundos com deslocamento <=30cm,
-  sem combate/planner ativo; oito direções de80cm, chão local com normalZ>=.71 e desnível<=45cm.
-  K2_SetActorLocation usa sweep=true: não desliga colisão nem atravessa paredes deliberadamente.
-  Seis tentativas por episódio, sem crédito de sucata e sem renovar legT; sucesso replaneja.
-- tools/test_orders PASS: imobilidade/espera, sweep obrigatório/distância limitada, colisão bloqueada
-  não vira sucesso, teto de tentativas, carga/prazo preservados e planner ativo cancela observação.
-  Candidato ainda NÃO publicado/validado ao vivo. Não afirmar que esse resgate sai do buraco.
-- Rastro anterior capturado em data/trace_routes_rock.txt: trajetórias aprovadas com waypoints
-  sobre rochas Z1350–1377; trabalhadores acabaram Z790–894 no vão. Uma entrega40, cadeia incompleta.
-  Instrumentação não altera ordens. Laboratório PID4328 encerrado após captura; Steam mantido.
-- Próximo: bateria completa e lote único ao vivo, medir sweep/progresso real e recuperação sem crédito.
-
-## 2026-10-10 — Chegada regional da coleta: offline PASS, percurso ainda reprovado
-
-- Coleta busca uma célula acessível dentro da área de serviço, em vez de um ponto fixo junto à instalação.
-  Reutiliza planStart/planStep/routeTo; chegada atualiza target e u.goal. Perfil exclusivo dos trabalhadores:
-  célula300, margem3000, teto5000, passo290, altura1200; não muda ordens de combate.
-- Fonte E5BADAF86D90F3E8343E2DCC937DADC047736878E87A623BD0E3E78A01E66CE5.
-  Bateria final 29/29 PASS incluindo21 mutantes; worker-region-final-battery.txt. Teste novo cobre
-  destino central bloqueado e chegada numa célula livre da região. Não prova física nativa.
-- PID24092, carga limpa CallumsCape: restore carteira1000/0/1000/4 e partida sem ondas/créditos.
-  Amostragem1Hz:120 colhido,40 entregue,80 perdido, fábrica60, caminhão recurso ainda morto.
-  Dois retornos e uma nova ida continuaram presos. Cadeia NÃO aprovada.
-- Usuário informou intervenção acidental e que uma ordem por clique contornou o muro na volta.
-  Ensaio contaminado: não atribuir entrega40 a autonomia sem confirmar instante da intervenção.
-  Evidência em data/trace_collection_regional.txt. Próximo: comparar destino/parâmetros/replanejamento
-  da ordem por clique com colGo (ambos usam routeTo), antes de outro solver ou aumentos cegos.
-- Também auditar reconstrução do caminhão: spawnTruck pode deixar estado abstrato vivo após falha
-  de spawn; exigir pawn real válido antes de declarar cadeia completa.
-- Laboratório encerrado pelo PID verificado após coleta das amostras; map.txt temporário removido.
-- Usuário pediu coleta novamente: laboratório reaberto PID4328, infraestrutura restaurada e nova partida
-  sem ondas. Mantido aberto para essa validação ativa. Relatou dois presos no buraco entre muro e rocha.
-  universal-modder: Gotcha atualizado, kb check PASS60 notas.
-
-## 2026-10-10 — Coleta sem fallback cego; rastro real da navegação
-
-- Usuário confirmou visualmente muro, disse existir fim à esquerda e desbloqueou unidades manualmente.
-  Intervenção não conta como sucesso automático: leitura posterior ainda mostrou 120 colhido/0 entregue/120 perdido.
-- Fonte 541B18D3...3649 adicionou planStart/planStep ao env para oráculos incrementais, sem novos locais.
-  Rastro do colGo verdadeiro: três retornos falharam (1045/2500/1869 nós), todos receberam rota reta de fallback.
-  Não foi apenas falta de nós: testes com faixa de altura maior/grade mais grossa/margem maior também recusaram.
-- Propriedades refletidas do CharacterMovement: WalkableFloorAngle 44.765083, WalkableFloorZ .71,
-  MaxStepHeight 45. Grade padrão 60/150 equivale a cerca de22°; não confundir essa regra com o limite nativo.
-  Sonda de44° ampliou região alcançável, mas ainda esgotou8000 nós sem rota. NÃO integrada como solução.
-- Muro atingido é um segmento modular; bounds colidindo 205.84/456/326.99 (origem13150,-50376,705.75).
-  Traces de chão vizinhos acertam também pilha de carvão, outro muro e rochas; topo global não é sempre piso acessível.
-  Rede de estrada mais próxima do campo fica117m distante; não autoriza ligação por proximidade.
-- Alteração funcional: routeTo aceita noFallback; coleta passa true. Falha limpa target/path e marca pathBlocked.
-  Replanejar o mesmo trecho não renova legT; o painel mostra quantos trabalhadores estão sem rota.
-  Combate/ordens legadas não foram alterados neste lote. Parar diante da falha NÃO resolve o desvio solicitado.
-- Fonte F0904D1512FCA01E6F5AE34745E5704514AD1AC9F5DAD3A1A97BF9019712BC13 publicada.
-  tools/test_orders.py cobre código real: recusa sem reta, legado preservado, retry mantém prazo e troca de trecho renova.
-- Bateria final sobre esse hash: 29/29 PASS, incluindo21 mutantes; saída collection-refusal-final-battery.txt.
-- PID14544: após carga pronta, restaurada infraestrutura e nova partida; falha controlada com teto1 nó,
-  sem carga/estoque creditados: done/failed/noFallback true, rota0, target false, blocked true, velocidade0,
-  HUD '1 sem rota', auditoria coleta true. É teste de recusa, NÃO viagem natural concluída.
-- Uma sonda enviada antes do fim do carregamento recusou partida e instalou callback sem logi.col;
-  cancelada e corrigida com assert antes de instalar. Repetição só depois de RTS pronto passou; não reiniciar por timeout.
-- Rastro numérico em data/trace_path_collection.txt; scripts/logs completos em D:/tools/foxhole-lab/.
-  Laboratório encerrado pelo PID exato, map.txt temporário removido, Steam/firewall mantidos.
-- Próximo: achar e validar passagem contornando o fim do muro, com ponto de chegada acessível na refinaria,
-  depois provar coleta→entrega→caminhão sem intervenção. Não trocar o objetivo por 'agora ficam parados'.
-
-## 2026-10-10 — Lote v4.1 no hex: infraestrutura/save PASS; coleta bloqueada por muro real
-
-- Fonte 236C34B9...F393, CallumsCapeHex, PID 25264: implantação 1000 bmat criou refinaria/fábrica/2 caminhões,
-  carteira 0, gasto 1000, quatro registros. Repetição não alterou contagens nem cobrou de novo.
-- Partida sem ondas, sem créditos/teleporte dos trabalhadores, sampler 1 Hz por 360 s: três coletores recolheram
-  120 sucata. Retorno à refinaria ficou preso em IndustrialWall03Snow31; SphereTrace Camera confirmou
-  o mesmo ator nos três caminhos. Após timeout, 120 entrou em perdido e zero foi entregue; razão fechou.
-  Fábrica permaneceu com 40 bmat e caminhão de recurso não nasceu. COLETA NÃO APROVADA no hex.
-- Prioridade funcional seguinte: rota dos trabalhadores contornando esse muro, depois caminhões pela estrada.
-  routeTo usa A* compartilhado (2500 nós/margem 2000) e fallback direto; registrar falha do planner antes
-  de alterar limites ou tentar rede real. Não desabilitar colisão, creditar entrega ou aumentar tempo para mascarar.
-- Save isolado D:/tools/foxhole-lab/v41-hex-validation-save.txt preservou infraestrutura/carteira.
-  PID 25988, carga limpa: sem ativos → continuar true (318 ms), refinaria/fábrica/2 caminhões restaurados,
-  carteira 1000/0/1000/4, bmat da fábrica 40, sem degraded, auditoria inimiga fechada.
-  Repetição 303 ms, sem duplicar/débito adicional. Carga em mãos de trabalhadores não persiste por desenho.
-- Exportação fatiada de estradas desta região concluída: 405 CP, 431 segmentos, 391 assets de estrada,
-  4013 nós com curvas, nenhuma incidência rejeitada; todas as arestas continuam NÃO validadas fisicamente.
-  Snapshot e relatório em data/parallel/roads/callums-*.json; não reutilizar epoch/coords no lobby.
-- build_snapshot.py agora aceita --input/--output/--report sem sobrescrever o snapshot do lobby.
-  test_snapshot.py cobre as duas regiões; testes snapshot/roads/adapter PASS. Não é transporte integrado.
-- Rastro das ações/360 amostras: data/trace_logistics_v41_hex.txt. Logs completos e export bruto externos
-  em D:/tools/foxhole-lab/v41-hex-*.log e callums-roads-export-live.txt.
-- Laboratório encerrado pelo PID exato; map.txt temporário removido, Steam/firewall mantidos.
-
-## 2026-10-10 — Bases e save v2 validados no jogo; continuação na mesma carga corrigida
-
-- Lote pelo canal, sem teclado/mouse injetado, HomeRegionW: PID 21456 criou base nativa com HP 1725.
-  Posse e 400 bmat creditados explicitamente para isolar construção; não é teste de equilíbrio ou entrega física.
-- Save isolado em D:/tools/foxhole-lab/v41-validation-save.txt: escrita 45 ms; PID 11400 restaurou após reinício
-  em 226 ms, com base ativa, auditorias próprias/inimigas fechadas e sem estado degradado.
-- Repetir continuação com base viva recusava: trace vertical acertava o telhado e exigia Landscape.
-  parkingGround agora aceita ignore opcional; fwdPreflight ignora apenas base viva correspondente ao local salvo.
-  Não ignora outros prédios, caches mortos ou atores em destruição. Backup: D:/tools/foxhole-lab/main-before-preflight-ignore.lua.
-- Fonte 236C34B9F4223911B6087A36BCB514BCA29CB813ECD3F2FA2AADD43B0B5CF393:
-  29/29 bateria offline PASS, 21 mutantes; tools/test_fwd_preflight_ground.py PASS adicional sobre funções reais.
-- PID 27284: continuação fresca 223 ms, preflight com base viva PASS, continuação repetida 220 ms.
-  Base vazia recusou recruta sem fallback; caixas creditadas deram 10 camisas/20 fuzis; recruta nasceu a 8 m,
-  consumiu 1 de cada. Save e continuação preservaram 9/19, auditoria fechada; 259 ms, sem degraded.
-- Duas sondas tiveram erros Lua corrigidos (nome fwd.bases em vez de fwd.list; flatDist não exportado no env).
-  Não foram erros da feature; as ações interrompidas foram repetidas, sem declarar PASS da saída incompleta.
-- Colisão nativa TruckW lida antes do motorista: VehicleCollision extents 400/162/140, Camera/Visibility 2/2,
-  mas meshes também bloqueiam; caixa ainda não prova envelope integral. Ver data/parallel/roads/TRUCK_VALUES_20261010.md.
-- Evidências externas v41-*-load*, v41-recruit-base.txt, v41-fixed-base-save-live.log em D:/tools/foxhole-lab/.
-  Laboratório encerrado pelo PID exato. Falta validar implantação/carteira no hex, transporte e combate prolongado.
-  Crashes/efeito amarelo continuam adiados conforme pedido do usuário; não afirmar estabilidade geral.
-
-## 2026-10-10 — Desenvolvimento retomado: integração logística v4.1
-
-- Por pedido explícito do usuário, crashes e amarelo residual ficam pendentes; não bloquear features pelo gate manual de 1/2.
-- Integrados coleta manual, quatro suprimentos, cadeia inimiga, bases avançadas e save v2. Fila experimental de teclas preservada.
-- Fonte SHA256: 2237884769733d6298db957f028f5f71fbf948634e4740aa81ddd68e7f08f83f.
-  Backup anterior: D:/tools/foxhole-lab/main-before-logistics-53bdbcab.lua.
-- Bateria: 29/29 PASS offline, incluindo sensibilidade com 21 mutantes. O primeiro ensaio falhou porque um harness esperava tecla síncrona; adaptado para drenar a fila como o quadro real, sem alterar a feature.
-- Resultado completo: D:/tools/foxhole-lab/integrated-v41-battery.txt. Offline não prova física, equilíbrio, teclado real ou estabilidade nativa.
-- Publicação e validação curta no laboratório iniciadas; resultados ao vivo serão registrados separadamente. Save anterior copiado para D:/tools/foxhole-lab/save-before-v41.
-- Validação curta concluída em HomeRegionW, PID 3660: newGame iniciou, três trabalhadores nasceram,
-  camisas 30→27, coleta ativa, reserva de caminhão 100, cadeia inimiga com razão fechado e primeira onda.
-  Estado em D:/tools/foxhole-lab/v41-live-state.txt. Não validou viagem completa, base avançada ou retorno de save.
-  Laboratório encerrado pelo PID exato; Steam mantido. universal-modder atualizado, kb check: 60 notas PASS.
-
-## 2026-10-10 — Flicker: hipótese de stencil residual testada offline
-
-- Fonte53BDBCAB…E543/laboratório fechado confirmados; fila ainda aguardando teste real.
-  Nenhuma alteração adicional na fonte nem lançamento ocioso.
-- outlineDepth(false) limpaCustomDepth mas retémstencil1. Se nativo reativaDepth,
-  máscara permanece: hipótese para fill piscando relatado pelo usuário.
-- test_stencil_clear.py extrai helper real e reproduz residual; troca em memória para
-  stencil0ao desmarcar PASS, incluindo reseleção1/idempotência/guard. Não aplicada.
-  STENCIL_PROPOSAL.md documenta candidato e gate visual/ordem de quadro.
-- Não comprova shader/flicker nem resolve crash; não misturar no ensaio da fila.
-  Universal-modder consultado/Gotcha52/check local, semPR.
-
-## 2026-10-10 — Variante isolada: teclas enfileiradas no loop persistente
-
-- Após nova reproduçãoRegistry com entrada rápida, aplicado SOMENTE experimento de ponte:
-  CFG.KEYBIND_QUEUE=true; onGame enfileira funçãoLua, frameBody drena antes autoridade/menu.
-  FIFO por snapshot, eventos reentrantes ficam próximo quadro, erro não impede seguintes.
-  false preserva ponte original. Contorno/fill/foco/movimento não alterados.
-- Backup externo main-before-keyqueue-33d6c7e5.lua. Fonte novaSHA53BDBCAB…E543;
-  candidato logístico62245d23 não contém essa mudança: NÃO copiá-lo por cima sem transplantar
-  e retestar a ponte após gate. Fonte realtest_queue_experiment/ordens/globals/lifetime PASS.
-  Harness ordens simula fronteira de quadro após keybind; teste específico verifica adiamento.
-- Publicado pelo restart.sh/PID5440/HomeRegionW.100açõesselectGroup1/2 em10rajadas enfileiradas
-  pelo canal executaram no frame persistente; assert3selecionados/FIFO/fila vazia PASS.
-  Isso NÃO simula teclado nem prova sincronização threadUE4SS/causa resolvida.
-  Saída KEYQUEUE_20261010.txt; log externo keyqueue-live-20261010.log semRegistry/fatal observado.
-- Laboratório5440fechado ao fim, Steam preservado. README/TESTE_MANUAL atualizados.
-  Próximo usuário: uma tecla1, depois2, alternância parada; movimento/duplo toque separados.
-  Não certificar correção antes desse teste. Flicker não tratado nesta variante.
-
-## 2026-10-10 — Controle100grupos passou; entrada rápida caiu comRegistry
-
-- PID23716, fonte atual:100chamadasselectGroup alternadas pelo canal concluídas,3selecionados
-  por etapa. Saída externa group-channel-20261010.txt. Após controle usuário relatou troca
-  rápida1/2 e fatal; processo terminal confirmado,crash401E1646…/338s/read0xffffffff.
-- UE4SS.log contémRegistry Ref was not function às11:57:46,315/No traceback e logs de grupos
-  até11:57:49,561. Log externo group-fast-fatal-20261010.log preservado. Não prova callback culpado,
-  mas entrada rápida é reprodução candidata; taxa do canal e das teclas não é equivalente.
-- Usuário também relatou preenchimento amarelo piscando em não selecionado; imagem fornecida
-  mostra partes amarelas de unidade sem borda atrás de veículo. Imagem isolada não prova flicker;
-  relato temporal do usuário registrado. Reativação nativa deCustomDepth já conhecida merece trace.
-- Hipóteses do usuário: movimento durante troca; repetir2quando2jáselecionado. Repetir grupo
-  em<=0,45s também chama focusOn (duplo toque), caminho distinto a isolar. Não atribuir culpa.
-- Próximos ensaios separados: fila no loop persistente vsExecuteInGameThread; duplo toque vs
-  alternância; máscara/stencil visual sem misturar correções. Sem novo teste manual agora.
-
-## 2026-10-10 — Segunda reprodução manual: alternância1/2 caiu
-
-- Carga limpa PID10128/HomeRegionW, mesma fonte. Usuário confirmou1selecionou3 e2também;
-  ao alternar1/2 ocorreu fatal error. Últimos logsgrupo2 às11:50:13,057 egrupo1 às11:50:14,029.
-  Antes houve ordens reais de movimento e roda; não chamar ensaio exclusivamente de teclas.
-- Processo terminal confirmado; crashE729F1E8…/147s/read0x0b. Log preservado externamente
-  manual-alternating-fatal-20261010.log; dump original emSaved/Crashes. Sem reinício automático.
-- Alternância de grupos é agora candidato de reprodução;1ou2isolados funcionaram nesta carga,
-  mas não certificam estabilidade. Próximo compararselectGroup pelo canal vs entrada real,
-  separando movimento/câmera/contorno e ponteExecuteInGameThread; não atribuir causa ainda.
-- Usuário não precisa continuar roteiro. Laboratório terminal, Steam preservado;
-  sem entrada injetada pelo agente nem liberação do candidato logístico.
-
-## 2026-10-10 — Gate manual REPROVADO: queda após selecionar grupo1
-
-- Usuário relatou fatal error enquanto testava números e dificuldade para entender roteiro.
-  Não exigir continuação; próximo roteiro será passo único, explicitando1=grupo1/2=grupo2/0=todos.
-- PID20308 terminal confirmado, sem reinício. Crash95C51A… às11:42:40,317s desde partida do processo,
-  EXCEPTION_ACCESS_VIOLATION/read0x75d42b59. Fonte33D6C7E5…E679 intacta.
-  Último log11:42:39,524:selecionado grupo1(3); antes houve roda, seleção e ordens comA*.
-  Sem mensagemRegistry no trecho novo. Proximidade temporal não prova tecla culpada.
-- Stack iniciac62ea9/2c60bc/2c6d99/2c3a0d, depois ponteLua/frame repetido. MesmoPCallStackHash
-  dos antigos NÃO prova mesma instrução. IdentidadeModuleList confirmouGUID/Age20/timestamp
-  iguais aoPE local também no dump novo.2c6d99 está nopush_structproperty, ramo interno sem
-  nome exato; não confundir com retorno2c6b92 de escrita visto noutra pilha.
-- JSONs crash_manual_20261010.json/crash_manual_identities_20261010.json emestabilidade;
-  UE4SS.log externo preservado manual-fatal-20261010.log; dump original preservado emSaved/Crashes.
-  Gates automáticos anteriores não cobriam essa interação e não certificam a build.
-- Laboratório já terminal, Steam preservado. Candidato logístico não liberado.
-  Próximo: localizar instruçãoc62ea9/contexto e isolar caminho de grupo/callback numa variante
-  única; só novo teste manual simples após investigação. Nenhuma entrada injetada.
-
-## 2026-10-10 — Gate manual preparado por confirmação do usuário
-
-- Usuário confirmou "Sim, pode preparar agora". Carga limpa pelo restart.sh, PID20308,
-  HomeRegionW, fonte atual preservada. Canal confirmou6soldados selecionados/28cópias cada,
-  ondas desligadas/inimigos limpos; sem entrada injetada. Log inicial externo manual-start-20261010.log.
-- Laboratório mantido aberto exclusivamente para validação manual ativa solicitada.
-  Resultado ainda pendente: usuário faz seleção/grupos/movimento/zoom/F10 por10min;
-  ao terminar, preservar log e encerrar sóPIDLab. Não considerar preparo como teste aprovado.
-
-## 2026-10-10 — Fonte UE4SS exata: ponte Registry e ramo de escrita de struct
-
-- Laboratório fechado/Steam22164 confirmados; última sessão foi progresso (identidades/frames
-  novos). Sem resposta ainda à confirmação de início manual; não abrir jogo ocioso.
-- API públicaGitHub resolveu commit5418fa4ed9f1e8379d28ee7bbc3235c7e0c71b09. Três arquivos
-  pequenos de fonte pública em D:/tools/ue4ss-source-5418fa4e; nenhum loader/binário substituído.
-- get_function_ref verifica tipo no registry; process_lua_function é trampolim geral, não prova
-  keybind. handle_error notifica callbacks e zera pilha antes da escolha de exceçãoC++/luaL_error:
-  registrar traceback/contexto completo se erro voltar, sem atribuir corrupção por leitura estática.
-- NoPE compatível,2c6b92 é retorno do ramo tabela antes de discard_value; corresponde à escrita
-  tabelaLua->struct. Isso afunila uma pilha mas não identificaUProperty/UFunction/causa.
-  Detalhes/links primários acrescentados em data/parallel/stability/SYMBOLS_20261010.md.
-- Nenhum patch especulativo nem expansão de feature; próxima ação útil é gate de interação real
-  do usuário e/ou símbolos exatos/instrução com contexto. Universal-modder/check local, semPR.
-
-## 2026-10-10 — RE offline: identidade dos dumps e primeiros frames nomeados
-
-- Laboratório continua fechado, Steam22164 presente; aguardando confirmação do início manual,
-  não o abrindo ocioso. Progresso anterior confirmado por arquivos/processos.
-- ZIPUE4SS local semPDB. DLL3.0.1Beta#0/commit5418fa4e; extraído CodeViewRSDS comllvm-readobj.
-  ModuleList dos três dumps antigos tem mesmo GUID21ad178d-4639-470e-971e-f115b4924854/Age20/
-  timestamp6ac43103 do PE local: comparação de RVAs agora tem identidade verificada.
-- Cruzados4353exports com intervalos RuntimeFunction:0x2c6b92/2c6d99 dentro de
-  push_structproperty;0xb99c75 emLua::call_function;0xb9d34c emprocess_lua_function.
-  Aceitos nomes só quando export começa exatamente no início do intervalo correspondente.
-  Export anterior mais próximo NÃO identifica funções privadas (heurística descartada).
-- Evidência/limites em data/parallel/stability/SYMBOLS_20261010.md e JSONs ao lado.
-  Nomes de frames não provam causa/propriedade/callback culpado; Registry continua não isolado.
-  Scripts/dumps/binários externos; nenhum loader novo/download grande/fonte main alterada.
-  PróximoRE: fonte do commit exato ouPDBGUID/Age compatível; não simbolizar com outra build.
-- Universal-modder consultado; Gotcha50 local/check, semPR. Gate manual/feature continua pendente.
-
-## 2026-10-10 — Contorno: 100 ciclos e 20 mortes/recriações passaram
-
-- Carga limpa PID18872/HomeRegionW, mesma fonte33D6C7E5…E679, seis selecionados,
-  ondas desligadas.240etapas pelo canal, sem callbacks novos/hotpatch/input:100ciclos
-  des/reselecionar seguidos de20mortes porHealth0/remoção normal/recriação,329,256s.
-- Verificado a cada etapa:0clones/fontes e CustomDepthfalse ao desmarcar;28cópias por vivo
-  ao remarcar; cache de contorno/animAddr/entrada anim.units removidos antes de repor morto.
-  Sem Registry/fatal no log consultado. Saída em data/parallel/stability/CYCLES_20261010.txt.
-- Primeiro assert da SONDA errou ao exigir outlinePartsnil numa unidade viva desmarcada:
-  setOutline chama outlineDepthfalse e repopula esse cache para impedir brilho nativo.
-  Corrigida só a sonda, mantendo fonte/hash e processo; ciclo1 refeito. Não é bug do mod nem
-  vazamento. Em morto retirado a exigência de cache nil permanece e passou nas20mortes.
-- Antes deGC:207SkeletalMeshActor vivos/28destruindo; depois:207vivos/0destruindo,
-  168rastreados. Não atribuir os39restantes a vazamento (incluem nativos). Pool6criados/
-  20reutilizados/0livres. Perfil agregado com metade do tempo desmarcado NÃO é ganho de
-  performance:6,72msmod/5,86stratTick; selecionados apósGC10,80msstratTick.
-- Laboratório18872 fechado ao fim; Steam preservado; logs integrais externos cycles-20261010.log.
-  Universal-modder Gotcha49 local/check; nenhum PR. Causa antiga/entrada real continuam pendentes.
-  Usuário respondeu que pode fazer roteiro manual depois do ensaio; combinar início antes de abrir.
-
-## 2026-10-10 — Contorno: janela limpa de dez minutos e transições repetidas
-
-- Progresso anterior confirmado pelos arquivos/processos: fonte33D6C7E5…E679, Steam22164,
-  laboratório fechado. Nova carga pelo restart.sh, PID20196/HomeRegionW; sem ondas/logística,
-  entrada injetada, hotpatch ou callback extra. Universal-modder consultado antes/depois.
-- Seis selecionados/168cópias mantidos em cinco checkpoints:134,483/255,032/377,482/498,375/
-  620,113s. stratTick10,94/11,29/11,76/10,53/12,46ms. Janela10min completa sem queda ou
-  Registry/fatal no log consultado. Fonte não alterada; custo continua gate independente.
-- Depois: CollectGarbage nativo, des/reseleção, morte de um soldado, remoção/cache limpo,
-  recriação PASS. Nova janela186,372s,6sel/168cópias; stratTick10,39/10,40/10,88ms.
-- Saídas preservadas em data/parallel/stability/LONG_20261010.txt e LONG_TRANSITIONS_20261010.txt;
-  logs integrais em D:/tools/foxhole-lab/crash-long-*.log. Nenhuma causa antiga isolada.
-- TESTE_MANUAL atualizado com gate10min de seleção/grupos/zoom/teclas exclusivamente pelo usuário;
-  pergunta enviada, sem presumir aprovação/execução. Próximos controles: repetição de100transições,
-  20mortes/recriações e troca de equipamento, com quadros entre etapas; entrada real ainda pendente.
-- Laboratório20196 fechado por PID/path verificado ao encerrar, Steam preservado. Fonte/hash intactos;
-  candidato v4.1 não publicado. Sem declaração de estabilidade nem liberação de features.
-
-## 2026-10-10 — Retomada: controles B2/A2 e transições; candidato v4.1 auditado
-
-- Fonte33D6C7E5…E679 intacta. Steam aberto; universal-modder/skills/oráculos consultados.
-  Testes ordens/custos/probe/lifetime PASS. Candidato v4.1 testado sem integrar: bateria27/27,
-  repetida com sensibilidade28/28 (21mutantes), SHA62245d23…598f preservado.
-- B1 anterior encontrado em saída externa:184,305s/6sel/168cópias; não é teste novo.
-  B2 carga limpa PID21752:195,677s/6sel/168cópias, stratTick10,67–11,63ms.
-  A2 carga limpa PID11084:201,218s/6não selecionados/0cópias, stratTick0,48–0,56ms.
-  Sem Registry/fatal nos logs novos consultados; checkpoints aproximados, não benchmark pareado.
-- Depois de A2, seleção/desseleção/reseleção, GC nativo, morte/remoção/cache limpo e recriação PASS.
-  Nova janela219,164s/6sel/168cópias, stratTick11,07–11,34ms, sem queda/Registry observado.
-  Controles negativos NÃO isolam causa nem corrigem falha antiga; desempenho permanece caro.
-- Evidências: data/parallel/stability/RESUME_20261010.md e saídas ao lado;
-  bateria em data/parallel/package_v4/BATTERY_20261010.txt. Logs integrais externos preservados.
-  Sem hotpatch/entrada injetada/novo callback/RPC; candidato logístico não publicado.
-- Laboratório fechado por PID/path verificado ao fim, Steam22164 preservado. README atualizado;
-  Gotcha48 local, um kb check PASS60notas, sem PR. Próximo: duração maior/isolamento se reproduzir,
-  zoom/entrada pelo usuário; estabilidade ainda impede expansão.
-
-## 2026-10-10 — Lote offline Claude: pilha v4.1 pronta para integrar (nada no jogo)
-
-- Subagentes Claude (Opus/Sonnet) entregaram offline, em `data/parallel/`, sem tocar `main.lua` (33d6c7e5…e679) nem laboratório:
-  cadeia logística inimiga real com interdição (IA_LOGISTICA + calibração v2), save v2 seguro (PERSISTENCIA; seção inimiga
-  inválida descarta só ela), reserva de bmat para reconstruir caminhão, início estilo aldeões (sem caminhão de recurso; 3
-  trabalhadores sem arma coletam sucata; a fábrica faz o caminhão), bases avançadas (Shift+J, ForwardBase1, 300 bmat; recrutar
-  gasta o estoque do ponto; mão de obra só no Assalto) e v4.1 (trabalhadores fora da onda e do centro do esquadrão).
-- Decisões de design (delegadas pelo usuário): ROADMAP.md fase 3 "de onde vêm os soldados" e `data/parallel/forward_bases/DECISIONS.md`.
-- Candidato: `data/parallel/package_v4/v4_1/candidate/main.lua` (62245d23…598f). Integração, rascunhos de README/TESTE_MANUAL,
-  roteiro único de laboratório (~5h40, gate de estabilidade primeiro) e gotchas em `data/parallel/package_v4/`. Estado por task:
-  `PARALLEL_AGENTS`. Tudo PASS só offline; nenhuma afirmação ao vivo. Gate de estabilidade continua bloqueando a publicação.
-
-## 2026-10-09 — Controle A1 sem seleção: 184s completos
-
-- PID2184/HomeRegionW, fonteSHA25633D6C7E5920A3B5E00B7F3BAFBC7B8A86C984DB810217241A567AFE0901EE679.
-  Seis soldados sem seleção, cópias temporariamente0no spawn e restauradas4no mesmo comando,
-  nenhum clone persistente; animação/demais sistemas mantidos, ondas desligadas, semGC/hotpatch/inputagente.
-- Checkpoints61,01/122,06/184,00s:6unidades/0sel/0clones todos. Mod1,31/1,25/1,24ms,
-  stratTick0,50/0,48/0,46ms. Log consultado sem Registry/fatal/roda/seleção.
-  Sobrevivência de um controle curto não certifica; plano4cargas A1/B1/B2/A2 em crash_control.md.
-- Após encerrar janela, sonda de metadata collisionTruckW executada separadamente; saída externa
-  truck-collision-schema-live.txt. PróximoB1 carga limpa mesmafonte,6selecionados180s sem entrada.
-## 2026-10-09 — Auditoria Registry e correção independente de retry de animação
-
-- Comparados3CrashContext no artefato data/parallel/stability/crashes_compared.json:
-  cabeçalhos diferentes apesar de PCallStackHash igual. XML97D8antigo registra read0x08,
-  DF9Aread0xffffffff, novo18BCEread0x63. Não concluir mesma instrução pelo hash.
-- Wheel e seleção são polling do frame, não wrapper onGame: eventos não provam culpa de keybind.
-  Nenhum PDB local encontrado; offsets não simbolizados. Auditoria callback_registry.md.
-- Defeito Lua separado: anim.track marcava hooked=true mesmo RegisterHook falhando. Corrigido para
-  true somente se registro sucede; permite retry e não duplica após sucesso. Teste proposta reproduziu
-  falha/retry/semduplicação, ordens/globals fonte integrada PASS. Não atribuir crash a esse defeito.
-- Fila de keybind no callback persistente preparada e testada offline somente como experimento separado;
-  NÃO integrada/não prova sincronização nativa. Próximo teste deve alterar um fator por carga.
-  Laboratório fechado, nenhuma validação ao vivo nova. Economia/roads continuam separadas.
-## 2026-10-09 — Queda nativa no segundo lote: estabilidade ainda reprovada
-
-- PID4408 terminou durante janela60s com6sel/168cópias, após descarte331quadros stratTick11,67ms.
-  Não existe resultado S1 válido: teste detectou processo terminal, não reiniciou por timeout.
+  stack includes RVAs b5d5bc, b64277, d613df, d82713, d96e1c (TakeDamage), 2550198.
+  data/trace_settings_damage_crash.txt. Do not repeat without isolating callback/context.
+  The damage sub-agent is investigating offline; decomp stays external.
+- Lab absent after the crash, confirmed; Steam kept. main.lua without
+  change. The own settings were not persisted; do not integrate combat yet.
+
+## 2026-10-11 — Local native settings authorized; first gate prepared
+
+- The user authorized reusing the client's local settings, fully offline.
+  This updates the earlier limit of only observing ServerSettings; it does NOT authorize
+  RPC, network, an external server, inventory, protection bypass or own formulas.
+- A sub-agent traced ServerSettings as a passive SaveGame: the native constructor
+  fills SpawnInvulnerabilityTime 3 and GlobalRefineYieldModifier 1; WarTweakables
+  initializes MinTankArmourMultiplier 1, BallisticPenetrationMaxDistance 4000 and
+  BallisticPenetrationDistanceExponent 1.5. No network in the constructor body.
+  Static evidence, still without confirmation on a live instance.
+- tools/probe_native_settings.lua prepared: own instance through the constructor,
+  compares defaults and does not bind to the GameInstance, change a CDO or apply damage.
+  Lua syntax PASS; check_mvp_trace PASS only for the historical evidence.
+- Offline continuation: tools/test_native_settings_probe.py runs the real probe
+  with mocks, covering an original null/valid context and refusals of ancestor,
+  invalid constructor and divergent default. PASS; the test does NOT prove UE4SS binding
+  nor live damage. The probe now also checks the identity of the kept context.
+  test_orders.py PASS. Own report data/trace_context_local_settings.md
+  records constructor/passivity/defaults/profiles; nested struct still without a live gate.
+- restart.sh ran the syntax/locals check and refused to start: Steam is not open.
+  Did not open Steam nor log in. No lab started in this attempt.
+  Next: the user opens/logs into Steam; run the first gate and only then plan a
+  temporary binding/damage oracle restoring the original context.
+- main.lua without a new change; no native combat integrated or damage proven.
+  Rifle still under investigation: the local entry found also calls a possible
+  RPC wrapper, so do NOT run that entry as an offline shortcut.
+  A later consumer with damage was traced, but without a demonstrated link to
+  HitScan; do not attribute it to the rifle. Headless job 24045 finished exit 0, external artifacts.
+
+## 2026-10-10 — Concrete cause of the damage refusal in the lab
+
+- Two sub-agents advanced statically, with no channel/inventory/RPC. Protection 808 is temporary
+  by timer and CDO 48 is bBypassesSpawnInvulnerability, proven; do not change offsets nor flags.
+  The generic conversion does NOT zero damage by ID 0: hypothesis discarded. The real interface also requires
+  a non-null WarGameInstance.ServerSettings, a guard distinct from Role/SimGameMode.
+- READ-ONLY probe tools/preflight_native_damage.lua: PID22084 HomeRegionW,
+  BPWarGameInstance alive, ServerSettings null. The static guard returns 0 under that condition;
+  it explains the refusal observed in that lab, not a general impossibility of native damage.
+  data/trace_context_damage_native.txt. No server/settings object created or changed.
+- tools/export_damage_types.lua run in the engine: CDOs Types 1/2/7/3/8/18 for
+  light/heavy/explosive/AT/HE/fire; bypassSpawn false in all. AT Armour true/Penetrate false,
+  the others Armour false/Penetrate true. Trace data/trace_export_types_damage.txt; syntax PASS.
+- Important correction in the firing report: the authoritative branch located is the HMG, NOT the rifle.
+  AuthorityRole 3 -> valid hit -> DamageableActor interface with DamageAttributes -> damage;
+  the native fallback uses PointDamage/TakeDamage. ABI/equipped instance/rifle still pending.
+  Headless Ghidra readOnly/noanalysis finished, decomp stays external. Do not use offsets.
+- main.lua source 2F1C74D6 stays unchanged, no native combat integration delivered.
+  Labs 13208 (CDO)/22084 (preflight+export) closed only by the verified PIDs;
+  absence checked, Steam kept. Read the reports before repeating ApplyDamage.
+- Next: clarify the client's legitimate local context needed for damage; do not build a
+  server/RPC nor reset HP artificially to make a test pass. A null guard is a diagnosis,
+  not authorization for a bypass, and it does not prevent continuing other offline combat studies.
+
+## 2026-10-10 — Back to the native combat flow, with two sub-agents
+
+- The user corrected the course: do not reinvent firing/damage already present. A rough MVP does not authorize
+  an own DPS in place of the engine. Priority corrected in ROADMAP; main.lua did NOT change in this batch.
+  The user authorized sub-agents; two investigated firing and damage offline, the channel exclusive to the root agent.
+- Firing: the real HitScanWeaponComponent, local entry/native consumption/trace/HitNotify/effects
+  identified in an existing decomp. PlayerFire is a ParticleSystemComponent, NOT a weapon.
+  ServerStartInvoke/OnRep_SimulatedHitNotify are reflected, but the RPC was not invoked and an effect
+  callback does not prove damage. ABI/owner/equip context still pending; offsets not run.
+  Report data/trace_firing_investigation.md, protected decomp stays external.
+- FindAllOf(Class/ScriptStruct) gave 0; an inadequate enumeration, not absence. StaticFindObject
+  by proven names found classes and structs WeaponInvoke/HitNotify; schemas in data/.
+  FindAllOf HitScanWeaponComponent/ProjectileItemComponent/HMG gave 0 instances in HomeRegionW.
+  Do not touch inventory/RPC to fabricate a proof.
+- Damage: static flow ApplyDamage -> SimVehicle's real TakeDamage -> embedded interface,
+  not a component UObject. Authority/world/SimDamageType guards and extra protection found;
+  report data/trace_damage_vehicle_investigation.md. Receive*Damage are callbacks, not application.
+- PID19220 HomeRegionW: exclusive truck 900 HP/bCanBeDamaged true. ApplyDamage 45 with the real types
+  lightkin/heavykin/explosive returned 0 and kept 900; Radial 75 returned true, HP 900. Each actor removed.
+  setTeam was called incorrectly with an actor, the helper expects a member; Team 255 stayed, not a contrast.
+- New corrected probe TeamId directly 0, HasAuthority true/Role 3/AuthorityGameMode SimGameMode valid.
+  After 12.197 real seconds, ApplyDamage 45/BPExplosive still 0/HP 900. Exclusive actor destroyed; the following
+  callback marked why actor destroyed, but the damage line was recorded. It does not prove a native impossibility:
+  locating the guard/CDO/context is the next step. No HP written/offset/RPC nor injected input.
+- Steam/firewall rules kept; only PID19220 closed after the probes. UM updated,
+  kb check 60 PASS. Next: resolve the native contract instead of calibrating interdiction with an invented DPS.
+
+## 2026-10-10 — Ambush excludes the unarmed; cut still not proven
+
+- An audit found proximity damage counting workers with dmg 0, both in the enemy convoy
+  branch and in the damage to our truck. Both now require weapon.dmg>0.
+  The MVP's abstract DPS was kept; it does not implement individual firing/ammo/LOS against a vehicle.
+- tools/test_orders.py gained a worker/armed contrast on both sides: PASS;
+  the earlier source fails on the assertion of the worker damaging a convoy. check_globals PASS.
+- Published 2F1C74D6BB205FA5610957A9B126720731CFA34DF4775329B2DDA7A82101F956 through restart.
+  PID12944 CallumsCape: new deployment from the scenario budget, newGame without an old save.
+  The bot tried to chase convoys with combatants, without teleport/credit/artificial damage:
+  148.8 s, 2 enemy deliveries; second truck 900->797.60 HP, no cargo lost, audit true.
+  Chasing a fast truck did NOT produce a cut; the match ended in defeat right after.
+- A later contrast attempt in the engine refused for lack of a live worker;
+  it did not run nor replace lists/stocks. So the worker-specific test is offline;
+  publish/compile and the march/damage on a real convoy passed, but live isolation did not.
+  data/trace_mvp_ambush.txt. Do not declare interdiction approved by this rehearsal.
+- The bot finished; only PID12944 closed, absence checked, temporary map removed.
+  The next test needs to set up the ambush BEFORE the passage, not chase the truck.
+
+## 2026-10-10 — MVP: logistics cycle in combat in the hex
+
+- Without changing main.lua 597BAF94, published/restarted CallumsCape PID19620. The earlier save was used
+  only to recover infrastructure; newGame reset stocks/chains/waves. No credits,
+  teleport, time change or input to the window. The base starts with 30 shirts/10 rifles, bmat 40.
+- Bot limited to 36 steps/10 real s: recruits using stock, marches combatants to point A;
+  does NOT reassign workers nor override orders in progress. No mortar/buff/artificial damage.
+  Trace data/trace_mvp_cycle.txt; external scripts t_mvp0/t_mvp_step/t_mvp_final.
+- 403.50 s: defeat at wave 4, 26 kills/23 losses; final reading 27 kills (the simulation keeps going briefly
+  after the result). Three surviving workers did not prevent defeat, as per the v4.1 contract.
+  Collection 120 delivered/loss 0; bmat 40->84.69 before the rebuild; the resource truck came back.
+  Base shirt stock 16->20 after consumption/delivery, final factory 3 ammo crates.
+  Resupply 8.99, 5 occurrences without ammo. Final resource truck 57.45 HP under combat.
+- Enemy 4 deliveries/13 shirts consumed; waves asked for 6/7/8/9, free garrison 5 + paid 1/2/3/4.
+  All 36 samples and the final eAudit/colAudit true. No crash in this round. No convoy cut;
+  it does NOT prove interdiction, victory, long balance, roads or general stability.
+- New tools/check_mvp_trace.py checks the recorded evidence and states the limits; PASS.
+  Mechanics source unchanged: this batch proves integration in combat, not a new feature.
+- Only PID19620 closed after the bot finished; absence checked, temporary map removed.
+  Next rough step: try a supply cut with combat and expansion/forward base;
+  refined arrival stays postponed. Complete MVP not yet declared.
+
+## 2026-10-10 — Real capsule, collection in the hex and MVP direction
+
+- The soldier's CollisionCylinder measures radius 50/height 90. PATH_BODY fixed 32->50 and the rescue capsule
+  34->50; a free candidate at 34 was occupied at 50. No new blind teleport.
+- The bitfield bStartPenetrating came back true on distant hits Time 0.776/Distance 19400.
+  rts.hitStartsInside uses scalars with a true/false/nil result; unknown does not authorize a rescue.
+  BreakHitResult with a Lua table returned corrupted scalars: do not use it as an oracle.
+- Old save: a 1 HP worker in medevac is still stuck on the wall. Sweep Time 0/Distance 0.045
+  does not prove a penetrated origin; the origin's capsule is free. The fine profile failed 3 nodes. Case NOT solved.
+- Source 597BAF948F82EFA079A3DFA79340D2F878E75AAE84F42F494712AE2A3E73E1CC:
+  battery 29/29 PASS/21 mutants. CallumsCape PID19492, new match at the correct base:
+  collection 120/delivery 120/loss 0, audit true; the rebuild created a real 900 HP actor not being destroyed.
+  data/trace_collection_capsule50_final.txt. This proves credit by radius, NOT arrival at the door:
+  the user observed three workers stopping on the track; no order/speed 0 after delivery.
+- The truck climbs structures: straight drive and place without sweep; the central trace of the factory/refinery
+  hits the roofs Z 1389/1382, not the terrain 600. Candidate box 450/210/230 at the current Z penetrates the floor;
+  raising 250 clears the test, but does NOT certify envelope/support. Do not integrate that box as proof.
+- The refinery has a UseAreaBox center 8477/-45794/Z 856, extents 750/825/256, yaw -23.49;
+  TransferLocation 8684/-47155/Z 630. Floor/capsule probes found exterior points and points in the
+  native area, but without proving a route/door. data/trace_area_use_refinery.txt.
+- The user postponed refining the workers: they want a rough MVP proving the concept. The task
+  of arrival/waiting is recorded in ROADMAP; the next batch must advance a playable chain, not polish
+  that point. Trucks without collision remain an explicit limitation, not an approved physical chain.
+
+## 2026-10-10 — VSync and the eye at the focus; stuck soldiers stay pending
+
+- The user described a horizontal line in the middle of the screen when moving the camera; a static capture does not show it.
+  Cvar oracle: r.VSync 0/t.MaxFPS 60. Temporary test r.VSync 1: the user confirmed it disappeared.
+  rts.syncVideo now turns VSync on in RTS and restores the previous value on exit, without writing config.
+  In the engine: 1/old 0 -> gfx(false) 0 -> gfx(true) 1/old 0.
+- Live truck 900 HP, meshes bVisible true/bHiddenInGame false, actor bHidden true and outside S.occluders,
+  with the eye ~100 m away: native hiding, not absence. The eye at the focus made bHidden false and the truck visible
+  in the capture visibility-B-controlled_small.png. Some A/B captures had the camera moved by the user:
+  do not treat them as a pixel-by-pixel comparison. No injected input.
+- eyeTick now follows the focus/ground, not the nearest soldier. Uses REAL time to follow a paused camera;
+  refuses a NaN focus/missing ground. The base stays independent. The engine test confirmed focus/eye during pause.
+- Found an old side effect: an empty spawnSquad used the eye's pawn as the origin. Fixed to
+  rts.base when S.eye; existing squad reference/explicit spawn/native mode kept.
+  Final PID19956: base 16104/-54440, eye 3123/-51134, the new match spawned 372 cm from the base, not at the eye.
+- Final source F53D35A1FEDB9BC0931EB73AE0AC11A3ACB1F0461B6FC79E0225E1F954ADE2E8 published.
+  Battery 29/29 PASS/21 mutants + tools/test_visibility.py PASS (real functions, VSync/base/pause).
+  Trace data/trace_visibility_rts.txt. Visibility across the whole screen, snow/structures/angles NOT approved.
+- The user insisted on the stuck soldiers. Current trace data/trace_stuck_current.txt: three workers in the
+  stretch 13k/-50k; collection inactive/logistics suspended by our visual probe, one target back to the base and
+  one with speed Z -400. Do not attribute that probe's immobility to autonomy nor dismiss the report.
+  Intermediate round ECF06A81: 120 delivered/loss 0/actor 900 HP, but the match spawned at the camera's focus;
+  do NOT use that round to approve general navigation. Now the priority: reproduce the stuck ones with the correct origin/base,
+  audit the common march/medevac of the workers (the fine profile today only in colGo), then roads.
+- Final lab PID19956 closed and absence of the copy's processes checked; temporary map
+  removed, Steam/firewall kept. Universal-modder updated; kb check 60 notes PASS, no PR.
+
+
+## 2026-10-10 — Envelope observed and the RTS visibility task
+
+- The user asked to include fixing things going invisible: recorded in ROADMAP.md as a priority functional
+  failure together with transport; investigate LOS/occlusion/hiding, including trucks far
+  from the group and high zoom. No visibility change yet; do not confuse a loaded actor with the image.
+- Roads: the candidate adapter now requires proof per directed edge/from/to/segment/session;
+  before, proof of one segment authorized all the spline's edges. test_adapter/roads/snapshot PASS.
+  Separate candidate; main.lua not changed in this batch.
+- PID15748 CallumsCape: BoxTraceSingle/GetComponentBounds metadata confirmed. Restore for the probe,
+  logistics frozen, truck oriented yaw 0 and collision enabled only on it; no real input.
+  Component bounds and a scan of 1166 rays/10 per frame: CharacterMesh0 hits exceed the box 400/162/140
+  (X up to 427.70, Z down to -206.22). StartPenetrating flags on all hits: do NOT validate the hull through these hits.
+  Trace data/trace_envelope_truck.txt; complete bounds external road-bounds.txt.
+  Complete envelope/surface/water/sweep stay pending; no edge authorized.
+
+
+## 2026-10-10 — Transactional rebuild published and validated in the hex
+
+- Resumed from the most recent state: physical mocks already present in the harnesses. Complete battery
+  with sensitivity: 29/29 PASS, 21 mutants; source E048680B41891BC16F136E4316C98334797642B1504D38D682C777A58FC00DEC.
+- Published through restart.sh. The first load started the lobby because map.txt was at the wrong path; fixed
+  in the mod's directory and deliberately restarted. CallumsCape PID11924 reached RTS.
+- The spawnTruck probe created a real truck HP 900/not being destroyed at the factory's spot without a debit;
+  truckStep reused the same actor, debited 100 and activated idle. A 100 credit only in that isolated probe.
+- New match without waves/credit/intervention: collection 120/delivery 120/loss 0; the starting stock of 40 refined
+  up to 100, bought the truck and advanced toField/loading/toRef with a 900 HP actor. The probe's physical actor was
+  reused in the same load: it does NOT prove a second clean spawn. Trace in data/trace_rebuild_transactional.txt.
+  Transport stays straight/without collision: do not approve road, balance or a complete regional chain.
+- Only PID11924 closed with a verified path; temporary maps removed, Steam kept.
+  Next batch: physical access/route of the trucks along the native network, without confusing abstract state with a path.
+
+
+## 2026-10-10 — Rebuild without a phantom truck: transactional candidate
+
+- spawnTruck reuses the factory's parking; requires a class/whole actor 900 HP and not being destroyed.
+  Returns success/reason. truckStep only debits 100/activates idle after success; a failure keeps it dead,
+  the stock, and retries in 5 s. Without a safe spot it also refuses. An existing whole truck can be reused.
+- External backup main-before-resource-transaction.lua. test_orders/check_globals PASS; real regressions
+  of spawn nil, IsValid but being destroyed, and whole: two failures keep 100/the dead state,
+  a single success debits 100/activates a visible actor.
+- Complete battery 27/29 PASS: test_coleta_sobre_v4 and test_bmat_caminhao failed on the expectation of a
+  rebuild. Not published. Audit old mocks (abstract transport vs whole actor) and fix
+  the coverage without loosening the new contract; do not present those two FAILs as PASS.
+- Next: update the harnesses' physical oracle and validate the spot/spawn at the factory live in a single load.
+  The lab stayed closed in this offline batch; Steam/firewall unchanged.
+
+## 2026-10-10 — Collection went around the rocks: 120 delivered; phantom truck identified
+
+- Source F39518364CDFEDD88C7008561F1AD2576B0C9B0BDE003A77670AF573CE472F35, battery 29/29 PASS.
+  PID12460, restore/new match/no waves/intervention. Three collectors delivered 120, loss 0,
+  real routes went through X 11666/Y -53k to -50k, not through the gap in the rock. No micro-rescues.
+  data/trace_collection_50cm.txt and data/trace_routes_50cm.txt. Walking to the refinery approved in this scenario.
+- Do NOT approve the complete chain: resourceTruck changed to loading/toField/toRef but pawn false.
+  The factory debited 100 before a silent spawnTruck; the collectors left because the abstract state looked alive.
+  The data confirm a risk already noted: the economy of the next transport is abstract, it does not prove a real truck.
+- Explicit spawnTruck diagnosis: pcall true/nil and no pawn. Probe at the fixed spot field+400/+300:
+  valid class/ground 1000, SpawnActor valid but bActorIsBeingDestroyed=true/Health 300.
+  No whole vehicle created. data/trace_spawn_resource.txt; do not credit this diagnosis as a rebuild.
+- Next: reuse the deployment's parking/preflight, check a whole actor before the debit/live state,
+  a failure keeps it dead/the stock and alerts, test a failed spawn and a physical success. Then trucks along the real road.
+- Lab closed PID12460 verified; temporary map removed; Steam/firewall kept.
+
+## 2026-10-10 — A free capsule did not rescue; fine sampling candidate
+
+- Rescue revised: rings 80/160 cm, height difference 90 cm, rejects floor.bStartPenetrating;
+  an exceptional teleport only after a penetrated sweep and a free CapsuleTraceSingle 34/90 at the destination.
+  Fixed the per-frame loc cache after the setter: the success test revealed an old position hiding the rescue.
+- Source A9A4A2EB3E82...: 29/29 PASS including 21 mutants. Tests cover an occupied destination refused,
+  a free one with a penetrated origin accepted/replanned, carry/legT kept.
+- PID9648 loaded a pre-cache variant, WITHOUT a match/test; a deliberate restart because of the source change,
+  not because of a timeout. PID2368 published the final, restore/new match/no waves. The rehearsal again delivers 40,
+  factory 60, resourceTruck dead, ZERO rescues, two stuck with 6 attempts. It did not solve the case.
+  data/trace_rescue_capsule_final.txt; the user confirmed the insistence on the rocks and two stuck.
+- The next change still offline: collection's kneeClear samples the ground every 50 cm, limits the climb proportionally
+  to the distance and deviations from the interpolation line to 45 cm. Before, it sampled 300 cm and tolerated 290 cm per sample,
+  including on the simplified shortcuts. The combat/truck profile without sampling stays the same.
+- test_orders/check_globals PASS: a narrow rock between the old samples is refused; a gentle ramp accepted.
+  Needs the complete battery and physical validation; do NOT declare a route around the wall approved.
+- Lab closed PID2368 verified; temporary map removed. Next: validate the fine route and accesses
+  on the ground, without replacing a finished chain with a mere safer refusal.
+
+## 2026-10-10 — Live micro-rescue: sweep refused for penetration
+
+- Candidate AF6720F17189... published, PID13132, restore and a new match without waves/intervention.
+  360 samples: delivery 40, loss 80, factory 60, resourceTruck dead/pawn false. Zero rescues;
+  two stuck exhausted six attempts. The third's oscillating movement does not trigger the immobile detector.
+  The audit closes but the chain stays NOT approved. data/trace_micro_rescue.txt.
+- Real oracle: neighboring floor normal .863 with a climb of 68.89 cm; the limit of 45 refuses. Many traces return
+  a point equal to the start (delta 135 cm/normal 1): they start penetrating rock, NOT a safe floor.
+- Sweep probe to the destination with a 68.89 climb: return false, bBlockingHit=true, bStartPenetrating=true,
+  position unchanged. So raising only the height is NOT enough: the capsule is already penetrating geometry.
+- The reflected CapsuleTraceSingle works: radius 32/halfHeight 90 at the destination detected penetration.
+  A scan of 8 directions at 80 cm rejected initially penetrated floors; no safe candidate shown.
+  File data/trace_rescue_capsule.txt. No unsafe teleport applied.
+- Next: a short rescue with a free destination capsule and a real floor, rejecting bStartPenetrating;
+  the user accepts an exceptional teleport, but do not treat an occupied exit as free nor credit cargo.
+  Lab closed at the exact PID 13132 after the probes; temporary map removed, Steam/firewall kept.
+
+## 2026-10-10 — Micro-rescue authorized, offline candidate
+
+- The user authorized short transport exclusively when stuck, due to uneven terrain.
+  Implemented logi.colRecover for workers: four seconds with displacement <=30 cm,
+  no combat/active planner; eight directions of 80 cm, local ground with normalZ>=.71 and a height difference <=45 cm.
+  K2_SetActorLocation uses sweep=true: does not turn off collision nor go through walls deliberately.
+  Six attempts per episode, no salvage credit and no renewal of legT; success replans.
+- tools/test_orders PASS: immobility/waiting, mandatory sweep/limited distance, blocked collision
+  does not become success, attempt cap, cargo/deadline kept and an active planner cancels the observation.
+  Candidate NOT yet published/validated live. Do not claim this rescue gets out of the hole.
+- Earlier trace captured in data/trace_routes_rock.txt: approved trajectories with waypoints
+  over rocks Z 1350–1377; workers ended up Z 790–894 in the gap. One delivery of 40, incomplete chain.
+  The instrumentation does not change orders. Lab PID4328 closed after the capture; Steam kept.
+- Next: the complete battery and a single live batch, measure the sweep/real progress and recovery without credit.
+
+## 2026-10-10 — Regional arrival of collection: offline PASS, path still failing
+
+- Collection looks for an accessible cell inside the service area, instead of a fixed point next to the installation.
+  Reuses planStart/planStep/routeTo; arrival updates target and u.goal. A profile exclusive to workers:
+  cell 300, margin 3000, ceiling 5000, step 290, height 1200; does not change combat orders.
+- Source E5BADAF86D90F3E8343E2DCC937DADC047736878E87A623BD0E3E78A01E66CE5.
+  Final battery 29/29 PASS including 21 mutants; worker-region-final-battery.txt. The new test covers
+  a blocked central destination and arrival at a free cell of the region. It does not prove native physics.
+- PID24092, clean load CallumsCape: restore wallet 1000/0/1000/4 and a match without waves/credits.
+  1 Hz sampling: 120 collected, 40 delivered, 80 lost, factory 60, resource truck still dead.
+  Two returns and a new trip stayed stuck. Chain NOT approved.
+- The user reported an accidental intervention and that a click order went around the wall on the way back.
+  Contaminated rehearsal: do not attribute the delivery of 40 to autonomy without confirming the moment of the intervention.
+  Evidence in data/trace_collection_regional.txt. Next: compare destination/parameters/replanning
+  of the click order with colGo (both use routeTo), before another solver or blind increases.
+- Also audit the truck rebuild: spawnTruck may leave an abstract state alive after a spawn
+  failure; require a valid real pawn before declaring a complete chain.
+- Lab closed by the verified PID after collecting the samples; temporary map.txt removed.
+- The user asked for collection again: lab reopened PID4328, infrastructure restored and a new match
+  without waves. Kept open for that active validation. They reported two stuck in the hole between wall and rock.
+  universal-modder: Gotcha updated, kb check PASS 60 notes.
+
+## 2026-10-10 — Collection without blind fallback; real navigation trace
+
+- The user visually confirmed a wall, said it ends on the left, and unblocked units manually.
+  The intervention does not count as automatic success: a later reading still showed 120 collected/0 delivered/120 lost.
+- Source 541B18D3...3649 added planStart/planStep to env for incremental oracles, with no new locals.
+  Trace of the real colGo: three returns failed (1045/2500/1869 nodes), all received a straight fallback route.
+  It was not just a lack of nodes: tests with a larger height band/coarser grid/larger margin also refused.
+- Reflected CharacterMovement properties: WalkableFloorAngle 44.765083, WalkableFloorZ .71,
+  MaxStepHeight 45. The default grid 60/150 is about 22°; do not confuse that rule with the native limit.
+  A 44° probe enlarged the reachable region, but still exhausted 8000 nodes without a route. NOT integrated as a solution.
+- The wall hit is a modular segment; colliding bounds 205.84/456/326.99 (origin 13150,-50376,705.75).
+  Neighboring floor traces also hit a coal pile, another wall and rocks; the global top is not always accessible floor.
+  The road network nearest the field is 117 m away; it does not authorize a link by proximity.
+- Functional change: routeTo accepts noFallback; collection passes true. A failure clears target/path and marks pathBlocked.
+  Replanning the same stretch does not renew legT; the panel shows how many workers have no route.
+  Combat/legacy orders were not changed in this batch. Stopping on failure does NOT solve the requested detour.
+- Source F0904D1512FCA01E6F5AE34745E5704514AD1AC9F5DAD3A1A97BF9019712BC13 published.
+  tools/test_orders.py covers real code: refusal without a straight line, legacy preserved, retry keeps the deadline and a stretch change renews it.
+- Final battery on this hash: 29/29 PASS, including 21 mutants; output collection-refusal-final-battery.txt.
+- PID14544: after the load was ready, infrastructure restored and a new match; controlled failure with a 1-node ceiling,
+  no cargo/stock credited: done/failed/noFallback true, route 0, target false, blocked true, speed 0,
+  HUD '1 sem rota', collection audit true. It is a refusal test, NOT a completed natural trip.
+- A probe sent before the load finished refused the match and installed a callback without logi.col;
+  cancelled and fixed with an assert before installing. Repeating only after RTS was ready passed; do not restart on timeout.
+- Numeric trace in data/trace_path_collection.txt; full scripts/logs in D:/tools/foxhole-lab/.
+  Lab closed by the exact PID, temporary map.txt removed, Steam/firewall kept.
+- Next: find and validate a passage around the end of the wall, with an accessible arrival point at the refinery,
+  then prove collection→delivery→truck without intervention. Do not swap the goal for 'now they stand still'.
+
+## 2026-10-10 — v4.1 batch in the hex: infrastructure/save PASS; collection blocked by a real wall
+
+- Source 236C34B9...F393, CallumsCapeHex, PID 25264: deployment of 1000 bmat created refinery/factory/2 trucks,
+  wallet 0, spent 1000, four records. Repeating did not change counts nor charge again.
+- Match without waves, without credits/teleport of the workers, 1 Hz sampler for 360 s: three collectors gathered
+  120 salvage. The return to the refinery got stuck on IndustrialWall03Snow31; a Camera SphereTrace confirmed
+  the same actor on all three paths. After the timeout, 120 went to lost and zero was delivered; the ratio closed.
+  The factory stayed with 40 bmat and the resource truck did not spawn. COLLECTION NOT APPROVED in the hex.
+- Next functional priority: the workers' route around that wall, then trucks along the road.
+  routeTo uses a shared A* (2500 nodes/margin 2000) and a direct fallback; record the planner failure before
+  changing limits or trying the real network. Do not disable collision, credit delivery or increase time to mask it.
+- Isolated save D:/tools/foxhole-lab/v41-hex-validation-save.txt preserved infrastructure/wallet.
+  PID 25988, clean load: no assets → continue true (318 ms), refinery/factory/2 trucks restored,
+  wallet 1000/0/1000/4, factory bmat 40, no degraded, enemy audit closed.
+  Repeat 303 ms, without duplicating/extra debit. Cargo in workers' hands does not persist by design.
+- Sliced export of this region's roads finished: 405 CPs, 431 segments, 391 road assets,
+  4013 nodes with curves, no incidence rejected; all edges remain NOT physically validated.
+  Snapshot and report in data/parallel/roads/callums-*.json; do not reuse epoch/coords in the lobby.
+- build_snapshot.py now accepts --input/--output/--report without overwriting the lobby snapshot.
+  test_snapshot.py covers both regions; snapshot/roads/adapter tests PASS. It is not integrated transport.
+- Trace of the actions/360 samples: data/trace_logistics_v41_hex.txt. Full logs and raw export external
+  in D:/tools/foxhole-lab/v41-hex-*.log and callums-roads-export-live.txt.
+- Lab closed by the exact PID; temporary map.txt removed, Steam/firewall kept.
+
+## 2026-10-10 — Bases and save v2 validated in the game; continuation in the same load fixed
+
+- Batch through the channel, no injected keyboard/mouse, HomeRegionW: PID 21456 created a native base with HP 1725.
+  Ownership and 400 bmat credited explicitly to isolate construction; not a balance or physical delivery test.
+- Isolated save in D:/tools/foxhole-lab/v41-validation-save.txt: write 45 ms; PID 11400 restored after restart
+  in 226 ms, with an active base, own/enemy audits closed and no degraded state.
+- Repeating the continuation with a live base refused: the vertical trace hit the roof and required Landscape.
+  parkingGround now accepts an optional ignore; fwdPreflight ignores only the live base matching the saved spot.
+  It does not ignore other buildings, dead caches or actors being destroyed. Backup: D:/tools/foxhole-lab/main-before-preflight-ignore.lua.
+- Source 236C34B9F4223911B6087A36BCB514BCA29CB813ECD3F2FA2AADD43B0B5CF393:
+  29/29 offline battery PASS, 21 mutants; tools/test_fwd_preflight_ground.py additional PASS on real functions.
+- PID 27284: fresh continuation 223 ms, preflight with a live base PASS, repeated continuation 220 ms.
+  An empty base refused recruiting without fallback; credited crates gave 10 shirts/20 rifles; the recruit spawned 8 m away,
+  consumed 1 of each. Save and continuation preserved 9/19, audit closed; 259 ms, no degraded.
+- Two probes had Lua errors fixed (name fwd.bases instead of fwd.list; flatDist not exported in env).
+  They were not feature errors; the interrupted actions were repeated, without declaring PASS from incomplete output.
+- Native TruckW collision read before the driver: VehicleCollision extents 400/162/140, Camera/Visibility 2/2,
+  but meshes also block; the box still does not prove the full envelope. See data/parallel/roads/TRUCK_VALUES_20261010.md.
+- External evidence v41-*-load*, v41-recruit-base.txt, v41-fixed-base-save-live.log in D:/tools/foxhole-lab/.
+  Lab closed by the exact PID. Still to validate: deployment/wallet in the hex, transport and prolonged combat.
+  Crashes/yellow effect remain postponed as the user asked; do not claim general stability.
+
+## 2026-10-10 — Development resumed: logistics integration v4.1
+
+- At the user's explicit request, crashes and residual yellow stay pending; do not block features on the manual 1/2 gate.
+- Integrated manual collection, four supplies, the enemy chain, forward bases and save v2. Experimental key queue preserved.
+- Source SHA256: 2237884769733d6298db957f028f5f71fbf948634e4740aa81ddd68e7f08f83f.
+  Previous backup: D:/tools/foxhole-lab/main-before-logistics-53bdbcab.lua.
+- Battery: 29/29 PASS offline, including sensitivity with 21 mutants. The first rehearsal failed because a harness expected a synchronous key; adapted to drain the queue like the real frame, without changing the feature.
+- Full result: D:/tools/foxhole-lab/integrated-v41-battery.txt. Offline does not prove physics, balance, real keyboard or native stability.
+- Publishing and a short validation in the lab started; live results will be recorded separately. Previous save copied to D:/tools/foxhole-lab/save-before-v41.
+- Short validation finished in HomeRegionW, PID 3660: newGame started, three workers spawned,
+  shirts 30→27, collection active, truck reserve 100, enemy chain with a closed ratio and the first wave.
+  State in D:/tools/foxhole-lab/v41-live-state.txt. It did not validate a complete trip, forward base or save return.
+  Lab closed by the exact PID; Steam kept. universal-modder updated, kb check: 60 notes PASS.
+
+## 2026-10-10 — Flicker: residual stencil hypothesis tested offline
+
+- Source 53BDBCAB…E543/lab closed confirmed; the queue is still waiting for a real test.
+  No further change to the source nor an idle launch.
+- outlineDepth(false) clears CustomDepth but keeps stencil 1. If native code re-enables Depth,
+  the mask remains: a hypothesis for the flickering fill reported by the user.
+- test_stencil_clear.py extracts the real helper and reproduces the residue; an in-memory swap to
+  stencil 0 on deselect PASS, including reselect 1/idempotence/guard. Not applied.
+  STENCIL_PROPOSAL.md documents the candidate and the visual/frame-order gate.
+- It does not prove the shader/flicker nor solve the crash; do not mix it into the queue rehearsal.
+  Universal-modder consulted/Gotcha 52/local check, no PR.
+
+## 2026-10-10 — Isolated variant: queued keys in the persistent loop
+
+- After a new Registry reproduction with fast input, applied ONLY a bridge experiment:
+  CFG.KEYBIND_QUEUE=true; onGame queues a Lua function, frameBody drains before authority/menu.
+  FIFO by snapshot, reentrant events go to the next frame, an error does not block the following ones.
+  false preserves the original bridge. Outline/fill/focus/movement not changed.
+- External backup main-before-keyqueue-33d6c7e5.lua. New source SHA 53BDBCAB…E543;
+  the logistics candidate 62245d23 does not contain this change: do NOT copy it over without transplanting
+  and retesting the bridge after the gate. Real source test_queue_experiment/orders/globals/lifetime PASS.
+  The orders harness simulates a frame boundary after a keybind; a specific test verifies the deferral.
+- Published through restart.sh/PID5440/HomeRegionW. 100 selectGroup 1/2 actions in 10 queued bursts
+  through the channel executed in the persistent frame; assert 3 selected/FIFO/empty queue PASS.
+  This does NOT simulate the keyboard nor prove UE4SS thread sync/a solved cause.
+  Output KEYQUEUE_20261010.txt; external log keyqueue-live-20261010.log, no Registry/fatal observed.
+- Lab 5440 closed at the end, Steam preserved. README/MANUAL_TEST updated.
+  Next for the user: one key 1, then 2, stopped alternation; movement/double tap separately.
+  Do not certify a fix before that test. Flicker not handled in this variant.
+
+## 2026-10-10 — 100-group control passed; fast input crashed with Registry
+
+- PID23716, current source: 100 alternating selectGroup calls through the channel completed, 3 selected
+  per step. External output group-channel-20261010.txt. After the control, the user reported fast switching
+  1/2 and a fatal; terminal process confirmed, crash 401E1646…/338s/read 0xffffffff.
+- UE4SS.log contains "Registry Ref was not function" at 11:57:46,315/No traceback and group logs
+  until 11:57:49,561. External log group-fast-fatal-20261010.log preserved. It does not prove the guilty callback,
+  but fast input is a candidate reproduction; the channel rate and the key rate are not equivalent.
+- The user also reported a flickering yellow fill on an unselected unit; the image provided
+  shows yellow parts of a unit without an outline behind a vehicle. An isolated image does not prove flicker;
+  the user's temporal report recorded. The already-known native reactivation of CustomDepth deserves a trace.
+- User hypotheses: movement during switching; repeating 2 when 2 is already selected. Repeating a group
+  within <=0.45 s also calls focusOn (double tap), a distinct path to isolate. Do not assign blame.
+- Next separate rehearsals: queue in the persistent loop vs ExecuteInGameThread; double tap vs
+  alternation; visual mask/stencil without mixing fixes. No new manual test now.
+
+## 2026-10-10 — Second manual reproduction: 1/2 alternation crashed
+
+- Clean load PID10128/HomeRegionW, same source. The user confirmed 1 selected 3 and 2 as well;
+  when alternating 1/2 a fatal error occurred. Last logs group 2 at 11:50:13,057 and group 1 at 11:50:14,029.
+  Before that there were real move orders and the wheel; do not call it an exclusively key rehearsal.
+- Terminal process confirmed; crash E729F1E8…/147s/read 0x0b. Log preserved externally
+  manual-alternating-fatal-20261010.log; original dump in Saved/Crashes. No automatic restart.
+- Group alternation is now a reproduction candidate; 1 or 2 alone worked in this load,
+  but do not certify stability. Next compare selectGroup through the channel vs real input,
+  separating movement/camera/outline and the ExecuteInGameThread bridge; do not assign a cause yet.
+- The user does not need to continue the script. Lab terminal, Steam preserved;
+  no input injected by the agent nor release of the logistics candidate.
+
+## 2026-10-10 — Manual gate FAILED: crash after selecting group 1
+
+- The user reported a fatal error while testing numbers and difficulty understanding the script.
+  Do not require continuing; the next script will be a single step, spelling out 1=group 1/2=group 2/0=all.
+- PID20308 terminal confirmed, no restart. Crash 95C51A… at 11:42:40, 317 s since the process start,
+  EXCEPTION_ACCESS_VIOLATION/read 0x75d42b59. Source 33D6C7E5…E679 intact.
+  Last log 11:42:39,524: selected group 1 (3); before that there was the wheel, selection and A* orders.
+  No Registry message in the new stretch. Temporal proximity does not prove the guilty key.
+- Stack starts c62ea9/2c60bc/2c6d99/2c3a0d, then the Lua bridge/repeated frame. The same PCallStackHash
+  as the old ones does NOT prove the same instruction. ModuleList identity confirmed GUID/Age 20/timestamp
+  equal to the local PE also in the new dump. 2c6d99 is in push_structproperty, an internal branch without
+  an exact name; do not confuse it with the write return 2c6b92 seen in another stack.
+- JSONs crash_manual_20261010.json/crash_manual_identities_20261010.json in stability;
+  external UE4SS.log preserved manual-fatal-20261010.log; original dump preserved in Saved/Crashes.
+  Earlier automatic gates did not cover this interaction and do not certify the build.
+- Lab already terminal, Steam preserved. Logistics candidate not released.
+  Next: locate instruction c62ea9/context and isolate the group/callback path in a single
+  variant; only a new simple manual test after investigation. No injected input.
+
+## 2026-10-10 — Manual gate prepared on the user's confirmation
+
+- The user confirmed "Sim, pode preparar agora". Clean load through restart.sh, PID20308,
+  HomeRegionW, current source preserved. The channel confirmed 6 soldiers selected/28 copies each,
+  waves off/enemies cleared; no injected input. Initial external log manual-start-20261010.log.
+- Lab kept open exclusively for the requested active manual validation.
+  Result still pending: the user does selection/groups/movement/zoom/F10 for 10 min;
+  when finished, preserve the log and close only the Lab PID. Do not count the preparation as an approved test.
+
+## 2026-10-10 — Exact UE4SS source: Registry bridge and struct write branch
+
+- Lab closed/Steam 22164 confirmed; the last session made progress (new identities/frames).
+  No answer yet to the manual start confirmation; do not open the game idle.
+- The public GitHub API resolved commit 5418fa4ed9f1e8379d28ee7bbc3235c7e0c71b09. Three small
+  public source files in D:/tools/ue4ss-source-5418fa4e; no loader/binary replaced.
+- get_function_ref checks the type in the registry; process_lua_function is a general trampoline, it does not prove
+  a keybind. handle_error notifies callbacks and clears the stack before choosing a C++ exception/luaL_error:
+  record a full traceback/context if the error returns, without attributing corruption from a static reading.
+- In the compatible PE, 2c6b92 is the return of the table branch before discard_value; it matches the
+  Lua table->struct write. This narrows one stack but does not identify the UProperty/UFunction/cause.
+  Details/primary links added in data/parallel/stability/SYMBOLS_20261010.md.
+- No speculative patch nor feature expansion; the next useful action is a real-interaction gate
+  by the user and/or exact symbols/instruction with context. Universal-modder/local check, no PR.
+
+## 2026-10-10 — Offline RE: dump identity and first named frames
+
+- Lab still closed, Steam 22164 present; waiting for confirmation of the manual start,
+  not opening it idle. Earlier progress confirmed by files/processes.
+- Local UE4SS ZIP without a PDB. DLL 3.0.1 Beta #0/commit 5418fa4e; extracted CodeView RSDS with llvm-readobj.
+  The ModuleList of the three old dumps has the same GUID 21ad178d-4639-470e-971e-f115b4924854/Age 20/
+  timestamp 6ac43103 as the local PE: the RVA comparison now has a verified identity.
+- Crossed 4353 exports with RuntimeFunction ranges: 0x2c6b92/2c6d99 inside
+  push_structproperty; 0xb99c75 in Lua::call_function; 0xb9d34c in process_lua_function.
+  Names accepted only when an export starts exactly at the start of the corresponding range.
+  The nearest previous export does NOT identify private functions (heuristic discarded).
+- Evidence/limits in data/parallel/stability/SYMBOLS_20261010.md and JSONs beside it.
+  Frame names do not prove the cause/property/guilty callback; Registry still not isolated.
+  External scripts/dumps/binaries; no new loader/large download/main source changed.
+  Next RE: source of the exact commit or a compatible PDB GUID/Age; do not symbolize with another build.
+- Universal-modder consulted; local Gotcha 50/check, no PR. Manual gate/feature still pending.
+
+## 2026-10-10 — Outline: 100 cycles and 20 deaths/recreations passed
+
+- Clean load PID18872/HomeRegionW, same source 33D6C7E5…E679, six selected,
+  waves off. 240 steps through the channel, no new callbacks/hotpatch/input: 100 cycles of
+  de/reselecting followed by 20 deaths by Health 0/normal removal/recreation, 329.256 s.
+- Verified at each step: 0 clones/sources and CustomDepth false on deselect; 28 copies per living unit
+  on reselect; outline cache/animAddr/anim.units entry removed before replacing a dead one.
+  No Registry/fatal in the log checked. Output in data/parallel/stability/CYCLES_20261010.txt.
+- The PROBE's first assert was wrong to require outlineParts nil on a living deselected unit:
+  setOutline calls outlineDepth false and repopulates that cache to prevent native glow.
+  Only the probe fixed, keeping source/hash and process; cycle 1 redone. Not a mod bug nor
+  a leak. For a removed dead unit the nil-cache requirement stays and passed in the 20 deaths.
+- Before GC: 207 SkeletalMeshActors alive/28 being destroyed; after: 207 alive/0 being destroyed,
+  168 tracked. Do not attribute the remaining 39 to a leak (they include native ones). Pool 6 created/
+  20 reused/0 free. An aggregate profile with half the time deselected is NOT a performance
+  gain: 6.72 ms mod/5.86 stratTick; selected after GC 10.80 ms stratTick.
+- Lab 18872 closed at the end; Steam preserved; full logs external cycles-20261010.log.
+  Universal-modder local Gotcha 49/check; no PR. Old cause/real input remain pending.
+  The user answered they can do a manual script after the rehearsal; agree on the start before opening.
+
+## 2026-10-10 — Outline: a clean ten-minute window and repeated transitions
+
+- Earlier progress confirmed by files/processes: source 33D6C7E5…E679, Steam 22164,
+  lab closed. New load through restart.sh, PID20196/HomeRegionW; no waves/logistics,
+  injected input, hotpatch or extra callback. Universal-modder consulted before/after.
+- Six selected/168 copies kept across five checkpoints: 134.483/255.032/377.482/498.375/
+  620.113 s. stratTick 10.94/11.29/11.76/10.53/12.46 ms. Full 10 min window without a crash or
+  Registry/fatal in the log checked. Source not changed; cost remains an independent gate.
+- After: native CollectGarbage, de/reselection, death of one soldier, removal/clean cache,
+  recreation PASS. New window 186.372 s, 6 sel/168 copies; stratTick 10.39/10.40/10.88 ms.
+- Outputs preserved in data/parallel/stability/LONG_20261010.txt and LONG_TRANSITIONS_20261010.txt;
+  full logs in D:/tools/foxhole-lab/crash-long-*.log. No old cause isolated.
+- MANUAL_TEST updated with a 10 min gate of selection/groups/zoom/keys exclusively by the user;
+  question sent, without presuming approval/execution. Next controls: a repeat of 100 transitions,
+  20 deaths/recreations and equipment swap, with frames between steps; real input still pending.
+- Lab 20196 closed by verified PID/path at the end, Steam preserved. Source/hash intact;
+  candidate v4.1 not published. No stability claim nor feature release.
+
+## 2026-10-10 — Resumed: B2/A2 controls and transitions; candidate v4.1 audited
+
+- Source 33D6C7E5…E679 intact. Steam open; universal-modder/skills/oracles consulted.
+  Tests orders/costs/probe/lifetime PASS. Candidate v4.1 tested without integrating: battery 27/27,
+  repeated with sensitivity 28/28 (21 mutants), SHA 62245d23…598f preserved.
+- Earlier B1 found in external output: 184.305 s/6 sel/168 copies; not a new test.
+  B2 clean load PID21752: 195.677 s/6 sel/168 copies, stratTick 10.67–11.63 ms.
+  A2 clean load PID11084: 201.218 s/6 not selected/0 copies, stratTick 0.48–0.56 ms.
+  No Registry/fatal in the new logs checked; approximate checkpoints, not a paired benchmark.
+- After A2, selection/deselection/reselection, native GC, death/removal/clean cache and recreation PASS.
+  New window 219.164 s/6 sel/168 copies, stratTick 11.07–11.34 ms, no crash/Registry observed.
+  Negative controls do NOT isolate the cause nor fix the old failure; performance stays expensive.
+- Evidence: data/parallel/stability/RESUME_20261010.md and outputs beside it;
+  battery in data/parallel/package_v4/BATTERY_20261010.txt. Full logs preserved externally.
+  No hotpatch/injected input/new callback/RPC; logistics candidate not published.
+- Lab closed by verified PID/path at the end, Steam 22164 preserved. README updated;
+  local Gotcha 48, um kb check PASS 60 notes, no PR. Next: longer duration/isolation if it reproduces,
+  zoom/input by the user; stability still blocks expansion.
+
+## 2026-10-10 — Claude offline batch: v4.1 stack ready to integrate (nothing in the game)
+
+- Claude sub-agents (Opus/Sonnet) delivered offline, in `data/parallel/`, without touching `main.lua` (33d6c7e5…e679) or the lab:
+  a real enemy logistics chain with interdiction (logistics AI + calibration v2), a safe save v2 (persistence; an invalid enemy
+  section discards only itself), a bmat reserve to rebuild a truck, a villager-style start (no resource truck; 3
+  unarmed workers collect salvage; the factory makes the truck), forward bases (Shift+J, ForwardBase1, 300 bmat; recruiting
+  spends the point's stock; manpower only in Assault) and v4.1 (workers outside the wave and the squad's center).
+- Design decisions (delegated by the user): ROADMAP.md phase 3 "where soldiers come from" and `data/parallel/forward_bases/DECISIONS.md`.
+- Candidate: `data/parallel/package_v4/v4_1/candidate/main.lua` (62245d23…598f). Integration, README/MANUAL_TEST drafts,
+  a single lab script (~5h40, stability gate first) and gotchas in `data/parallel/package_v4/`. Status per task:
+  `PARALLEL_AGENTS`. Everything PASS offline only; no live claims. The stability gate still blocks publication.
+
+## 2026-10-09 — Control A1 without selection: a full 184 s
+
+- PID2184/HomeRegionW, source SHA256 33D6C7E5920A3B5E00B7F3BAFBC7B8A86C984DB810217241A567AFE0901EE679.
+  Six soldiers without selection, copies temporarily 0 at spawn and restored to 4 in the same command,
+  no persistent clone; animation/other systems kept, waves off, no GC/hotpatch/agent input.
+- Checkpoints 61.01/122.06/184.00 s: 6 units/0 sel/0 clones in all. Mod 1.31/1.25/1.24 ms,
+  stratTick 0.50/0.48/0.46 ms. Log checked without Registry/fatal/wheel/selection.
+  Survival of a short control does not certify; plan of 4 loads A1/B1/B2/A2 in crash_control.md.
+- After closing the window, a TruckW collision metadata probe ran separately; external output
+  truck-collision-schema-live.txt. Next B1: clean load, same source, 6 selected, 180 s without input.
+## 2026-10-09 — Registry audit and an independent animation retry fix
+
+- Compared 3 CrashContexts in the artifact data/parallel/stability/crashes_compared.json:
+  different headers despite an equal PCallStackHash. The old XML 97D8 records read 0x08,
+  DF9A read 0xffffffff, the new 18BCE read 0x63. Do not conclude the same instruction from the hash.
+- Wheel and selection are frame polling, not an onGame wrapper: events do not prove a keybind is to blame.
+  No local PDB found; offsets not symbolized. Audit callback_registry.md.
+- Separate Lua defect: anim.track set hooked=true even when RegisterHook failed. Fixed to
+  true only if the registration succeeds; allows a retry and does not duplicate after success. The proposal test reproduced
+  failure/retry/no duplication, orders/globals on the integrated source PASS. Do not attribute the crash to this defect.
+- Keybind queue in the persistent callback prepared and tested offline only as a separate experiment;
+  NOT integrated/does not prove native sync. The next test must change one factor per load.
+  Lab closed, no new live validation. Economy/roads remain separate.
+## 2026-10-09 — Native crash in the second batch: stability still failing
+
+- PID4408 ended during a 60 s window with 6 sel/168 copies, after discarding 331 frames, stratTick 11.67 ms.
+  There is no valid S1 result: the test detected a terminal process, it did not restart on timeout.
 - Crash UE4CC-Windows-18BCE18343C03805B228B794C306C125_0000: EXCEPTION_ACCESS_VIOLATION
-  lendo0x63, PCallStack UE4SS com vários frames repetidos c6cfde/c6c1e0/c77cab etc.
-- UE4SS.log: roda mouse18:20:01, Lua::Registry::get_function_ref Ref was not function18:20:03,
-  selecionados6 às18:20:04/06. São observações, não causalidade; nenhuma entrada foi injetada pelo agente.
-  Não culpar contorno/GC/component transform/input sem isolamento. Fonte segue experimental.
-- Agente estabilidade audita Registry/callbacks/input/anim e compara callstacks antigos antes nova publicação.
-  Laboratório já terminal; Steam22164preservado. Sem expansão de features nem relançamento automático agora.
-## 2026-10-09 — Segundo lote de otimização integrado offline
+  reading 0x63, UE4SS PCallStack with several repeated frames c6cfde/c6c1e0/c77cab etc.
+- UE4SS.log: mouse wheel 18:20:01, Lua::Registry::get_function_ref Ref was not function 18:20:03,
+  6 selected at 18:20:04/06. These are observations, not causality; no input was injected by the agent.
+  Do not blame outline/GC/component transform/input without isolation. The source stays experimental.
+- The stability agent audits Registry/callbacks/input/anim and compares old callstacks before a new publication.
+  Lab already terminal; Steam 22164 preserved. No feature expansion nor automatic relaunch now.
+## 2026-10-09 — Second optimization batch integrated offline
 
-- updateOutline agora lê K2_GetComponentToWorld1x/peça, sem3getters/MakeTransform; quaternion/escala
-  copiados sem cache de pose, mantendo homotetia e4cópias/peça. Oráculo42fontes PASS na carga anterior.
-- outlineDepth confere bRenderCustomDepth/CustomDepthStencilValue reais por quadro e escreve só divergências,
-  sem cache que esconda reativação nativa. Campos confirmados no metadata PrimitiveComponent.
-- Ordens/sintaxe/globals/custos/probe PASS; transform/lifetime reais PASS antes último patchdepth.
-  Testdepth proposta PASS reativação/não selecionados/olho/retirada; teste real sendo atualizado pelo agente.
-  Ganho temporal/visual do novo lote ainda não validado; fonte experimental, não prometer estabilidade.
-- Candidato ECONOMIA test_integracao e adaptador ESTRADAS reproduzidos PASS. Carga em retorno físico
-  preservada no caminhão/restore e creditada só chegada; driver seguro/integração final seguem pendentes.
-  Reservas Claude IA_LOGISTICA/PERSISTENCIA preservadas, sem Codex assumir blocos.
-## 2026-10-09 — Janelas controladas; próximo lote de otimização preparado
+- updateOutline now reads K2_GetComponentToWorld 1x/part, without 3 getters/MakeTransform; quaternion/scale
+  copied without a pose cache, keeping the homothety and 4 copies/part. Oracle of 42 sources PASS in the earlier load.
+- outlineDepth checks the real bRenderCustomDepth/CustomDepthStencilValue every frame and writes only divergences,
+  without a cache that would hide a native reactivation. Fields confirmed in the PrimitiveComponent metadata.
+- Orders/syntax/globals/costs/probe PASS; real transform/lifetime PASS before the last depth patch.
+  The proposed depth test PASS on reactivation/not selected/eye/retire; the real test being updated by the agent.
+  The new batch's time/visual gain not yet validated; experimental source, do not promise stability.
+- ECONOMY candidate test_integracao and ROADS adapter reproduced PASS. Cargo on a physical return
+  preserved in the truck/restore and credited only on arrival; a safe driver/final integration still pending.
+  Claude reservations for logistics AI/PERSISTENCE preserved, without Codex taking over the blocks.
+## 2026-10-09 — Controlled windows; next optimization batch prepared
 
-- Duas janelas sem transições em PID2832/HomeRegionW:61,86s/2447quadros stratTick15,72ms;
-  61,29s/2071quadros17,29ms. Mesmos6sel/168tracked/207ativos/39não rastreados/0emdestruição.
-  Não há aumento de contagem nessas janelas;39inclui nativos, não prova vazamento. Fonte otimizada ainda cara.
-- Oráculo somente leitura42fontes comparou K2_GetComponentToWorld com3getters+MakeTransform:
-  PASS Translation/Scale3D/Quaternion com sinal alinhado, erro último3,58e-07. Proposta reduz57->36calls,
-  ainda não integrada/publicada; não alegar ganho de ms antes medição.
-- Revisão ECONOMIA pediu preservar retorno físico após destino perdido no restore; patch ainda separado.
-- Reservadas exclusivamente ao Claude do usuário IA_LOGISTICA e PERSISTENCIA no PARALLEL_AGENTS;
-  nenhum Codex assume. Minimapa registrado futuro junto à UI, sem prioridade atual.
-- Laboratório PID2832 encerrado ao passar ao trabalho offline; Steam preservado. Sem callback export ativo
-  nem robô. Próximo lote: transformação por componente e guards de máscara, testes offline antes carga limpa.
-## 2026-10-09 — Otimização medida em carga limpa e snapshot regional
+- Two windows without transitions in PID2832/HomeRegionW: 61.86 s/2447 frames stratTick 15.72 ms;
+  61.29 s/2071 frames 17.29 ms. Same 6 sel/168 tracked/207 active/39 untracked/0 being destroyed.
+  No count increase in these windows; the 39 include native ones, it does not prove a leak. Optimized source still expensive.
+- A read-only oracle on 42 sources compared K2_GetComponentToWorld with 3 getters+MakeTransform:
+  PASS Translation/Scale3D/Quaternion with aligned sign, last error 3.58e-07. The proposal cuts 57->36 calls,
+  not yet integrated/published; do not claim a ms gain before measuring.
+- The ECONOMY review asked to preserve the physical return after a lost destination on restore; patch still separate.
+- Reserved exclusively for the user's Claude: logistics AI and PERSISTENCE in PARALLEL_AGENTS;
+  no Codex takes them. Minimap recorded as future work with the UI, no current priority.
+- Lab PID2832 closed when moving to offline work; Steam preserved. No active export callback
+  nor bot. Next batch: per-component transform and mask guards, offline tests before a clean load.
+## 2026-10-09 — Optimization measured in a clean load and regional snapshot
 
-- PID2832/HomeRegionW com fonte otimizada:6soldados/168cópias, ordem de movimento aceita,
-  32,96s/1709quadros: stratTick7,91ms, mod8,94ms/quadro. Anterior6selecionados16,72ms (outro trecho17,87).
-  Redução observada~53% vs16,72; não benchmark controlado de render/FPS, ainda custo importante.
-- CollectGarbage e desseleção/reseleção dos seis passaram,28cópias cada; nenhum hotpatch nem input.
-  Fonte/lab medição limpa, sem reduzir aparência. Prolongado/zoom alto/entrada visual permanecem gates.
-- Snapshot real HomeRegionW:127CP/122segmentos/468nós;95assets estrada,27não-estrada bloqueados.
-  Incidências sem ambiguidade neste snapshot; duas componentes de estrada desconectadas, sem link inventado.
-  Todas arestas físicas ainda validated=false; instalações/paradas ainda não conectadas.
-  Snapshot/teste/relatório em data/parallel/roads/; teste reproduzido PASS.
-- CONTRAPROVA: apósGC/reseleção6, nova janela1873quadros mediu stratTick16,40ms/mod17,46ms,
-  95,42s desde início. Ganho inicial~53% NÃO sustentado nesta repetição; investigar recriação/acúmulo
-  e condições de medição antes de alegar otimização temporal. README corrigido; agente notificado.
+- PID2832/HomeRegionW with the optimized source: 6 soldiers/168 copies, move order accepted,
+  32.96 s/1709 frames: stratTick 7.91 ms, mod 8.94 ms/frame. Previously 6 selected 16.72 ms (another stretch 17.87).
+  Observed reduction ~53% vs 16.72; not a controlled render/FPS benchmark, still an important cost.
+- CollectGarbage and deselecting/reselecting the six passed, 28 copies each; no hotpatch nor input.
+  Source/lab clean measurement, without reducing the look. Prolonged/high zoom/visual input remain gates.
+- Real HomeRegionW snapshot: 127 CPs/122 segments/468 nodes; 95 road assets, 27 non-road blocked.
+  Incidences unambiguous in this snapshot; two disconnected road components, no invented link.
+  All physical edges still validated=false; installations/stops not yet connected.
+  Snapshot/test/report in data/parallel/roads/; test reproduced PASS.
+- COUNTERPROOF: after GC/reselecting 6, a new window of 1873 frames measured stratTick 16.40 ms/mod 17.46 ms,
+  95.42 s since the start. The initial ~53% gain was NOT sustained in this repeat; investigate recreation/accumulation
+  and measurement conditions before claiming a time optimization. README fixed; agent notified.
 
-## 2026-10-09 — Contorno: setter único integrado; exportação de estradas em andamento
+## 2026-10-09 — Outline: single setter integrated; road export in progress
 
-- Oráculo nativo K2_SetActorTransform/MakeTransform comparou posição/rotação/escala contra3setters,
-  incluindo inclinação/escala não uniforme; tabelas packed passaram, erro ~7,63e-06 no caso original.
-- Integrado setter1x/cópia e conversão1x/peça mantendo homotetia/28cópias/guards. Teste offline8cópias,
-  2peças/3câmeras preservou geometria; estimativa106->57 UFunctions/soldado/quadro. Ordens/globals PASS.
-  Fonte nova ainda não publicada nesta medição: carga limpa/ganho em ms pendentes. Não usar hotpatch.
-- Rede HomeRegionW: incidência explícita CP0/CP1 em Segment0 e primeiro ponto equivalente CP0 confirmados.
-  Transformação nativa local->world e índice1 de Points verificados, num4 e diferenças zero.
-  Malha EditorLandscapeResources/SplineEditorMesh não é estrada; RoadT3Gravel01Snow confirmado em outros exemplos.
-- Exportador fatiado em callback16ms, um elemento por etapa, sink persistente _G.roadsExport: running589linhas
-  na última consulta. Não reiniciar enquanto esse trabalho está ativo; aguardar done/failure e salvar resultado.
-  Não inferir transitabilidade física do asset. Economia ampliada permanece proposta offline/teste PASS, sem integração.
-## 2026-10-09 — Integração das primeiras entregas paralelas (validação ao vivo em curso)
+- A native K2_SetActorTransform/MakeTransform oracle compared position/rotation/scale against 3 setters,
+  including tilt/non-uniform scale; packed tables passed, error ~7.63e-06 in the original case.
+- Integrated setter 1x/copy and conversion 1x/part keeping homothety/28 copies/guards. Offline test 8 copies,
+  2 parts/3 cameras preserved geometry; estimate 106->57 UFunctions/soldier/frame. Orders/globals PASS.
+  The new source not yet published in this measurement: clean load/ms gain pending. Do not use a hotpatch.
+- HomeRegionW network: explicit incidence CP0/CP1 in Segment0 and the first point equivalent to CP0 confirmed.
+  Native local->world transform and Points index 1 verified, num 4 and zero differences.
+  The EditorLandscapeResources/SplineEditorMesh mesh is not a road; RoadT3Gravel01Snow confirmed in other examples.
+- Sliced exporter in a 16 ms callback, one element per step, persistent sink _G.roadsExport: running 589 lines
+  at the last query. Do not restart while this work is active; wait for done/failure and save the result.
+  Do not infer physical traversability from the asset. Expanded economy remains an offline proposal/test PASS, not integrated.
+## 2026-10-09 — Integration of the first parallel deliveries (live validation in progress)
 
-- Agentes independentes prepararam estabilidade, estradas e interface; artefatos e estado em PARALLEL_AGENTS.
-- Integrados somente guards de outlineDepth/updateOutline: recusar pawn/clone/câmera em destruição,
-  fontes inválidas/ausentes e limpar referências sem acessar CustomDepth do pawn em destruição.
-  Não é prova da causa ou solução das quedas nativas; contorno continua experimental.
-- test_lifetime.py executa helpers reais da fonte integrada; baseline em memória demonstra regressões.
-  Casos de destruição/fonte ausente/inválida/câmera e vivo PASS. Ordens/sintaxe/globals/custos/probe PASS.
-- Estradas: módulo/teste offline PASS, rede nativa ainda não exportada; sonda de metadados preparada.
-  Interface: painel/patch/teste PASS, ainda não integrado; caixa de seleção depende de projeção/DPI.
-- Publicado pelo restart.sh: PID4436, Steam preservado; desta vez janela War normal, mod carregado.
-  Carregamento do mundo/RTS e matriz de estabilidade ainda em curso, sem entrada injetada.
-- Atualização ao vivo PID4436/HomeRegionW: seleção28 cópias, desseleção/reseleção após30,49s,
-  morte pelo Health0/reap com referências apagadas e recriação28 cópias passaram. CollectGarbage
-  confirmado por metadados sem parâmetros e chamado; depois nova desseleção/reseleção passou
-  aos89,53s do ensaio. Não houve erro Registry/outline no log consultado. Teste curto, não certificação.
-  stratTick medido ~2,55ms/quadro para um selecionado: desempenho de grupos ainda pendente.
-- Sondas de estradas exportaram metadados e três exemplos em HomeRegionW: Connections StructProperty
-  de LandscapeSplineSegmentConnection (ControlPoint/TangentLen/SocketName), SplineInfo InterpCurveVector
-  com Points ArrayProperty. Cardinalidade/endpoints/curvas e classificação de estrada não exportados.
-  Saídas externas roads-schema-live.txt e roads-types-live.txt; não extrapolar descoberta para hex.
-- Grupo ao vivo: seis selecionados/168 cópias durante32,30s e1400 quadros, sem erro imediato;
-  stratTick16,72ms e mod17,70ms/quadro. Gargalo confirmado; aparência não será cortada para ocultar custo.
-  Agente estabilidade prepara otimização. INNER de Points/ConnectedSegments exportado com GetInner;
-  incidência ControlPoint->Segment/End pode evitar ler Connections sem cardinalidade, ainda não validada.
+- Independent agents prepared stability, roads and interface; artifacts and status in PARALLEL_AGENTS.
+- Integrated only the outlineDepth/updateOutline guards: refuse a pawn/clone/camera being destroyed,
+  invalid/missing sources and clear references without touching the CustomDepth of a pawn being destroyed.
+  It is not proof of the cause or a fix for the native crashes; the outline stays experimental.
+- test_lifetime.py runs real helpers of the integrated source; an in-memory baseline demonstrates regressions.
+  Cases of destruction/missing/invalid source/camera and alive PASS. Orders/syntax/globals/costs/probe PASS.
+- Roads: offline module/test PASS, native network not yet exported; metadata probe prepared.
+  Interface: panel/patch/test PASS, not yet integrated; the selection box depends on projection/DPI.
+- Published through restart.sh: PID4436, Steam preserved; this time a normal War window, mod loaded.
+  World/RTS load and the stability matrix still in progress, no injected input.
+- Live update PID4436/HomeRegionW: selection 28 copies, deselect/reselect after 30.49 s,
+  death by Health 0/reap with references cleared and recreation of 28 copies passed. CollectGarbage
+  confirmed by metadata with no parameters and called; then a new deselect/reselect passed
+  at 89.53 s into the rehearsal. No Registry/outline error in the log checked. A short test, not certification.
+  stratTick measured ~2.55 ms/frame for one selected: group performance still pending.
+- Road probes exported metadata and three examples in HomeRegionW: Connections StructProperty
+  of LandscapeSplineSegmentConnection (ControlPoint/TangentLen/SocketName), SplineInfo InterpCurveVector
+  with Points ArrayProperty. Cardinality/endpoints/curves and road classification not exported.
+  External outputs roads-schema-live.txt and roads-types-live.txt; do not extrapolate the finding to a hex.
+- Live group: six selected/168 copies for 32.30 s and 1400 frames, no immediate error;
+  stratTick 16.72 ms and mod 17.70 ms/frame. Bottleneck confirmed; the look will not be cut to hide the cost.
+  The stability agent prepares an optimization. INNER of Points/ConnectedSegments exported with GetInner;
+  ControlPoint->Segment/End incidence may avoid reading Connections without cardinality, not yet validated.
 
-## 2026-10-09 — Retomada do laboratório e tentativa de delegação Claude
+## 2026-10-09 — Lab resumed and a Claude delegation attempt
 
-- Steam voltou (PID22164); restart.sh passou as travas e lançou somente a cópia PID20144.
-- Carregamento ainda não chegou ao RTS: título observado `Selecionar D:\FoxholeLab\Foxhole\War\Binaries\Win64\War-Win64-Shipping.exe`, CPU2,56 sem avanço em observações sucessivas, log parado após PS Scan finished17:43:25.
-  Evidência aponta seleção de texto do console/QuickEdit, não prova de crash nem falha do contorno.
-  Solicitado ao usuário sair da seleção manualmente; nenhuma entrada injetada, nenhum reinício por timeout.
-- Usuário autorizou CLI Claude para trabalho paralelo. Tentativa Sonnet limitada a Read/Grep/Glob,
-  análise offline da navegação (sem writes/laboratório), terminou exit1: OAuth expirado e sem refresh.
-  Resultado/erro em D:/tools/foxhole-lab/claude-roads-{report,stderr}.txt. Sem tarefa Claude ativa.
-- Nenhuma alteração no main.lua; contorno permanece experimental. Próximo: liberar console e executar
-  teste controlado de criação/desseleção/reseleção/morte; renovar login Claude pelo próprio usuário.
-## 2026-10-09 — Retomada: estabilidade prioritária; laboratório bloqueado pelo Steam fechado
+- Steam came back (PID22164); restart.sh passed the locks and launched only the copy PID20144.
+- The load has not reached RTS yet: observed title `Selecionar D:\FoxholeLab\Foxhole\War\Binaries\Win64\War-Win64-Shipping.exe`, CPU 2.56 with no progress over successive observations, log stopped after PS Scan finished 17:43:25.
+  The evidence points to console text selection/QuickEdit, not proof of a crash nor an outline failure.
+  Asked the user to leave the selection manually; no injected input, no restart on timeout.
+- The user authorized the Claude CLI for parallel work. A Sonnet attempt limited to Read/Grep/Glob,
+  offline navigation analysis (no writes/lab), ended exit 1: OAuth expired and no refresh.
+  Result/error in D:/tools/foxhole-lab/claude-roads-{report,stderr}.txt. No active Claude task.
+- No change to main.lua; the outline stays experimental. Next: free the console and run a
+  controlled creation/deselect/reselect/death test; the user renews the Claude login themselves.
+## 2026-10-09 — Resumed: stability first; lab blocked because Steam was closed
 
-- Pedido confirmado: continuar até um mod profissional, seguindo o roadmap; não apenas aparência.
-- Relidos Como retomar, rastro de seleção e fluxo do contorno; consultados universal-modder,
-  reverse-engineering/oráculos e playbook Unreal. Nenhuma causa nativa isolada ainda.
-- Testes offline executados: test_orders.py, test_costs.py e test_inventory_probe.py PASS.
-  Isso não certifica estabilidade de GC/MasterPose/callbacks no engine.
-- Tentativa pelo restart.sh recusada pela trava legítima: Steam fechado. Nenhum processo Steam/War
-  encontrado. Não abrir/login pelo usuário nem contornar a verificação de posse.
-- Neste ambiente `bash` resolve para WSL sem /bin/bash; usar C:/Program Files/Git/bin/bash.exe.
-  restart.sh continua esperando log mesmo quando lab.ps1 recusa a partida (pipeline grep mascara
-  a falha). Espera interrompida; nenhuma validação ao vivo e nenhuma alteração em main.lua.
-- Corrigido restart.sh externo: captura o resultado de lab.ps1 antes de filtrar PID e encerra
-  imediatamente em falha. bash -n PASS; recusa real por Steam fechado retornou exit1 em 1,2s,
-  sem esperar os 240s nem iniciar o jogo. Não altera a trava de posse.
-- Próximo passo: usuário abrir Steam e fazer login; então reproduzir/isolar contorno por componente,
-  GC, desseleção/reseleção e morte. Não ampliar features antes da estabilidade pendente.
-## 2026-10-09 — Lote 17: implantação no hex; contorno completo aprovado visualmente, estabilidade pendente
+- Request confirmed: continue toward a professional mod, following the roadmap; not just the look.
+- Reread How to resume, the selection trace and the outline flow; consulted universal-modder,
+  reverse-engineering/oracles and the Unreal playbook. No native cause isolated yet.
+- Offline tests run: test_orders.py, test_costs.py and test_inventory_probe.py PASS.
+  This does not certify GC/MasterPose/callback stability in the engine.
+- An attempt through restart.sh refused by the legitimate lock: Steam closed. No Steam/War process
+  found. Do not open/log in for the user nor bypass the ownership check.
+- In this environment `bash` resolves to WSL without /bin/bash; use C:/Program Files/Git/bin/bash.exe.
+  restart.sh kept waiting for the log even when lab.ps1 refused the start (the grep pipeline masks
+  the failure). Wait interrupted; no live validation and no change to main.lua.
+- Fixed the external restart.sh: captures lab.ps1's result before filtering the PID and exits
+  immediately on failure. bash -n PASS; a real refusal because Steam was closed returned exit 1 in 1.2 s,
+  without waiting the 240 s nor starting the game. It does not change the ownership lock.
+- Next step: the user opens Steam and logs in; then reproduce/isolate the per-component outline,
+  GC, deselect/reselect and death. Do not widen features before the pending stability.
+## 2026-10-09 — Batch 17: deployment in the hex; full outline approved visually, stability pending
 
-- **Entregue:** Alt+L implanta uma cadeia faltante nos locais nativos, com orçamento próprio de 1100 bmat,
-  separado do estoque de produção. Reusa instalações existentes, substitui ruínas correspondentes na mesma
-  transformação (400+400), cria três TruckW (100 cada) em terreno Landscape com relevo/folga/separação checados.
-  Confere HP/maxHP/classe-base/posição/rotação. Falha destrói spawns parciais, restaura ocultação/colisão das
-  ruínas e não debita nem limpa a partida. Repetir não duplica. Inicio da logística preserva estacionamento real.
-- **Validação:** offline PASS (inclui terreno vs telhado, orçamento, autoridade, rollback, idempotência).
-  CallumsCape: preflight 2 instalações/3 vagas/1100; falha de HP forçada reverteu e preservou dois soldados,
-  saldo1100. Publicação final criou refinaria2700/fábrica2000/3 caminhões900, Team1, sem flag de destruição,
-  posições/rotações conferidas e repetição sem duplicar. Nova partida iniciou com seis soldados.
-  Em 65,21 s: três caixas produzidas, base recebeu duas de munição e dez camisas; três caminhões HP900.
-  Estoque inicial zerado para criar demanda, ondas desligadas: NÃO teste de equilíbrio/combate/estrada.
-- **Fonte da implantação validada:** SHA256 `ECDCB921424AA6374A7AA609E50B580A12A34573790A5229846ABAAFD3EA61F6`.
-  Infraestrutura/orçamento só nesta carga do mundo, não persistidos no save. Facilities não implementadas.
-  Caminhões continuam em reta/sem colisão: acesso por estrada/água/ponte ainda pendente.
-- **Feedback do usuário:** disco verde é marcador do caminhão; malha some longe do grupo na neve.
-  `rts.eyeTick` só escolhe soldados/base, nunca caminhões; isso explica a hipótese de LOS presa ao grupo,
-  não prova ausência por imagem. Usuário reforçou preferência por SILHUETA brilhante, não bolinhas.
-- **Seleção implementada:** contorno amarelo e preenchimento encoberto SOMENTE no aliado selecionado,
-  sem discos/bolinhas. O nativo `M_OccludedOutline` preenche partes encobertas, não contorna partes visíveis.
-  MID ancorado imediatamente num PostProcessVolume. Máscara/stencil reaplicados nas dez peças separadas;
-  também limpa o equipamento do comandante invisível, que deixava um vulto no soldado não selecionado.
-  Cópias skinned seguem cada peça via MasterPose/attach e atualização final de quadro, sem IA/colisão/sombra.
-  O usuário apontou desalinhamento fora do centro: corrigido com homotetia centrada na posição REAL da câmera,
-  não deslocamento pelo forward fixo. Amostrador de seguimento/projeção: 52 amostras/6s, movimento724,41cm,
-  erro máximo0,000985cm. Depois do feedback "só casaco", incluídos cabeça, mãos, pernas, mochila, capacete
-  e arma: quatro cópias por peça visível, 28 atores por soldado atual. Usuário confirmou "agora ficou bao".
-- **Estabilidade NÃO aprovada:** sonda MID sem ancoragem caiu12:45:33/PID15468 (hipótese GC, não prova).
-  Extensão ao soldado completo caiu13:22:45/PID7088 durante sonda, depois novamente13:26:51/PID9600
-  após renderizar 28 cópias corretamente. Ambas acesso nativo UE4SS/read0xffffffff, sem causa isolada;
-  pcall não protege. Último log também mostrou `Lua::Registry::get_function_ref: Ref was not function`.
-  Não atribuir conclusivamente a MasterPose, GC ou hotpatch. Contrato e limites em `data/trace_selection.txt`.
-  Offline PASS não substitui teste prolongado/GC/morte/reseleção no engine. Não considerar feature estável
-  nem continuar features antes de isolar essa queda numa próxima sessão autorizada.
-- **Encerramento:** usuário pediu parar após aprovar aparência. Fonte final publicada, sem logs temporários,
-  SHA256 `86DBED189308C449BED9DB3BCB12FD800D2C6F5430E6FCCC297BED8D00A40FFE` (fonte/laboratório iguais).
-  Laboratório PID2268 encerrado por pedido; Steam preservado. Não iniciar outro lote automaticamente.
-  Sondas ficam fora do repo, sem robô/amostrador rodando. Sem entrada injetada; cliques foram do usuário.
-  Universal-modder consultado no começo/fim, Gotchas38–42 atualizados; `um kb check` local, sem PR.
+- **Delivered:** Alt+L deploys a missing chain at native spots, with its own budget of 1100 bmat,
+  separate from the production stock. Reuses existing installations, replaces matching ruins with the same
+  transform (400+400), creates three TruckW (100 each) on Landscape terrain with relief/clearance/separation checked.
+  Checks HP/maxHP/base class/position/rotation. A failure destroys partial spawns, restores hiding/collision of the
+  ruins and neither debits nor clears the match. Repeating does not duplicate. Logistics start preserves the real parking.
+- **Validation:** offline PASS (includes terrain vs roof, budget, authority, rollback, idempotence).
+  CallumsCape: preflight 2 installations/3 slots/1100; a forced HP failure rolled back and preserved two soldiers,
+  balance 1100. The final publication created refinery 2700/factory 2000/3 trucks 900, Team 1, no destruction flag,
+  positions/rotations checked and a repeat without duplicating. A new match started with six soldiers.
+  In 65.21 s: three crates produced, the base received two ammo and ten shirts; three trucks HP 900.
+  Starting stock zeroed to create demand, waves off: NOT a balance/combat/road test.
+- **Validated deployment source:** SHA256 `ECDCB921424AA6374A7AA609E50B580A12A34573790A5229846ABAAFD3EA61F6`.
+  Infrastructure/budget only in this world load, not persisted in the save. Facilities not implemented.
+  Trucks still go straight/without collision: access by road/water/bridge still pending.
+- **User feedback:** the green disc is the truck's marker; the mesh disappears far from the group in the snow.
+  `rts.eyeTick` only picks soldiers/base, never trucks; that explains the hypothesis of LOS stuck to the group,
+  it does not prove absence from an image. The user restated a preference for a bright SILHOUETTE, not dots.
+- **Selection implemented:** yellow outline and occluded fill ONLY on the selected ally,
+  no discs/dots. The native `M_OccludedOutline` fills occluded parts, it does not outline visible parts.
+  MID anchored immediately in a PostProcessVolume. Mask/stencil reapplied on the ten separate parts;
+  also clears the invisible commander's equipment, which left a ghost on the unselected soldier.
+  Skinned copies follow each part via MasterPose/attach and an end-of-frame update, without AI/collision/shadow.
+  The user pointed out misalignment off center: fixed with a homothety centered on the camera's REAL position,
+  not an offset along a fixed forward. Following/projection sampler: 52 samples/6 s, movement 724.41 cm,
+  max error 0.000985 cm. After the "only the coat" feedback, added head, hands, legs, backpack, helmet
+  and weapon: four copies per visible part, 28 actors per current soldier. The user confirmed "agora ficou bao".
+- **Stability NOT approved:** the MID probe without anchoring crashed 12:45:33/PID15468 (GC hypothesis, not proof).
+  Extending to the full soldier crashed 13:22:45/PID7088 during a probe, then again 13:26:51/PID9600
+  after rendering 28 copies correctly. Both native UE4SS access/read 0xffffffff, no cause isolated;
+  pcall does not protect. The last log also showed `Lua::Registry::get_function_ref: Ref was not function`.
+  Do not conclusively blame MasterPose, GC or a hotpatch. Contract and limits in `data/trace_selection.txt`.
+  Offline PASS does not replace a prolonged/GC/death/reselect test in the engine. Do not consider the feature stable
+  nor continue features before isolating this crash in a next authorized session.
+- **Closing:** the user asked to stop after approving the look. Final source published, no temporary logs,
+  SHA256 `86DBED189308C449BED9DB3BCB12FD800D2C6F5430E6FCCC297BED8D00A40FFE` (source/lab equal).
+  Lab PID2268 closed on request; Steam preserved. Do not start another batch automatically.
+  Probes stay outside the repo, no bot/sampler running. No injected input; the clicks were the user's.
+  Universal-modder consulted at the start/end, Gotchas 38–42 updated; `um kb check` local, no PR.
 
-## 2026-10-09 — Lote 16: custos corretos e oráculos de reconstrução
+## 2026-10-09 — Batch 16: correct costs and rebuild oracles
 
-- **Correção de dados, não mudança de equilíbrio:** a sonda antiga lia `ItemCodeName` em custos de
-  estrutura/veículo; o tipo real é `CodeNameSmallQuantity.CodeName`. O `pcall` engolia o erro e exportava
-  vazio. Reexportados `data/game_costs.txt`: 281 itens, 592 estruturas, 184 veículos, 64 munições.
-  Refinaria e fábrica custam 400 bmat cada; TruckW custa 100. Receitas de caixas não mudaram.
-  Exportador reproduzível `tools/export_costs.lua` (erro interrompe, não vira zero) e teste `tools/test_costs.py`.
-- **Sondas temporárias em CallumsCape:** classes ativas de refinaria/fábrica nasceram nas transformações das
-  ruínas, HP2700/2000, TeamId1 e BaseStructureClass correspondentes. Um canteiro cru veio com alvo `None`
-  e requisitos zero: isso **não** conclui construção. Reflexão + Ghidra read-only ainda não acharam/validaram
-  uma chamada pública de conclusão. Não perseguido inventário/RPC. Contrato parcial e limites em
-  `data/trace_rebuild.txt`; não há ainda reconstrução jogável nem cadeia pronta no hex.
-- **Falha de estacionamento medida:** trace vertical pegou telhado de armazém, não chão; outro TruckW
-  retornou IsValid com HP300/posição zero e foi rejeitado pelo inventário ativo (2/3). Bounds da fábrica
-  incluem volumes gigantes, não são seu footprint. Próxima construção exige orçamento explícito, rollback,
-  superfície/folga verificadas e estrada; não basta spawn num offset. Três caminhões + duas instalações
-  custariam 1100 bmat, separados dos 240 bmat iniciais de produção da logística.
-- **Correção pequena no mod:** `logi.convoySpawn` agora rejeita `bActorIsBeingDestroyed` antes de tocar no
-  pawn, contar ou alertar. Mesmo contrato que o inventário regional já usava; comentário velho de locais
-  fictícios corrigido. Teste offline cobre retorno IsValid já em destruição e proíbe mexer nele.
-- **Validação:** testes de custos, suite de ordens/sintaxe e globals PASS. Publicado/reiniciado pelo script;
-  em HomeRegionW a logística abriu com três caminhões e o comboio colonial nasceu HP900, flag de destruição
-  false. Recusa do retorno em destruição foi testada offline, não forçada neste spawn ao vivo.
-  Hash fonte/lab igual: `1411C81F01ADD984272C20C698D3B21F001FC43237477A0FCFD14C264A58FEC5`.
-  Sem erro do mod no log da validação; não houve nova tecla nem teste de entrada real.
-- **Encerramento:** probes de CallumsCape destruídos e colisões das ruínas restauradas; PIDs996/13368 da
-  cópia encerrados. `map.txt` temporário removido (padrão HomeRegionW), Steam PID1508 preservado.
-  Aprendizados 35–37 locais no universal-modder; `um kb check` PASS (60 notas), sem PR.
-  Conferência final: nenhum processo War; Steam PID1508 preservado. Próximo lote: implantação offline nos locais fixos,
-  com orçamento próprio e estacionamento seguro; depois transporte pela rede nativa de estradas.
+- **Data fix, not a balance change:** the old probe read `ItemCodeName` in structure/vehicle
+  costs; the real type is `CodeNameSmallQuantity.CodeName`. The `pcall` swallowed the error and exported
+  empty. Re-exported `data/game_costs.txt`: 281 items, 592 structures, 184 vehicles, 64 ammo types.
+  Refinery and factory cost 400 bmat each; TruckW costs 100. Crate recipes did not change.
+  Reproducible exporter `tools/export_costs.lua` (an error stops, it does not become zero) and test `tools/test_costs.py`.
+- **Temporary probes in CallumsCape:** active refinery/factory classes spawned at the ruins'
+  transforms, HP 2700/2000, TeamId 1 and matching BaseStructureClass. A raw construction site came with target `None`
+  and zero requirements: this does **not** complete construction. Reflection + read-only Ghidra have not yet found/validated
+  a public completion call. Inventory/RPC not pursued. Partial contract and limits in
+  `data/trace_rebuild.txt`; there is no playable rebuild nor a ready chain in the hex yet.
+- **Parking failure measured:** the vertical trace hit a warehouse roof, not the ground; another TruckW
+  returned IsValid with HP 300/zero position and was rejected by the active inventory (2/3). The factory's bounds
+  include giant volumes, they are not its footprint. The next construction requires an explicit budget, rollback,
+  verified surface/clearance and a road; a spawn at an offset is not enough. Three trucks + two installations
+  would cost 1100 bmat, separate from the logistics' 240 starting production bmat.
+- **Small fix in the mod:** `logi.convoySpawn` now rejects `bActorIsBeingDestroyed` before touching the
+  pawn, counting or alerting. Same contract the regional inventory already used; an old comment about fictitious
+  spots fixed. The offline test covers an IsValid return already being destroyed and forbids touching it.
+- **Validation:** cost tests, the orders/syntax suite and globals PASS. Published/restarted through the script;
+  in HomeRegionW logistics opened with three trucks and the colonial convoy spawned HP 900, destruction flag
+  false. Refusing a return being destroyed was tested offline, not forced in this live spawn.
+  Source/lab hash equal: `1411C81F01ADD984272C20C698D3B21F001FC43237477A0FCFD14C264A58FEC5`.
+  No mod error in the validation log; no new key nor real input test.
+- **Closing:** CallumsCape probes destroyed and ruin collisions restored; PIDs 996/13368 of the
+  copy closed. Temporary `map.txt` removed (default HomeRegionW), Steam PID1508 preserved.
+  Learnings 35–37 local in universal-modder; `um kb check` PASS (60 notes), no PR.
+  Final check: no War process; Steam PID1508 preserved. Next batch: offline deployment at the fixed spots,
+  with its own budget and safe parking; then transport along the native road network.
 
-## 2026-10-09 — Lote 15: inventário regional, partida sem logística fictícia
+## 2026-10-09 — Batch 15: regional inventory, match without fictitious logistics
 
-- **Reconhecimento por atores, não por imagem:** Deadlands carregou com 634 segmentos de paisagem/estrada,
-  596 pontos de controle, 23 PlayerStart e fábrica em ruínas; nenhuma instância ativa nas classes de campo,
-  refinaria, fábrica e caminhões pesquisadas. CallumsCape carregou com 431 segmentos/405 pontos, um campo
-  de sucata ativo, duas fábricas e uma refinaria em ruínas, nenhum PlayerStart ou caminhão pesquisado.
-  Rastro em `data/trace_regions.txt`, sonda reutilizável `tools/inspect_region.lua`. São estados locais
-  carregados, **não** prova de ausência no mapa/servidor. Pesquisa incluiu histograma das classes derivadas.
-- **Alerta do usuário persistido:** estruturas podem ficar invisíveis conforme ângulo/oclusão, veículos por LOS.
-  Nunca transformar falta na captura em falta no inventário. Regra em AGENTS, README/estudo/roteiro atualizados.
-- **Autostart regional:** comparação do caminho sem maiúsculas (`DeadlandsHex` do índice abre como
-  `DeadLandsHex`); só conclui quando o RTS realmente ligou. CallumsCape não tinha âncora pesquisada;
-  campo de sucata agora é último recurso depois dos PlayerStart/veículos. Sem coordenada regional hardcoded.
-- **Logística (`scan`/`ready`):** retirados campo/refinaria/fábrica imaginários e caminhões sem pawn.
-  Nova partida/assalto e continuar com logística checam atores ativos antes de apagar a sessão anterior.
-  Ruínas ainda não funcionam como instalações; atores ocultos continuam disponíveis. Atores marcados para
-  destruição não contam só porque IsValid ainda é true. Comboio sem classe/ator criado não soma contador/carga.
-- **Base de navegação:** concluídos os testes do parâmetro opcional do A* (volume/chão/degrau/orçamento,
-  falha estrita sem reta de emergência, job.done); quatro sondas a 12 m em Deadlands usaram UFunctions nativas
-  (36–54 ms síncronos). **Caminhões continuam em reta**; faltam integração à rede, acesso externo e teste de
-  água/ponte. Não confundir esta base técnica com transporte por estrada entregue.
-- **Validação:** suite offline e globals PASS; publicado/reiniciado, hashes da fonte e laboratório iguais.
-  CallumsCape: autostart ligado, comandante HP100 via campo, nova partida e assalto recusados preservando
-  dois soldados reais. HomeRegionW: autostart, fábrica explicitamente ocultada ainda descoberta, partida com
-  seis soldados/três caminhões reais; em 118 s, três caixas produzidas e uma entrega. Estoque inicial da base
-  esvaziado de propósito para criar demanda, ondas desligadas: **não é teste de equilíbrio**. Comboio colonial
-  criado com pawn real. Nenhum erro do mod no log desta validação; entrada real pendente (12x).
-- **Encerramento:** configuração temporária de mapa removida (próxima abertura volta a HomeRegionW);
-  PIDs 19896/14176 da cópia encerrados após as sondas. Conferência: nenhum processo do jogo, Steam preservado.
-  Aprendizados 33–34 no universal-modder; `um kb check` PASS (60 notas), sem PR.
-- **Próximo lote:** rastrear reconstrução nativa das ruínas de CallumsCape e criação de caminhões reais do
-  cenário, depois ligar a rede de estradas descoberta ao transporte. Ainda não há cadeia jogável em um hex real.
+- **Recognition by actors, not by image:** Deadlands loaded with 634 landscape/road segments,
+  596 control points, 23 PlayerStarts and a ruined factory; no active instance in the field,
+  refinery, factory and truck classes searched. CallumsCape loaded with 431 segments/405 points, one active
+  salvage field, two factories and a refinery in ruins, no PlayerStart or truck searched.
+  Trace in `data/trace_regions.txt`, reusable probe `tools/inspect_region.lua`. These are local loaded
+  states, **not** proof of absence on the map/server. The search included a histogram of derived classes.
+- **User warning persisted:** structures may become invisible depending on angle/occlusion, vehicles by LOS.
+  Never turn something missing in a capture into something missing in the inventory. Rule in AGENTS, README/study/script updated.
+- **Regional autostart:** case-insensitive path comparison (`DeadlandsHex` from the index opens as
+  `DeadLandsHex`); it only finishes when RTS really turned on. CallumsCape had no searched anchor;
+  the salvage field is now the last resort after PlayerStarts/vehicles. No hardcoded regional coordinate.
+- **Logistics (`scan`/`ready`):** removed the imaginary field/refinery/factory and trucks without a pawn.
+  New match/assault and continue with logistics check active actors before clearing the previous session.
+  Ruins do not work as installations yet; hidden actors remain available. Actors marked for
+  destruction do not count just because IsValid is still true. A convoy without a created class/actor does not add to the counter/cargo.
+- **Navigation base:** finished the tests of the A*'s optional parameter (volume/floor/step/budget,
+  strict failure without an emergency straight line, job.done); four probes at 12 m in Deadlands used native UFunctions
+  (36–54 ms synchronous). **Trucks still go straight**; missing integration with the network, external access and a test of
+  water/bridge. Do not confuse this technical base with delivered road transport.
+- **Validation:** offline suite and globals PASS; published/restarted, source and lab hashes equal.
+  CallumsCape: autostart on, commander HP 100 via the field, new match and assault refused preserving
+  two real soldiers. HomeRegionW: autostart, an explicitly hidden factory still discovered, a match with
+  six soldiers/three real trucks; in 118 s, three crates produced and one delivery. The base's starting stock
+  emptied on purpose to create demand, waves off: **not a balance test**. Colonial convoy
+  created with a real pawn. No mod error in this validation's log; real input pending (12x).
+- **Closing:** temporary map configuration removed (the next start goes back to HomeRegionW);
+  copy PIDs 19896/14176 closed after the probes. Check: no game process, Steam preserved.
+  Learnings 33–34 in universal-modder; `um kb check` PASS (60 notes), no PR.
+- **Next batch:** trace the native rebuild of the CallumsCape ruins and the creation of the scenario's real trucks,
+  then link the discovered road network to transport. There is still no playable chain in a real hex.
 
-## 2026-10-09 — Região real e construção: correção de escopo do usuário
+## 2026-10-09 — Real region and construction: the user's scope correction
 
-- HomeRegionW é a ilha de treinamento/embarque dos Wardens, não um hex da guerra. ROADMAP e estudo
-  corrigidos: continua como bancada, mas a fase 3 exige reconhecer e validar uma região `Maps/Master/*Hex`.
-  Não assumir atores de guerra apenas porque o cliente contém o mapa; verificar carregamento/streaming,
-  posição inicial, terreno, estradas e instalações presentes, sem coordenadas fixas do lobby.
-- Separados no roteiro os dois ramos: estruturas urbanas fixas (fábrica/refinaria) e facilities construídas
-  pelos jogadores. Contexto externo explicitamente citado no ROADMAP, separado dos dados extraídos do cliente
-  em ESTUDO_MECANICAS. Construção/receitas precisam de rastro local antes de implementação offline.
-- **Rascunho não publicado:** o A* em `main.lua` aceita limites opcionais de navegação (volume, chão,
-  degrau, célula e orçamento), sem retorno em reta numa falha estrita; jobs sinalizam `done`.
-  Testes offline existentes e globals passaram, mas faltam testes específicos e validação ao vivo.
-  Caminhões ainda não usam isso nem seguem a rede nativa: não considerar feature entregue.
-  Backup pré-rascunho: `D:/tools/foxhole-lab/main-before-roads.lua`.
-- Apenas documentação nesta correção de escopo; não publicado/reiniciado o jogo. Laboratório continua fechado
-  (nenhum `War-Win64-Shipping.exe` na conferência). Universal-modder consultado; gotcha 32 registrado;
-  `um kb check`: **PASS, 60 notas**, nenhum PR.
+- HomeRegionW is the Wardens' training/boarding island, not a war hex. ROADMAP and the study
+  fixed: it remains a test bench, but phase 3 requires recognizing and validating a `Maps/Master/*Hex` region.
+  Do not assume war actors just because the client contains the map; check loading/streaming,
+  starting position, terrain, roads and present installations, without fixed lobby coordinates.
+- Separated the two branches in the plan: fixed urban structures (factory/refinery) and facilities built
+  by players. External context explicitly cited in ROADMAP, separate from data extracted from the client
+  in MECHANICS_STUDY. Construction/recipes need a local trace before an offline implementation.
+- **Unpublished draft:** the A* in `main.lua` accepts optional navigation limits (volume, floor,
+  step, cell and budget), without a straight-line return on strict failure; jobs signal `done`.
+  Existing offline tests and globals passed, but specific tests and live validation are missing.
+  Trucks do not use it yet nor follow the native network: do not consider the feature delivered.
+  Pre-draft backup: `D:/tools/foxhole-lab/main-before-roads.lua`.
+- Documentation only in this scope correction; the game was not published/restarted. The lab stays closed
+  (no `War-Win64-Shipping.exe` in the check). Universal-modder consulted; gotcha 32 recorded;
+  `um kb check`: **PASS, 60 notes**, no PR.
 
-## 2026-10-09 — Laboratório fechado quando ocioso (pedido do usuário)
+## 2026-10-09 — Lab closed when idle (user's request)
 
-- Nova regra persistida em `AGENTS.md`: fechar a cópia ao terminar a validação ou passar ao trabalho offline;
-  deixar aberta só durante testes ativos ou por pedido do usuário. Nunca encerrar Steam nem o cliente oficial.
-- Sem robô ou teste ativo, encerrado apenas o PID **13112**, conferido como
+- New rule persisted in `AGENTS.md`: close the copy when the validation ends or when moving to offline work;
+  leave it open only during active tests or at the user's request. Never close Steam nor the official client.
+- With no bot or active test, closed only PID **13112**, checked as
   `D:/FoxholeLab/Foxhole/War/Binaries/Win64/War-Win64-Shipping.exe`, via `um win kill`.
-- Investigação das estradas já preservada fora do repositório: `D:/tools/foxhole-lab/road_graph.tsv`,
-  `t_road_*.lua`, `road_inspect.py`. HomeRegionW tem 122 `LandscapeSplineSegment`, dos quais 95 com malha
-  em `/Roads/`; os demais 27 usam `SplineEditorMesh` (não tratar como estrada). `Points.Center` e os
-  `ControlPoint.ConnectedSegments` permitem reconstruir curvas/conexões reais; 595 nós, 563 arestas,
-  duas redes (397 e 166 nós). Coordenadas são locais: aplicar `KismetMathLibrary:TransformLocation` com
-  o transform do `LandscapeSplinesComponent`. `Connection.End` é bool (não inteiro).
-- Próxima etapa: acessos transitáveis das instalações à rede e movimento de caminhões por essa rede.
-  Refinaria/fábrica estão afastadas dos nós das estradas (mais de 100 m): não basta substituir a reta por
-  "nó mais perto"; verificar acesso, ponte e ponto externo de carga/descarga antes de publicar.
+- Road investigation already preserved outside the repository: `D:/tools/foxhole-lab/road_graph.tsv`,
+  `t_road_*.lua`, `road_inspect.py`. HomeRegionW has 122 `LandscapeSplineSegment`s, 95 of them with a mesh
+  in `/Roads/`; the other 27 use `SplineEditorMesh` (do not treat as a road). `Points.Center` and the
+  `ControlPoint.ConnectedSegments` allow rebuilding real curves/connections; 595 nodes, 563 edges,
+  two networks (397 and 166 nodes). Coordinates are local: apply `KismetMathLibrary:TransformLocation` with
+  the `LandscapeSplinesComponent`'s transform. `Connection.End` is a bool (not an integer).
+- Next step: traversable accesses from the installations to the network and truck movement along that network.
+  The refinery/factory are far from the road nodes (more than 100 m): replacing the straight line with
+  "nearest node" is not enough; check access, bridge and an external load/unload point before publishing.
 
-## 2026-10-09 (manhã, 15) — Lote 14: morte nativa; fim da corrida no corpo
+## 2026-10-09 (morning, 15) — Batch 14: native death; no more running on the corpse
 
-- **Bug reproduzido e causa medida:** soldado morto em marcha ficava com `Health=0`, velocidade e
-  `AnimInstance.Speed=500 cm/s`, até sumir aos 20 s. `ApplyDamage` no host não acionava `OnRep_Health`.
-  Sonda de personagem nativo e do RTS, lista de UFunctions e enum de atividades precederam a correção.
-- **Fluxo encontrado:** `SimCharacter:OnRep_Health` → ragdoll nativo. Ghidra confirmou o wrapper
-  `0x141227ed0` → `0x140b04440` → `0x140b107f0` (perfil `Ragdoll`, física da malha); `BPCinematicDeath`
-  sozinho não fez a transição testada. Sem RPC, inventário, teclado/mouse ou mudança de isolamento/Steam.
-- **Correção (`anim.retire`, no `reap` compartilhado pelos dois lados):** remover marcadores/cache antes da
-  notificação nativa; consumir entrada, zerar velocidade, restaurar atrito/frenagem/aceleração guardados no
-  nascimento, sair da mira e chamar `OnRep_Health` uma vez. `postureTick` ignora mortos. `untrack` zera
-  `animAddr` e não remove o dono novo de um endereço reciclado. O corpo permanece 20 s; controlador vai ao pool.
-- **Validação:** testes offline + `check_globals.py` passaram; publicado pelo `restart.sh`. Ao vivo, morto
-  marchando a 500 cm/s passou a velocidade zero, valores originais de movimento, cache vazio, física da malha
-  ativa e AnimInstance inválido. Captura `D:/tools/foxhole-lab/death-fixed_small.png` conferida: corpo caído.
-  Contrato persistido em `data/trace_death.txt`; probes/rastros e decompilação ficam fora do repositório.
-- **Cuidado nas sondas:** nunca consultar pawn após o TTL nem AnimInstance após ligar o ragdoll; `IsValid`
-  pode mentir até o GC. Loop de amostragem precisa de guarda `active` (o `return true` não encerrou a sonda).
-  Uma sonda tardia sem essa proteção deixou o canal sem resposta; recuperado com reinício, não Ctrl+R.
-- README, ROADMAP e teste manual 12w atualizados. **Regressão concluída:** robô em 3x, passo a cada 3 s reais,
-  6:32 de jogo, derrota na onda 6, **36 abates / 26 perdas**, sem crash ou erro de cache. A conferência do cache
-  passou nos 31 passos, incluindo mortes dos dois lados e reuso de controladores. Não comparar este resultado
-  de equilíbrio diretamente com os lotes 12–13 (1x/outra cadência); continuam pendentes 2–3 partidas em 1x.
-  Robô encerrado; laboratório deixado em 1x, seis soldados e ondas automáticas desligadas, pronto para teste.
-- Universal-modder consultado no início (`kb search foxhole/death/unreal`, skills de RE e Unreal); gotcha 21
-  corrigido e gotchas 28–29 acrescentados localmente. `um kb check`: **PASS, 60 notas**; nenhum PR.
+- **Bug reproduced and cause measured:** a soldier killed while marching kept `Health=0`, velocity and
+  `AnimInstance.Speed=500 cm/s`, until disappearing at 20 s. `ApplyDamage` on the host did not trigger `OnRep_Health`.
+  A probe of the native and the RTS character, a list of UFunctions and the activity enum preceded the fix.
+- **Flow found:** `SimCharacter:OnRep_Health` → native ragdoll. Ghidra confirmed the wrapper
+  `0x141227ed0` → `0x140b04440` → `0x140b107f0` (profile `Ragdoll`, mesh physics); `BPCinematicDeath`
+  alone did not make the tested transition. No RPC, inventory, keyboard/mouse or isolation/Steam change.
+- **Fix (`anim.retire`, in the `reap` shared by both sides):** remove markers/cache before the
+  native notification; consume input, zero velocity, restore friction/braking/acceleration saved at
+  spawn, leave aiming and call `OnRep_Health` once. `postureTick` ignores the dead. `untrack` zeroes
+  `animAddr` and does not remove the new owner of a recycled address. The body stays 20 s; the controller goes to the pool.
+- **Validation:** offline tests + `check_globals.py` passed; published through `restart.sh`. Live, a dead soldier
+  marching at 500 cm/s went to zero velocity, original movement values, empty cache, mesh physics
+  active and an invalid AnimInstance. Capture `D:/tools/foxhole-lab/death-fixed_small.png` checked: body on the ground.
+  Contract persisted in `data/trace_death.txt`; probes/traces and decompilation stay outside the repository.
+- **Care in the probes:** never query the pawn after the TTL nor the AnimInstance after enabling the ragdoll; `IsValid`
+  may lie until GC. A sampling loop needs an `active` guard (the `return true` did not end the probe).
+  A late probe without that protection left the channel unresponsive; recovered with a restart, not Ctrl+R.
+- README, ROADMAP and manual test 12w updated. **Regression finished:** bot at 3x, a step every 3 real s,
+  6:32 of game, defeat at wave 6, **36 kills / 26 losses**, no crash or cache error. The cache check
+  passed in all 31 steps, including deaths on both sides and controller reuse. Do not compare this balance
+  result directly with batches 12–13 (1x/another cadence); 2–3 matches at 1x remain pending.
+  Bot stopped; lab left at 1x, six soldiers and automatic waves off, ready for testing.
+- Universal-modder consulted at the start (`kb search foxhole/death/unreal`, RE and Unreal skills); gotcha 21
+  fixed and gotchas 28–29 added locally. `um kb check`: **PASS, 60 notes**; no PR.
 
-## 2026-10-09 (manhã, 14) — Lote 13: comboio inimigo
+## 2026-10-09 (morning, 14) — Batch 13: enemy convoy
 
-- `CFG.ECONVOY`, `logi.convoy*`: com ondas automáticas, a cada 35 s um caminhão colonial (`BPTruckC_C`, criado
-  com `LoadAsset` + `SpawnActor`: funciona) vai da retaguarda (90–200 m) à frente (45 m); chegando soma
-  `combat.cargo`; cada onda gasta até 2 cargas (`logi.waveCut`) e cada uma que falta tira 2 soldados (mín. 3).
-  Nossos soldados a 15 m o danificam (tiro visível); morteiro/granada acertam caminhões dos dois lados
-  (`logi.blast` em `shell`); destruído rende 25 de mão de obra. `logi.hit` unifica o dano dos caminhões.
-- Rota em reta passava por cima de penhasco (b13_conv.png): `logi.routeOk` amostra o chão a cada 10 m (degrau
-  ≤ 4 m, desnível ≤ 15 m). Ao vivo: 5/5 rotas válidas encontradas.
-- Testes offline passam (corte da onda, chegada soma carga, soldados destroem). Ao vivo: comboios chegando pela
-  rota validada (4 na primeira partida), caminhão no chão; ele some da tela fora da visão dos nossos soldados
-  (LOS do jogo, como os soldados inimigos); o disco vermelho da vista alta aparece sempre.
-- Robô (não embosca, então é o pior caso: todo comboio chega): **derrota na onda 10**, 83 abates / 38 perdas,
-  9 min, sem crash. 16 comboios chegaram, 0 destruídos; mesmo assim 5 ondas vieram menores por falta de carga
-  (35 s por comboio não acompanha o ritmo das ondas no fim); 7 entregas nossas, nenhum caminhão nosso perdido.
-  O comboio só encolhe ondas, então a derrota é variação do robô (lote 12: vitória com 24 perdas; antes do
-  lote 9: derrotas nas ondas 9–10). Próxima sessão: 2–3 partidas do robô para medir a variação.
-- README (seção Logística, item 7) e TESTE_MANUAL (12v) atualizados.
-- **Pedido do usuário ao fechar:** animação de morte (soldado "correndo" parado ao morrer) e o princípio
-  "rastrear antes de reinventar", com o universal-modder no começo e no fim de cada sessão (`ROADMAP.md`,
-  `CLAUDE.md`). A nota do Foxhole no universal-modder ganhou os gotchas 19–27 (local, `um kb check` PASS; sem PR).
+- `CFG.ECONVOY`, `logi.convoy*`: with automatic waves, every 35 s a colonial truck (`BPTruckC_C`, created
+  with `LoadAsset` + `SpawnActor`: works) goes from the rear (90–200 m) to the front (45 m); on arrival it adds
+  `combat.cargo`; each wave spends up to 2 loads (`logi.waveCut`) and each missing one removes 2 soldiers (min. 3).
+  Our soldiers within 15 m damage it (visible fire); mortar/grenade hit trucks of both sides
+  (`logi.blast` in `shell`); destroyed, it yields 25 manpower. `logi.hit` unifies truck damage.
+- A straight route went over a cliff (b13_conv.png): `logi.routeOk` samples the ground every 10 m (step
+  ≤ 4 m, height difference ≤ 15 m). Live: 5/5 valid routes found.
+- Offline tests pass (wave cut, arrival adds cargo, soldiers destroy). Live: convoys arriving by the
+  validated route (4 in the first match), truck on the ground; it disappears from the screen outside our soldiers' sight
+  (the game's LOS, like the enemy soldiers); the red disc of the high view always shows.
+- Bot (does not ambush, so it is the worst case: every convoy arrives): **defeat at wave 10**, 83 kills / 38 losses,
+  9 min, no crash. 16 convoys arrived, 0 destroyed; even so 5 waves came smaller for lack of cargo
+  (35 s per convoy does not keep up with the wave pace at the end); 7 deliveries of ours, none of our trucks lost.
+  The convoy only shrinks waves, so the defeat is bot variance (batch 12: victory with 24 losses; before
+  batch 9: defeats at waves 9–10). Next session: 2–3 bot matches to measure the variance.
+- README (Logistics section, item 7) and MANUAL_TEST (12v) updated.
+- **User's request at closing:** death animation (a soldier "running" in place when dying) and the principle
+  "trace before reinventing", with universal-modder at the start and end of each session (`ROADMAP.md`,
+  `CLAUDE.md`). The Foxhole note in universal-modder gained gotchas 19–27 (local, `um kb check` PASS; no PR).
 
-## 2026-10-09 (madrugada, 13) — Lote 12: logística v1
+## 2026-10-09 (early morning, 13) — Batch 12: logistics v1
 
-- **Cadeia (`CFG.LOGI`, tabela `logi`):** caminhão de recurso campo de sucata → refinaria (100 por viagem); refinaria
-  2:1 em bmat; fábrica faz caixas de munição (80 bmat, 50 s ×0,2) e camisas (80 bmat, 80 s ×0,2, 10 soldados),
-  no automático a mais em falta (Shift+L fixa); 2 caminhões de suprimentos (15 caixas) levam ao depósito mais
-  carente (base ou ponto nosso; L fixa o próximo). Recrutar gasta camisa do depósito (ponto sem camisa → base);
-  `resupply` ganhou o parâmetro do depósito (1 caixa = 6 recargas; vazio não recarrega e alerta). Ponto perdido
-  zera o estoque. Inimigo a 15 m de caminhão andando: 25 HP/s por inimigo; destruído some com a carga e volta em
-  30 s por 100 bmat. Save guarda os estoques (`logi.snapshot/restore`). Painel: 2ª linha "LOGÍSTICA".
-- **Lugares e caminhões do próprio mapa:** `FindAllOf("BPSalvageField_C"/"BPRefinery_C"/"BPFactory_C")` mais perto da
-  base (sem eles, pontos fixos); `BPTruckW_C` estacionados: movimento de personagem, sem física, então
-  `K2_SetActorLocation` + `groundZ` + yaw fica (medido: parado 2 s sem voltar). Sem colisão, em linha reta.
-- Validado ao vivo: sucata 100 → bmat 50, 3 caixas, entrega pinada na base (munição 6 → 8), captura b12_res.png.
-- `test_orders.py`: refinaria, escolha da fábrica, entrega, recarga gastando e falhando sem estoque.
-- Robô: **vitória nas 10 ondas**, 111 abates / 24 perdas, sem crash; 9 entregas (todas ao ponto A), 10 recrutas
-  caíram para a base por falta de camisa no ponto, 2 alertas de depósito sem munição, nenhuma emboscada.
-- Pendências: estrada (caminhões cortam caminho por cima de tudo), IA inimiga com logística, veículo como unidade.
+- **Chain (`CFG.LOGI`, table `logi`):** a resource truck from salvage field → refinery (100 per trip); refinery
+  2:1 into bmat; the factory makes ammo crates (80 bmat, 50 s ×0.2) and shirts (80 bmat, 80 s ×0.2, 10 soldiers),
+  automatically whichever is most lacking (Shift+L pins it); 2 supply trucks (15 crates) carry to the neediest
+  depot (base or a point of ours; L pins the next one). Recruiting spends a shirt from the depot (a point without shirts → base);
+  `resupply` gained the depot parameter (1 crate = 6 reloads; empty does not reload and alerts). A lost point
+  zeroes the stock. An enemy within 15 m of a moving truck: 25 HP/s per enemy; destroyed, it disappears with the cargo and comes back in
+  30 s for 100 bmat. The save keeps the stocks (`logi.snapshot/restore`). Panel: 2nd line "LOGÍSTICA".
+- **Places and trucks from the map itself:** `FindAllOf("BPSalvageField_C"/"BPRefinery_C"/"BPFactory_C")` nearest the
+  base (without them, fixed points); parked `BPTruckW_C`s: character movement, no physics, so
+  `K2_SetActorLocation` + `groundZ` + yaw sticks (measured: stopped for 2 s without moving back). No collision, in a straight line.
+- Validated live: salvage 100 → bmat 50, 3 crates, delivery pinned to the base (ammo 6 → 8), capture b12_res.png.
+- `test_orders.py`: refinery, factory choice, delivery, reloading spending and failing without stock.
+- Bot: **victory in the 10 waves**, 111 kills / 24 losses, no crash; 9 deliveries (all to point A), 10 recruits
+  fell back to the base for lack of shirts at the point, 2 alerts of a depot without ammo, no ambush.
+- Pending: roads (trucks cut across everything), enemy AI with logistics, vehicle as a unit.
 
-## 2026-10-09 (madrugada, 12) — Estudo das mecânicas do jogo
+## 2026-10-09 (early morning, 12) — Study of the game's mechanics
 
-- Índice do pak (v8, sem criptografia) → `data/pak_files.txt`; tabelas de custo/vida/combustível/carga
-  lidas com `DataTable:ForEachRow` → `data/game_costs.txt`; resumo em `MECHANICS_STUDY.md`.
-- Um dump genérico de todas as colunas derrubou o jogo em `BPAirDynamicData` (crash nativo); a leitura por colunas
-  conhecidas funcionou. Regra: ler só colunas de tipo simples.
-- HomeRegionW tem campos de sucata/componentes/enxofre/petróleo, refinarias, fábrica, base avançada e caminhões:
-  é a região pequena da fase 3 (logística v1).
+- Pak index (v8, no encryption) → `data/pak_files.txt`; cost/health/fuel/cargo tables
+  read with `DataTable:ForEachRow` → `data/game_costs.txt`; summary in `MECHANICS_STUDY.md`.
+- A generic dump of all columns crashed the game on `BPAirDynamicData` (native crash); reading known
+  columns worked. Rule: read only simple-type columns.
+- HomeRegionW has salvage/components/sulfur/oil fields, refineries, a factory, a forward base and trucks:
+  it is the small region of phase 3 (logistics v1).
 
-## 2026-10-09 (madrugada, 11) — Lote 11: várias frentes; roteiro
+## 2026-10-09 (early morning, 11) — Batch 11: several fronts; roadmap
 
-- **Pedido do usuário:** "para um RTS nível Foxhole, o cara vai ter que olhar muitas frentes", e depois: começar
-  numa região pequena e ir para o mundo todo; estudar navios, aviões, transporte, fabricação e logística ("a
-  guerra em si é a pequena parte da engrenagem"). Roteiro em `ROADMAP.md`.
-- **Zoom até 160 m** (`CAM_DIST_MAX` 16000; o teto de 60 m do lote 10 saiu). `rts.zoomGfx`: `r.ViewDistanceScale`
-  = altura / 20 m (mínimo 3), reaplicado a cada meio ponto. Validado: 160 m, escala 8, mapa inteiro desenhado.
-- **Ícones na vista alta** (`CFG.STRAT`, `rts.icon/stratTick`): acima de 60 m, disco com material `CalloutRed`
-  dinâmico (azul/laranja/vermelho), escala proporcional à altura. Inimigo só com a malha visível
-  (`Mesh.bHiddenInGame`), para não revelar quem o jogo esconde. Validado por captura (b11_strat.png).
-- **Alertas de frente** (`CFG.ALERTS`, `rts.alert/jumpAlert`): ponto sob ataque, ponto perdido, onda, baixa; fila
-  de 8 com lugar; mesmo tipo a 15 m em 20 s não repete; Espaço vai ao mais novo e, em 4 s, aos anteriores;
-  painel "! N alertas (Espaço)". Validado ao vivo (2 alertas da onda e do ponto tomado).
-- **Grupos 1–5** (Alt+1–5 atribui, toque duplo centraliza), **0 = todos** (antes 3). **Q/E** passam pelos pontos.
-  Espaço, Q, E, 4, 5 e 0 são ações do pawn no jogo (lidas de `InputSettings` ao vivo): aceitas no teste de teclas.
-- `S` entrou no `env` do canal. `test_orders.py`: alertas (repetição, Espaço anda na fila) e grupos.
-- Regressão do robô (lotes 9–11): **vitória na onda 5 por domínio** (3 pontos por 90 s), 39 abates / 17 perdas,
-  sem crash; as 5 ondas quebraram e fugiram, 1 evacuação automática. Antes do reequilíbrio, derrota nas ondas 7 e 6.
-  Atenção: agora pode estar fácil demais (as ondas quebradas não retomam pontos); observar nas próximas.
+- **User request:** "para um RTS nível Foxhole, o cara vai ter que olhar muitas frentes" (an RTS at Foxhole's level means watching many fronts), and then: start
+  in a small region and go to the whole world; study ships, planes, transport, manufacturing and logistics ("a
+  guerra em si é a pequena parte da engrenagem" — the war itself is the small part of the machine). Plan in `ROADMAP.md`.
+- **Zoom up to 160 m** (`CAM_DIST_MAX` 16000; batch 10's 60 m ceiling removed). `rts.zoomGfx`: `r.ViewDistanceScale`
+  = height / 20 m (minimum 3), reapplied every half step. Validated: 160 m, scale 8, whole map drawn.
+- **Icons in the high view** (`CFG.STRAT`, `rts.icon/stratTick`): above 60 m, a disc with a dynamic `CalloutRed`
+  material (blue/orange/red), scale proportional to height. Enemies only with a visible mesh
+  (`Mesh.bHiddenInGame`), so as not to reveal who the game hides. Validated by capture (b11_strat.png).
+- **Front alerts** (`CFG.ALERTS`, `rts.alert/jumpAlert`): point under attack, point lost, wave, casualty; a queue
+  of 8 with a location; the same type within 15 m in 20 s does not repeat; Space goes to the newest and, within 4 s, to the earlier ones;
+  panel "! N alertas (Espaço)". Validated live (2 alerts from the wave and the captured point).
+- **Groups 1–5** (Alt+1–5 assigns, double tap centers), **0 = all** (before 3). **Q/E** cycle through the points.
+  Space, Q, E, 4, 5 and 0 are pawn actions in the game (read from `InputSettings` live): accepted in the key test.
+- `S` entered the channel's `env`. `test_orders.py`: alerts (repetition, Space walks the queue) and groups.
+- Bot regression (batches 9–11): **victory at wave 5 by domination** (3 points for 90 s), 39 kills / 17 losses,
+  no crash; the 5 waves broke and fled, 1 automatic evacuation. Before the rebalance, defeat at waves 7 and 6.
+  Warning: it may now be too easy (broken waves do not retake points); watch in the next ones.
 
-## 2026-10-09 (madrugada, 10) — Lote 10: tempo, câmera WASD e roda, visual
+## 2026-10-09 (early morning, 10) — Batch 10: time, WASD camera and wheel, visuals
 
-- **Pausa tática (Pause / Ctrl+Espaço) e velocidade 1x/2x/3x (Insert):** `SetGlobalTimeDilation` (pausa =
-  0,0001). A câmera e o painel passaram a contar tempo real (`GetRealTimeSeconds`), senão congelavam junto.
-  Desligar o RTS volta a 1x. Validado: pausado, 0,001 s de jogo em 5 s reais e a ordem dada esperou; 2x medido
-  2,00 (14,2 s de jogo em 7,1 s reais); painel "PAUSADO" atualizando.
-- **Pedido do usuário: WASD e roda do mouse na câmera.** WASD junto das setas (no RTS a entrada do comandante já
-  está desligada). Roda: `WasInputKeyJustPressed(MouseScrollUp/Down)`; o eixo `MouseWheelAxis` não serve, guarda
-  o último valor (medido: -1 parado, a câmera fugia). Validado com o usuário rolando: "roda do mouse lida".
-- **Pedido do usuário: "linhas artefatuais e objetos desaparecendo".** Câmera estava a 76 m (máx. 90). `rts.gfx`:
-  `r.ViewDistanceScale 3`, `r.Shadow.DistanceScale 2.5`, `LOSPostProcess` do comandante com peso 0 (as faixas
-  escuras da linha de visão); zoom máximo 60 m. Aplicado ao vivo na sessão do usuário; aguardando retorno.
-- Moral (lote 9) rebalanceada após o robô cair na onda 7 e depois 6 (as ondas quebradas aceleravam o contador
-  de ondas: ~39 s por onda contra ~53 s antes; fugitivos não rendiam): fuga rende o bônus de abate, onda
-  quebrada dá +15 s de reagrupamento, e a evacuação não puxa quem já está no ponto ou no posto. Robô pendente.
+- **Tactical pause (Pause / Ctrl+Space) and speed 1x/2x/3x (Insert):** `SetGlobalTimeDilation` (pause =
+  0.0001). The camera and the panel now count real time (`GetRealTimeSeconds`), otherwise they froze too.
+  Turning off RTS goes back to 1x. Validated: paused, 0.001 s of game in 5 real s and the given order waited; 2x measured
+  2.00 (14.2 s of game in 7.1 real s); panel "PAUSADO" updating.
+- **User request: WASD and mouse wheel on the camera.** WASD alongside the arrows (in RTS the commander's input is already
+  off). Wheel: `WasInputKeyJustPressed(MouseScrollUp/Down)`; the `MouseWheelAxis` axis does not work, it keeps
+  the last value (measured: -1 at rest, the camera ran away). Validated with the user scrolling: "roda do mouse lida".
+- **User request: "linhas artefatuais e objetos desaparecendo" (artifact lines and disappearing objects).** The camera was at 76 m (max. 90). `rts.gfx`:
+  `r.ViewDistanceScale 3`, `r.Shadow.DistanceScale 2.5`, the commander's `LOSPostProcess` with weight 0 (the dark
+  bands of the line of sight); max zoom 60 m. Applied live in the user's session; waiting for feedback.
+- Morale (batch 9) rebalanced after the bot fell at wave 7 and then 6 (broken waves sped up the wave
+  counter: ~39 s per wave against ~53 s before; fleeing enemies did not count): fleeing yields the kill bonus, a broken
+  wave gives +15 s of regrouping, and evacuation does not pull those already on the point or at the post. Bot pending.
 
-## 2026-10-09 (madrugada, 9) — Lote 9: evacuação de feridos; moral inimiga
+## 2026-10-09 (early morning, 9) — Batch 9: casualty evacuation; enemy morale
 
-- **Evacuação (`CFG.MEDEVAC`, `rts.medevacStep`):** nosso soldado < 30% de vida, sem ordem há 15 s (nem foco,
-  área, segurar ou marcha) recua sozinho ao posto de socorro → ponto nosso → médico mais perto; libera em 80%
-  (ou desiste após 45 s parado). Ordens do jogador marcam `m.orderT` (em `os.clock`: `issueMove` vem antes de
-  `now()` no arquivo — o verificador pegou) e cancelam a evacuação.
-- **Moral (`CFG.MORALE`, `rts.moraleCheck/fleeStep/purgeFled`):** onda de 6+ que cai a 25% do tamanho (somando
-  pinça e reforços em `combat.waveSize`) quebra; os sobreviventes correm para a entrada (`e.home`), com o
-  `retreat` (metade dos acertos, sem atirar) e somem ao chegar sem contar abate (`combat.fled`). O laço do
-  `enemyTick` pula quem foge com `goto nextEnemy` (rótulo no fim do bloco). Oficial abatido suprime (+0,5)
-  quem estava a 10 m. Não vale no assalto.
-- `check_globals.py` ignora rótulos de `goto`.
-- `test_orders.py`: ferido vai ao posto, ordem recente segura, curado se libera; onda quebrada foge, quem chega
-  some sem contar abate.
-- Robô: 1ª versão perdeu na onda 7 e depois na 6; rebalanceado (ver lote 10).
+- **Evacuation (`CFG.MEDEVAC`, `rts.medevacStep`):** our soldier < 30% health, no order for 15 s (no focus,
+  area, hold or march) retreats on their own to the aid post → a point of ours → the nearest medic; released at 80%
+  (or gives up after 45 s stopped). Player orders mark `m.orderT` (in `os.clock`: `issueMove` comes before
+  `now()` in the file — the checker caught it) and cancel the evacuation.
+- **Morale (`CFG.MORALE`, `rts.moraleCheck/fleeStep/purgeFled`):** a wave of 6+ that falls to 25% of its size (adding
+  pincer and reinforcements in `combat.waveSize`) breaks; the survivors run to the entrance (`e.home`), with
+  `retreat` (half the hits, no firing) and vanish on arrival without counting a kill (`combat.fled`). The
+  `enemyTick` loop skips those fleeing with `goto nextEnemy` (label at the end of the block). A killed officer suppresses (+0.5)
+  those within 10 m. Does not apply in assault.
+- `check_globals.py` ignores `goto` labels.
+- `test_orders.py`: the wounded goes to the post, a recent order holds, the healed is released; a broken wave flees, those arriving
+  vanish without counting a kill.
+- Bot: the 1st version lost at wave 7 and then at 6; rebalanced (see batch 10).
 
-## 2026-10-09 (madrugada, 8) — Lote 8: som por arma e por lado
+## 2026-10-09 (early morning, 8) — Batch 8: sound per weapon and per side
 
-- Não há vozes entre os 487 `SoundCue` carregados; há tiros por arma e facção em `/Game/Audio/SFX/Weapons/`.
-  `WEAPONS.*.sndW/sndC`: fuzil `RifleLongW` x `CarbineCShot` (combina com a carabina Colonial do inimigo), MG
-  `MGW-RFShot` x `MGC-RFShot`, atirador `SniperShot` x `SniperShotC`, pistola `PistolLIghtWShot` (médico e
-  oficial). Tom 0,95–1,05; sem o som, volta ao `FX.shot` com o tom da arma. `asset()` agora tenta `LoadAsset`
-  uma vez por caminho fora da memória (`S.fxTried`). Validado: após reinício, os 10 sons carregados e 94 tiros
-  sem erro; a audição fica para o teste manual (12k).
+- There are no voices among the 487 loaded `SoundCue`s; there are shots per weapon and faction in `/Game/Audio/SFX/Weapons/`.
+  `WEAPONS.*.sndW/sndC`: rifle `RifleLongW` x `CarbineCShot` (matches the enemy's Colonial carbine), MG
+  `MGW-RFShot` x `MGC-RFShot`, sharpshooter `SniperShot` x `SniperShotC`, pistol `PistolLIghtWShot` (medic and
+  officer). Pitch 0.95–1.05; without the sound, falls back to `FX.shot` with the weapon's pitch. `asset()` now tries `LoadAsset`
+  once per path not in memory (`S.fxTried`). Validated: after a restart, the 10 sounds loaded and 94 shots
+  without error; listening is left for the manual test (12k).
 
-## 2026-10-09 (madrugada, 7) — Lote 7: barra de vida
+## 2026-10-09 (early morning, 7) — Batch 7: health bar
 
-- Material colorido achado listando `Material`/`MaterialInstanceConstant` carregados e lendo
-  `VectorParameterValues`: `CalloutRed` é instância do `Unlit` com parâmetro `Color`. A barra é um cubo fino
-  com material dinâmico dele (`CreateDynamicMaterialInstance` + `SetVectorParameterValue`), presa ao soldado
-  com rotação absoluta (`SetAbsolute`), comprimento proporcional à vida, verde/amarelo (<60%)/vermelho (<30%);
-  só nos nossos feridos e com o RTS ligado (`rts.hpTick`, 0,3 s; cor só muda ao trocar de faixa).
-  Validado: 80 → verde longa, 45 → amarela, curado → some (`hp1c.png`, `hp2c.png`). O tom avermelhado dos
-  feridos na captura é o efeito de ferimento do jogo.
+- Colored material found by listing loaded `Material`/`MaterialInstanceConstant`s and reading
+  `VectorParameterValues`: `CalloutRed` is an instance of `Unlit` with a `Color` parameter. The bar is a thin cube
+  with a dynamic material from it (`CreateDynamicMaterialInstance` + `SetVectorParameterValue`), attached to the soldier
+  with absolute rotation (`SetAbsolute`), length proportional to health, green/yellow (<60%)/red (<30%);
+  only on our wounded and with RTS on (`rts.hpTick`, 0.3 s; the color only changes when switching bands).
+  Validated: 80 → long green, 45 → yellow, healed → gone (`hp1c.png`, `hp2c.png`). The reddish tone of the
+  wounded in the capture is the game's wound effect.
 
-## 2026-10-09 (madrugada, 6) — Lote 6: oficial; metralhadora inimiga suprime em área
+## 2026-10-09 (early morning, 6) — Batch 6: officer; the enemy machine gun suppresses an area
 
-- **Oficial (Ctrl+0, −40, um por esquadrão):** pistola; aliados a 10 m (ele incluso) acertam 15% mais e perdem a
-  supressão 1,8× mais rápido (`CFG.OFFICER`, `rts.officerNear` com cache de 0,5 s por soldado). Marcado com o
-  estandarte enrolado do lado (o dos pontos) preso sobre a cabeça: `FlagShortA/B` são planos verticais e
-  sumiam vistos de cima. Inimigo: o 1º de cada onda a partir da 3 é oficial; abatê-lo rende +20
-  (`rts.officerDown`); no assalto, a guarnição do ponto da frente tem um. `clearEnemies` agora chama
-  `destroyMarker` (hook, estandarte e marcadores).
-  Validado: oficial nosso com estandarte, 2º recusado; onda 3 com oficial à frente; abate → "+20" no log.
-- **MG inimiga sem visada:** guarda onde viu o alvo pela última vez (`e.seen`) e por 8 s fica e suprime em área ali
-  (`rts.enemyArea`, mesmo `rts.areaShot`, que agora serve aos dois lados; municão só conta para os nossos).
-- `test_orders.py`: aura (recupera mais rápido perto, igual longe), 2º oficial recusado, MG inimiga suprime o
-  escondido sem gastar munição e desiste após 8 s.
-- Robô: derrota na onda 10, 114 abates e 42 perdas (mesmo padrão), 8 oficiais inimigos abatidos, sem queda.
-  Granadas 0 nessa partida (antes 8–23): conferido à parte que o fuzileiro lança contra inimigo em trincheira
-  (3 granadas); foi o cenário (inimigos sem cobertura a ≤18 m da posição do robô), não defeito.
+- **Officer (Ctrl+0, −40, one per squad):** pistol; allies within 10 m (including him) hit 15% more and lose
+  suppression 1.8× faster (`CFG.OFFICER`, `rts.officerNear` with a 0.5 s cache per soldier). Marked with the
+  rolled-up banner on the side (the one from the points) attached above the head: `FlagShortA/B` are vertical planes and
+  vanished seen from above. Enemy: the 1st of each wave from wave 3 is an officer; killing him yields +20
+  (`rts.officerDown`); in assault, the front point's garrison has one. `clearEnemies` now calls
+  `destroyMarker` (hook, banner and markers).
+  Validated: our officer with a banner, a 2nd refused; wave 3 with an officer in front; kill → "+20" in the log.
+- **Enemy MG without line of sight:** remembers where it last saw the target (`e.seen`) and for 8 s stays and suppresses the area there
+  (`rts.enemyArea`, the same `rts.areaShot`, which now serves both sides; ammo only counts for ours).
+- `test_orders.py`: aura (recovers faster nearby, the same far away), a 2nd officer refused, the enemy MG suppresses the
+  hidden one without spending ammo and gives up after 8 s.
+- Bot: defeat at wave 10, 114 kills and 42 losses (same pattern), 8 enemy officers killed, no crash.
+  Grenades 0 in that match (before 8–23): checked separately that the rifleman throws at an enemy in a trench
+  (3 grenades); it was the scenario (enemies without cover within ≤18 m of the bot's position), not a defect.
 
-## 2026-10-09 (madrugada, 5) — Lote 5: modo Assalto; robô; crash intermitente; verificador de globais
+## 2026-10-09 (early morning, 5) — Batch 5: Assault mode; bot; intermittent crash; globals checker
 
-- **Modo Assalto (Alt+F6):** 8 soldados e 120 de mão de obra contra três pontos inimigos a 26–36 m
-  (`CFG.ASSAULT.dist`), cada um com trincheira, arame do nosso lado e 4 de guarnição em círculo de 1,5 m (a
-  formação das ondas espalhava e pôs dois no telhado do prédio ao lado do ponto A). Sem ondas; reforço só pela
-  renda dos pontos (1º reforço só após 40 s); cada captura nossa libera contra-ataque em 8 s (`rts.counter`).
-  Vitória: os três pontos nossos sem inimigo vivo, ou segurá-los 60 s; derrota só por esquadrão perdido (o
-  inimigo dono de tudo não é derrota no assalto). Guarnição (`e.post`, `rts.holdPost`): sem alvo a tiro volta
-  ao ponto e segura; ponto perdido a solta. Save grava o modo e o posto de cada guarnição.
-  Validado: guarnições paradas nos pontos com o esquadrão atacando A (0 longe do ponto em 5 amostras); A
-  tomado → reforço pelo ponto C 8,0 s depois; salvar/continuar no meio do assalto mantém modo, 8 guarnições
-  presas e donos dos pontos (`as4.png`).
-- **Bug pego no teste:** o gatilho do contra-ataque usava `ai` dentro do `pointsTick`, antes do `local ai`
-  (vira global nil; o pcall do passo engoliu). O `check_globals.py` não viu porque é insensível a escopo e
-  `local ok, ai = pcall(...)` em `anim.track` contava como declaração. Renomeado para `inst`, e o verificador
-  agora avisa quando um nome de topo aparece antes como local interno (`SHADOW_OK` lista os conferidos).
-- **Robô (balanço depois da lentidão de verdade do lote 4):** derrota na onda 10, 104 abates e 39 perdas, o
-  mesmo padrão de antes; 7 min sem queda.
-- **Crash intermitente (ainda aberto):** uma partida do robô caiu 9 s após `newGame`, logo depois de recrutar
-  no ponto A (AV 0x3 a partir do laço por quadro, Lua → acesso a UObject). A repetição do mesmo roteiro não
-  caiu. O hook de animação já não toca em pawn. Se voltar, instrumentar `recruit`/`spawnSoldier` com log antes
-  e depois de cada chamada Unreal.
+- **Assault mode (Alt+F6):** 8 soldiers and 120 manpower against three enemy points 26–36 m away
+  (`CFG.ASSAULT.dist`), each with a trench, wire on our side and a garrison of 4 in a 1.5 m circle (the
+  wave formation spread out and put two on the roof of the building next to point A). No waves; reinforcement only from the
+  points' income (1st reinforcement only after 40 s); each capture of ours triggers a counterattack in 8 s (`rts.counter`).
+  Victory: all three points ours with no enemy alive, or hold them for 60 s; defeat only by losing the squad (the
+  enemy owning everything is not a defeat in assault). Garrison (`e.post`, `rts.holdPost`): with no target in range it returns
+  to the point and holds; a lost point releases it. The save records the mode and each garrison's post.
+  Validated: garrisons stopped at the points with the squad attacking A (0 away from the point in 5 samples); A
+  taken → reinforcement through point C 8.0 s later; saving/continuing in the middle of the assault keeps the mode, 8 garrisons
+  held and the points' owners (`as4.png`).
+- **Bug caught in the test:** the counterattack trigger used `ai` inside `pointsTick`, before `local ai`
+  (it becomes a nil global; the step's pcall swallowed it). `check_globals.py` did not see it because it is scope-insensitive and
+  `local ok, ai = pcall(...)` in `anim.track` counted as a declaration. Renamed to `inst`, and the checker
+  now warns when a top-level name appears earlier as an inner local (`SHADOW_OK` lists the checked ones).
+- **Bot (balance after the real slowdown of batch 4):** defeat at wave 10, 104 kills and 39 losses, the
+  same pattern as before; 7 min without a crash.
+- **Intermittent crash (still open):** one bot match crashed 9 s after `newGame`, right after recruiting
+  at point A (AV 0x3 from the per-frame loop, Lua → UObject access). Repeating the same script did not
+  crash. The animation hook no longer touches the pawn. If it comes back, instrument `recruit`/`spawnSoldier` with a log before
+  and after each Unreal call.
 
-## 2026-10-09 (madrugada, 4) — Lote 4: posto de socorro, arame farpado, marcador de área; lentidão de verdade
+## 2026-10-09 (early morning, 4) — Batch 4: aid post, barbed wire, area marker; real slowdown
 
-- **Malhas escolhidas por vitrine:** busca em `FindAllOf("StaticMesh")` por tenda/arame/hospital (213 achados),
-  `GetBounds()` para o tamanho e uma fileira lado a lado no mapa (`b4b.png`). `CanvasTent09` era só a armação;
-  `CanvasTent06` (lona fechada, escala 0,6) virou o posto; `BarbedWire04` (cavalete de arame, 7,5 m, centro a
-  306 cm do pivô) em escala 0,8 virou o arame (`BarbedWireFence01` parecia tela de metal).
-- **Posto de socorro (Ctrl+8, −30, até 2):** nossos soldados a 6 m com supressão < 0,2 recuperam 4 HP/s e param
-  de sangrar. Validado: dois fuzileiros a 40 de vida foram a 100 no posto.
-- **Arame farpado (Ctrl+9, −10, até 10):** faixa de 6 m × 2,2 m atravessada à ameaça (mesma regra de giro da
-  barreira, agora em `fort.facing`); quem está dentro, dos dois lados, anda a 35%. Sem colisão: o A* não desvia.
-  O inimigo estende de graça uma faixa a 9 m do centro do ponto que toma, do lado do nosso esquadrão
+- **Meshes chosen by showcase:** a search in `FindAllOf("StaticMesh")` for tent/wire/hospital (213 found),
+  `GetBounds()` for the size and a side-by-side row on the map (`b4b.png`). `CanvasTent09` was only the frame;
+  `CanvasTent06` (closed canvas, scale 0.6) became the post; `BarbedWire04` (wire trestle, 7.5 m, center
+  306 cm from the pivot) at scale 0.8 became the wire (`BarbedWireFence01` looked like a metal mesh).
+- **Aid post (Ctrl+8, −30, up to 2):** our soldiers within 6 m with suppression < 0.2 recover 4 HP/s and stop
+  bleeding. Validated: two riflemen at 40 health went to 100 at the post.
+- **Barbed wire (Ctrl+9, −10, up to 10):** a 6 m × 2.2 m strip laid across the threat (same turning rule as the
+  barrier, now in `fort.facing`); anyone inside, on either side, walks at 35%. No collision: the A* does not detour.
+  The enemy lays a strip for free 9 m from the center of a point it takes, on our squad's side
   (`CFG.ENEMY_WIRE`, `fort.enemyWire`).
-- **Lentidão de verdade (arame e supressão):** a 1ª medição (laço de 100 ms gravando a posição numa global)
-  deu 58 cm/100 ms constantes atravessando o arame. Com atrito e frenagem zerados, o CMC mantém a velocidade
-  quando o limite cai (`IsExceedingMaxSpeed`); a escala do `AddMovementInput` só limitava a arrancada. Ou seja,
-  a lentidão por supressão (`SUPP_SLOW`) também nunca tinha valido. `fort.capSpeed` corta a velocidade
-  horizontal direto quando a escala fica abaixo de 0,9. Medido de novo: 20 cm/100 ms dentro da faixa (35%),
-  58 fora.
-- **Marcador do fogo em área:** anel de 12 pontos laranja menores no círculo; some quando nenhum soldado vivo
-  tem mais aquela ordem. A ordem agora é uma tabela única para todos os soldados.
-- Save grava postos e arames (e se o ponto já tem trincheira/arame inimigo); F11 e nova partida limpam.
-- `test_orders.py`: faixa do arame (dentro, ao lado, além da ponta), cura do posto (calmo cura; suprimido e
-  longe não), save com postos e arames; teclas Ctrl+8/9.
+- **Real slowdown (wire and suppression):** the 1st measurement (a 100 ms loop recording position in a global)
+  gave a constant 58 cm/100 ms crossing the wire. With friction and braking zeroed, the CMC keeps its velocity
+  when the limit drops (`IsExceedingMaxSpeed`); the `AddMovementInput` scale only limited the start. In other words,
+  the suppression slowdown (`SUPP_SLOW`) had never worked either. `fort.capSpeed` cuts the horizontal velocity
+  directly when the scale drops below 0.9. Measured again: 20 cm/100 ms inside the strip (35%),
+  58 outside.
+- **Area fire marker:** a ring of 12 smaller orange points on the circle; it vanishes when no living soldier
+  still has that order. The order is now a single table for all soldiers.
+- The save records posts and wires (and whether the point already has an enemy trench/wire); F11 and new match clear them.
+- `test_orders.py`: the wire strip (inside, beside, past the tip), the post's healing (calm heals; suppressed and
+  far away does not), save with posts and wires; keys Ctrl+8/9.
 
-## 2026-10-09 (madrugada, 3) — Lote 3: salvar/continuar, fogo de supressão em área; crash do hook
+## 2026-10-09 (early morning, 3) — Batch 3: save/continue, area suppression fire; hook crash
 
-- **Salvar e continuar (Ctrl+F6):** com ondas automáticas, a partida é gravada a cada 30 s em
-  `ue4ss/Mods/FoxholeRTS/save.txt` (Lua `return {...}`, lido com `load` num ambiente vazio; versão `v=1`):
-  onda, placar, tempo, mão de obra (nossa e do inimigo), dificuldade, mapa, pontos (dono e progresso),
-  barreiras (posição e giro), trincheiras e cada soldado vivo dos dois lados (classe, posição, vida, abates,
-  munição, grupo). Vitória ou derrota apagam o save. Ao ligar o RTS sem partida, um alerta avisa que há
-  partida salva. Tabela `sv` (`ser`, `parse`, `collect`, `save`, `read`, `restore`, `load`, `tick`, `map`);
-  a barreira ganhou `fort.wall` para o carregamento reaproveitar.
-  Validado: salvar com trincheira, barreira, pontos A nosso/B inimigo, veterano com 4 abates e MG com 55 de
-  vida → limpar tudo → continuar: tudo igual (`sv1.png`); alerta ao reabrir o jogo; autosave 30 s depois do
-  continuar; derrota apagou o arquivo.
-- **Fogo de supressão em área (Ctrl+botão direito / Ctrl+F7):** os selecionados (menos médicos) atiram por
-  20 s num círculo de 4,5 m. Fora do alcance, andam até ele. Sem visada não há dano: cada tiro suprime todo
-  inimigo no círculo com 70% da supressão da arma (MG montada ×1,5) e levanta terra num ponto do círculo;
-  inimigo à vista e ao alcance leva tiro normal. Gasta munição; mover, atacar, recuar ou segurar cancelam.
-  `rts.areaOrder`, `rts.areaStep`, `rts.areaShot`; `rts.shotFx` (clarão e som) passou a servir aos dois tiros.
-  Validado: 5 soldados mirando e atirando num ponto vazio a 15 m, 60 tiros em ~8 s (`af1.png`).
-- **Crash (EXCEPTION_ACCESS_VIOLATION 0xffffffff dentro do UE4SS, 96 s após abrir):** `clearEnemies` não
-  tirava os inimigos de `anim.units`; o AnimInstance da onda seguinte reaproveitou o endereço de um destruído
-  e o hook gravou `bIsInScopeMode` no pawn morto (pcall não pega). Correção: `clearEnemies` chama
-  `anim.untrack`, e o hook só escreve no AnimInstance que está sendo atualizado (sempre vivo); o
-  `bIsInScopeMode` do pawn passou para o `postureTick` (0,3 s), que só percorre as listas de vivos.
-  Validado: onda nova após continuar e 4 ciclos de nova partida → limpar com 6 inimigos vivos, sem queda.
-- `test_orders.py`: save (coleta → texto → leitura, dono neutro, mortos fora, texto inválido recusado) e fogo
-  em área (sem visada só suprime quem está no círculo, gasta munição, mover cancela); teclas Ctrl+F6/F7.
+- **Save and continue (Ctrl+F6):** with automatic waves, the match is written every 30 s to
+  `ue4ss/Mods/FoxholeRTS/save.txt` (Lua `return {...}`, read with `load` in an empty environment; version `v=1`):
+  wave, score, time, manpower (ours and the enemy's), difficulty, map, points (owner and progress),
+  barriers (position and turn), trenches and each living soldier of both sides (class, position, health, kills,
+  ammo, group). Victory or defeat delete the save. When turning on RTS without a match, an alert says there is a
+  saved match. Table `sv` (`ser`, `parse`, `collect`, `save`, `read`, `restore`, `load`, `tick`, `map`);
+  the barrier gained `fort.wall` for the loader to reuse.
+  Validated: save with a trench, a barrier, points A ours/B the enemy's, a veteran with 4 kills and an MG at 55
+  health → clear everything → continue: everything the same (`sv1.png`); the alert on reopening the game; autosave 30 s after
+  continuing; a defeat deleted the file.
+- **Area suppression fire (Ctrl+right button / Ctrl+F7):** the selected (except medics) fire for
+  20 s into a 4.5 m circle. Out of range, they walk to it. Without line of sight there is no damage: each shot suppresses every
+  enemy in the circle with 70% of the weapon's suppression (mounted MG ×1.5) and kicks up dirt at a point in the circle;
+  an enemy in sight and in range takes a normal shot. Spends ammo; move, attack, retreat or hold cancel.
+  `rts.areaOrder`, `rts.areaStep`, `rts.areaShot`; `rts.shotFx` (flash and sound) now serves both kinds of shots.
+  Validated: 5 soldiers aiming and firing at an empty point 15 m away, 60 shots in ~8 s (`af1.png`).
+- **Crash (EXCEPTION_ACCESS_VIOLATION 0xffffffff inside UE4SS, 96 s after opening):** `clearEnemies` did not
+  remove the enemies from `anim.units`; the next wave's AnimInstance reused the address of a destroyed one
+  and the hook wrote `bIsInScopeMode` to the dead pawn (pcall does not catch it). Fix: `clearEnemies` calls
+  `anim.untrack`, and the hook only writes to the AnimInstance being updated (always alive); the
+  pawn's `bIsInScopeMode` moved to `postureTick` (0.3 s), which only walks the lists of the living.
+  Validated: a new wave after continuing and 4 cycles of new match → clear with 6 enemies alive, no crash.
+- `test_orders.py`: save (collect → text → read, neutral owner, the dead left out, invalid text refused) and area
+  fire (without line of sight it only suppresses those in the circle, spends ammo, moving cancels); keys Ctrl+F6/F7.
 
-## 2026-10-09 (madrugada, 2) — Lote 2: posturas e ações; aviso do menu
+## 2026-10-09 (early morning, 2) — Batch 2: stances and actions; the menu warning
 
-- **Posturas pelo mesmo hook de animação:** agachado (`CharacterStance` 1 + `bStanceIsCrouched`) quando
-  parado dentro de trincheira ou com supressão ≥ 0,4 (`CFG.CROUCH_SUPP`); curvado correndo (stance 3) ao
-  recuar. `m.crouch` é calculado a cada 0,3 s em `anim.postureTick` (fora do hook, para não traçar por
-  quadro). Validado: 4 soldados ajoelhados no buraco de raposa mirando (`c2.png`); recuo → stance 3 nos 6.
-- **Ações:** `ActivityState` 6 (arremesso) por 0,8 s ao jogar granada, 20 (primeiros socorros) por 1,2 s
-  quando o médico cura, 3 (tiro) por 0,2 s. Validado pelo valor no AnimInstance (médico act=20 curando);
-  o arremesso usa o mesmo caminho, mas é curto demais para pegar em captura pelo canal.
-- **Aviso do menu:** é Slate nativo (no menu só existe um `UserWidget`, a mira; `MainMenuPlayerController` e
-  `WarGameInstance` não têm função para fechá-lo). Liberar a rede iria contra o modo offline. Mitigação: o
-  autostart sai do menu em 2 s (`CFG.AUTOSTART_DELAY_S`, era 8). Validado: menu → mapa em 2 s, RTS ligado
-  5 s após o menu (antes ~11 s). O caçador de widgets do lote 1 foi removido.
+- **Stances through the same animation hook:** crouched (`CharacterStance` 1 + `bStanceIsCrouched`) when
+  stopped inside a trench or with suppression ≥ 0.4 (`CFG.CROUCH_SUPP`); hunched running (stance 3) when
+  retreating. `m.crouch` is computed every 0.3 s in `anim.postureTick` (outside the hook, so as not to trace every
+  frame). Validated: 4 soldiers kneeling in the foxhole aiming (`c2.png`); retreat → stance 3 in all 6.
+- **Actions:** `ActivityState` 6 (throwing) for 0.8 s when throwing a grenade, 20 (first aid) for 1.2 s
+  when the medic heals, 3 (firing) for 0.2 s. Validated by the value in the AnimInstance (medic act=20 healing);
+  the throw uses the same path, but it is too short to catch in a capture through the channel.
+- **Menu warning:** it is native Slate (in the menu there is only one `UserWidget`, the crosshair; `MainMenuPlayerController` and
+  `WarGameInstance` have no function to close it). Opening the network would go against the offline mode. Mitigation: the
+  autostart leaves the menu in 2 s (`CFG.AUTOSTART_DELAY_S`, was 8). Validated: menu → map in 2 s, RTS on
+  5 s after the menu (before ~11 s). Batch 1's widget hunter was removed.
 
-## 2026-10-09 (madrugada) — Lote: animação de arma e tiro, economia inimiga, aviso do menu
+## 2026-10-09 (early morning) — Batch: weapon and firing animation, enemy economy, menu warning
 
-Primeiro lote no novo fluxo (várias features, um teste só no laboratório).
+First batch in the new flow (several features, a single lab test).
 
-- **Animação de arma (pedido do usuário: "o tiro sai mas o soldado não mira nem segura a arma").**
-  Estudo pela reflexão (guia Unreal do universal-modder: dump de classes primeiro):
-  - O AnimInstance é `ABP_Male_C` (pai nativo `CharacterAnimInstance`). A pose depende de
+- **Weapon animation (user request: "o tiro sai mas o soldado não mira nem segura a arma" — the shot comes out but the soldier neither aims nor holds the weapon).**
+  Study through reflection (universal-modder's Unreal guide: dump classes first):
+  - The AnimInstance is `ABP_Male_C` (native parent `CharacterAnimInstance`). The pose depends on
     `EquippedWeaponGripType` (enum `EEquippedWeaponGripType`: None 0, Rifle 1, Pistol 2, Sniper 4,
     HeavyMachinegun 5, LightMachineGun 24…), `bIsScoping`, `canEnterStandScoping`, `AimOffsetYaw/Pitch`
-    e `ActivityState` (`ECharacterActivityState`: Firing 3).
-  - O update nativo recalcula tudo a cada quadro a partir do item equipado e do controle local, que nossos
-    soldados não têm: gravar direto não fica (grip voltava a 0). Mas `BlueprintUpdateAnimation` do ABP roda
-    **depois** do nativo; um `RegisterHook` nele grava os nossos valores e o grafo os usa.
-  - `AimOffsetYaw` vinha −140° (rotação de controle 0 − corpo 140): o pawn gira para a rotação de controle,
-    mas o aim offset não acompanha sem controle local → o hook zera o offset.
-  - A arma estava no osso `hand_r` (apontando para trás). Sockets do corpo: `S_GenericGun`, `gun_r`, `gun_l`;
-    `S_GenericGun` dá a pose certa. Master pose não serve (a malha da arma tem um osso só, `Root`).
-  - Resultado (`cb4.png`, `cb6.png`): nossos e inimigos com fuzil no ombro, as duas mãos na arma, mirando
-    para o alvo; parados em repouso, fuzil no ombro em descanso. MG com grip 5 (com 24 ficava atravessada).
-  - Código: tabela `anim` (`anim.onUpdate`, `anim.track`, `anim.untrack`), `CFG.ANIM_ABP`, `CFG.AIM_HOLD`
-    (1,5 s mirando após a última tentativa de tiro), `CFG.FIRE_ANIM` (0,2 s de Firing por tiro); `armWith`
-    prende no `S_GenericGun` e registra o soldado; `destroyMarker` o retira; `bIsInScopeMode` só parado.
-    O clarão do tiro sai do socket `S_Muzzle` da arma.
-- **Economia inimiga (reforços):** validada ao vivo. Natural: o inimigo tomou C na onda 1 e mandou
-  1 reforço; forçado: 3 pelo ponto A. Painel "reforço inimigo N". Plural corrigido ("1 soldado").
-- Robô com o lote (reforços + animação): perdeu na onda 10 (109 abates, 34 perdas), igual às rodadas
-  anteriores; a economia inimiga não desequilibrou.
-- **Aviso do menu** ("Falha ao baixar informações do servidor [Erro: 1]… Atualizar / Fechar", `menu1.png`):
-  o caçador por nome de classe de `UserWidget` não achou nada; a sonda pelo canal chegou depois do menu.
-  Resolvido no lote 2: é Slate nativo; o autostart agora sai do menu em 2 s (ver entrada acima).
+    and `ActivityState` (`ECharacterActivityState`: Firing 3).
+  - The native update recomputes everything every frame from the equipped item and the local control, which our
+    soldiers do not have: writing directly does not stick (grip went back to 0). But the ABP's `BlueprintUpdateAnimation` runs
+    **after** the native one; a `RegisterHook` on it writes our values and the graph uses them.
+  - `AimOffsetYaw` came out −140° (control rotation 0 − body 140): the pawn turns to the control rotation,
+    but the aim offset does not follow without local control → the hook zeroes the offset.
+  - The weapon was on the `hand_r` bone (pointing backward). Body sockets: `S_GenericGun`, `gun_r`, `gun_l`;
+    `S_GenericGun` gives the right pose. Master pose does not work (the weapon mesh has a single bone, `Root`).
+  - Result (`cb4.png`, `cb6.png`): ours and enemies with the rifle at the shoulder, both hands on the weapon, aiming
+    at the target; at rest, the rifle on the shoulder at ease. MG with grip 5 (with 24 it sat crosswise).
+  - Code: table `anim` (`anim.onUpdate`, `anim.track`, `anim.untrack`), `CFG.ANIM_ABP`, `CFG.AIM_HOLD`
+    (1.5 s aiming after the last firing attempt), `CFG.FIRE_ANIM` (0.2 s of Firing per shot); `armWith`
+    attaches to `S_GenericGun` and registers the soldier; `destroyMarker` removes it; `bIsInScopeMode` only when stopped.
+    The muzzle flash comes out of the weapon's `S_Muzzle` socket.
+- **Enemy economy (reinforcements):** validated live. Natural: the enemy took C in wave 1 and sent
+  1 reinforcement; forced: 3 through point A. Panel "reforço inimigo N". Plural fixed ("1 soldado").
+- Bot with the batch (reinforcements + animation): lost at wave 10 (109 kills, 34 losses), the same as earlier
+  rounds; the enemy economy did not unbalance it.
+- **Menu warning** ("Falha ao baixar informações do servidor [Erro: 1]… Atualizar / Fechar", `menu1.png`):
+  the hunter by `UserWidget` class name found nothing; the probe through the channel arrived after the menu.
+  Solved in batch 2: it is native Slate; the autostart now leaves the menu in 2 s (see the entry above).
 
-## 2026-10-08 (tarde) — Economia inimiga (reforços)
+## 2026-10-08 (afternoon) — Enemy economy (reinforcements)
 
-- Cada ponto que o inimigo segura rende 0,6/s de mão de obra para ele (teto 200; só com ondas automáticas).
-  Durante uma onda, a cada 20 s ele gasta 20 por soldado em reforços de 2 a 3 que surgem 9 m atrás do ponto
-  dele mais perto do nosso esquadrão (do lado oposto a nós), até 6 por onda. Alerta "REFORÇO INIMIGO";
-  painel "reforço inimigo N" quando ele tem pontos. Perder pontos endurece as ondas; retomá-los corta a renda.
-- Código na tabela `ai` (`ai.tick`, `ai.source`, `ai.reset`; `CFG.AI`); `spawnEnemies` ganhou o 4º
-  parâmetro `quiet`. Teste offline: renda por ponto, teto, sem reforço sem onda viva, ponto de origem.
-- Validado ao vivo no lote de 2026-10-09 (ver entrada acima).
+- Each point the enemy holds yields 0.6/s of manpower for it (ceiling 200; only with automatic waves).
+  During a wave, every 20 s it spends 20 per soldier on reinforcements of 2 to 3 that appear 9 m behind its
+  point nearest our squad (on the side opposite us), up to 6 per wave. Alert "REFORÇO INIMIGO";
+  panel "reforço inimigo N" when it has points. Losing points hardens the waves; retaking them cuts the income.
+- Code in table `ai` (`ai.tick`, `ai.source`, `ai.reset`; `CFG.AI`); `spawnEnemies` gained a 4th
+  parameter `quiet`. Offline test: income per point, ceiling, no reinforcement without a live wave, origin point.
+- Validated live in the 2026-10-09 batch (see the entry above).
 
-## 2026-10-08 (manhã) — Visão a partir dos soldados ("olho" do comandante)
+## 2026-10-08 (morning) — Vision from the soldiers (the commander's "eye")
 
-- **Como o jogo esconde inimigos:** o `Character_C` do comandante tem `PlayerLOSRasterComponent` +
-  `LOSPostProcess`; o código nativo põe `bHiddenInGame` na malha de quem está fora da visão, e o material do
-  corpo também some (desocultar a malha pelo Lua só fez aparecer os fuzis que nós anexamos). Mover o
-  componente de LOS não muda nada; `AlwaysVisibleRadius` (700) alterado em tempo de execução também não.
-  O que conta é a posição do **pawn**: com o comandante a 4 m os inimigos apareceram; atrás de um degrau de
-  neve, a 9 m, não (LOS bloqueado pelo terreno, não falta de alcance).
-- **Olho:** ao ligar o RTS o comandante vira um olho invisível (`SetActorHiddenInGame`, sem colisão,
-  `MOVE_None`, então sem gravidade) e `rts.eyeTick` o leva a cada 0,2 s ao soldado vivo mais perto do foco
-  da câmera (sem soldados: a base). A visão do jogo passa a sair de onde a câmera olha, a partir de um
-  soldado seu. Ao desligar o RTS ele volta à base, com colisão e caminhada. `CFG.EYE = false` desliga.
-- **Base fixa:** `rts.base()` = onde o comandante estava ao ligar o RTS. Depósito de munição, recuo sem
-  pontos, referência de ondas/pontos/barreiras e F2 usam a base, não o pawn (que agora passeia).
-- Validado: 3 inimigos no degrau de neve, invisíveis com o comandante perto (`fog1.png`), aparecem com um
-  soldado ao lado e o olho ligado (`eye3.png`). Em terreno aberto a 33 m a visão da base já alcançava, então
-  o ganho é atrás de prédios e relevo e em mapas maiores.
+- **How the game hides enemies:** the commander's `Character_C` has `PlayerLOSRasterComponent` +
+  `LOSPostProcess`; native code sets `bHiddenInGame` on the mesh of anyone out of sight, and the body's material
+  also vanishes (unhiding the mesh from Lua only made the rifles we attached appear). Moving the
+  LOS component changes nothing; changing `AlwaysVisibleRadius` (700) at runtime does not either.
+  What counts is the **pawn**'s position: with the commander 4 m away the enemies appeared; behind a snow
+  ledge, 9 m away, they did not (LOS blocked by terrain, not a lack of range).
+- **Eye:** when RTS turns on, the commander becomes an invisible eye (`SetActorHiddenInGame`, no collision,
+  `MOVE_None`, so no gravity) and `rts.eyeTick` carries it every 0.2 s to the living soldier nearest the camera's
+  focus (without soldiers: the base). The game's vision now comes from where the camera looks, from one
+  of your soldiers. When RTS turns off it returns to the base, with collision and walking. `CFG.EYE = false` turns it off.
+- **Fixed base:** `rts.base()` = where the commander was when RTS was turned on. The ammo depot, retreat without
+  points, the reference for waves/points/barriers and F2 use the base, not the pawn (which now roams).
+- Validated: 3 enemies on the snow ledge, invisible with the commander nearby (`fog1.png`), appear with a
+  soldier beside them and the eye on (`eye3.png`). On open ground at 33 m the base's vision already reached, so
+  the gain is behind buildings and relief and on larger maps.
 
-## 2026-10-08 (madrugada, 6) — Trincheiras
+## 2026-10-08 (early morning, 6) — Trenches
 
-- **Ctrl+7 cava uma trincheira** sob o cursor (−20 de mão de obra; máx. 8; recusa encostada em outra):
-  malha `pvpFoxhole01` do jogo (buraco de raposa, ~3,4 m), giro aleatório. Quem está dentro (raio 1,7 m,
-  qualquer lado) leva 40% dos acertos de tiro e metade da supressão. Granada e morteiro não são
-  reduzidos: são o contra. Fuzileiros jogam granada também em alvo entrincheirado.
-- **O inimigo se entrincheira:** ao tomar um ponto, abre de graça uma trincheira no centro dele (uma por
-  ponto; `CFG.ENEMY_DIG`). Retomar o ponto exige granada/morteiro, e depois a trincheira serve a nós.
-  Validado: 4 inimigos em B → "o inimigo tomou o ponto B e cavou uma trincheira", trincheira em B.
-  A criação ficou em `fort.place` (tabela `fort`, para não gastar mais locais do chunk).
-- Ordem de mover com destino dentro da trincheira: os 4 primeiros ocupam vagas em anel dentro dela, o resto
-  forma linha logo atrás (antes a linha centrada no buraco enfiava os 6 lá dentro).
-- `seekCover`: soldado parado e exposto vai antes para uma trincheira com vaga a até 4,5 m.
-- Validado ao vivo: 4 dentro, 2 atrás (`trench.png`); onda de 6 contra a trincheira: 116 tiros inimigos,
-  7 acertos, 106 contidos pela cobertura; 6 abates, 1 perda; os dois de fora entraram sozinhos na vaga.
-- Robô com 2 trincheiras em A (`t_bot0t.lua`, `BOT0=t_bot0t.lua sh botloop.sh`): perdeu na onda 10 (89 abates,
-  33 perdas). O inimigo jogou 23 granadas (antes ~1): o contra funciona, e a trincheira não desequilibra.
-- Teste offline: vagas (4 dentro com 6 selecionados), supressão pela metade, recusas sem cobrar.
-  Achado: os testes de recusa da caixa passavam porque `server` ficara falso (recusa por autoridade);
-  agora `server = true` antes deles.
+- **Ctrl+7 digs a trench** under the cursor (−20 manpower; max. 8; refuses next to another):
+  the game's `pvpFoxhole01` mesh (a foxhole, ~3.4 m), random turn. Anyone inside (radius 1.7 m,
+  either side) takes 40% of rifle hits and half the suppression. Grenade and mortar are not
+  reduced: they are the counter. Riflemen also throw grenades at an entrenched target.
+- **The enemy digs in:** when taking a point, it opens a free trench at its center (one per
+  point; `CFG.ENEMY_DIG`). Retaking the point requires a grenade/mortar, and then the trench serves us.
+  Validated: 4 enemies on B → "o inimigo tomou o ponto B e cavou uma trincheira", a trench on B.
+  Creation lives in `fort.place` (table `fort`, so as not to spend more of the chunk's locals).
+- A move order with a destination inside the trench: the first 4 take slots in a ring inside it, the rest
+  form a line just behind (before, the line centered on the hole crammed all 6 inside).
+- `seekCover`: a stopped and exposed soldier first goes to a trench with a free slot within 4.5 m.
+- Validated live: 4 inside, 2 behind (`trench.png`); a wave of 6 against the trench: 116 enemy shots,
+  7 hits, 106 stopped by the cover; 6 kills, 1 loss; the two outside entered the slot on their own.
+- Bot with 2 trenches on A (`t_bot0t.lua`, `BOT0=t_bot0t.lua sh botloop.sh`): lost at wave 10 (89 kills,
+  33 losses). The enemy threw 23 grenades (before ~1): the counter works, and the trench does not unbalance.
+- Offline test: slots (4 inside with 6 selected), suppression halved, refusals without charging.
+  Finding: the crate's refusal tests passed because `server` had stayed false (refusal by authority);
+  now `server = true` before them.
 
-## 2026-10-08 (madrugada, 5) — Munição e caixas de suprimento
+## 2026-10-08 (early morning, 5) — Ammo and supply crates
 
-- **Munição** (só os nossos; "comandante" abaixo virou "base" na entrada da manhã): fuzileiro 40 tiros, MG 150, atirador 15, médico 24 (`CFG.WEAPONS[..].ammo`).
-  Sem munição o soldado não atira (alerta a cada 15 s: "leve-o a um ponto seu ou ao comandante");
-  painel mostra "SEM MUNIÇÃO N" e "munição baixa N" (<25%). Recarga de 15%/s dentro de um ponto seu
-  (que já curava) ou a até 5 m do comandante (senão perder todos os pontos travaria o esquadrão).
-  Granadas não gastam munição. O inimigo não tem limite: ele ataca, não sustenta.
-- Soldado com munição baixa ganha uma caixinha de munição (a mesma malha, 0,6×) flutuando 1,9 m acima
-  da cabeça; some quando recarrega acima de 25% (atualiza a cada 0,5 s, só no modo RTS). A 1,15 m ela
-  cobria a cabeça e não se via. Validado: 4 soldados secos → 4 caixinhas (`icon_crop.png`); recarga → ocultas.
-- Robô com munição: perdeu na onda 9 (88 abates, 30 perdas; A caiu), dentro do histórico ~50%. "dry 0":
-  lutando dentro do ponto A ele nunca secou (1618 tiros repostos). A munição pune avançar longe de
-  suprimento, não a defesa. Canal: `CFG` agora exportado (ajuste ao vivo, ex.: `CFG.AMMO_REFILL = 0`).
-- **Caixa de suprimentos (Ctrl+6)**: −25 de mão de obra, malha `AmmoCrate` do jogo sob o cursor; por 60 s
-  recarrega 25%/s a até 4,5 m (sem cura); máx. 3, recarga 10 s; painel "caixas N". Some sozinha ao fim.
-  Validado ao vivo: caixa ao lado do esquadrão, munição zerada → cheia em poucos segundos (`crate.png`).
-- Robô de regressão (MG só atira montada, antes da munição): venceu a onda 10 com 4 soldados, 109 abates
-  e 26 perdas. O equilíbrio continua apertado.
-- `botloop.sh` agora para quando `combat.auto` vira falso (antes procurava "won false", que nunca casava
-  por causa da tabulação).
+- **Ammo** (ours only; "commander" below became "base" in the morning entry): rifleman 40 shots, MG 150, sharpshooter 15, medic 24 (`CFG.WEAPONS[..].ammo`).
+  Without ammo the soldier does not fire (an alert every 15 s: "leve-o a um ponto seu ou ao comandante");
+  the panel shows "SEM MUNIÇÃO N" and "munição baixa N" (<25%). Reload of 15%/s inside a point of yours
+  (which already healed) or within 5 m of the commander (otherwise losing all points would lock the squad).
+  Grenades do not spend ammo. The enemy has no limit: it attacks, it does not sustain.
+- A soldier with low ammo gets a small ammo box (the same mesh, 0.6×) floating 1.9 m above
+  the head; it vanishes when reloaded above 25% (updates every 0.5 s, only in RTS mode). At 1.15 m it
+  covered the head and could not be seen. Validated: 4 dry soldiers → 4 boxes (`icon_crop.png`); reload → hidden.
+- Bot with ammo: lost at wave 9 (88 kills, 30 losses; A fell), within the ~50% history. "dry 0":
+  fighting inside point A it never ran dry (1618 shots replenished). Ammo punishes advancing far from
+  supply, not defending. Channel: `CFG` now exported (live tuning, e.g. `CFG.AMMO_REFILL = 0`).
+- **Supply crate (Ctrl+6)**: −25 manpower, the game's `AmmoCrate` mesh under the cursor; for 60 s
+  it reloads 25%/s within 4.5 m (no healing); max. 3, cooldown 10 s; panel "caixas N". It vanishes on its own at the end.
+  Validated live: a crate beside the squad, ammo at zero → full in a few seconds (`crate.png`).
+- Regression bot (MG only fires mounted, before ammo): won wave 10 with 4 soldiers, 109 kills
+  and 26 losses. The balance remains tight.
+- `botloop.sh` now stops when `combat.auto` becomes false (before it looked for "won false", which never matched
+  because of the tab).
 
-## 2026-10-08 (madrugada, 4) — Dificuldade
+## 2026-10-08 (early morning, 4) — Difficulty
 
-- **Shift+F5** alterna fácil → normal → difícil (`CFG.DIFFICULTIES`). Cada nível sobrescreve precisão
-  inimiga, crescimento das ondas, inimigos extras por soldado nosso, mão de obra por segundo e chance de
-  pinça. "normal" = os valores calibrados com o robô. O painel mostra "RTS (difícil)" e o alerta da nova
-  partida diz o nível. F5 sozinho agora ignora Shift (senão Shift+F5 também alternava a ajuda).
-  Validado ao vivo (painel e alerta, `diff.png`); teste offline cobre o ciclo e os valores.
-- A dificuldade fica salva em `Mods/FoxholeRTS/settings.txt` (`difficulty=N`) e volta ao reiniciar o jogo
-  (validado: difícil → reinício → precisão inimiga 0,85; log "dificuldade salva").
+- **Shift+F5** toggles easy → normal → hard (`CFG.DIFFICULTIES`). Each level overrides enemy
+  accuracy, wave growth, extra enemies per soldier of ours, manpower per second and pincer
+  chance. "normal" = the values calibrated with the bot. The panel shows "RTS (difícil)" and the new
+  match alert names the level. F5 alone now ignores Shift (otherwise Shift+F5 also toggled the help).
+  Validated live (panel and alert, `diff.png`); the offline test covers the cycle and the values.
+- The difficulty is saved in `Mods/FoxholeRTS/settings.txt` (`difficulty=N`) and returns when the game restarts
+  (validated: hard → restart → enemy accuracy 0.85; log "dificuldade salva").
 
-## 2026-10-08 (madrugada, 3) — Vitória por domínio
+## 2026-10-08 (early morning, 3) — Victory by domination
 
-- Com ondas automáticas, segurar **todos** os pontos por 90 s seguidos (`CFG.HOLD_TO_WIN`) vence
-  (alerta "VITORIA POR DOMINIO", inimigos removidos, ondas desligam); perder qualquer ponto zera o
-  relógio. Painel: "domínio N s". Validado: pontos forçados para nós → painel "domínio 84 s"
-  (`dom1_crop.png`); relógio adiantado pelo canal → vitória. Teste offline cobre início, zerar ao
-  perder um ponto e vitória.
-- Resumo de fim de partida (vitória ou derrota): tempo, ondas, abates, perdas, precisão, morteiros,
-  granadas, veteranos vivos e pontos (`sum_crop.png`). Contadores de tiros/granadas/morteiro agora zeram
-  em `clearSquad` (antes acumulavam entre partidas). Corrigida a mensagem de derrota por pontos, que
-  sobrara como "F11 + Shift+F6".
-- **Fila de ordens:** Shift+botão direito / Shift+F7 acrescenta o destino à fila de cada selecionado
-  (mantém a posição na formação); quem está parado parte na hora; chegar puxa o próximo; ordem nova
-  (mover, atacar, End, Home) descarta a fila. Validado: 3 destinos em L percorridos em sequência em ~5 s.
-- Atalhos com e sem modificador (1/Ctrl+1, F4/Shift+F4, F6/Shift+F6, F7/Shift+F7, botão direito/
-  Shift+botão direito): não se sabe se o UE4SS dispara só a combinação ou as duas, e não há como testar
-  sem entrada real. A versão sem modificador (`plain`) agora ignora o disparo com Shift/Ctrl/Alt
-  seguro (lido por `IsInputKeyDown`; sem teclas seguras os seis leem `false`, conferido).
-- **Ondas em pinça:** a partir da onda 3, com 6+ inimigos, metade das vezes a onda se divide em dois
-  grupos, o segundo a 90–150° da entrada principal (`flankPoint`; `spawnEnemies(at, n, sameWave)` não
-  conta onda nova). Validado: 6 ondas forçadas pelo canal → 3 em pinça, grupos em lados opostos.
-  Robô com pinça a partir da onda 3 e 50%: caiu na onda 7 (3 pinças). Ajustado para onda 4 e 40%:
-  caiu na 10ª, a última (1 pinça; 101 abates, 35 perdas). Placar do robô até aqui: 3 vitórias, 3 derrotas.
-- Sons do jogo: `WinResultVictory_Cue`/`WinResultDefeat_Cue` (2D) no fim da partida e `StructureBuild_Cue`
-  ao erguer barreira. Os três objetos existem na memória e as chamadas rodam sem erro; se tocam de fato
-  só se confirma ouvindo (não há como pelo canal).
-- Refactor: 15 estados pequenos (pool de controladores, cache de efeitos, oclusão, estatísticas etc.)
-  viraram campos de `S` — locais no topo 172 → 158 (limite do Lua: 200). Partida do robô depois:
-  sem erros; ~38 quadros/s; mod 1,8 ms/quadro.
-- **Formação orientada:** a ordem de marcha monta, no destino, uma linha de até 4 (`CFG.FORM_WIDTH`)
-  com fileiras para trás, girada para ficar perpendicular à direção centro do grupo → destino (última
-  fileira centralizada). Antes: coluna de 2 sempre alinhada ao eixo X. Validado: 8 soldados mandados
-  na diagonal → duas fileiras de 4 atravessadas à marcha (`form.png`); teste offline confere
-  distância, centro e perpendicularidade.
-- **Metralhadora monta:** o metralhador (dos dois lados) só atira parado há 1 s (`stillSince`, marcado em
-  `halt` e apagado em `moveToward`); montado, acerto ×1,3 e supressão ×1,5. Marchando não atira (antes
-  atirava andando como os fuzileiros). Validado: parado há 3 s com inimigos a 17 m → atirando.
-- Pontos automáticos conferidos também em HomeRegionC (3 pontos com 24 marcadores cada). Lá a câmera
-  ficou atrás de uma estrutura grande perto do início.
-- **Oclusão da câmera:** a cada 0,4 s um traço (canal Camera) da câmera ao foco esconde até 4 atores no
-  caminho (`SetActorHiddenInGame`), nunca paisagem, personagens ou `InstancedFoliageActor` (um ator só
-  guarda toda a vegetação do nível); quem deixa de bloquear reaparece, e tudo reaparece ao sair do RTS.
-  Validado em HomeRegionC: a mesma posição antes tomada pela estrutura mostra o pátio, os pontos e o
-  esquadrão (`ptsC.png` → `ptsC2.png`).
+- With automatic waves, holding **all** points for 90 s in a row (`CFG.HOLD_TO_WIN`) wins
+  (alert "VITORIA POR DOMINIO", enemies removed, waves turn off); losing any point resets the
+  clock. Panel: "domínio N s". Validated: points forced to us → panel "domínio 84 s"
+  (`dom1_crop.png`); clock advanced through the channel → victory. The offline test covers the start, resetting on
+  losing a point and the victory.
+- End-of-match summary (victory or defeat): time, waves, kills, losses, accuracy, mortars,
+  grenades, surviving veterans and points (`sum_crop.png`). Shot/grenade/mortar counters now reset
+  in `clearSquad` (before they accumulated between matches). Fixed the defeat-by-points message, which
+  had been left as "F11 + Shift+F6".
+- **Order queue:** Shift+right button / Shift+F7 appends the destination to each selected unit's queue
+  (keeps the position in formation); those standing still leave at once; arriving pulls the next; a new order
+  (move, attack, End, Home) discards the queue. Validated: 3 destinations in an L walked in sequence in ~5 s.
+- Shortcuts with and without a modifier (1/Ctrl+1, F4/Shift+F4, F6/Shift+F6, F7/Shift+F7, right button/
+  Shift+right button): it is unknown whether UE4SS fires only the combination or both, and there is no way to test
+  without real input. The unmodified version (`plain`) now ignores the trigger while Shift/Ctrl/Alt is
+  held (read via `IsInputKeyDown`; with no keys held all six read `false`, checked).
+- **Pincer waves:** from wave 3, with 6+ enemies, half the time the wave splits into two
+  groups, the second at 90–150° from the main entrance (`flankPoint`; `spawnEnemies(at, n, sameWave)` does not
+  count a new wave). Validated: 6 waves forced through the channel → 3 pincers, groups on opposite sides.
+  Bot with pincers from wave 3 and 50%: fell at wave 7 (3 pincers). Adjusted to wave 4 and 40%:
+  fell at the 10th, the last one (1 pincer; 101 kills, 35 losses). Bot score so far: 3 victories, 3 defeats.
+- Game sounds: `WinResultVictory_Cue`/`WinResultDefeat_Cue` (2D) at the end of the match and `StructureBuild_Cue`
+  when raising a barrier. The three objects exist in memory and the calls run without error; whether they actually play
+  can only be confirmed by listening (there is no way through the channel).
+- Refactor: 15 small states (controller pool, effects cache, occlusion, statistics etc.)
+  became fields of `S` — top-level locals 172 → 158 (Lua limit: 200). Bot match afterwards:
+  no errors; ~38 frames/s; mod 1.8 ms/frame.
+- **Oriented formation:** the march order builds, at the destination, a line of up to 4 (`CFG.FORM_WIDTH`)
+  with rows behind, rotated to be perpendicular to the group center → destination direction (last
+  row centered). Before: a column of 2 always aligned to the X axis. Validated: 8 soldiers sent
+  diagonally → two rows of 4 across the march (`form.png`); the offline test checks
+  distance, center and perpendicularity.
+- **Machine gun sets up:** the machine gunner (on both sides) only fires after being stopped for 1 s (`stillSince`, set in
+  `halt` and cleared in `moveToward`); set up, hit ×1.3 and suppression ×1.5. Marching it does not fire (before
+  it fired while walking like the riflemen). Validated: stopped for 3 s with enemies at 17 m → firing.
+- Automatic points also checked in HomeRegionC (3 points with 24 markers each). There the camera
+  ended up behind a large structure near the start.
+- **Camera occlusion:** every 0.4 s a trace (Camera channel) from the camera to the focus hides up to 4 actors in
+  the way (`SetActorHiddenInGame`), never landscape, characters or `InstancedFoliageActor` (a single actor
+  holds all of the level's vegetation); whoever stops blocking reappears, and everything reappears when leaving RTS.
+  Validated in HomeRegionC: the same position previously taken by the structure shows the yard, the points and the
+  squad (`ptsC.png` → `ptsC2.png`).
 
-## 2026-10-08 (madrugada, 2) — Desempenho: de 6 para ~30 quadros/s em combate
+## 2026-10-08 (early morning, 2) — Performance: from 6 to ~30 frames/s in combat
 
-- Perfilador por etapa no laço (`step()` com `os.clock`, que no Windows é tempo de parede); `profile()`
-  no canal e no F5 dá ms/quadro por etapa.
-- Medido com 12 soldados + 15 inimigos: quadro de 150–400 ms; o mod gastava 80–180 ms
+- Per-step profiler in the loop (`step()` with `os.clock`, which on Windows is wall time); `profile()`
+  in the channel and on F5 gives ms/frame per step.
+- Measured with 12 soldiers + 15 enemies: a 150–400 ms frame; the mod spent 80–180 ms
   (`pathTick` 71, `squadTick` 54, `enemyTick` 51).
-- **Causa 1:** `UEHelpers.GetWorld()` faz `FindAllOf("PlayerController")` a cada chamada (0,3 ms
-  medidos) e `now()`, traços e spawns o chamavam centenas de vezes por quadro. Agora `world()`,
-  `now()` e `isLocalAuthority()` ficam em cache durante o quadro (`tick.inFrame`; fora do laço —
-  teclas e canal — são recalculados), `loc()` também, e `playerController()` usa
-  `GameplayStatics:GetPlayerController(world, 0)` (custo ~0; o `UEHelpers.GetPlayerController`
-  aceitava qualquer PlayerController, inclusive os dos soldados).
-- Também: busca de alvo + traço de visada só a cada 0,25 s (`CFG.SCAN_EVERY`, com variação) ou
-  com a arma pronta, em vez de todo quadro; A* com orçamento de 4 ms/quadro em fatias de 4 nós.
-- Resultado: mod de 80–180 → **~4 ms/quadro** na mesma cena; quadro do jogo 33–84 ms.
-- **Causa 2 (vazamento):** `K2_DestroyActor` não destrói `HeadlessPlayerController` (recusado
-  pelo motor; um `StaticMeshActor` destruído some na coleta, o controlador não — 180 controladores
-  válidos após ~150 mortes, cada um com `SimPlayerState`, `PlayerCameraManager` e `CameraActor`).
-  Após uma partida longa o quadro ia a 350 ms com só 12 soldados. Agora o controlador do morto faz
-  `UnPossess` e vai para um pool que `spawnSoldier` reaproveita (com `bIsLocalPlayerController`
-  desligado até a nova posse). Partida inteira do robô: 25 controladores no total, 129
-  reaproveitamentos; quadro final 60 ms com 12 soldados (era 350); o mod em média 1,5 ms/quadro.
-  Desligar o tick dos controladores ociosos não mudou nada: o resto é custo dos personagens do jogo.
-- **Armadilha:** ler `hpc.Player` e chamar métodos nele (`GetFullName`/`GetClass`) derrubou o estado
-  Lua do UE4SS (canal mudo, jogo vivo); foi preciso reiniciar.
-- Balanço conferido depois das mudanças: robô venceu com 19 e 23 perdas (mesma faixa de antes).
+- **Cause 1:** `UEHelpers.GetWorld()` does `FindAllOf("PlayerController")` on every call (0.3 ms
+  measured) and `now()`, traces and spawns called it hundreds of times per frame. Now `world()`,
+  `now()` and `isLocalAuthority()` are cached during the frame (`tick.inFrame`; outside the loop —
+  keys and channel — they are recomputed), `loc()` too, and `playerController()` uses
+  `GameplayStatics:GetPlayerController(world, 0)` (cost ~0; `UEHelpers.GetPlayerController`
+  accepted any PlayerController, including the soldiers').
+- Also: target search + line-of-sight trace only every 0.25 s (`CFG.SCAN_EVERY`, with jitter) or
+  when the weapon is ready, instead of every frame; A* with a budget of 4 ms/frame in slices of 4 nodes.
+- Result: mod from 80–180 → **~4 ms/frame** in the same scene; game frame 33–84 ms.
+- **Cause 2 (leak):** `K2_DestroyActor` does not destroy `HeadlessPlayerController` (refused
+  by the engine; a destroyed `StaticMeshActor` disappears at collection, the controller does not — 180 valid
+  controllers after ~150 deaths, each with a `SimPlayerState`, `PlayerCameraManager` and `CameraActor`).
+  After a long match the frame went to 350 ms with only 12 soldiers. Now the dead soldier's controller does
+  `UnPossess` and goes to a pool that `spawnSoldier` reuses (with `bIsLocalPlayerController`
+  off until the new possession). A whole bot match: 25 controllers in total, 129
+  reuses; final frame 60 ms with 12 soldiers (was 350); the mod on average 1.5 ms/frame.
+  Turning off the tick of idle controllers changed nothing: the rest is the cost of the game's characters.
+- **Pitfall:** reading `hpc.Player` and calling methods on it (`GetFullName`/`GetClass`) brought down UE4SS's
+  Lua state (silent channel, game alive); a restart was needed.
+- Balance checked after the changes: the bot won with 19 and 23 losses (same range as before).
 
-## 2026-10-08 (madrugada) — v0.7: morteiro, granadas, veterania, recuo, ajuda, nova partida, balanço
+## 2026-10-08 (early morning) — v0.7: mortar, grenades, veterancy, retreat, help, new match, balance
 
-- **Ctrl+5 = morteiro** sob o cursor: 40 de mão de obra, recarga 20 s (painel: "morteiro pronto" /
-  "morteiro N s"). Som de artilharia chegando + anel de 8 discos; após 2,5 s, 3 granadas espalhadas
-  até 2,5 m do alvo com o efeito `MortarBlast` e o som `ArtilleryLightExplosion_Cue` do jogo
-  (achados com `FindAllOf("ParticleSystem"/"SoundCue")`, 82 e 55 candidatos). Dano 75 com queda
-  linear até 30% na borda de 3,5 m, só no lado oposto (instigador do próprio lado, como no tiro);
-  supressão em todos até 7 m. Validado: salva sobre 5 inimigos parados em posição de tiro → 332 de dano.
-- **Morteiro inimigo** a partir da onda 4, a cada 35 s com inimigos vivos, no maior grupo de 3+
-  soldados nossos (2 granadas, 3 s de aviso, alerta "MORTEIRO INIMIGO chegando").
-  Balanço medido com 6 soldados em formação:
-  sem reação, 3 granadas de 90 = 4 mortos; com fuga automática para fora do anel = 0 de dano
-  (correm ~18 m em 3 s); quem segura posição (End) ou está suprimido não foge —
-  3 granadas = 6 mortos, 2 granadas de 75 = 1 morto e 5 feridos (valor final). O papel do
-  morteiro inimigo é desalojar.
-- Fim da salva: quem fugiu e não recebeu ordem nova (nem foco, nem End) volta ao lugar com rota
-  A* própria (`routeTo`). Em linha reta, 2 de 6 ficavam presos atrás do carro blindado; com a rota,
-  desvio final de 0,6–1,9 m da posição original. Partida de 7 ondas com pontos e morteiro: sem erros no log.
-- **Ajuda na tela:** segundo TextBlock no widget do painel com as teclas (6 linhas, fonte 13); aparece
-  por 40 s ao ligar o RTS e F5 alterna (além de registrar o status). Validado em captura: visível
-  logo após o autostart (`help1.png`) e escondida depois do prazo (`help2_crop.png`). F5 com teclado
-  real ainda não testado.
-- **Veterania:** o tiro que zera o HP credita o atirador (`credit`); a cada 2 abates sobe um nível
-  (máx. 3), +10% de precisão por nível, nos dois lados. Alerta "fuzileiro promovido a veterano 1",
-  painel "sel. 6, 1 vet.", status lista abates por soldado. Validado: onda de 5 → créditos
-  1,2,1,0,0,1 (soma = 5 abates) e promoção do 2º fuzileiro.
-- **Recuo (Home):** selecionados correm ao ponto nosso mais próximo do grupo (sem ponto, ao
-  comandante) com rota A* própria, não param para atirar e levam metade dos acertos
-  (`CFG.RETREAT_HIT`); chegar ou nova ordem encerra. Ponto nosso é posto de socorro: dentro do anel,
-  sem supressão, +2 HP/s (`CFG.POINT_HEAL`). Validado: 4 feridos (50–62 HP) a ~15–19 m de A
-  chegaram em ~4 s (o metralhador, mais lento, em ~6 s) e subiram ~2,4 HP/s lá. Achado no teste:
-  o médico chegava e saía de novo atrás do metralhador ainda a caminho, e morria; agora o médico
-  não sai atrás de quem está recuando.
-- **Nova partida (Shift+F6):** limpa tudo, esquadrão de 6 (`CFG.START_SQUAD`), ondas automáticas e três
-  pontos; alertas de vitória/derrota apontam para ela. Validado pelo canal duas vezes seguidas
-  (6 soldados, 3 pontos, ondas ligadas, onda 0).
-- **Granadas:** fuzileiro (dos dois lados) com o alvo atrás de cobertura baixa a até 18 m lança uma
-  granada em vez de atirar (recarga 18 s por soldado; explode em 1,4 s a até 1,5 m do alvo; dano 55
-  com queda até 3 m, sem traço — a cobertura não protege; supressão até 5 m; abate credita o
-  lançador). Efeito `GrenadeBlast`, sons `GrenadePinPull_Cue` e `HELaunchedGrenadeHit_Cue` (este
-  escolhido pelo nome, não conferido de ouvido). Validado: 3 barreiras com 4 inimigos atrás → 2
-  granadas, 272 de dano, onda eliminada (`gr1.png`); status registra lançamentos e dano por lado.
-  Granada inimiga validada: 4 soldados nossos em segurar posição atrás de 3 barreiras, 4 inimigos a
-  15 m → 2 granadas, 303 de dano, 2 mortos. Sem projétil visível não há como reagir em 1,4 s; dano
-  baixado de 55 para 45 (texto acima mantém o valor original do teste).
-  Projétil visível: malha `/Game/FX/Mesh/Grenade01` (3×) voa em arco (2,5 m de altura) do lançador ao
-  alvo durante a espoleta e some na explosão; conferido em captura com a espoleta alongada pelo canal
-  (`gfly2.png`: granada e sombra deslocada no meio do caminho).
-- Ajuda na tela ancorada no canto inferior esquerdo: no alto ela cobria a caixa de alertas do jogo
+- **Ctrl+5 = mortar** under the cursor: 40 manpower, cooldown 20 s (panel: "morteiro pronto" /
+  "morteiro N s"). Incoming artillery sound + a ring of 8 discs; after 2.5 s, 3 shells spread
+  up to 2.5 m from the target with the game's `MortarBlast` effect and `ArtilleryLightExplosion_Cue` sound
+  (found with `FindAllOf("ParticleSystem"/"SoundCue")`, 82 and 55 candidates). Damage 75 with a linear
+  falloff down to 30% at the 3.5 m edge, only on the opposing side (instigator of one's own side, as with firing);
+  suppression on everyone within 7 m. Validated: a salvo on 5 enemies stopped in firing position → 332 damage.
+- **Enemy mortar** from wave 4, every 35 s with enemies alive, on the largest group of 3+
+  of our soldiers (2 shells, 3 s of warning, alert "MORTEIRO INIMIGO chegando").
+  Balance measured with 6 soldiers in formation:
+  no reaction, 3 shells of 90 = 4 dead; with an automatic escape out of the ring = 0 damage
+  (they run ~18 m in 3 s); those holding position (End) or suppressed do not flee —
+  3 shells = 6 dead, 2 shells of 75 = 1 dead and 5 wounded (final value). The enemy
+  mortar's role is to dislodge.
+- End of the salvo: those who fled and got no new order (no focus, no End) return to their spot with their own
+  A* route (`routeTo`). In a straight line, 2 of 6 got stuck behind the armored car; with the route,
+  a final deviation of 0.6–1.9 m from the original position. A match of 7 waves with points and mortar: no errors in the log.
+- **On-screen help:** a second TextBlock in the panel widget with the keys (6 lines, font 13); it appears
+  for 40 s when RTS turns on and F5 toggles it (besides logging the status). Validated in a capture: visible
+  right after the autostart (`help1.png`) and hidden after the deadline (`help2_crop.png`). F5 with a real
+  keyboard not tested yet.
+- **Veterancy:** the shot that zeroes HP credits the shooter (`credit`); every 2 kills goes up a level
+  (max. 3), +10% accuracy per level, on both sides. Alert "fuzileiro promovido a veterano 1",
+  panel "sel. 6, 1 vet.", the status lists kills per soldier. Validated: a wave of 5 → credits
+  1,2,1,0,0,1 (sum = 5 kills) and promotion of the 2nd rifleman.
+- **Retreat (Home):** the selected run to the point of ours nearest the group (with no point, to the
+  commander) with their own A* route, do not stop to fire and take half the hits
+  (`CFG.RETREAT_HIT`); arriving or a new order ends it. A point of ours is an aid post: inside the ring,
+  without suppression, +2 HP/s (`CFG.POINT_HEAL`). Validated: 4 wounded (50–62 HP) ~15–19 m from A
+  arrived in ~4 s (the machine gunner, slower, in ~6 s) and rose ~2.4 HP/s there. Found in the test:
+  the medic arrived and went out again after the machine gunner still on the way, and died; now the medic
+  does not go after someone retreating.
+- **New match (Shift+F6):** clears everything, a squad of 6 (`CFG.START_SQUAD`), automatic waves and three
+  points; the victory/defeat alerts point to it. Validated through the channel twice in a row
+  (6 soldiers, 3 points, waves on, wave 0).
+- **Grenades:** a rifleman (on both sides) with the target behind low cover within 18 m throws a
+  grenade instead of firing (cooldown 18 s per soldier; explodes in 1.4 s within 1.5 m of the target; damage 55
+  with falloff up to 3 m, no trace — cover does not protect; suppression up to 5 m; a kill credits the
+  thrower). Effect `GrenadeBlast`, sounds `GrenadePinPull_Cue` and `HELaunchedGrenadeHit_Cue` (the latter
+  chosen by name, not checked by ear). Validated: 3 barriers with 4 enemies behind → 2
+  grenades, 272 damage, wave eliminated (`gr1.png`); the status records throws and damage per side.
+  Enemy grenade validated: 4 of our soldiers holding position behind 3 barriers, 4 enemies at
+  15 m → 2 grenades, 303 damage, 2 dead. Without a visible projectile there is no way to react in 1.4 s; damage
+  lowered from 55 to 45 (the text above keeps the test's original value).
+  Visible projectile: mesh `/Game/FX/Mesh/Grenade01` (3×) flies in an arc (2.5 m high) from the thrower to the
+  target during the fuse and vanishes on the explosion; checked in a capture with the fuse lengthened through the channel
+  (`gfly2.png`: grenade and offset shadow halfway).
+- On-screen help anchored at the bottom left corner: at the top it covered the game's alert box
   (`help3.png`).
-- **Jogador-robô** pelo canal (`t_bot0.lua` + `t_bot.lua` a cada 10 s: recruta com ≥45 de mão de obra
-  no ponto A, morteiro no centro dos inimigos, mantém todos em A; sem barreiras, recuo ou cobertura):
-  - balanço antigo: venceu as 10 ondas com 3 perdas; o morteiro inimigo **nunca disparou** (o relógio
-    zerava a cada onda eliminada, antes dos 17 s iniciais) — corrigido, o relógio só zera abaixo da onda 4;
-  - ondas 0,5→0,8 inimigo/onda e teto 10→14: venceu de novo com 3 perdas (12 soldados = bola de neve);
-  - + `CFG.WAVE_SQUAD_SCALE` 0,4 inimigo por soldado nosso vivo, teto 16, precisão inimiga 0,6→0,7:
-    perdeu na 10ª onda (108 abates, 31 perdas; o inimigo tomou os três pontos). Valor mantido: um
-    jogador usando barreiras, recuo e cobertura deve ir além do robô. Nenhum erro no log nas três partidas.
-- **Avanço em lances (IA):** inimigo avançando com supressão ≥ 0,25 corre para a cobertura mais
-  avançada por perto (mesma busca de `seekCover`), espera 2,5 s e segue; antes avançava reto até o
-  alcance. Validado: 6 barreiras no caminho, onda de 6 vinda de 38 m → 5 lances e 12 idas à cobertura
-  (status mostra "lances inimigos").
-  Robô com lances: venceu as 10 ondas com 108 abates e 22 perdas (12 granadas nossas contra inimigos
-  abrigados nos lances). Duas partidas do robô: uma derrota (31 perdas) e uma vitória (22 perdas).
-- **Bug corrigido:** `focusOn(0/0)` (teste com lista vazia) deixou a câmera em NaN e a tela preta
-  para sempre — com a posição atual NaN o `K2_SetActorLocation` move por um delta NaN. Agora
-  `focusOn` ignora NaN e `placeCamera` recria a câmera se a posição dela for NaN (validado:
-  câmera forçada a NaN voltou a (9988,-24935,2662) com imagem). `callMortar` também recusa NaN.
+- **Bot player** through the channel (`t_bot0.lua` + `t_bot.lua` every 10 s: recruits with ≥45 manpower
+  at point A, mortar at the center of the enemies, keeps everyone at A; no barriers, retreat or cover):
+  - old balance: won the 10 waves with 3 losses; the enemy mortar **never fired** (the clock
+    reset every time a wave was eliminated, before the initial 17 s) — fixed, the clock only resets below wave 4;
+  - waves 0.5→0.8 enemies/wave and ceiling 10→14: won again with 3 losses (12 soldiers = snowball);
+  - + `CFG.WAVE_SQUAD_SCALE` 0.4 enemies per living soldier of ours, ceiling 16, enemy accuracy 0.6→0.7:
+    lost at the 10th wave (108 kills, 31 losses; the enemy took all three points). Value kept: a
+    player using barriers, retreat and cover should go beyond the bot. No errors in the log in the three matches.
+- **Advancing in bounds (AI):** an enemy advancing with suppression ≥ 0.25 runs to the most
+  advanced cover nearby (the same search as `seekCover`), waits 2.5 s and continues; before, it advanced straight until
+  in range. Validated: 6 barriers in the way, a wave of 6 coming from 38 m → 5 bounds and 12 trips to cover
+  (the status shows "lances inimigos").
+  Bot with bounds: won the 10 waves with 108 kills and 22 losses (12 grenades of ours against enemies
+  sheltering in the bounds). Two bot matches: one defeat (31 losses) and one victory (22 losses).
+- **Bug fixed:** `focusOn(0/0)` (a test with an empty list) left the camera at NaN and the screen black
+  forever — with the current position NaN, `K2_SetActorLocation` moves by a NaN delta. Now
+  `focusOn` ignores NaN and `placeCamera` recreates the camera if its position is NaN (validated:
+  camera forced to NaN came back to (9988,-24935,2662) with an image). `callMortar` also refuses NaN.
 
-## 2026-10-07 (noite, 13) — Pontos de controle (v0.6)
+## 2026-10-07 (night, 13) — Control points (v0.6)
 
-- Ponto = anel pontilhado laranja (24 discos pequenos, raio `CFG.POINT_RADIUS` 500) +
-  estandarte enrolado do dono no centro, 3× (`BannerTWPickup` azul = jogador/Wardens,
-  `BannerTCPickup` verde = Colonials; neutro sem estandarte). Testados antes: disco único
-  de 10 m (cortado pelo relevo, cobria o terreno) e materiais `FlagHanging*` no disco
-  (renderizam como bandeira rasgada, não como cor) — descartados.
-- Captura: progresso em [-1, 1]; só um lado no anel empurra (1 soldado = 10 s de neutro a
-  dono, até 3 somam); os dois lados = disputado (congela); vazio = volta devagar ao dono.
-  O dono perde o ponto quando o progresso cruza 0. Cada ponto nosso rende +0,5/s de mão de
-  obra. Inimigo com todos os pontos = derrota (com ondas automáticas).
-- IA inimiga fora de combate vai ao ponto mais próximo que ainda não domina e segura no
-  centro (60% do raio); inimigo humano mais perto que o ponto continua tendo prioridade.
-- Shift+F4 sem pontos cria três (frente e flancos do esquadrão, 1400–2400 cm), em chão
-  plano e livre; J cria um ponto sob o cursor (máx. 5); F11 remove. Painel:
-  `pontos 1/3 [A+ Bx Co]` (+ nosso, x inimigo, o neutro; % durante a captura).
-- Achados de traço: o canal Visibility (`groundZ`) **atravessa veículos** (Truck24);
-  `LineTraceSingleForObjects` com tipos {WorldStatic 0, WorldDynamic 1} os acerta, mas
-  também acerta volumes invisíveis `BPNoBuild_C` (BoxComponent, topo Z=4746) — `surfaceZ`
-  ignora hits em Box/SphereComponent (cache `surfaceIgnore`) e refaz o traço.
-- Validado no jogo: 3 pontos criados longe dos caminhões; esquadrão capturou A em ~3 s
-  (6 soldados); onda 1 tomou B a caminho e engajou o esquadrão; 3 ondas com A nosso e B
-  inimigo, painel e estandartes conferidos em captura (`pts6.png`).
-- Cabeça de ponte: ponto dominado pelo inimigo a mais de 15 m do esquadrão vira a entrada da
-  próxima onda (o mais distante; alerta "entrada pelo ponto B"). Validado: B forçado para o
-  inimigo pelo canal → onda 5 nasceu em B (11529,-22835). Na mesma rodada o esquadrão caiu,
-  o inimigo tomou A e C e a derrota por pontos desligou as ondas.
-- Reforço avançado: Ctrl+1..4 com o cursor dentro de um ponto nosso faz o recruta nascer
-  nele (`recruit(role, at)`; `spawnSquad(n, role, at)`). Validado pelo canal: recruta em B
-  nasceu a ~180 cm do centro; sem ponto, ao lado do esquadrão como antes. O caminho pelo
-  cursor depende do mouse real (não testado).
-- Testes offline: progresso/disputa/perda/volta, objetivo do inimigo, derrota por pontos,
-  entrada da onda por ponto inimigo; tecla J sem conflito.
-- Balanço: regeneração base 1,5/s → 1,0/s (`CFG.MANPOWER_RATE`); com um ponto dominado volta a
-  1,5/s. Na partida de teste a mão de obra passava a maior parte do tempo no teto de 200.
-- A* (`kneeClear`) passou do canal Visibility (0) para `CFG.MOVE_CHANNEL` = 1 (Camera).
-  Varreduras medidas: Camera acerta caminhões (BoxComponent), motos, prédios e barreiras e
-  não acerta os volumes BPNoBuild; o canal 4 acerta veículos mas atravessa as barreiras;
-  Visibility atravessa veículos. Rota (11000,-24900)→(11000,-27900) através da fileira de
-  caminhões: antes linha reta (0 nós), agora desvio pelo vão (29 nós); 4 soldados chegaram
-  em <8 s (`route1.png`). Tiro e cobertura continuam no Visibility (caminhão não para bala
-  nem conta como cobertura — coerente entre si).
+- Point = a dotted orange ring (24 small discs, radius `CFG.POINT_RADIUS` 500) +
+  the owner's rolled-up banner at the center, 3× (`BannerTWPickup` blue = player/Wardens,
+  `BannerTCPickup` green = Colonials; neutral without a banner). Tried before: a single
+  10 m disc (cut by the relief, covered the terrain) and `FlagHanging*` materials on the disc
+  (they render as a torn flag, not as a color) — discarded.
+- Capture: progress in [-1, 1]; only one side in the ring pushes (1 soldier = 10 s from neutral to
+  owner, up to 3 add up); both sides = contested (freezes); empty = slowly returns to the owner.
+  The owner loses the point when progress crosses 0. Each point of ours yields +0.5/s of
+  manpower. The enemy with all points = defeat (with automatic waves).
+- Enemy AI out of combat goes to the nearest point it does not dominate yet and holds at the
+  center (60% of the radius); a human enemy closer than the point still has priority.
+- Shift+F4 without points creates three (front and flanks of the squad, 1400–2400 cm), on flat,
+  free ground; J creates a point under the cursor (max. 5); F11 removes. Panel:
+  `pontos 1/3 [A+ Bx Co]` (+ ours, x enemy, o neutral; % during capture).
+- Trace findings: the Visibility channel (`groundZ`) **goes through vehicles** (Truck24);
+  `LineTraceSingleForObjects` with types {WorldStatic 0, WorldDynamic 1} hits them, but
+  also hits invisible `BPNoBuild_C` volumes (BoxComponent, top Z=4746) — `surfaceZ`
+  ignores hits on Box/SphereComponent (cache `surfaceIgnore`) and redoes the trace.
+- Validated in the game: 3 points created away from the trucks; the squad captured A in ~3 s
+  (6 soldiers); wave 1 took B on the way and engaged the squad; 3 waves with A ours and B
+  the enemy's, panel and banners checked in a capture (`pts6.png`).
+- Bridgehead: a point dominated by the enemy more than 15 m from the squad becomes the entrance of the
+  next wave (the farthest; alert "entrada pelo ponto B"). Validated: B forced to the
+  enemy through the channel → wave 5 spawned at B (11529,-22835). In the same round the squad fell,
+  the enemy took A and C and the defeat by points turned off the waves.
+- Forward reinforcement: Ctrl+1..4 with the cursor inside a point of ours makes the recruit spawn
+  there (`recruit(role, at)`; `spawnSquad(n, role, at)`). Validated through the channel: a recruit at B
+  spawned ~180 cm from the center; with no point, beside the squad as before. The path through the
+  cursor depends on the real mouse (not tested).
+- Offline tests: progress/contest/loss/return, the enemy's objective, defeat by points,
+  wave entrance through an enemy point; key J without conflict.
+- Balance: base regeneration 1.5/s → 1.0/s (`CFG.MANPOWER_RATE`); with one point dominated it goes back to
+  1.5/s. In the test match manpower spent most of the time at the 200 ceiling.
+- A* (`kneeClear`) moved from the Visibility channel (0) to `CFG.MOVE_CHANNEL` = 1 (Camera).
+  Measured sweeps: Camera hits trucks (BoxComponent), motorcycles, buildings and barriers and
+  does not hit the BPNoBuild volumes; channel 4 hits vehicles but goes through the barriers;
+  Visibility goes through vehicles. Route (11000,-24900)→(11000,-27900) through the row of
+  trucks: before a straight line (0 nodes), now a detour through the gap (29 nodes); 4 soldiers arrived
+  in <8 s (`route1.png`). Firing and cover remain on Visibility (a truck does not stop a bullet
+  nor count as cover — consistent with each other).
 
-## 2026-10-07 (noite, 12) — Vitória e dificuldade crescente
+## 2026-10-07 (night, 12) — Victory and increasing difficulty
 
-- Ondas automáticas agora têm fim: eliminar a onda `CFG.WAVES_TO_WIN` (10) = vitória
-  (alerta de 15 s, painel "VITÓRIA", +30 de mão de obra, ondas desligam). Religar as
-  ondas depois de vencer começa nova campanha (onda 0).
-- Precisão inimiga ×(1 + 0,04·(onda−1)), teto ×1,5 (`CFG.WAVE_ACC_GROWTH/CAP`).
-- Painel mostra "onda X/10" com as ondas automáticas ligadas.
-- Validado no jogo: campanha iniciada na onda 9 pelo canal; a 10ª (8 inimigos) chegou
-  após o intervalo e foi eliminada → `won=true`, `auto=false`, alerta e painel
-  conferidos em captura (`win_crop.png`).
-- `test_orders.py`: vitória na última onda, onda intermediária só agenda a próxima,
-  religar após vitória reinicia a campanha.
+- Automatic waves now have an end: eliminating wave `CFG.WAVES_TO_WIN` (10) = victory
+  (15 s alert, panel "VITÓRIA", +30 manpower, waves turn off). Turning the
+  waves back on after winning starts a new campaign (wave 0).
+- Enemy accuracy ×(1 + 0.04·(wave−1)), ceiling ×1.5 (`CFG.WAVE_ACC_GROWTH/CAP`).
+- The panel shows "onda X/10" with automatic waves on.
+- Validated in the game: campaign started at wave 9 through the channel; the 10th (8 enemies) arrived
+  after the interval and was eliminated → `won=true`, `auto=false`, alert and panel
+  checked in a capture (`win_crop.png`).
+- `test_orders.py`: victory at the last wave, an intermediate wave only schedules the next,
+  turning back on after a victory restarts the campaign.
 
-## 2026-10-07 (noite, 11) — Médico e limite de 200 locais
+## 2026-10-07 (night, 11) — Medic and the 200-local limit
 
-- Reflexão em `SimCharacter`: `Health`/`MaxHealth`, `bIsBleeding` (+`OnRep_IsBleeding`),
-  `BleedDamagePerSecond` 1,0, `BleedMinDamageReq` 25, `ResetWoundedStateThreshold` 85,
-  `OnRep_Health`. Escrever `Health` + `OnRep_Health` cura e se mantém (60→90).
-  Dano com o próprio controller como instigador não aplica (tratado como fogo amigo).
-- Classe médico: pistola (`PistolBasic`), 30 de mão de obra, Ctrl+4; 4º e 12º do
-  esquadrão (inimigos também). A cada 1,5 s cura 12 HP e estanca o mais ferido a ≤3,5 m;
-  ferido a ≤12 m e médico livre → vai até ele. No jogo: onda de 4 vencida 4×0, médico
-  aliado curou 156 HP (inclusive a si mesmo 56→90), médico inimigo 38. F5 mostra o total.
-- **Limite do Lua: 200 locais por chunk.** O `main.lua` chegou a exatamente 200 e o
-  médico estourou ("too many local variables"). As 79 constantes MAIÚSCULAS de topo
-  foram para a tabela `CFG` por transformação mecânica (código, não strings/comentários);
-  sobram ~80 locais. Validado no jogo depois (autostart, câmera, combate).
-- `test_orders.py`: médico cura o mais ferido, estanca, respeita o período e anda até
-  ferido distante.
+- Reflection on `SimCharacter`: `Health`/`MaxHealth`, `bIsBleeding` (+`OnRep_IsBleeding`),
+  `BleedDamagePerSecond` 1.0, `BleedMinDamageReq` 25, `ResetWoundedStateThreshold` 85,
+  `OnRep_Health`. Writing `Health` + `OnRep_Health` heals and sticks (60→90).
+  Damage with one's own controller as instigator does not apply (treated as friendly fire).
+- Medic class: pistol (`PistolBasic`), 30 manpower, Ctrl+4; 4th and 12th of the
+  squad (enemies too). Every 1.5 s heals 12 HP and stops the bleeding of the most wounded within ≤3.5 m;
+  a wounded within ≤12 m and a free medic → goes to them. In the game: a wave of 4 beaten 4×0, the allied
+  medic healed 156 HP (including themself 56→90), the enemy medic 38. F5 shows the total.
+- **Lua limit: 200 locals per chunk.** `main.lua` reached exactly 200 and the
+  medic blew it up ("too many local variables"). The 79 top-level UPPERCASE constants
+  went into the `CFG` table by a mechanical transformation (code, not strings/comments);
+  ~80 locals remain. Validated in the game afterwards (autostart, camera, combat).
+- `test_orders.py`: the medic heals the most wounded, stops bleeding, respects the period and walks to a
+  distant wounded.
 
-## 2026-10-07 (noite, 10) — v0.5: teclas sem conflito com o jogo
+## 2026-10-07 (night, 10) — v0.5: keys without conflicts with the game
 
-- Lidos os 138 mapeamentos padrão (`Default__InputSettings.ActionMappings/AxisMappings`;
-  `pc.PlayerInput.ActionMappings` vem como TrivialObject). Conflitos reais do mod:
-  B = Build (menu de construção), H = Open Callouts Menu, F8 = Toggle Interface,
-  Shift+1–7 = AdminCommand1–7, botão esquerdo = Fire, direito = Aim, PageUp/Down =
-  Spectate/Move Up (inofensivos fora de espectador/veículo), 1/2/3 = Equip.
-- Teclas livres no jogo (sem modificador): F2–F7, F9–F12, J, K, Home, End, Insert,
-  Delete. Novo mapa: recrutar Ctrl+1/2/3 (Ctrl+n só troca assento em veículo), barreira
-  K, segurar End, limpar F11. 1/2/3 mantidos (só equipam o comandante parado).
-- Modo RTS desliga a entrada do pawn do comandante (`DisableInput`; religa ao sair),
-  para o clique esquerdo não disparar Fire. Não verificado com mouse real.
-- `test_orders.py`: teste de regressão compara as teclas registradas pelo mod com a
-  lista de mapeamentos do jogo (falha em qualquer colisão fora das aceitas).
-- v0.5 carregou no laboratório com os novos nomes de tecla (banner no log).
+- Read the 138 default mappings (`Default__InputSettings.ActionMappings/AxisMappings`;
+  `pc.PlayerInput.ActionMappings` comes as a TrivialObject). The mod's real conflicts:
+  B = Build (construction menu), H = Open Callouts Menu, F8 = Toggle Interface,
+  Shift+1–7 = AdminCommand1–7, left button = Fire, right = Aim, PageUp/Down =
+  Spectate/Move Up (harmless outside spectator/vehicle), 1/2/3 = Equip.
+- Free keys in the game (no modifier): F2–F7, F9–F12, J, K, Home, End, Insert,
+  Delete. New map: recruit Ctrl+1/2/3 (Ctrl+n only switches seats in a vehicle), barrier
+  K, hold End, clear F11. 1/2/3 kept (they only equip the stopped commander).
+- RTS mode turns off the commander pawn's input (`DisableInput`; back on when leaving),
+  so the left click does not trigger Fire. Not verified with a real mouse.
+- `test_orders.py`: a regression test compares the keys registered by the mod with the
+  game's mapping list (fails on any collision outside the accepted ones).
+- v0.5 loaded in the lab with the new key names (banner in the log).
 
-## 2026-10-07 (noite, 9) — Construção de barreiras (tecla B)
+## 2026-10-07 (night, 9) — Building barriers (key B)
 
-- Candidatas medidas por perfil de traços horizontais (40–150 cm):
-  `BPSandBagWallStatic_C` bloqueia até ~2,25 m (corta a visada; não serve);
-  `SandbagSmallPile_C` só ~40 cm; o divisor de concreto do pátio é um
-  `StaticMeshActor` com `OCourseDividers_01` (~2,7 m, topo ~1,24 m): bloqueia 40–100,
-  libera 130–150 = cobertura baixa exata do modelo de tiro.
-- `buildAt(p)`: `StaticMeshActor` + essa malha (Movable), virado de frente para o
-  inimigo mais próximo (sem inimigos: direção esquadrão→ponto); custa 15 de mão de
-  obra, máximo 30, recusa com soldado a <1,8 m; F8 remove; painel mostra "barreiras N".
-  Tecla B (ainda não testada com teclado real; não sei se o jogo usa B no modo RTS).
-- Validado no jogo: 3 barreiras a 3,5 m do esquadrão antes de uma onda de 4:
-  mão de obra 63→18; 44 de 47 tiros inimigos barrados; 4 abates, 0 perdas; 7 rotas
-  A* inimigas desviando das barreiras. Captura `build7_small.png`.
-- `test_orders.py`: recusas sem mão de obra e com soldado no local, sem cobrar.
+- Candidates measured by a profile of horizontal traces (40–150 cm):
+  `BPSandBagWallStatic_C` blocks up to ~2.25 m (cuts line of sight; no good);
+  `SandbagSmallPile_C` only ~40 cm; the yard's concrete divider is a
+  `StaticMeshActor` with `OCourseDividers_01` (~2.7 m, top ~1.24 m): blocks 40–100,
+  frees 130–150 = exactly the low cover of the firing model.
+- `buildAt(p)`: `StaticMeshActor` + that mesh (Movable), turned to face the
+  nearest enemy (without enemies: squad→point direction); costs 15
+  manpower, maximum 30, refuses with a soldier within <1.8 m; F8 removes; the panel shows "barreiras N".
+  Key B (not yet tested with a real keyboard; I do not know whether the game uses B in RTS mode).
+- Validated in the game: 3 barriers 3.5 m from the squad before a wave of 4:
+  manpower 63→18; 44 of 47 enemy shots blocked; 4 kills, 0 losses; 7 enemy A*
+  routes detouring around the barriers. Capture `build7_small.png`.
+- `test_orders.py`: refusals without manpower and with a soldier on the spot, without charging.
 
-## 2026-10-07 (noite, 8) — Segundo mapa (HomeRegionC) e "Code of Conduct"
+## 2026-10-07 (night, 8) — Second map (HomeRegionC) and "Code of Conduct"
 
-- Mapas no índice do PAK (lido só o final do arquivo, sem extrair): `HomeRegionW`,
-  `HomeRegionC`, `MainMenu` e ~40 hexes em `Maps/Master/*Hex` (+ proxies).
-- Mapa do laboratório configurável: 1ª linha de `Mods/FoxholeRTS/map.txt`
-  (ex.: `/Game/Maps/HomeRegionC`); sem arquivo, HomeRegionW. O autostart detecta o
-  carregamento pelo nome do mapa escolhido. Âncoras do comandante: +`BPArmoredCarC_C`
-  e `PlayerStart` como último recurso.
-- **HomeRegionC validada:** sessão local, comandante em (−7447, 15947, 230),
-  recrutamento, onda de 5, combate (4 abates, 0 perdas), 5 idas à cobertura,
-  6 rotas inimigas, sem erros no log. Muitos tiros barrados (145/167 aliados) porque
-  havia uma barreira baixa entre os grupos (conferido na captura `mapc1_small.png`).
-  `map.txt` removido depois; o laboratório voltou ao HomeRegionW.
-- **"Code of Conduct":** não precisa de ação. Some sozinha ~1 min depois do
-  carregamento; só aparecia em capturas tiradas logo após relançar. Reflexão no
-  controller não mostrou função específica para ela.
-- **Hex grande validada: `Maps/Master/DeadLandsHex`.** Carregou em ~17 s via
-  `?listen` (4,2 GB de memória), comandante em (15986, 38998, 288), onda de 5
-  vencida (5 abates, 0 perdas, 1 soldado com 1 HP), sem erros no log.
-  Aparece o painel "Introdução ao Foxhole" (tutorial de primeira vez) por cima de
-  tudo: é Slate nativo (sem UserWidget; nenhuma função/propriedade intro/tutorial
-  no controller), sem flag nos `.ini`. Fecha com cliques na seta, só com mouse real.
-  `map.txt` removido depois; laboratório de volta ao HomeRegionW.
+- Maps in the PAK index (only the end of the file read, without extracting): `HomeRegionW`,
+  `HomeRegionC`, `MainMenu` and ~40 hexes in `Maps/Master/*Hex` (+ proxies).
+- Configurable lab map: 1st line of `Mods/FoxholeRTS/map.txt`
+  (e.g. `/Game/Maps/HomeRegionC`); without the file, HomeRegionW. The autostart detects the
+  load by the chosen map's name. Commander anchors: +`BPArmoredCarC_C`
+  and `PlayerStart` as a last resort.
+- **HomeRegionC validated:** local session, commander at (−7447, 15947, 230),
+  recruiting, a wave of 5, combat (4 kills, 0 losses), 5 trips to cover,
+  6 enemy routes, no errors in the log. Many shots blocked (145/167 allied) because
+  there was a low barrier between the groups (checked in the capture `mapc1_small.png`).
+  `map.txt` removed afterwards; the lab went back to HomeRegionW.
+- **"Code of Conduct":** needs no action. It disappears on its own ~1 min after
+  loading; it only appeared in captures taken right after relaunching. Reflection on the
+  controller showed no specific function for it.
+- **Large hex validated: `Maps/Master/DeadLandsHex`.** Loaded in ~17 s via
+  `?listen` (4.2 GB of memory), commander at (15986, 38998, 288), a wave of 5
+  beaten (5 kills, 0 losses, 1 soldier at 1 HP), no errors in the log.
+  The "Introdução ao Foxhole" panel (first-time tutorial) appears on top of
+  everything: it is native Slate (no UserWidget; no intro/tutorial function/property
+  in the controller), no flag in the `.ini`s. It closes with clicks on the arrow, only with a real mouse.
+  `map.txt` removed afterwards; lab back to HomeRegionW.
 
-## 2026-10-07 (noite, 7) — Inimigos com rota
+## 2026-10-07 (night, 7) — Enemies with routes
 
-- Inimigo que avança reavalia a cada 4 s: `planStart` só abre A* se a reta
-  (linha + esfera) até o aliado mais próximo estiver bloqueada; segue os waypoints
-  e o último trecho vai direto ao alvo vivo. Orçamento global de 40 nós/frame para
-  todos os trabalhos; ordens do jogador entram na frente da fila.
-- `enemies` passou a ser declarada antes do planejador; contador `routeStats`
-  (F5: "rotas A* aliados/inimigos"). `check_globals.py` pegou um uso de `combat`
-  antes da declaração nesse meio-tempo.
-- Medido: inimigo do lado de fora da barreira, aliado (em H) a ~23 m dentro do
-  pátio. Rotas inimigas = 1; o inimigo contornou de (8325, −27669) até
-  (8969, −27360) e parou ao entrar no alcance com visada (17,6 m), com 1 waypoint
-  ainda pendente. Dois testes anteriores não exigiram rota (visada livre por
-  cima da barreira / por ângulo): o inimigo entrou em combate antes.
+- An advancing enemy re-evaluates every 4 s: `planStart` only opens an A* if the straight line
+  (line + sphere) to the nearest ally is blocked; it follows the waypoints
+  and the last stretch goes straight to the living target. A global budget of 40 nodes/frame for
+  all jobs; player orders go to the front of the queue.
+- `enemies` is now declared before the planner; counter `routeStats`
+  (F5: "rotas A* aliados/inimigos"). `check_globals.py` caught a use of `combat`
+  before its declaration in the meantime.
+- Measured: an enemy outside the barrier, an ally (on H) ~23 m inside the
+  yard. Enemy routes = 1; the enemy went around from (8325, −27669) to
+  (8969, −27360) and stopped when entering range with line of sight (17.6 m), with 1 waypoint
+  still pending. Two earlier tests did not require a route (free line of sight over
+  the barrier / by angle): the enemy entered combat earlier.
 
-## 2026-10-07 (noite, 6) — Caminhos (A*) sem NavMesh
+## 2026-10-07 (night, 6) — Paths (A*) without a NavMesh
 
-- Ordem de marcha planeja uma rota para o grupo: linha reta se livre; senão A*
-  em grade de 1,5 m (margem 20 m, até 2500 nós), arestas testadas por varredura
-  de esfera (raio 32 cm a 75 cm do chão; linha só nas arestas da origem/destino) e
-  desnível ≤60 cm por célula; chegada aceita vizinha do destino com linha livre;
-  rota encurtada. Cada soldado segue os mesmos waypoints (raio 70 cm) e vai ao seu
-  lugar na formação. Sem rota: linha reta com o desvio antigo.
-- Erros no caminho até funcionar (medidos no jogo):
-  1. Traço de linha não tem a largura do corpo: rota rente à barreira passava e o
-     soldado ficava na quina (raio de waypoint 120 cm piorava). → esfera + 70 cm.
-  2. Com esfera, destino rente ao muro ficou sem célula alcançável. → chegada na
-     vizinha com linha livre.
-  3. Margem de 12 m deixava a abertura da barreira fora da busca; margem maior
-     custa ~1 ms/nó. Corrotina falhou: **UE4SS não aceita UFunction dentro de
-     corrotina** ("lua state has no instance inside lua_instances"). → A* em estado
-     explícito (`planStart`/`planStep`), 40 nós por frame; soldado espera parado.
-- Resultado: da neve (8550, −27279) ao canto interno (9000, −26500), com a barreira
-  no meio: rota de 6 waypoints em 341 nós (~9 frames), chegada em ~4,5 s pela
-  abertura. Antes: preso, ou chegada por sorte em ~12 s.
-- `test_orders.py`: muro sintético em X=500; rota síncrona contorna com todos os
-  trechos livres; fluxo assíncrono entrega waypoints após os ticks.
+- A march order plans a route for the group: a straight line if free; otherwise A*
+  on a 1.5 m grid (margin 20 m, up to 2500 nodes), edges tested by a sphere
+  sweep (radius 32 cm at 75 cm off the ground; line only on the origin/destination edges) and
+  a height difference ≤60 cm per cell; arrival accepts a neighbor of the destination with a free line;
+  route shortened. Each soldier follows the same waypoints (radius 70 cm) and goes to their
+  spot in the formation. Without a route: a straight line with the old detour.
+- Mistakes along the way until it worked (measured in the game):
+  1. A line trace does not have the body's width: a route hugging the barrier passed and the
+     soldier got stuck on the corner (a 120 cm waypoint radius made it worse). → sphere + 70 cm.
+  2. With the sphere, a destination hugging the wall had no reachable cell. → arrival at the
+     neighbor with a free line.
+  3. A 12 m margin left the barrier's opening outside the search; a larger margin
+     costs ~1 ms/node. A coroutine failed: **UE4SS does not accept a UFunction inside a
+     coroutine** ("lua state has no instance inside lua_instances"). → A* in an explicit
+     state (`planStart`/`planStep`), 40 nodes per frame; the soldier waits standing still.
+- Result: from the snow (8550, −27279) to the inner corner (9000, −26500), with the barrier
+  in the middle: a route of 6 waypoints in 341 nodes (~9 frames), arrival in ~4.5 s through the
+  opening. Before: stuck, or arriving by luck in ~12 s.
+- `test_orders.py`: a synthetic wall at X=500; the synchronous route goes around with all
+  stretches free; the asynchronous flow delivers waypoints after the ticks.
 
-## 2026-10-07 (noite, 5) — Ordem de ataque e busca automática de cobertura
+## 2026-10-07 (night, 5) — Attack order and automatic cover seeking
 
-- **Ataque:** botão direito/F7 a até 2,5 m de um inimigo vivo = ordem de ataque
-  (`m.focus`). Os selecionados avançam até ter alcance e visada, param e atiram só
-  nele; no caminho atiram no mais próximo. Marcha e H cancelam. No jogo: com dois
-  inimigos (12 m à frente e 18 m à direita), atacar o de 18 m o derrubou primeiro.
-- **Cobertura automática:** aliado parado, sem ordem e sem H, com inimigo ao alcance
-  e exposto, procura a cada 2 s, em anéis de 1,5/2,8/4 m, o ponto onde o traço do
-  olho do inimigo até a cintura é bloqueado e até os olhos passa, mesmo chão (±80 cm)
-  e caminho livre na altura do joelho. Sem a checagem do joelho ele escolhia o
-  outro lado do muro (inalcançável). H agora segura posição (`m.hold`): sem busca.
-- Validado: varredura de traços (`t_cov10.lua` no lab) achou ponto exposto com
-  abrigo a ≤4 m; aliado posto em (9250, −27500) foi sozinho para (9204, −27075),
-  junto à quina da barreira; o inimigo teve 3 de 4 tiros barrados, 0 acertos, e
-  morreu. Captura `D:\tools\foxhole-lab\cov11_small.png`.
-- Achado de geometria: a barreira de concreto de HomeRegionW é alta (impacto a
-  ~1,8 m) e cobre uma faixa larga do pátio contra inimigos distantes.
-- **Inimigos também buscam cobertura:** em posição de tiro e não presos pela
-  supressão, a cada 2 s procuram abrigo (mesma rotina, contra o esquadrão); não
-  atiram enquanto se movem para ele. Teste espelhado (aliado em H na neve, inimigo
-  exposto): o inimigo foi para (9203, −27076) e os tiros do aliado passaram a ser
-  barrados (4 de 6 no total; o único acerto foi antes de ele se abrigar).
-- `test_orders.py`: foco só em selecionados vivos, ataque a morto ignorado,
-  marcha/H cancelam foco, H liga hold e nova ordem desliga.
+- **Attack:** right button/F7 within 2.5 m of a living enemy = attack order
+  (`m.focus`). The selected advance until they have range and line of sight, stop and fire only
+  at it; on the way they fire at the nearest. March and H cancel. In the game: with two
+  enemies (12 m ahead and 18 m to the right), attacking the 18 m one brought it down first.
+- **Automatic cover:** an ally stopped, without an order and without H, with an enemy in range
+  and exposed, searches every 2 s, in rings of 1.5/2.8/4 m, for the spot where the trace from the
+  enemy's eye to the waist is blocked and to the eyes passes, the same ground (±80 cm)
+  and a free path at knee height. Without the knee check it picked the
+  other side of the wall (unreachable). H now holds position (`m.hold`): no search.
+- Validated: a trace sweep (`t_cov10.lua` in the lab) found an exposed spot with
+  shelter within ≤4 m; an ally placed at (9250, −27500) went on their own to (9204, −27075),
+  next to the barrier's corner; the enemy had 3 of 4 shots blocked, 0 hits, and
+  died. Capture `D:\tools\foxhole-lab\cov11_small.png`.
+- Geometry finding: HomeRegionW's concrete barrier is tall (impact at
+  ~1.8 m) and covers a wide strip of the yard against distant enemies.
+- **Enemies also seek cover:** in firing position and not pinned by
+  suppression, every 2 s they look for shelter (the same routine, against the squad); they do not
+  fire while moving to it. Mirrored test (an ally on H in the snow, an exposed
+  enemy): the enemy went to (9203, −27076) and the ally's shots started being
+  blocked (4 of 6 in total; the only hit was before it took shelter).
+- `test_orders.py`: focus only on living selected units, attacking a dead one ignored,
+  march/H cancel focus, H turns on hold and a new order turns it off.
 
-## 2026-10-07 (noite, 4) — Supressão e cobertura
+## 2026-10-07 (night, 4) — Suppression and cover
 
-- Supressão 0..1 por soldado: todo tiro contra ele soma `weapon.supp` (fuzil
-  0,12, MG 0,20, atirador 0,30), acertando ou não; decai 0,35/s. Efeitos: precisão
-  ×(1−0,6·s), velocidade ×(1−0,5·s); inimigo com s ≥ 0,7 fica preso no lugar
-  (continua atirando).
-- Cobertura baixa: com a visada dos olhos livre, traço do olho do atirador até a
-  cintura do alvo (centro −20 cm ≈ 70 cm do chão) bloqueado = alvo coberto:
-  acerto ×0,5, e o tiro perdido levanta poeira no obstáculo. Contador
-  `combat.covered` no F5.
-- Validado no jogo. Combate 7×6 em campo aberto: supressão do inimigo chegou a
-  0,97–1,0 com ele parado; precisão inimiga sob fogo ~17%; cobertura 0 (esperado).
-  Duelo com o inimigo atrás de uma barreira de concreto (achada por varredura de
-  traços: S=9000,−26500 / T=8550,−27279 em HomeRegionW): o aliado exposto acertou
-  1 de 9, com 8 barrados pela cobertura; o inimigo coberto, 0 barrados.
-- `test_orders.py`: acúmulo, teto e decaimento da supressão com relógio falso.
+- Suppression 0..1 per soldier: every shot against them adds `weapon.supp` (rifle
+  0.12, MG 0.20, sharpshooter 0.30), hit or not; decays 0.35/s. Effects: accuracy
+  ×(1−0.6·s), speed ×(1−0.5·s); an enemy with s ≥ 0.7 is pinned in place
+  (keeps firing).
+- Low cover: with the eye-level line of sight free, a blocked trace from the shooter's eye to the
+  target's waist (center −20 cm ≈ 70 cm off the ground) = target covered:
+  hit ×0.5, and the missed shot kicks up dust on the obstacle. Counter
+  `combat.covered` on F5.
+- Validated in the game. Combat 7×6 in the open field: the enemy's suppression reached
+  0.97–1.0 with it stopped; enemy accuracy under fire ~17%; cover 0 (expected).
+  A duel with the enemy behind a concrete barrier (found by a trace
+  sweep: S=9000,−26500 / T=8550,−27279 in HomeRegionW): the exposed ally hit
+  1 of 9, with 8 blocked by the cover; the covered enemy, 0 blocked.
+- `test_orders.py`: accumulation, ceiling and decay of suppression with a fake clock.
 
-## 2026-10-07 (noite, 3) — Painel de status fixo no HUD
+## 2026-10-07 (night, 3) — Fixed status panel on the HUD
 
-- O HUD do Foxhole é Slate nativo: `FindAllOf("TextBlock")` = 0; o único UMG vivo é
-  `CrosshairWidget_C` (cursor, fora do viewport). `ClientAlertMessage` empilha
-  (mais novo em cima), não serve para status contínuo.
-- Solução: `WidgetBlueprintLibrary:Create` de outra instância de
-  `CrosshairWidget_C`, imagem colapsada, `TextBlock` criado com
-  `StaticConstructObject(TextBlock, WidgetTree)` e `CanvasPanel:AddChildToCanvas`,
-  `AddToViewport(50)`. Fonte: Roboto da engine; `tb.Font.Size = 16` aplica;
-  acentos (ã, ç, á, —) renderizam. Sombra via `SetShadowOffset`.
-- Linha: mão de obra, esquadrão (selecionados), onda/inimigos/abates/perdas e
-  contagem da próxima onda; atualiza a cada 0,25 s só se o texto mudou; sai do
-  viewport com o RTS desligado. Validado por captura durante onda.
-- Globais criadas em `cmd.lua` não persistem entre comandos (env novo a cada
-  execução); guardar estado de teste no próprio mod se precisar.
+- Foxhole's HUD is native Slate: `FindAllOf("TextBlock")` = 0; the only live UMG is
+  `CrosshairWidget_C` (cursor, outside the viewport). `ClientAlertMessage` stacks
+  (newest on top), it does not work for continuous status.
+- Solution: `WidgetBlueprintLibrary:Create` of another instance of
+  `CrosshairWidget_C`, image collapsed, a `TextBlock` created with
+  `StaticConstructObject(TextBlock, WidgetTree)` and `CanvasPanel:AddChildToCanvas`,
+  `AddToViewport(50)`. Font: the engine's Roboto; `tb.Font.Size = 16` applies;
+  accents (ã, ç, á, —) render. Shadow via `SetShadowOffset`.
+- Line: manpower, squad (selected), wave/enemies/kills/losses and
+  the next wave's countdown; updates every 0.25 s only if the text changed; leaves the
+  viewport with RTS off. Validated by a capture during a wave.
+- Globals created in `cmd.lua` do not persist between commands (a new env on each
+  execution); keep test state in the mod itself if needed.
 
-## 2026-10-07 (noite, 2) — Seleção por soldado com marcador
+## 2026-10-07 (night, 2) — Per-soldier selection with a marker
 
-- Seleção agora é por soldado (`m.sel`). Teclas 1/2/3 continuam (grupo 1, 2,
-  todos). Botão esquerdo: clique seleciona o soldado vivo mais perto (≤150 cm);
-  arrastar (≥120 cm no chão) seleciona por caixa no plano X/Y; Shift soma/alterna;
-  clique no vazio limpa. Sondagem de `LeftMouseButton` no loop por frame, porque
-  `RegisterKeyBind` só vê o apertar. Novos soldados entram selecionados se todos
-  já estavam.
-- Marcador: `StaticMeshActor` com `/Engine/BasicShapes/Cylinder` achatado
-  (0,9×0,9×0,02), material do jogo `BuildGhostHighlight` (disco laranja), sem
-  colisão, preso ao pawn (KeepWorld). Testados e descartados: `GrenadeAimMesh`
-  visível (não aparece), custom depth/stencil (sem contorno no pós-processo do jogo),
-  material padrão do cilindro (cinza, some no chão).
-- Validado no jogo pelo canal: caixa na 1ª fileira = 2, Shift+clique soma o 5º
-  = 3; discos só nos 3 (captura); ordem move só os 3 e os discos acompanham;
-  F10 desligado esconde todos e religado mostra só os selecionados; mortos têm o
-  disco destruído. Clique/arrasto com mouse real **não testados** (sem acesso à
-  janela).
-- `tools/check_globals.py`: aponta nome usado antes do `local` (vira global nil)
-  ou nunca declarado. Pegou o caso `spawnSquad`→`syncMarkers` (resolvido com
-  declaração antecipada). Roda no `restart.sh` antes de publicar.
-- `test_orders.py`: seleção por clique/caixa/Shift coberta.
+- Selection is now per soldier (`m.sel`). Keys 1/2/3 remain (group 1, 2,
+  all). Left button: a click selects the nearest living soldier (≤150 cm);
+  dragging (≥120 cm on the ground) selects by a box in the X/Y plane; Shift adds/toggles;
+  a click on empty space clears. Polling of `LeftMouseButton` in the per-frame loop, because
+  `RegisterKeyBind` only sees the press. New soldiers come selected if all
+  already were.
+- Marker: a `StaticMeshActor` with a flattened `/Engine/BasicShapes/Cylinder`
+  (0.9×0.9×0.02), the game's material `BuildGhostHighlight` (orange disc), no
+  collision, attached to the pawn (KeepWorld). Tried and discarded: `GrenadeAimMesh`
+  visible (does not appear), custom depth/stencil (no outline in the game's post-process),
+  the cylinder's default material (gray, vanishes on the ground).
+- Validated in the game through the channel: a box on the 1st row = 2, Shift+click adds the 5th
+  = 3; discs only on the 3 (capture); an order moves only the 3 and the discs follow;
+  F10 off hides all and back on shows only the selected; the dead have their
+  disc destroyed. Click/drag with a real mouse **not tested** (no access to the
+  window).
+- `tools/check_globals.py`: flags a name used before its `local` (becomes a nil global)
+  or never declared. It caught the `spawnSquad`→`syncMarkers` case (solved with an
+  early declaration). Runs in `restart.sh` before publishing.
+- `test_orders.py`: selection by click/box/Shift covered.
 
-## 2026-10-07 (noite) — Decisão: totalmente offline, modelo próprio; v0.4
+## 2026-10-07 (night) — Decision: fully offline, our own model; v0.4
 
-- **Decisão do usuário:** nada de integração com servidor; remodelar o jogo
-  offline. Na prática a sessão já é local (listen server próprio + regra de
-  firewall de saída). Mantida a checagem de posse do Steam (IPC local, não é
-  rede; não contornar DRM). Steam pode ficar em modo offline.
-- Consequência: rifles reais via `ServerTakePickup`/inventário saem do caminho
-  crítico. Armas passam a ser do nosso modelo (perfil de tiro + malha do jogo).
-- **Bug da tecla H achado no jogo e corrigido.** Medido: H zerava a velocidade,
-  mas 1,5 s depois os soldados tinham andado 6–10 m (vel. até 333). Causa: com
-  atrito/frenagem 0 (spawnSoldier), a entrada de movimento já enfileirada
-  reacelerava o pawn e `halt()` só agia uma vez (`m.halted`). Agora `halt()`
-  chama `ConsumeMovementInputVector`, freia sempre que há velocidade, e o tick
-  aplica `halt()` a todo soldado sem ordem. Reteste no jogo: posição idêntica por
-  3 s; nova ordem retoma a marcha e para no destino. `test_orders.py` cobre a
-  frenagem repetida (PASS).
-- **v0.4: classes de soldado.** Tabela `WEAPONS` (fuzileiro, metralhador,
-  atirador) com alcance/cadência/precisão/dano/velocidade; 3º e 7º do grupo são
-  metralhadores, 6º atirador. A malha da arma vai no componente `WeaponMesh` do
-  personagem (`SetSkeletalMesh`); Warden: `SK_RifleW`, `SK_MGW`, `SniperRifle`;
-  Colonial: `SK_RifleCarbineC`, `SK_MGC`, `SK_SniperRifleC`. Validado no jogo:
-  composição 4/2/1 e inimigos 4/1/1, metralhador a 375 (75% de 500), combate
-  6x7 terminou 5 abates/5 perdas; o atirador inimigo parado a ~30 m fica fora do
-  alcance dos fuzis (exige ordem de avanço).
-- `p.WeaponMesh` NÃO é propriedade (UE4SS devolve TrivialObject): pegar o
-  componente por nome via `K2_GetComponentsByClass`. Arrays de retorno vêm como
-  tabela Lua de wrappers (`v:get()`), não TArray com `ForEach`.
-- **Crash (UE4SS.dll AV 0x2ace27):** probe que lia `MasterPoseComponent`/
-  `AnimClass` do `WeaponMesh` derrubou o jogo; `pcall` não pega AV. Dump em
-  `D:\tools\foxhole-lab\crash-v04probe\`. Não ler essas propriedades.
-- **Arma na mão:** sem reanexo o `WeaponMesh` fica na origem do corpo (rel=0,
-  escondido nos pés). `K2_AttachToComponent(pawn.Mesh, "hand_r", Snap×3)` põe
-  a arma na mão; validado por captura desde o spawn (fuzil e MG Warden) e por
-  leitura nos inimigos (`SK_RifleCarbineC`/`SK_MGC`/`SK_SniperRifleC` em hand_r).
-  (Uma leitura apressada de captura inverteu isso antes: câmera olha para +X, o
-  soldado de cima é o de maior índice.)
-- **Economia (v0.4):** mão de obra começa em 60, regenera 1,5/s (máx. 200),
-  +8 por abate, +30 por onda eliminada (substitui os 2 soldados grátis de
-  reforço). Shift+1/2/3 recruta fuzileiro (20) / metralhador (35) / atirador
-  (45). Derrota nas ondas só sem soldados E sem mão de obra para um fuzileiro.
-  `SQUAD_MAX` 8→12. Validado pelo canal: custos descontados, recusa sem cobrar,
-  regeneração ≈1,5/s medida, bônus de 6 abates somado. `test_orders.py` cobre
-  as recusas (sem mão de obra, esquadrão cheio, sem autoridade).
-- Ainda não testado com teclado real: Shift+1/2/3. Não sei se o UE4SS dispara
-  também a tecla 1/2/3 sem modificador (selecionaria um grupo junto; inofensivo).
-- Teste de teclado real via computer-use: acesso à janela negado pelo usuário;
-  teste de Shift+1/2/3 fica com o usuário (roteiro na resposta da sessão).
-- Próximos candidatos (feitos depois nesta noite: seleção, painel, supressão/cobertura).
-  Ataque a alvo e cobertura automática também feitos (entrada "noite, 5").
-  Pendentes: teste com teclado/mouse reais (inclui fechar a introdução nas hexes).
-- Inimigos fora da linha de visão do comandante não são desenhados (LOS do
-  próprio jogo, `LOSRasterComponent`): já funciona como névoa de guerra.
+- **User decision:** no server integration; remodel the game
+  offline. In practice the session is already local (own listen server + an outbound
+  firewall rule). The Steam ownership check is kept (local IPC, not
+  network; do not bypass DRM). Steam may stay in offline mode.
+- Consequence: real rifles via `ServerTakePickup`/inventory leave the critical
+  path. Weapons now belong to our model (firing profile + the game's mesh).
+- **H key bug found in the game and fixed.** Measured: H zeroed the velocity,
+  but 1.5 s later the soldiers had walked 6–10 m (speed up to 333). Cause: with
+  friction/braking 0 (spawnSoldier), movement input already queued
+  re-accelerated the pawn and `halt()` acted only once (`m.halted`). Now `halt()`
+  calls `ConsumeMovementInputVector`, brakes whenever there is velocity, and the tick
+  applies `halt()` to every soldier without an order. Retest in the game: identical position for
+  3 s; a new order resumes the march and stops at the destination. `test_orders.py` covers the
+  repeated braking (PASS).
+- **v0.4: soldier classes.** Table `WEAPONS` (rifleman, machine gunner,
+  sharpshooter) with range/rate/accuracy/damage/speed; the 3rd and 7th of the group are
+  machine gunners, the 6th a sharpshooter. The weapon mesh goes on the character's `WeaponMesh`
+  component (`SetSkeletalMesh`); Warden: `SK_RifleW`, `SK_MGW`, `SniperRifle`;
+  Colonial: `SK_RifleCarbineC`, `SK_MGC`, `SK_SniperRifleC`. Validated in the game:
+  composition 4/2/1 and enemies 4/1/1, machine gunner at 375 (75% of 500), combat
+  6x7 ended 5 kills/5 losses; the enemy sharpshooter stopped at ~30 m stays out of the
+  rifles' range (requires an advance order).
+- `p.WeaponMesh` is NOT a property (UE4SS returns a TrivialObject): get the
+  component by name via `K2_GetComponentsByClass`. Return arrays come as a
+  Lua table of wrappers (`v:get()`), not a TArray with `ForEach`.
+- **Crash (UE4SS.dll AV 0x2ace27):** a probe reading `MasterPoseComponent`/
+  `AnimClass` of the `WeaponMesh` crashed the game; `pcall` does not catch an AV. Dump in
+  `D:\tools\foxhole-lab\crash-v04probe\`. Do not read those properties.
+- **Weapon in hand:** without reattaching, the `WeaponMesh` stays at the body's origin (rel=0,
+  hidden at the feet). `K2_AttachToComponent(pawn.Mesh, "hand_r", Snap×3)` puts
+  the weapon in the hand; validated by capture from spawn (Warden rifle and MG) and by
+  reading on the enemies (`SK_RifleCarbineC`/`SK_MGC`/`SK_SniperRifleC` on hand_r).
+  (A hasty reading of a capture inverted this earlier: the camera looks toward +X, the
+  soldier at the top is the one with the highest index.)
+- **Economy (v0.4):** manpower starts at 60, regenerates 1.5/s (max. 200),
+  +8 per kill, +30 per wave eliminated (replaces the 2 free reinforcement
+  soldiers). Shift+1/2/3 recruits a rifleman (20) / machine gunner (35) / sharpshooter
+  (45). Defeat in the waves only without soldiers AND without manpower for a rifleman.
+  `SQUAD_MAX` 8→12. Validated through the channel: costs deducted, refusal without charging,
+  regeneration ≈1.5/s measured, bonus for 6 kills added. `test_orders.py` covers
+  the refusals (no manpower, full squad, no authority).
+- Not yet tested with a real keyboard: Shift+1/2/3. I do not know whether UE4SS also fires
+  key 1/2/3 without a modifier (it would select a group at the same time; harmless).
+- Real keyboard test via computer-use: access to the window denied by the user;
+  the Shift+1/2/3 test stays with the user (script in the session's reply).
+- Next candidates (done later this night: selection, panel, suppression/cover).
+  Attack on a target and automatic cover also done (entry "night, 5").
+  Pending: a test with a real keyboard/mouse (includes closing the introduction in the hexes).
+- Enemies outside the commander's line of sight are not drawn (the game's own
+  LOS, `LOSRasterComponent`): it already works as fog of war.
 
-## 2026-10-07 — Regra de saída instalada pelo usuário e conferida
+## 2026-10-07 — Outbound rule installed by the user and checked
 
-- Usuário criou `FoxholeRTS Lab - Block Outbound` em PowerShell administrador.
-- Conferência independente com `netsh advfirewall firewall show rule` confirmou:
-  habilitada, saída, bloquear, todos os perfis, qualquer protocolo/IP, executável
-  exato `D:\FoxholeLab\Foxhole\War\Binaries\Win64\War-Win64-Shipping.exe`.
-- Resolvida a pendência da regra específica de rede; esta conferência não é
-  teste funcional do mod. Próximos testes: probe de inventário e tecla H.
+- The user created `FoxholeRTS Lab - Block Outbound` in an administrator PowerShell.
+- An independent check with `netsh advfirewall firewall show rule` confirmed:
+  enabled, outbound, block, all profiles, any protocol/IP, the exact executable
+  `D:\FoxholeLab\Foxhole\War\Binaries\Win64\War-Win64-Shipping.exe`.
+- The pending network-specific rule is resolved; this check is not a
+  functional test of the mod. Next tests: inventory probe and the H key.
 
-## 2026-10-07 — Isolamento reavaliado e holder confirmado
+## 2026-10-07 — Isolation re-evaluated and holder confirmed
 
-- `netsh advfirewall show allprofiles state` funcionou: três perfis ligados.
-  Listagem de regras filtrada por Foxhole/War-Win64 encontrou apenas permissões
-  de entrada para War.exe oficial; nenhuma regra específica bloqueando a cópia.
-  Não houve lançamento. Foi solicitada ao usuário uma regra de saída para o exe
-  exato do laboratório, com comando e conferência em UNIVERSAL_MODDER_NOTES.md.
-- Assembly de 0x140a5c3e0 confirmou RCX preservado até a chamada 0x140a622d0:
-  o holder é repassado, ao contrário do que parecia no pseudocódigo. Não é
-  evidência de aquisição do item. RIFLES_INVESTIGATION.md atualizado.
-- Próximo passo depende da medição no jogo: confirmar isolamento, executar o
-  probe de inventário e validar H. Não acrescentar novos hooks por hipótese.
+- `netsh advfirewall show allprofiles state` worked: three profiles on.
+  A rule listing filtered by Foxhole/War-Win64 found only inbound permissions
+  for the official War.exe; no specific rule blocking the copy.
+  There was no launch. The user was asked for an outbound rule for the lab's exact
+  exe, with the command and check in UNIVERSAL_MODDER_NOTES.md.
+- The assembly at 0x140a5c3e0 confirmed RCX preserved up to the call 0x140a622d0:
+  the holder is passed on, contrary to what the pseudocode suggested. It is not
+  evidence of acquiring the item. RIFLES_INVESTIGATION.md updated.
+- The next step depends on measurement in the game: confirm isolation, run the
+  inventory probe and validate H. Do not add new hooks on a hypothesis.
 
-## 2026-10-07 — Rifles: fluxo estático e diagnóstico não destrutivo
+## 2026-10-07 — Rifles: static flow and a non-destructive diagnosis
 
-- Retomada com foco em armas reais, sem substituir por novos efeitos simulados.
-- Confirmado thunk -> slot +0xc20 -> wrapper -> slot +0x9d0 -> rotina local de
-  pickup. Há guarda de atividade em +0x12e0 antes do caminho de sucesso.
-- Encontrada limitação do helper de vtables: PlayerCharacter sobrescreve a tabela
-  depois do construtor base; o helper retorna a base. Comparados os dois slots:
-  mesmos destinos, logo isso não explica sozinho o inventário vazio.
-- Criado `RIFLES_INVESTIGATION.md` com fontes e hipóteses delimitadas, e
-  `tools/probe_inventory.lua`, somente leitura, para medir pré-condições e os
-  dois arrays (inventário/equipamento). Nenhuma RPC nova ou alteração de flags.
-- Decompilações/PE permaneceram no laboratório; nenhum lançamento ou input.
-- `test_inventory_probe.py` PASS após corrigir escape de newline no próprio teste:
-  leitura dos arrays, campos indisponíveis, pawn inválido, recusa de contextos
-  não locais. `publish check` continua PASS (3 arquivos, 0 falhas/avisos).
-- `um kb search inventory` revelou UnicodeEncodeError em stdout cp1252; com
-  PYTHONIOENCODING=utf-8 passou. Solução registrada no guia de ferramentas.
+- Resumed with a focus on real weapons, without replacing them with new simulated effects.
+- Confirmed thunk -> slot +0xc20 -> wrapper -> slot +0x9d0 -> local pickup
+  routine. There is an activity guard at +0x12e0 before the success path.
+- Found a limitation of the vtable helper: PlayerCharacter overwrites the table
+  after the base constructor; the helper returns the base one. Compared the two slots:
+  same destinations, so this alone does not explain the empty inventory.
+- Created `RIFLES_INVESTIGATION.md` with sources and bounded hypotheses, and
+  `tools/probe_inventory.lua`, read-only, to measure the preconditions and the
+  two arrays (inventory/equipment). No new RPC or flag change.
+- Decompilations/PE stayed in the lab; no launch or input.
+- `test_inventory_probe.py` PASS after fixing a newline escape in the test itself:
+  reading the arrays, unavailable fields, an invalid pawn, refusal of non-local
+  contexts. `publish check` still PASS (3 files, 0 failures/warnings).
+- `um kb search inventory` revealed a UnicodeEncodeError on cp1252 stdout; with
+  PYTHONIOENCODING=utf-8 it passed. Solution recorded in the tools guide.
 
-## 2026-10-07 — v0.3.1: parada por grupo e documentação do toolkit
+## 2026-10-07 — v0.3.1: per-group stop and toolkit documentation
 
-- Nova tecla H: cancela marcha dos selecionados, zera velocidade e desvio, sem
-  desativar combate automático. Exposta como `stopSelected()` no canal local.
-- Novas ordens descartam o desvio anterior e ignoram pawns mortos/inválidos.
-- `issueMove` e o loop por frame agora recusam cliente remoto, servidor dedicado
-  e menu pelo predicado existente. Isso não substitui isolamento de rede.
-- Corrigido comentário que afirmava sucesso do pickup: só evitar o crash foi observado.
-- `tools/test_orders.py`: passou sintaxe, seleção, parada, retomada, tecla H com
-  RTS inativo, mortos/inválidos, esquadrão vazio e travas de autoridade, via lupa 2.8.
-  São mocks; física, input real e combate após parada ainda precisam de teste em jogo.
-- Skills usadas: mod-any-game, reverse-engineering, game-automation e playbook Unreal.
-  `um kb search foxhole` recuperou a nota; `um publish check` inicialmente apontou
-  README ausente; README adicionado ao pacote.
-- Guia de uso/avaliação: `UNIVERSAL_MODDER_NOTES.md`, com comandos e limitações.
-- Sem processo War encontrado. Consulta de firewall negada pelo Windows;
-  isolamento não pôde ser confirmado. Não relancei, não copiei v0.3.1 para o lab
-  e não usei input. Próximo passo: confirmar isolamento e seguir o teste H do guia.
-- Rifles reais seguem pendentes; não repetir t_pk3 como se fosse solução.
-- Check final: `um publish check` PASS (3 arquivos, 0 falhas/avisos).
-  `um kb check --index` FAIL: índice global desatualizado (60 notas verificadas);
-  registrado no guia sem modificar a base compartilhada.
+- New H key: cancels the selected units' march, zeroes velocity and detour, without
+  disabling automatic combat. Exposed as `stopSelected()` in the local channel.
+- New orders discard the previous detour and ignore dead/invalid pawns.
+- `issueMove` and the per-frame loop now refuse a remote client, a dedicated server
+  and the menu through the existing predicate. This does not replace network isolation.
+- Fixed a comment that claimed pickup success: only avoiding the crash was observed.
+- `tools/test_orders.py`: passed syntax, selection, stop, resume, the H key with
+  RTS inactive, dead/invalid, an empty squad and authority locks, via lupa 2.8.
+  These are mocks; physics, real input and combat after a stop still need an in-game test.
+- Skills used: mod-any-game, reverse-engineering, game-automation and the Unreal playbook.
+  `um kb search foxhole` recovered the note; `um publish check` initially flagged a
+  missing README; README added to the package.
+- Usage/evaluation guide: `UNIVERSAL_MODDER_NOTES.md`, with commands and limitations.
+- No War process found. The firewall query was denied by Windows;
+  isolation could not be confirmed. I did not relaunch, did not copy v0.3.1 to the lab
+  and did not use input. Next step: confirm isolation and follow the guide's H test.
+- Real rifles remain pending; do not repeat t_pk3 as if it were a solution.
+- Final check: `um publish check` PASS (3 files, 0 failures/warnings).
+  `um kb check --index` FAIL: outdated global index (60 notes checked);
+  recorded in the guide without modifying the shared base.
 
-## 2026-10-06 — Planejamento inicial
+## 2026-10-06 — Initial planning
 
-- Objetivo: investigar e desenvolver um mod que permita jogar Foxhole como RTS.
-- Preferência do usuário: criar as ferramentas necessárias no próprio mod; não substituir automaticamente a proposta por um jogo independente.
-- Pasta: `D:\GitHub\foxhole-rts`.
-- Toolkit de apoio: `D:\GitHub\universal-modder`.
-- Instalação do jogo em andamento, conforme informado pelo usuário. Caminho e versão ainda não verificados.
-- Nenhum arquivo do jogo alterado, loader instalado ou teste em jogo realizado.
-- Busca na base local: `python -m um kb search Foxhole` não encontrou notas.
+- Goal: investigate and develop a mod that lets you play Foxhole as an RTS.
+- User preference: build the necessary tools in the mod itself; do not automatically replace the proposal with an independent game.
+- Folder: `D:\GitHub\foxhole-rts`.
+- Support toolkit: `D:\GitHub\universal-modder`.
+- Game installation in progress, as the user reported. Path and version not yet verified.
+- No game file changed, loader installed or in-game test performed.
+- Search in the local base: `python -m um kb search Foxhole` found no notes.
 
-### Evidência e limite atual
+### Evidence and current limit
 
-A FAQ oficial consultada informa que Foxhole é multiplayer online, não oferece single-player com bots e não tem suporte oficial a mods; menciona mods visuais sem vantagem em jogo.
+The official FAQ consulted states that Foxhole is online multiplayer, offers no single-player with bots and has no official mod support; it mentions visual mods with no in-game advantage.
 
-Fonte: https://www.foxholegame.com/faq (consultada em 2026-10-06).
+Source: https://www.foxholegame.com/faq (consulted on 2026-10-06).
 
-Isso não prova impossibilidade técnica de uma conversão, mas tampouco comprova uma rota para RTS. Ainda precisamos demonstrar um ambiente isolado e autorizado com controle da simulação. Não presumir que um servidor privado, SDK ou modo offline esteja disponível.
+This does not prove a conversion is technically impossible, but it does not prove a route to an RTS either. We still need to demonstrate an isolated, authorized environment with control of the simulation. Do not assume that a private server, SDK or offline mode is available.
 
-### Próxima ação
+### Next action
 
-Quando o usuário confirmar que a instalação terminou, localizar e inspecionar o jogo em modo somente leitura. Seguir `FIRST_STEPS.md`.
+When the user confirms the installation has finished, locate and inspect the game in read-only mode. Follow `FIRST_STEPS.md`.
 
-### Decisões em aberto
+### Open decisions
 
-- ~~Experiência desejada~~ → **solo contra IA** (decidido em 2026-10-06).
-- ~~Controle por soldado ou por esquadrão~~ → **por esquadrão** (decidido em 2026-10-06).
-- Rota técnica e disponibilidade de ambiente de testes isolado.
+- ~~Desired experience~~ → **solo against AI** (decided on 2026-10-06).
+- ~~Per-soldier or per-squad control~~ → **per squad** (decided on 2026-10-06).
+- Technical route and availability of an isolated test environment.
 
-### Limites de trabalho
+### Work limits
 
-- Não interferir em servidores oficiais nem contornar anti-cheat, DRM ou verificações de propriedade.
-- Pedir autorização antes de instalar loaders, dirigir mouse/teclado, alterar registro ou publicar.
-- Fazer backup antes de alterações e lançamentos modificados.
-- Manter decompilações e assets extraídos fora do repositório; não redistribuir arquivos do jogo.
+- Do not interfere with official servers nor bypass anti-cheat, DRM or ownership checks.
+- Ask for authorization before installing loaders, driving mouse/keyboard, changing the registry or publishing.
+- Back up before changes and modified launches.
+- Keep decompilations and extracted assets outside the repository; do not redistribute game files.
 
-## 2026-10-06 — Instalação concluída e primeira inspeção
+## 2026-10-06 — Installation finished and first inspection
 
-- Usuário confirmou o término da instalação.
-- Scan somente leitura localizou `D:\SteamLibrary\steamapps\common\Foxhole` (Steam 505460).
-- Build do manifesto: `25730371`; assinatura da engine: `UE4+Release-4.24`; dois PAKs detectados.
-- Nenhum loader ou anti-cheat detectado pelo scan; ausência de detecção não significa ausência de proteção.
-- Diretórios locais `Foxhole` e `War` em LOCALAPPDATA não encontrados; saves/config/logs não confirmados.
-- Criado `MODDING_PLAN.md` com evidências, limites e próximas verificações.
-- Não abrimos nem alteramos o jogo. A viabilidade da simulação RTS continua não demonstrada.
+- The user confirmed the installation finished.
+- A read-only scan located `D:\SteamLibrary\steamapps\common\Foxhole` (Steam 505460).
+- Manifest build: `25730371`; engine signature: `UE4+Release-4.24`; two PAKs detected.
+- No loader or anti-cheat detected by the scan; absence of detection does not mean absence of protection.
+- Local `Foxhole` and `War` directories in LOCALAPPDATA not found; saves/config/logs not confirmed.
+- Created `MODDING_PLAN.md` with evidence, limits and next checks.
+- We did not open nor change the game. The feasibility of the RTS simulation remains undemonstrated.
 
-## 2026-10-06 — Pesquisa de ambiente isolado
+## 2026-10-06 — Research for an isolated environment
 
-- Inspecionados nomes de arquivos e manifesto NonUFS: nenhum executável separado de servidor/editor identificado.
-- Confirmado um pacote de gameplay em `War\Content\Paks`; contagem genérica do scanner não equivale a pacotes exclusivos de gameplay.
-- Consultadas fontes primárias: FAQ oficial, War API, FDE e tutorial de texturas.
-- War API é de consulta; FDE extrai dados, não hospeda o jogo. Nenhuma dessas ferramentas resolve a simulação RTS.
-- Resultado: rota offline/controlada ainda não encontrada. Não confundir ausência de evidência com impossibilidade.
-- Detalhes e pergunta sugerida aos desenvolvedores registrados em `ENVIRONMENT_RECON.md`. Nenhuma mensagem enviada e nada publicado.
-- Próximo passo: esclarecer disponibilidade e autorização de um ambiente isolado antes de instrumentar o cliente.
+- Inspected file names and the NonUFS manifest: no separate server/editor executable identified.
+- Confirmed one gameplay package in `War\Content\Paks`; the scanner's generic count does not equal gameplay-only packages.
+- Consulted primary sources: the official FAQ, War API, FDE and the texture tutorial.
+- War API is for queries; FDE extracts data, it does not host the game. None of these tools solves the RTS simulation.
+- Result: an offline/controlled route not found yet. Do not confuse absence of evidence with impossibility.
+- Details and a suggested question to the developers recorded in `ENVIRONMENT_RECON.md`. No message sent and nothing published.
+- Next step: clarify the availability and authorization of an isolated environment before instrumenting the client.
 
-## 2026-10-06 — Rodada 2: investigação com agentes paralelos
+## 2026-10-06 — Round 2: investigation with parallel agents
 
-- Quatro agentes, todos somente leitura:
-  - Sonnet: recon local;
-  - Opus: análise estática do executável;
-  - Sonnet: pesquisa web;
-  - Haiku: KB do toolkit.
-- **Achado principal:** o `War-Win64-Shipping.exe` é target Game, com código de servidor compilado: login/join, `UWorld::Listen`, `?listen` montado pelo jogo, `ASimGameMode`, `UWarReplicationGraph`, `UServerSettings` (`IsCommunityServer`, `bAllowMods`), `EWarServerType::Training`.
-- **Bloqueio provável:** dependência de `FExternalWarService` (auth, perfis, travel, config da guerra).
-- **Proteção:** sem EAC/BattlEye/EOS. Há VAC e detecção própria. PAK com índice aberto e sem assinatura.
-- **Pesquisa pública:** confirma ausência de offline, bots, servidor privado, SDK e Workshop. Pak mods visuais são prática corrente.
-- **Ghidra:** não estava instalado (o setup antigo em `G:` sumiu). Com autorização do usuário, instalados:
-  - Ghidra 12.1.2 em `D:\tools\ghidra`;
-  - GhidraMCP 5.14.2 (extensão + bridge com venv) em `D:\tools\ghidra-mcp-v5.14.2`.
-- O usuário re-registrou o MCP `ghidra-mcp` apontando para D:.
-- Análise automática headless em andamento no projeto `D:\tools\ghidra-projects\Foxhole`.
-- Nada executado, injetado, extraído ou alterado no jogo.
-- **Próximo passo:** decompilar o caminho `?listen` e `ASimGameMode` ↔ `FExternalWarService`, e decidir a rota normativa com o usuário. Detalhes em `ENVIRONMENT_RECON.md` (Rodada 2) e `MODDING_PLAN.md`.
+- Four agents, all read-only:
+  - Sonnet: local recon;
+  - Opus: static analysis of the executable;
+  - Sonnet: web research;
+  - Haiku: the toolkit's KB.
+- **Main finding:** `War-Win64-Shipping.exe` is a Game target, with server code compiled in: login/join, `UWorld::Listen`, `?listen` assembled by the game, `ASimGameMode`, `UWarReplicationGraph`, `UServerSettings` (`IsCommunityServer`, `bAllowMods`), `EWarServerType::Training`.
+- **Likely blocker:** dependence on `FExternalWarService` (auth, profiles, travel, war config).
+- **Protection:** no EAC/BattlEye/EOS. There is VAC and in-house detection. PAK with an open index and no signature.
+- **Public research:** confirms no offline mode, bots, private server, SDK or Workshop. Visual pak mods are common practice.
+- **Ghidra:** was not installed (the old setup on `G:` was gone). With the user's authorization, installed:
+  - Ghidra 12.1.2 in `D:\tools\ghidra`;
+  - GhidraMCP 5.14.2 (extension + bridge with a venv) in `D:\tools\ghidra-mcp-v5.14.2`.
+- The user re-registered the `ghidra-mcp` MCP pointing at D:.
+- Headless automatic analysis in progress in the project `D:\tools\ghidra-projects\Foxhole`.
+- Nothing executed, injected, extracted or changed in the game.
+- **Next step:** decompile the `?listen` path and `ASimGameMode` ↔ `FExternalWarService`, and decide the normative route with the user. Details in `ENVIRONMENT_RECON.md` (Round 2) and `MODDING_PLAN.md`.
 
-### Discussão: rota normativa (proposta pendente)
+### Discussion: normative route (proposal pending)
 
-- O usuário propôs autenticar online e depois seguir offline, ou "seguir como pudermos", já que o mod é distribuído sem os arquivos do jogo.
-- Proposta registrada, ainda aguardando o ok do usuário:
-  - posse continua verificada pelo Steam, sem modificação;
-  - a sessão modificada nunca contata a Siege Camp;
-  - stub local do `FExternalWarService` só para a sessão local;
-  - servidor local sem VAC;
-  - mod inativo fora do modo RTS.
-- Rejeitado "auth online e depois offline": cliente modificado falando com o backend oficial é o maior risco de ban.
-- Primeiro item do Ghidra: confirmar onde o listen server decide Steam secure/insecure (VAC) e o que exige do `FExternalWarService`.
-- Usuário aprovou a rota normativa em 2026-10-06. Próximo: decompilação no Ghidra (VAC do listen server, dependências do FExternalWarService).
-- Usuário decidiu: modo solo contra IA, controle por esquadrão. Implicação: o mod precisa de uma IA adversária própria e de líderes de esquadrão que comandam soldados via AIController/BehaviorTree (runtime do UE presente no binário).
+- The user proposed authenticating online and then going offline, or "seguir como pudermos" (go on as best we can), since the mod is distributed without the game's files.
+- Proposal recorded, still waiting for the user's ok:
+  - ownership stays verified by Steam, unmodified;
+  - the modified session never contacts Siege Camp;
+  - a local stub of `FExternalWarService` only for the local session;
+  - local server without VAC;
+  - mod inactive outside RTS mode.
+- Rejected "auth online then offline": a modified client talking to the official backend is the biggest ban risk.
+- First Ghidra item: confirm where the listen server decides Steam secure/insecure (VAC) and what it requires of `FExternalWarService`.
+- The user approved the normative route on 2026-10-06. Next: decompilation in Ghidra (listen server VAC, FExternalWarService dependencies).
+- The user decided: solo mode against AI, per-squad control. Implication: the mod needs its own opposing AI and squad leaders commanding soldiers via AIController/BehaviorTree (UE runtime present in the binary).
 
-## 2026-10-06 — Rodada 3: documentação da rota e laboratório (usuário ausente)
+## 2026-10-06 — Round 3: route documentation and lab (user away)
 
-Objetivo da rodada: documentar como fazer o mod (rota, limitações, caminhos) e testar o que fosse possível. A validação foi feita pelo agente.
+Goal of the round: document how to make the mod (route, limitations, paths) and test whatever was possible. The validation was done by the agent.
 
-### Feito e verificado
-- **`HOW_TO_MAKE_THE_MOD.md`:** documento principal com rota, arquitetura em camadas 0–5, limitações, regras do laboratório, protocolo de testes T0–T9 e perguntas respondidas/abertas.
-- **Índice do PAK** (agente Sonnet): 25.898 entradas, 0 comprimidas/criptografadas, SHA1 conferido.
-  - 316 mapas; não há mapa de treino/teste.
-  - `HomeRegionW` (48 MB) é o menor jogável.
-  - Os mapas usam `DefaultGameMode = SimGameMode` (tabela de nomes lida por mim).
-  - Não há `RecastNavMesh` nos mapas.
-  - Não há assets de IA de soldado.
-  - Saídas: `D:\tools\foxhole-lab\pak-index.tsv` e `pak-config-excerpts.txt`.
-- **Ghidra:** auto-análise concluída (57 min); script `DecompStrRefs.java` para decompilar por string ou endereço.
-- **Fatos decompilados e validados por mim:**
-  - `UWarGameInstance::StartGameInstance` pula o `MainMenu` quando a linha de comando tem `/Game/Maps/`.
-  - Init do servidor Steam: `eServerMode = 2 + bVACEnabled`. Num cliente ele só sobe com `bInitServerOnClient`/`OSS.SteamInitServerOnClient` (strings confirmadas).
-  - `BaseEngine.ini` embutido: `bVACEnabled=1`.
-  - Perfil em `PostLogin`: o pedido HTTP é montado, mas só é enviado (`ProcessRequest`, vfunc `0x88`) com `GetNetMode()==1`. É o bloqueio real do host num `?listen`.
-  - `AHeadlessPlayerController::PlayerTick` move `ASimCharacter` com `AddMovementInput` (vfunc `0x720`). Rota de soldados = jogadores locais extras.
-- **Fatos do agente Opus** (não revalidados individualmente):
-  - dedicado inalcançável neste exe;
-  - `AOfflineCharacter` é `AActor`, descartado;
-  - `Login` só exige reserva se `bCheckReservationsOnLogin`;
-  - lista de switches FParse.
-- **Laboratório:**
-  - cópia em `D:\FoxholeLab\Foxhole`: 97 arquivos, 26.035.003.749 bytes, idêntica;
-  - `steam_appid.txt` na cópia;
-  - `tools/lab.ps1` com `check` e `prepare` executados; `vac-off` testado em 4 casos numa pasta temporária;
-  - instalação Steam confirmada sem loader.
-- **Mod:** esqueleto `mod/FoxholeRTS/Scripts/main.lua` (rota de jogadores locais + fallback `AddMovementInput`). Escrito, **não executado**; a checagem de sintaxe Lua não foi possível.
+### Done and verified
+- **`HOW_TO_MAKE_THE_MOD.md`:** main document with the route, a layered architecture 0–5, limitations, lab rules, test protocol T0–T9 and answered/open questions.
+- **PAK index** (Sonnet agent): 25,898 entries, 0 compressed/encrypted, SHA1 checked.
+  - 316 maps; there is no training/test map.
+  - `HomeRegionW` (48 MB) is the smallest playable one.
+  - The maps use `DefaultGameMode = SimGameMode` (name table read by me).
+  - There is no `RecastNavMesh` in the maps.
+  - There are no soldier AI assets.
+  - Outputs: `D:\tools\foxhole-lab\pak-index.tsv` and `pak-config-excerpts.txt`.
+- **Ghidra:** auto-analysis finished (57 min); script `DecompStrRefs.java` to decompile by string or address.
+- **Facts decompiled and validated by me:**
+  - `UWarGameInstance::StartGameInstance` skips the `MainMenu` when the command line has `/Game/Maps/`.
+  - Steam server init: `eServerMode = 2 + bVACEnabled`. On a client it only starts with `bInitServerOnClient`/`OSS.SteamInitServerOnClient` (strings confirmed).
+  - Embedded `BaseEngine.ini`: `bVACEnabled=1`.
+  - Profile in `PostLogin`: the HTTP request is assembled, but only sent (`ProcessRequest`, vfunc `0x88`) with `GetNetMode()==1`. This is the host's real blocker in a `?listen`.
+  - `AHeadlessPlayerController::PlayerTick` moves `ASimCharacter` with `AddMovementInput` (vfunc `0x720`). Route for soldiers = extra local players.
+- **Facts from the Opus agent** (not individually revalidated):
+  - dedicated unreachable in this exe;
+  - `AOfflineCharacter` is an `AActor`, discarded;
+  - `Login` only requires a reservation if `bCheckReservationsOnLogin`;
+  - list of FParse switches.
+- **Lab:**
+  - copy in `D:\FoxholeLab\Foxhole`: 97 files, 26,035,003,749 bytes, identical;
+  - `steam_appid.txt` in the copy;
+  - `tools/lab.ps1` with `check` and `prepare` run; `vac-off` tested in 4 cases in a temporary folder;
+  - Steam installation confirmed without a loader.
+- **Mod:** skeleton `mod/FoxholeRTS/Scripts/main.lua` (local players route + `AddMovementInput` fallback). Written, **not run**; a Lua syntax check was not possible.
 
-### Bloqueado pelo modo automático (decisão do usuário)
-- Lançar o jogo (`um win launch`), mesmo o cliente original: impede T0–T3.
-- Baixar o UE4SS: impede T4–T5.
-- Acrescentar `bInitServerOnClient=False`/`bUseSplitscreen=False` ao `lab.ps1`.
-- Especificação detalhada do stub de perfil (T6).
-- Editar `~/.claude.json` (o usuário re-registrou o MCP manualmente).
+### Blocked by auto mode (user's decision)
+- Launching the game (`um win launch`), even the original client: blocks T0–T3.
+- Downloading UE4SS: blocks T4–T5.
+- Adding `bInitServerOnClient=False`/`bUseSplitscreen=False` to `lab.ps1`.
+- A detailed specification of the profile stub (T6).
+- Editing `~/.claude.json` (the user re-registered the MCP manually).
 
-### Próximo passo (com o usuário presente)
-T0 → T1 → T2/T3 do protocolo em `HOW_TO_MAKE_THE_MOD.md`. O log do T2 confirma se o host fica parado no perfil, como previsto. Depois decidir o stub de perfil (T6), UE4SS (T4–T5) e o primeiro soldado (T7).
+### Next step (with the user present)
+T0 → T1 → T2/T3 of the protocol in `HOW_TO_MAKE_THE_MOD.md`. The T2 log confirms whether the host stalls on the profile, as predicted. Then decide the profile stub (T6), UE4SS (T4–T5) and the first soldier (T7).
 
-## 2026-10-06 (noite) — Primeiros testes em execução
+## 2026-10-06 (night) — First tests running
 
-- **T0 OK:** o cliente original abriu pelo Steam e chegou ao menu.
-  - Log em `D:\tools\foxhole-lab\T0-War.log`.
-  - Steam SDK 1.51; "Steam User is subscribed 1" e "Steam Auth Enabled".
-  - Nenhum "Initializing Steam Game Server", o que bate com a análise de VAC.
-- **Correção:** a config e o log ficam em `%LOCALAPPDATA%\Foxhole\Saved\`, não em `War`. O `tools/lab.ps1` foi corrigido; `lab-ini` grava `bInitServerOnClient=False`, `bVACEnabled=False` e `bUseSplitscreen=False`.
-- **T2 falhou (ainda sem conclusão sobre o `?listen`):** a cópia `D:\FoxholeLab` lançada direto com `/Game/Maps/HomeRegionW?listen -log` foi para o **menu**.
-  - Causa provável: o log mostra "SteamAPI failed to initialize, conditions not met" e "[AppId: 0] Client API initialized 0". Sem Steam, o `SteamSocketsNetDriver` não escuta, o `?listen` falha e a Unreal volta ao mapa padrão (menu).
-  - Também viola a regra 1 (posse verificada pelo Steam), então precisa ser resolvido de qualquer forma.
-  - Tentativas que não resolveram: `steam_appid.txt` (505460) na pasta do exe; variáveis `SteamAppId`/`SteamGameId`; lançamento fora do sandbox.
-  - Logs em `D:\tools\foxhole-lab\T2a-War.log` e `T2b-War.log`.
-- **Próximo passo:**
-  - Decompilar a origem de "SteamAPI failed to initialize, conditions not met" para ver a condição exata (saída em `D:\tools\foxhole-lab\decomp4\`).
-  - Alternativas a testar:
-    - lançar via Steam a instalação oficial com opções de inicialização (sem mod, só para validar o `?listen`);
-    - usar o `War.exe` da cópia em vez do Shipping;
-    - verificar se o Steam exige que o exe esteja na pasta instalada.
-- O backup da config criado pelo toolkit ficou em `%USERPROFILE%\.universal-modder\backups` (0,1 MB); mover para `D:`.
+- **T0 OK:** the original client opened through Steam and reached the menu.
+  - Log in `D:\tools\foxhole-lab\T0-War.log`.
+  - Steam SDK 1.51; "Steam User is subscribed 1" and "Steam Auth Enabled".
+  - No "Initializing Steam Game Server", which matches the VAC analysis.
+- **Correction:** the config and log are in `%LOCALAPPDATA%\Foxhole\Saved\`, not in `War`. `tools/lab.ps1` was fixed; `lab-ini` writes `bInitServerOnClient=False`, `bVACEnabled=False` and `bUseSplitscreen=False`.
+- **T2 failed (no conclusion about `?listen` yet):** the `D:\FoxholeLab` copy launched directly with `/Game/Maps/HomeRegionW?listen -log` went to the **menu**.
+  - Likely cause: the log shows "SteamAPI failed to initialize, conditions not met" and "[AppId: 0] Client API initialized 0". Without Steam, the `SteamSocketsNetDriver` does not listen, `?listen` fails and Unreal goes back to the default map (menu).
+  - It also violates rule 1 (ownership verified by Steam), so it must be solved anyway.
+  - Attempts that did not solve it: `steam_appid.txt` (505460) in the exe's folder; variables `SteamAppId`/`SteamGameId`; launching outside the sandbox.
+  - Logs in `D:\tools\foxhole-lab\T2a-War.log` and `T2b-War.log`.
+- **Next step:**
+  - Decompile the origin of "SteamAPI failed to initialize, conditions not met" to see the exact condition (output in `D:\tools\foxhole-lab\decomp4\`).
+  - Alternatives to test:
+    - launch the official installation through Steam with launch options (no mod, only to validate `?listen`);
+    - use the copy's `War.exe` instead of Shipping;
+    - check whether Steam requires the exe to be in the installed folder.
+- The config backup created by the toolkit ended up in `%USERPROFILE%\.universal-modder\backups` (0.1 MB); move it to `D:`.
 
-## 2026-10-07 — Sessão local estável e primeiro personagem do host (trabalho autônomo)
+## 2026-10-07 — Stable local session and the host's first character (autonomous work)
 
-- **Causa do Steam init:** a falha anterior vinha do cliente Steam fechado. Com o Steam aberto e logado e o `steam_appid.txt`, a cópia inicializa o Steam normalmente. O `lab.ps1 run` agora recusa lançar sem Steam.
-- **T4 OK:** o UE4SS 4.24 carrega no Foxhole (só na cópia). O mod Lua `FoxholeRTS` roda.
-- **Mapa da linha de comando é ignorado em shipping:** `UGameInstance::StartGameInstance` (0x142576600) usa uma URL vazia. A sessão é aberta pelo mod com `GameplayStatics:OpenLevel(world, "/Game/Maps/HomeRegionW", true, "listen")`, em modo autostart quando existe `autostart.txt`.
-- **Crash T2c:** stack overflow em `SimPlayerController:ClientStartRespawnTimer`.
-  - A impl (`FUN_140b97950`) chama a Client RPC quando `Role==Authority`; no host local isso recursa.
-  - **Correção** (hook Lua): na chamada aninhada, o `Role` vai temporariamente para AutonomousProxy.
-  - Validado no T2d: sem crash, sessão estável por minutos.
-  - Crash reporter da cópia desativado (`CrashReportClient.exe.disabled`).
-- **T2 OK:** `HomeRegionW` em listen, `IsServer=true`, `SimGameMode` local, portas 7777/15000 no SteamSockets.
-- **Canal de comandos** (`D:\tools\foxhole-lab\cmd.lua` → `cmd.out`): o mod executa o arquivo no game thread a cada 1 s. Permite testar sem reiniciar o jogo e sem teclado.
-- **Host sem personagem — diagnóstico real:**
-  - O PC fica em `Spectating`, `bPlayerIsWaiting=true`, `TeamId=-1`, sem kick e sem "Unable to load Profile".
-  - `ServerRespawnDefault` não faz nada.
-  - `GameMode:RestartPlayer(pc)` cria o `Character_C`, mas num ponto sem chão: cai de Z 2373 até -14 e morre na queda.
-- **T6 contornado sem stub de perfil:** `GameMode:RestartPlayerAtTransform(pc, transform)` ao lado de um veículo do mapa (blindados em ~10789,-24935,256) dá um personagem estável: HP 100, `Playing`, `PlayerCharacterMovementComponent`, MaxWalkSpeed 500.
-- **Soldado por `SpawnAIFromClass(Character_C)` (rota B):** nasce sem controller (a classe não define `AIControllerClass`).
-  - Com `AIControllerClass=AIController` + `SpawnDefaultController`, ele anda via `AddMovementInput`, mas devagar: o input chega a cada 50 ms e o CMC freia entre frames. Precisa de input por frame.
-  - Pouco depois foi desapossado e estacionado em (0,0,0), com HP 100. O jogo parece recolher personagens sem jogador/PlayerState.
-  - A rota A (jogadores locais com `SimPlayerController`) passa a ser a principal.
-- **Rota A (`CreatePlayer`) crasha:** ~1 min depois, `EXCEPTION_ACCESS_VIOLATION` lendo 0x224 em 0x140f06595, dentro de `FUN_140f00b60`, que constrói o `SGeneralOptionsWidget` (UI de opções) para o novo jogador local. Cada jogador local puxa a UI inteira.
-  - Rota A descartada.
-  - Próxima rota: `HeadlessPlayerController` (existe em `/Script/War`) spawnado sem LocalPlayer.
-  - Crash em `D:\tools\foxhole-lab\crash-T7a\`; parser novo `dmp_exc.py` (exceção + varredura da pilha).
-- **Ferramentas do universal-modder em uso:**
-  - `um backup` (no `lab.ps1`), `um win shot` (captura GPU), `um win drive` (input), `um win kill`.
-  - `um win setup` instalava em `%LOCALAPPDATA%\universal-modder`; movido para `D:\tools\um-win` com junção no caminho antigo.
-  - **Melhoria no toolkit:** `um win drive --title <regex>` e `WinDrive.ps1 -Title`, para escolher a janela do jogo quando a janela principal do processo é outra (aqui, o console do UE4SS).
-- **Tela preta no host (em investigação):**
-  - O HUD aparece (arma, bússola, rótulos do mundo), mas o mundo 3D não.
-  - Testado sem efeito: pós-processamento (PPVs, `PostProcessComponent` da câmera, `LOSPostProcess` do personagem), câmera própria no alto, cubo da engine, foco da janela, `bDisableWorldRendering` (byte em `viewport+0x6C`, bit 4 = 0, ou seja, não está desligado).
-  - O `Draw` é o da engine (vtable slot 4 = 0x142556b20).
-  - O `SceneCapture2D1` ortográfico do minimapa renderiza o terreno normalmente. Um `SceneCapture2D` em perspectiva sai vazio (profundidade máxima).
-- **Tela preta resolvida:** a cena era renderizada (`WasRecentlyRendered`=true; um `SceneCapture2D` mostrou a base dos Wardens com veículos e prédios). A causa era o **fade da câmera preso em preto**. Correção: `PlayerCameraManager:StopCameraFade()` + `SetManualCameraFade(0, preto, false)`.
-  - Em shipping as cvars `ShowFlag.*` leem de volta mas não têm efeito; não servem de diagnóstico.
-  - Numa execução a UI ficou na tela de espera ("Foxhole Airborne"); `SimPlayerController:ClientGotoScreen(0)` (`ESimScreen::HUD`) resolve.
-- **Câmera RTS:** um `CameraActor` como view target, com pitch -60, mostra a base vista de cima. Validado por captura.
-- **Soldados — rota que funciona:** `HeadlessPlayerController` spawnado sem LocalPlayer, mais `PlayerInput` (`StaticConstructObject`) e `RestartPlayerAtTransform`. Depois da posse: `bIsLocalPlayerController=true` e `SetMovementMode(Walking)`.
-  - Se a flag local for ligada antes da posse, o pawn nasce com `MovementMode=None`.
-  - O pawn de `AIController` é desapossado e estacionado em (0,0,0) após ~20 s; o do `HeadlessPlayerController` fica estável (testado por 20 s).
-  - Movimento: `AddMovementInput` a cada frame (`LoopInGameThreadAfterFrames(1)`); andam a 500 u/s e chegam em formação. Validado por posição e captura.
-- **Crash v0.2:** `GameThread` dentro do `UE4SS.dll` (leitura em 0xffffffff), com `LoopAsync`(33 ms) + `ExecuteInGameThread`. Todos os loops passaram para `LoopInGameThreadAfterFrames`/`LoopInGameThreadWithDelay`.
+- **Cause of the Steam init:** the earlier failure came from the Steam client being closed. With Steam open and logged in and the `steam_appid.txt`, the copy initializes Steam normally. `lab.ps1 run` now refuses to launch without Steam.
+- **T4 OK:** UE4SS 4.24 loads in Foxhole (only in the copy). The Lua mod `FoxholeRTS` runs.
+- **The command-line map is ignored in shipping:** `UGameInstance::StartGameInstance` (0x142576600) uses an empty URL. The session is opened by the mod with `GameplayStatics:OpenLevel(world, "/Game/Maps/HomeRegionW", true, "listen")`, in autostart mode when `autostart.txt` exists.
+- **Crash T2c:** stack overflow in `SimPlayerController:ClientStartRespawnTimer`.
+  - The impl (`FUN_140b97950`) calls the Client RPC when `Role==Authority`; on the local host this recurses.
+  - **Fix** (Lua hook): on the nested call, `Role` temporarily goes to AutonomousProxy.
+  - Validated in T2d: no crash, session stable for minutes.
+  - The copy's crash reporter disabled (`CrashReportClient.exe.disabled`).
+- **T2 OK:** `HomeRegionW` in listen, `IsServer=true`, local `SimGameMode`, ports 7777/15000 on SteamSockets.
+- **Command channel** (`D:\tools\foxhole-lab\cmd.lua` → `cmd.out`): the mod runs the file on the game thread every 1 s. Allows testing without restarting the game and without a keyboard.
+- **Host without a character — real diagnosis:**
+  - The PC stays in `Spectating`, `bPlayerIsWaiting=true`, `TeamId=-1`, without a kick and without "Unable to load Profile".
+  - `ServerRespawnDefault` does nothing.
+  - `GameMode:RestartPlayer(pc)` creates the `Character_C`, but at a spot without ground: it falls from Z 2373 to -14 and dies from the fall.
+- **T6 worked around without a profile stub:** `GameMode:RestartPlayerAtTransform(pc, transform)` beside one of the map's vehicles (armored cars at ~10789,-24935,256) gives a stable character: HP 100, `Playing`, `PlayerCharacterMovementComponent`, MaxWalkSpeed 500.
+- **Soldier via `SpawnAIFromClass(Character_C)` (route B):** spawns without a controller (the class does not define `AIControllerClass`).
+  - With `AIControllerClass=AIController` + `SpawnDefaultController`, it walks via `AddMovementInput`, but slowly: input arrives every 50 ms and the CMC brakes between frames. It needs per-frame input.
+  - Shortly after it was unpossessed and parked at (0,0,0), with HP 100. The game seems to collect characters without a player/PlayerState.
+  - Route A (local players with `SimPlayerController`) becomes the main one.
+- **Route A (`CreatePlayer`) crashes:** ~1 min later, `EXCEPTION_ACCESS_VIOLATION` reading 0x224 at 0x140f06595, inside `FUN_140f00b60`, which builds the `SGeneralOptionsWidget` (options UI) for the new local player. Each local player pulls in the whole UI.
+  - Route A discarded.
+  - Next route: `HeadlessPlayerController` (exists in `/Script/War`) spawned without a LocalPlayer.
+  - Crash in `D:\tools\foxhole-lab\crash-T7a\`; new parser `dmp_exc.py` (exception + stack sweep).
+- **universal-modder tools in use:**
+  - `um backup` (in `lab.ps1`), `um win shot` (GPU capture), `um win drive` (input), `um win kill`.
+  - `um win setup` installed into `%LOCALAPPDATA%\universal-modder`; moved to `D:\tools\um-win` with a junction at the old path.
+  - **Toolkit improvement:** `um win drive --title <regex>` and `WinDrive.ps1 -Title`, to pick the game window when the process's main window is another one (here, the UE4SS console).
+- **Black screen on the host (under investigation):**
+  - The HUD appears (weapon, compass, world labels), but the 3D world does not.
+  - Tested without effect: post-processing (PPVs, the camera's `PostProcessComponent`, the character's `LOSPostProcess`), our own camera up high, an engine cube, window focus, `bDisableWorldRendering` (byte at `viewport+0x6C`, bit 4 = 0, i.e. not disabled).
+  - The `Draw` is the engine's (vtable slot 4 = 0x142556b20).
+  - The minimap's orthographic `SceneCapture2D1` renders the terrain normally. A perspective `SceneCapture2D` comes out empty (max depth).
+- **Black screen solved:** the scene was being rendered (`WasRecentlyRendered`=true; a `SceneCapture2D` showed the Wardens' base with vehicles and buildings). The cause was the **camera fade stuck on black**. Fix: `PlayerCameraManager:StopCameraFade()` + `SetManualCameraFade(0, black, false)`.
+  - In shipping the `ShowFlag.*` cvars read back but have no effect; they are useless for diagnosis.
+  - In one run the UI stayed on the waiting screen ("Foxhole Airborne"); `SimPlayerController:ClientGotoScreen(0)` (`ESimScreen::HUD`) solves it.
+- **RTS camera:** a `CameraActor` as the view target, with pitch -60, shows the base from above. Validated by capture.
+- **Soldiers — the route that works:** `HeadlessPlayerController` spawned without a LocalPlayer, plus `PlayerInput` (`StaticConstructObject`) and `RestartPlayerAtTransform`. After possession: `bIsLocalPlayerController=true` and `SetMovementMode(Walking)`.
+  - If the local flag is turned on before possession, the pawn spawns with `MovementMode=None`.
+  - The `AIController`'s pawn is unpossessed and parked at (0,0,0) after ~20 s; the `HeadlessPlayerController`'s stays stable (tested for 20 s).
+  - Movement: `AddMovementInput` every frame (`LoopInGameThreadAfterFrames(1)`); they walk at 500 u/s and arrive in formation. Validated by position and capture.
+- **Crash v0.2:** `GameThread` inside `UE4SS.dll` (read at 0xffffffff), with `LoopAsync`(33 ms) + `ExecuteInGameThread`. All loops moved to `LoopInGameThreadAfterFrames`/`LoopInGameThreadWithDelay`.
 - **Mod v0.2.2** (`mod/FoxholeRTS/Scripts/main.lua`):
-  - autostart → sessão local → comandante em chão firme → fade zerado → HUD → câmera RTS;
-  - F6 esquadrão; botão direito/F7 move ao cursor; F8 limpa; F2 centraliza; PageUp/PageDown zoom; setas pan; F3 pan pela borda; F10 liga/desliga o RTS.
-- **Times e combate (investigação):**
-  - `EFactionId`: Colonials=0, Wardens=1, NoTeam=255. `SimPlayerController:ServerJoinWar(1)` põe o `PlayerState` nos Wardens; o pawn já existente continua 255.
-  - Personagens nascem sem equipamento.
-  - Atividades em `ECharacterActivityState` (Firing=3, Reloading=4, ...).
-  - `ItemHolderComponent:ClientImportItem` é uma RPC de cliente e não altera o inventário do servidor.
-  - Tentativa atual: spawnar `BPRifleWPickup_C` e chamar `SimCharacter:ServerTakePickup`.
-- **Toolkit:** `um win drive` ganhou `--title` e o comando `min`; nota da base de conhecimento em `universal-modder/knowledge/games/foxhole/` (passa no `um kb check`).
-- **Pegar item (`ServerTakePickup`):** recursava no host (stack overflow, crash em `crash-pickup\`). Hook quebra-recursão (na profundidade ≥ 2 o argumento vira nil) evita o crash, mas o item ainda não entra no inventário. Arma de verdade continua em estudo (agente de RE estática).
-- **Combate v0.3 — validado em execução:**
-  - Times: `PlayerState.TeamId` escrito direto + `pawn.TeamId` + `OnRep_TeamIdNotify` + `BPSetTeamVisuals(team)`. (`ServerJoinWar(0)` num HPC deixou o PlayerState em 1; escrita direta funciona.)
-  - Tiro simulado: `GameplayStatics:ApplyDamage(alvo, 34, hpcAtirador, pawnAtirador, nil)` (HP cai; morte com HP ≤ 0), alcance 22 m, cadência ~1,6 s, chance de acerto 60 % caindo com a distância, inimigo com 75 % da precisão.
-  - Efeitos do próprio jogo: `SpawnEmitterAtLocation` (8 args no 4.24: ..., bAutoDestroy, PoolingMethod, bAutoActivate) com `/Game/FX/RifleMF` (clarão), `BloodSplat` (acerto), `SimpleRifleImpact` (erro); `PlaySoundAtLocation` com `/Game/Audio/SFX/Weapons/RifleShot_Cue`.
-  - Linha de visada: `LineTraceSingle` olho a olho ignorando os dois pawns.
-  - IA inimiga: avança até o aliado mais próximo, para a 80 % do alcance com visada e atira; desvio lateral quando fica preso (ex.: entre as motos estacionadas).
-  - Ondas automáticas (Shift+F4): 15 s entre ondas, +2 soldados de reforço por onda vencida (máx. 8), onda cresce 0,5/onda, ponto de chegada a 35 m num ângulo com chão na altura do esquadrão; derrota quando o esquadrão cai.
-  - Mensagens no HUD: `SimPlayerController:ClientAlertMessage(str, segundos)` (canto superior esquerdo). `ClientAdminMessageUnformatted` escreve no chat.
-  - Verificado por log e captura: onda 1 eliminada (4 abates, 1 perda), reforço para 5, onda 2 por outra direção; alerta "onda 1: 4 inimigos vindo de baixo" visível.
-- **Equilíbrio (medido com contadores por lado):** o jogo segura o personagem em **1 HP** (ferido, sangrando) antes da morte; matar exige um acerto a mais. Inimigo não atira andando, leva 0,8 s para mirar ao parar, precisão 60 % da aliada. Partida típica sem micro: onda 1 aliados 35 tiros/12 acertos/381 de dano contra 17/3/97; esquadrão parado vence 2 ondas e cai na 3ª (10 abates, 8 baixas). Estável ~4 min de ondas, processo respondendo.
-- **Grupos de tiro:** soldados alternam entre grupo 1 e 2 ao nascer; teclas 1/2/3 selecionam grupo 1, 2 ou todos; a ordem de mover só vale para os selecionados, em formação própria. Validado por captura (grupo 1 andou, grupo 2 ficou).
-- **Proteções:** `isLocalAuthority` recusa o menu principal (o menu também é "servidor" standalone e o pawn ali não é `Character`; dava "compare number with TrivialObject").
-- **Hot reload do UE4SS (Ctrl+R) travou o jogo** no 4º reload da sessão: processo "Not Responding", CPU parada, nenhum callback no game thread (nem tecla). Os três primeiros funcionaram. Passamos a reiniciar o jogo (`D:\tools\foxhole-lab\restart.sh`: checa sintaxe, publica, mata a cópia pelo PID, `lab.ps1 run`, espera o RTS; ~1 min).
-- **Teste do usuário (2026-10-07):** com o botão direito no chão, os soldados andaram até o ponto clicado. A ordem de mover foi validada à mão, fora da automação.
+  - autostart → local session → commander on firm ground → fade zeroed → HUD → RTS camera;
+  - F6 squad; right button/F7 moves to the cursor; F8 clears; F2 centers; PageUp/PageDown zoom; arrows pan; F3 edge pan; F10 toggles RTS.
+- **Teams and combat (investigation):**
+  - `EFactionId`: Colonials=0, Wardens=1, NoTeam=255. `SimPlayerController:ServerJoinWar(1)` puts the `PlayerState` with the Wardens; the already existing pawn stays 255.
+  - Characters spawn without equipment.
+  - Activities in `ECharacterActivityState` (Firing=3, Reloading=4, ...).
+  - `ItemHolderComponent:ClientImportItem` is a client RPC and does not change the server's inventory.
+  - Current attempt: spawn `BPRifleWPickup_C` and call `SimCharacter:ServerTakePickup`.
+- **Toolkit:** `um win drive` gained `--title` and the `min` command; a knowledge base note in `universal-modder/knowledge/games/foxhole/` (passes `um kb check`).
+- **Picking up an item (`ServerTakePickup`):** recursed on the host (stack overflow, crash in `crash-pickup\`). A recursion-breaking hook (at depth ≥ 2 the argument becomes nil) avoids the crash, but the item still does not enter the inventory. A real weapon is still under study (static RE agent).
+- **Combat v0.3 — validated running:**
+  - Teams: `PlayerState.TeamId` written directly + `pawn.TeamId` + `OnRep_TeamIdNotify` + `BPSetTeamVisuals(team)`. (`ServerJoinWar(0)` on an HPC left the PlayerState at 1; writing directly works.)
+  - Simulated firing: `GameplayStatics:ApplyDamage(target, 34, shooterHpc, shooterPawn, nil)` (HP drops; death at HP ≤ 0), range 22 m, rate ~1.6 s, hit chance 60% falling with distance, the enemy with 75% of the accuracy.
+  - The game's own effects: `SpawnEmitterAtLocation` (8 args in 4.24: ..., bAutoDestroy, PoolingMethod, bAutoActivate) with `/Game/FX/RifleMF` (flash), `BloodSplat` (hit), `SimpleRifleImpact` (miss); `PlaySoundAtLocation` with `/Game/Audio/SFX/Weapons/RifleShot_Cue`.
+  - Line of sight: `LineTraceSingle` eye to eye ignoring both pawns.
+  - Enemy AI: advances to the nearest ally, stops at 80% of range with line of sight and fires; sidesteps when stuck (e.g. between the parked motorcycles).
+  - Automatic waves (Shift+F4): 15 s between waves, +2 reinforcement soldiers per wave won (max. 8), the wave grows 0.5/wave, arrival point 35 m away at an angle with ground at the squad's height; defeat when the squad falls.
+  - HUD messages: `SimPlayerController:ClientAlertMessage(str, seconds)` (top left corner). `ClientAdminMessageUnformatted` writes to the chat.
+  - Verified by log and capture: wave 1 eliminated (4 kills, 1 loss), reinforcement to 5, wave 2 from another direction; alert "onda 1: 4 inimigos vindo de baixo" visible.
+- **Balance (measured with per-side counters):** the game holds the character at **1 HP** (wounded, bleeding) before death; killing requires one more hit. The enemy does not fire while walking, takes 0.8 s to aim when stopping, accuracy 60% of the allied. A typical match without micro: wave 1 allies 35 shots/12 hits/381 damage against 17/3/97; a stationary squad wins 2 waves and falls on the 3rd (10 kills, 8 casualties). Stable for ~4 min of waves, process responding.
+- **Fire groups:** soldiers alternate between group 1 and 2 at spawn; keys 1/2/3 select group 1, 2 or all; the move order only applies to the selected, in their own formation. Validated by capture (group 1 walked, group 2 stayed).
+- **Protections:** `isLocalAuthority` refuses the main menu (the menu is also a standalone "server" and the pawn there is not a `Character`; it gave "compare number with TrivialObject").
+- **UE4SS hot reload (Ctrl+R) froze the game** on the session's 4th reload: process "Not Responding", CPU idle, no callback on the game thread (not even a key). The first three worked. We switched to restarting the game (`D:\tools\foxhole-lab\restart.sh`: checks syntax, publishes, kills the copy by PID, `lab.ps1 run`, waits for RTS; ~1 min).
+- **User test (2026-10-07):** with the right button on the ground, the soldiers walked to the clicked point. The move order was validated by hand, outside the automation.
 
-### Como retomar (estado histórico do lote 17; prioridade atualizada em 10/10)
-- **Prioridade vigente:** desenvolver logística; usuário adiou crashes/efeito amarelo. Lote v4.1 integrado,
-  29/29 PASS offline, fila experimental preservada. Não repetir o gate manual de 1/2 como bloqueio de features.
-  Build não é estável. Os itens antigos abaixo são contexto; consultar primeiro as entradas novas do topo.
-- **Atualização 10/10:** trabalho retomado por novo pedido. Ler primeiro as entradas novas no topo:
-  controles A/B repetidos,620s selecionados e100ciclos/20mortes passaram com fonte33D6C7E5.
-  Causa nativa antiga não isolada; candidato logístico v4.1 continua separado/não publicado.
-  Usuário pode fazer gate de entrada real depois do ensaio; laboratório fechado, combinar início.
-- **Onde estamos:** `ROADMAP.md`. Fase 1 (frente pequena) pronta; fase 2 (estudo, `MECHANICS_STUDY.md` + `data/`)
-  com a primeira leitura feita; **fase 3 em protótipo, agora com cadeia curta validada em CallumsCapeHex**,
-  não só no lobby. Alt+L implanta instalações/caminhões reais com carteira1100, valida chão/folga e rollback.
-  Em65,21s produziu três caixas e entregou munição/camisas, com três caminhões íntegros; sem ondas/estoque
-  inicial, NÃO teste de equilíbrio. Dados: `data/trace_deployment.txt` e topo deste diário.
-- **Primeiro ao retomar:** respeitar pausa; só trabalhar após novo pedido. Contorno completo foi aprovado
-  visualmente, mas duas quedas UE4SS após extensão às peças e erro Lua Registry continuam pendentes.
-  Ler `data/trace_selection.txt`, reproduzir/isolar por componente/GC/reseleção antes de novas features.
-  Fonte experimental continua com contorno ligado; não apresentar como build estável. Laboratório fechado.
-- **Próximos passos da fase 3 (depois da estabilidade):** caminhões seguindo a estrada
-  descoberta por região (hoje andam em reta, sem colisão, atravessam
-  prédios); mais tipos de caixa (armas, granadas, médico; custos já em `data/game_costs.txt`); cadeia
-  inimiga mais completa; talvez trocar a "mão de obra" por material. Depois: fase 4 (veículos como unidades).
-- **Contrato de construção:** `data/trace_rebuild.txt`. Refinaria/fábrica ativas podem nascer na transformação
-  nativa com HP/classe-base corretos, mas canteiro cru não tem alvo; não foi validada conclusão nativa.
-  Custos corrigidos: 400/400/100 bmat. Orçamento explícito/rollback/superfície/folga implementados no lote17:
-  `groundZ` pode acertar telhado; `SpawnActor` pode retornar ator já sendo destruído; bounds totais incluem volumes.
-  Não confundir implantação própria com conclusão nativa de canteiro/facilities. Nada persiste no save ainda.
-- **Mod atual:** v0.9 em `mod/FoxholeRTS/Scripts/main.lua` (~4800 linhas, 178 locais no topo de 200: funções
-  novas em tabelas `rts`, `fort`, `sv`, `logi`, `anim`, `ai`; constantes em `CFG`, estado em `S`). Controles e
-  mecânicas em `mod/README.md`; teclas também no banner de carga. Direção: **totalmente offline**, sistemas próprios.
-- **Publicar e testar:** `bash D:/tools/foxhole-lab/restart.sh` (sintaxe + `tools/check_globals.py` + cópia +
-  reinício + espera do modo RTS). Não use o Ctrl+R do UE4SS.
-- **Testes offline:** `PYTHONPATH=D:/tools/pylibs python tools/test_orders.py` (lupa; inclui checagem de teclas contra
-  os mapeamentos do jogo, lidos de `InputSettings` ao vivo; sobreposições aceitas são ações do pawn, desligado no RTS).
-  Também `tools/test_costs.py` e `tools/test_inventory_probe.py`; exportar custos ao vivo com `tools/export_costs.lua`.
-- **Comandos ao vivo:** `sh D:/tools/foxhole-lab/run.sh <arquivo.lua>`; saída só pelo `out(...)` (não `return`).
-  O canal enxerga a tabela `env` de `runCommandFile` (inclui `CFG`, `S`, `logi`, `rts`, `combat`, `squad()`,
-  `enemies()`...). Não usar o canal com o robô rodando.
-- **Robô de regressão:** `sh D:/tools/foxhole-lab/botloop.sh` em segundo plano; log `botrun.log`; esperar com
-  `until grep -q "auto<TAB>false" botrun.log` (grep -P não funciona no Git Bash). TaskStop não mata o `sh.exe`:
-  `Get-CimInstance Win32_Process` filtrando `botloop.sh`. Últimos resultados: lote 12 vitória nas 10 ondas
-  (111/24); lote 13 derrota na onda 10 (83/38).
-- **Dados do jogo:** índice do pak (lista de arquivos) e tabelas (`DataTable:ForEachRow` só em colunas conhecidas; um
-  dump genérico derrubou o jogo em `BPAirDynamicData`). O cliente tem as 54 regiões do mundo (`Maps/Master/*Hex`).
-- **Captura:** `cd D:/GitHub/universal-modder && UM_HOME=D:/tools/um-home python -m um win shot --title '^War' --scale 0.5 <saida.png>`
-  (câmera olha para +X: topo da tela = X maior, direita = Y maior).
-- **Pendências do usuário:** demais testes com teclado/mouse reais (`MANUAL_TEST.md`); aparência completa aprovada
-  nesta sessão, sem certificar integração de todas as teclas nem estabilidade prolongada.
-- **Interface pedida pelo usuário** (`ROADMAP.md`, "Interface e retorno visual"): caixa de seleção visível ao
-  arrastar; silhueta/contorno no selecionado (o jogo tem `M_OccludedOutline`); mais UI quando fizer sentido.
-- **Morte corrigida (lote 14):** `ApplyDamage` zerava HP sem notificar a morte visual no host. O `reap` agora
-  tira marcadores/cache, para e restaura movimento, então chama `OnRep_Health` (ragdoll nativo). Contrato
-  medido em `data/trace_death.txt`; não acessar AnimInstance após a notificação nem corpo após o TTL.
+### How to resume (historical state of batch 17; priority updated on 10/10)
+- **Current priority:** develop logistics; the user postponed crashes/the yellow effect. Batch v4.1 integrated,
+  29/29 PASS offline, experimental queue preserved. Do not repeat the manual 1/2 gate as a feature blocker.
+  The build is not stable. The old items below are context; check the new entries at the top first.
+- **Update 10/10:** work resumed on a new request. Read the new entries at the top first:
+  repeated A/B controls, 620 s selected and 100 cycles/20 deaths passed with source 33D6C7E5.
+  The old native cause not isolated; the logistics candidate v4.1 remains separate/unpublished.
+  The user may do a real-input gate after the rehearsal; lab closed, agree on the start.
+- **Where we are:** `ROADMAP.md`. Phase 1 (small front) done; phase 2 (study, `MECHANICS_STUDY.md` + `data/`)
+  with the first reading done; **phase 3 in prototype, now with a short chain validated in CallumsCapeHex**,
+  not just in the lobby. Alt+L deploys real installations/trucks with a wallet of 1100, validates ground/clearance and rollback.
+  In 65.21 s it produced three crates and delivered ammo/shirts, with three intact trucks; without waves/starting
+  stock, NOT a balance test. Data: `data/trace_deployment.txt` and the top of this diary.
+- **First thing when resuming:** respect the pause; only work after a new request. The full outline was approved
+  visually, but two UE4SS crashes after extending it to the parts and the Lua Registry error remain pending.
+  Read `data/trace_selection.txt`, reproduce/isolate by component/GC/reselection before new features.
+  The experimental source still has the outline on; do not present it as a stable build. Lab closed.
+- **Next steps of phase 3 (after stability):** trucks following the road
+  discovered per region (today they go straight, without collision, through
+  buildings); more crate types (weapons, grenades, medic; costs already in `data/game_costs.txt`); a more complete enemy
+  chain; maybe replace "manpower" with material. Then: phase 4 (vehicles as units).
+- **Construction contract:** `data/trace_rebuild.txt`. An active refinery/factory can spawn at the native
+  transform with correct HP/base class, but a raw construction site has no target; native completion was not validated.
+  Costs fixed: 400/400/100 bmat. Explicit budget/rollback/surface/clearance implemented in batch 17:
+  `groundZ` may hit a roof; `SpawnActor` may return an actor already being destroyed; total bounds include volumes.
+  Do not confuse our own deployment with native completion of a construction site/facilities. Nothing persists in the save yet.
+- **Current mod:** v0.9 in `mod/FoxholeRTS/Scripts/main.lua` (~4800 lines, 178 top-level locals out of 200: new functions
+  in tables `rts`, `fort`, `sv`, `logi`, `anim`, `ai`; constants in `CFG`, state in `S`). Controls and
+  mechanics in `mod/README.md`; keys also in the load banner. Direction: **fully offline**, our own systems.
+- **Publish and test:** `bash D:/tools/foxhole-lab/restart.sh` (syntax + `tools/check_globals.py` + copy +
+  restart + wait for RTS mode). Do not use UE4SS's Ctrl+R.
+- **Offline tests:** `PYTHONPATH=D:/tools/pylibs python tools/test_orders.py` (lupa; includes a key check against
+  the game's mappings, read from `InputSettings` live; accepted overlaps are pawn actions, off in RTS).
+  Also `tools/test_costs.py` and `tools/test_inventory_probe.py`; export costs live with `tools/export_costs.lua`.
+- **Live commands:** `sh D:/tools/foxhole-lab/run.sh <file.lua>`; output only through `out(...)` (not `return`).
+  The channel sees the `env` table of `runCommandFile` (includes `CFG`, `S`, `logi`, `rts`, `combat`, `squad()`,
+  `enemies()`...). Do not use the channel with the bot running.
+- **Regression bot:** `sh D:/tools/foxhole-lab/botloop.sh` in the background; log `botrun.log`; wait with
+  `until grep -q "auto<TAB>false" botrun.log` (grep -P does not work in Git Bash). TaskStop does not kill `sh.exe`:
+  `Get-CimInstance Win32_Process` filtering on `botloop.sh`. Latest results: batch 12 victory in the 10 waves
+  (111/24); batch 13 defeat at wave 10 (83/38).
+- **Game data:** pak index (file list) and tables (`DataTable:ForEachRow` only on known columns; a
+  generic dump crashed the game on `BPAirDynamicData`). The client has the world's 54 regions (`Maps/Master/*Hex`).
+- **Capture:** `cd D:/GitHub/universal-modder && UM_HOME=D:/tools/um-home python -m um win shot --title '^War' --scale 0.5 <output.png>`
+  (the camera looks toward +X: top of the screen = larger X, right = larger Y).
+- **User's pending items:** the other tests with a real keyboard/mouse (`MANUAL_TEST.md`); full look approved
+  in this session, without certifying the integration of all keys nor prolonged stability.
+- **Interface requested by the user** (`ROADMAP.md`, "Interface and visual feedback"): a visible selection box when
+  dragging; silhouette/outline on the selected (the game has `M_OccludedOutline`); more UI when it makes sense.
+- **Death fixed (batch 14):** `ApplyDamage` zeroed HP without notifying the visual death on the host. `reap` now
+  removes markers/cache, stops and restores movement, then calls `OnRep_Health` (native ragdoll). Contract
+  measured in `data/trace_death.txt`; do not access the AnimInstance after the notification nor the body after the TTL.
 
-## 2026-10-07 — Retomada com universal-modder
+## 2026-10-07 — Resumed with universal-modder
 
-- Consultados `mod-any-game`, `reverse-engineering`, `game-automation`, o playbook Unreal e a nota Foxhole via `python -m um kb search foxhole`.
-- A segunda inicializacao chegou ao menu e depois a `HomeRegionW`, com `modo RTS ligado`, autoridade local e comandante com HP 100. Captura conferida: `D:\tools\foxhole-lab\continue-world_small.png`.
-- Correcao do diagnostico inicial: `Responding=False` durante o carregamento nao provou deadlock. Nesta execucao o menu apareceu cerca de 74 s depois do inicio dos mods; o RTS ficou pronto cerca de 95 s depois. Nao reiniciar so por esse indicador.
-- Executado `t_pk3.lua` pelo canal local: rifle e municao nasceram com CodeName/StackSize/PickupCDO validos. `ServerTakePickup` retornou sem erro com `bIsLocalPlayerController=false`, mas ambos os pickups permaneceram e `ItemHolderItems` ficou vazio. A hipotese da flag local nao resolveu a aquisicao; rifles reais continuam pendentes.
-- Nenhuma alteracao no cliente oficial ou no codigo do mod nesta verificacao.
+- Consulted `mod-any-game`, `reverse-engineering`, `game-automation`, the Unreal playbook and the Foxhole note via `python -m um kb search foxhole`.
+- The second startup reached the menu and then `HomeRegionW`, with `modo RTS ligado`, local authority and a commander with HP 100. Capture checked: `D:\tools\foxhole-lab\continue-world_small.png`.
+- Correction of the initial diagnosis: `Responding=False` during loading did not prove a deadlock. In this run the menu appeared about 74 s after the mods started; RTS was ready about 95 s later. Do not restart based on that indicator alone.
+- Ran `t_pk3.lua` through the local channel: rifle and ammo spawned with valid CodeName/StackSize/PickupCDO. `ServerTakePickup` returned without error with `bIsLocalPlayerController=false`, but both pickups remained and `ItemHolderItems` stayed empty. The local flag hypothesis did not solve the acquisition; real rifles remain pending.
+- No change to the official client or the mod's code in this check.
