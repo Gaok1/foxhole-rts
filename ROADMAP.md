@@ -16,6 +16,9 @@ ou fabricar identidade; não há correção aprovada ainda.
 Oracle CPU executou produtor/bridge/controlador/helper reais com fixtures: voz
 false ou PlayerSaveGame ausente ainda permitem acumular nulos; objeto não nulo
 posterior reproduz read0 no RVA do crash. Não prova quem os produz no jogo.
+bRunPhysicsWithNoController também não substitui localidade de NPC possuído:
+gate nativo e oracle CPU mostram que Controller presente pula essa flag.
+Não desapossar NPC nem publicar esse atalho; posse/GC/movimento ainda necessários.
 Sonda read-only de localidade/PlayerState/roster de tropas e pool preparada para
 o próximo lote integrado; teste offline PASS, ainda não executada no Unreal.
 Init nativo de HeadlessLocalPlayer rastreado parcialmente; constructor sozinho
@@ -43,6 +46,14 @@ As entradas históricas abaixo não substituem os resultados atuais:
   deixaram o ator850HP; sem morte/carga perdida, não creditar cleanup como prova.
 
 ### Próximo lote, em ordem
+**Candidato offline — save de comboios:** eSnapshot observa morte nativa antes
+de converter carga em pendente; sv.collect captura a carteira após recompensas
+dessas observações. Regressão FAIL antes/PASS depois, bateria15testes PASS.
+Ainda sem publicação/validação viva; não resolve persistência de ferimentos.
+Ambos os snapshots recusam HP desconhecido; save preserva arquivo anterior sem
+perda inventada. Falta também persistir carga manual dos coletores (unitData não
+guarda m.col): reatar ao trabalhador e replanejar entrega física, nunca creditar
+refinaria só por carregar o save.
 **Ajustes publicados, sem aprovação viva:** isolado no log que medevac automático descartava carga como
 "ordem do jogador". Correção conserva carga durante evacuação e retoma a rota após
 cura; morte/ordens explícitas continuam contabilizando perda. Dez testes offline

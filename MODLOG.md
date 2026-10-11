@@ -1,5 +1,50 @@
 # Foxhole RTS — diário do projeto
 
+## 2026-10-11 — Save: HP desconhecido recusa gravação, não ressuscita estado antigo
+
+- Extensão do teste real reproduziu FAIL: observador suspende transporte com
+  HP NaN/infinito/texto, mas snapshots ignoravam a recusa e salvavam HP/carga antigos.
+- Snapshots de amigos/inimigos agora exigem HP conhecido ou morte já resolvida.
+  sv.save captura falha da coleta e retorna false com log, antes de validar/escrever;
+  arquivo anterior preservado. Não transforma erro de schema em morte/perda/crédito.
+- Teste ampliado cobre ambos os lados, NaN/±infinito/texto, estoque intacto e spy
+  que proíbe gravação/validação do snapshot incompleto. FAIL antes/PASS depois;
+  todos15test_*.py e check_globals PASS. Nenhuma prova de bindings/continue Unreal.
+- Candidato A36E9052562BBB52CAE97304D80CC6742C66EB32B031BE07AC0BE10C7B23205B,
+  não publicado. Backup externo main-before-snapshot-schema-gate.lua. WMI sem lab.
+- Dívida identificada ao rever persistência: unitData não guarda carga manual
+  em m.col; colReset descarta a carga ao continuar. Próxima implementação precisa
+  preservar carga no trabalhador e replanejar entrega física, não creditar refinaria.
+
+## 2026-10-11 — Save: morte de comboio observada antes de salvar carga/carteira
+
+- Defeito reproduzido offline: eSnapshot convertia carga de ator com Health0 em
+  pendente/frota livre quando a morte ainda não tinha passado pelo tick logístico.
+  Regressão nova FAIL na fonte85D7EEB9; usa eLose/eSnapshot/syncHealth/sv.collect reais.
+- eSnapshot agora observa HP nativo antes de contabilizar cada comboio. sv.collect
+  resolve snapshots antes de copiar manpower: recompensa dessa observação entra
+  na mesma gravação, não só na memória depois de salvar. Sem dano/ator fictício.
+- Testes HP0, ator inválido/destruindo, ferido vivo, save repetido e cópias PASS;
+  perda/carga/reconstrução/crédito únicos. Todos15test_*.py e check_globals PASS.
+  Mocks não provam lifecycle/TTL ou save/continue Unreal; ferimentos ainda não persistem.
+- Fonte candidata01AE83482408D760C9FF22E8BA3226616A4F67016A1077BFCBD702AB22A5E547,
+  backup externo main-before-enemy-snapshot-health.lua. Não publicada, sem restart.
+  Gate vivo acumulado no BATCH_NATIVO para a próxima sessão integrada.
+
+## 2026-10-11 — Movimento: flag sem controlador não substitui localidade
+
+- Rastreada propriedade nativa bRunPhysicsWithNoController: setter gerado
+  142a314d0 liga bit4/+1f1. No fluxo140ae1d60, personagem não local COM
+  Controller vai ao ramo remoto antes de consultar essa flag. Não desligar
+  bIsLocalPlayerController supondo que essa opção mantém a simulação atual.
+- Oracle CPU executa fragmento real140ae1e16..140ae1e85 e getter de localidade
+  do pawn142778b00: seis combinações posse/localidade/flag PASS. Com posse,
+  flag false/true não muda o ramo; sem Controller ela muda. Getter do controlador
+  e root-motion são shims; não comprova deslocamento, posse, GC ou fix Unreal.
+- Alternativa descartada offline sem mexer em main ou desapossar NPCs. Scripts/
+  saída/decomp externos; nenhuma run. Preservar PlayerState/posse para evitar
+  a regressão histórica de recolhimento do pawn após aproximadamente20s.
+
 ## 2026-10-11 — Repositório público no GitHub
 
 - Pasta virou repositório git e foi publicada em github.com/Gaok1/foxhole-rts (público, MIT) para chamar

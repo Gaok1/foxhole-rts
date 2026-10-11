@@ -330,6 +330,13 @@ Relatório final perdido, causa completa pendente; não considerar build estáve
 Diagnóstico offline ligou o crash à lista nativa de UniqueId dos participantes.
 IDs vazios de bots são hipótese, não causa completa comprovada; desligar voz não
 protege todo o fluxo. Correção de controlador/NPC ainda em investigação.
+Correção candidata de save: observa morte nativa do comboio antes de converter
+carga viva em pendente e registra a recompensa na mesma carteira salva. Testes
+offline passaram; ainda não publicada/validada no laboratório. Ferimentos de
+veículos continuam sem persistência, não considerar esta correção um save completo deles.
+HP nativo desconhecido também recusa o save inteiro e preserva o arquivo anterior,
+sem inventar morte/perda. Candidato offline. A carga manual em mãos dos coletores
+ainda não é persistida; continuar durante a coleta pode perdê-la.
 Oracle offline das funções nativas reproduziu esse fluxo com voz false e mesmo
 sem PlayerSaveGame; fixtures não comprovam causa completa nem correção no jogo.
 Sonda de contrato NPC/roster preparada para o próximo lote, sem ler IDs Steam

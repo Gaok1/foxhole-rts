@@ -3234,6 +3234,10 @@ function logi.colRelease(u, why, keep)
     end
 end
 
+function logi.colInterrupted(m, u)
+    return m.orderT ~= u.orderT or m.hold or m.focus or m.area or (m.retreat and not m.medevac) or m.queue
+end
+
 -- Onde nasce o trabalhador: deposito (com X/Y/Z e shirts) que paga a camisa. Isolado aqui: a base avancada troca esta funcao.
 function logi.workerDepot() return logi.base end
 
@@ -3435,7 +3439,7 @@ function logi.colStep(dt, t)
         local m = u.m
         if not logi.colLive(m) then
             logi.colRelease(u, "trabalhador morto")
-        elseif m.orderT ~= u.orderT or m.hold or m.focus or m.area or (m.retreat and not m.medevac) or m.queue then
+        elseif logi.colInterrupted(m, u) then
             logi.colRelease(u, "ordem do jogador", true)  -- a ordem do jogador (alvo, fila) fica intacta
         elseif m.medevac then
             -- Recuo automatico nao e ordem do jogador nem entrega: carga continua nas maos.
@@ -3500,6 +3504,70 @@ function logi.colAudit()
 end
 
 -- Reconstrucao transacional: vaga validada, ator integro, so depois o chamador debita/ativa.
+-- Coleta no save: indices dos soldados salvos, nunca ponteiros; carga continua em maos.
+function logi.colSnapshot()
+    if not logi.on then return nil end
+    local K = logi.col or logi.colReset()
+    for i = #K.units, 1, -1 do
+        local u = K.units[i]
+        if not logi.colLive(u.m) then logi.colRelease(u, "trabalhador morto")
+        elseif logi.colInterrupted(u.m, u) then logi.colRelease(u, "ordem do jogador", true) end
+    end
+    assert(logi.colAudit(), "razão da coleta inválida")
+    local indices, n = {}, 0
+    for _, m in ipairs(squad) do if alive(m) then n = n + 1; indices[m] = n end end
+    local d = {v=1, gathered=K.gathered, delivered=K.delivered, lost=K.lost, trips=K.trips, units={}}
+    for _, u in ipairs(K.units) do
+        assert(indices[u.m] and u.m.col == u, "vínculo do coletor inválido")
+        d.units[#d.units + 1] = {index=indices[u.m], state=u.state, carry=u.carry}
+    end
+    return d
+end
+
+function logi.colValid(d, savedUnits)
+    local function num(x) return type(x)=="number" and x==x and x>=0 and x<math.huge end
+    if type(d)~="table" or d.v~=1 or type(d.units)~="table" then return false end
+    for k in pairs(d) do
+        if k~="v" and k~="gathered" and k~="delivered" and k~="lost" and k~="trips" and k~="units" then return false end
+    end
+    for _, k in ipairs({"gathered","delivered","lost","trips"}) do if not num(d[k]) then return false end end
+    if d.trips%1~=0 or #d.units>CFG.COLETA.workers then return false end
+    local seen, hand, count = {}, 0, 0
+    for i, u in pairs(d.units) do
+        if not num(i) or i%1~=0 or i<1 or i>#d.units or type(u)~="table" then return false end
+        for k in pairs(u) do if k~="index" and k~="state" and k~="carry" then return false end end
+        if not num(u.index) or u.index%1~=0 or u.index<1 or seen[u.index] then return false end
+        local m = savedUnits and savedUnits[u.index]
+        if not m or m.role~="worker" or (m.hp and m.hp<=0) or not num(u.carry) or u.carry>CFG.COLETA.cap then return false end
+        if u.state~="toField" and u.state~="gather" and u.state~="toRef" then return false end
+        seen[u.index], hand, count = true, hand+u.carry, count+1
+    end
+    -- sv.ser arredonda cada numero a 3 casas; apenas o termo de origem e reconciliado no load.
+    return count==#d.units and math.abs(d.gathered-d.delivered-d.lost-hand)<=0.005
+end
+
+function logi.colRestore(d)
+    if not d then return true end -- save legado, sem carga manual registrada
+    local byIndex, records = {}, {}
+    for _, m in ipairs(squad) do if m.savedIndex then byIndex[m.savedIndex] = m end end
+    if not logi.colValid(d, byIndex) then return false end
+    for _, q in ipairs(d.units) do
+        local m = byIndex[q.index]
+        if not m or not logi.colLive(m) then return false end -- nao deslocar carga para outro spawn
+        records[#records+1] = {m=m, state=q.state=="gather" and "toField" or q.state,
+            carry=q.carry, orderT=m.orderT, k=#records+1}
+    end
+    local K, t, hand = logi.colReset(), now(), 0
+    K.delivered, K.lost, K.trips, K.units = d.delivered, d.lost, d.trips, records
+    K.active, K.since, K.scanT = #records>0, t, t+CFG.COLETA.scan
+    for _, u in ipairs(records) do
+        u.m.col, hand = u, hand+u.carry
+        logi.colGo(u, u.state=="toRef" and logi.refinery or logi.field, t)
+    end
+    K.gathered = K.delivered+K.lost+hand -- reconcilia arredondamento, nunca acrescenta estoque
+    return logi.colAudit()
+end
+
 function logi.spawnTruck(tr)
     local slots = logi.parking(logi.factory, 1)
     if not slots then return false, "sem vaga segura na fábrica" end
@@ -4187,6 +4255,8 @@ function logi.eSnapshot()
     local function copy(s) local d = {}; for _, k in ipairs(CFG.ECHAIN.kinds) do d[k] = s[k] or 0 end; return d end
     local pend, road = copy(en.pending or {}), 0
     for _, tr in ipairs(logi.foes or {}) do
+        -- HP desconhecido suspende transporte, mas nao autoriza salvar estado antigo como vivo.
+        assert(logi.syncHealth(tr, t) or tr.state == "dead", "HP nativo do comboio desconhecido")
         if tr.state ~= "dead" and not tr.lostDone then
             road = road + 1
             for _, k in ipairs(CFG.ECHAIN.kinds) do pend[k] = pend[k] + ((tr.cargo and tr.cargo[k]) or 0) end
@@ -4288,7 +4358,7 @@ function logi.snapshot()
     for i, pt in ipairs(points) do d.pts[i] = pt.dep and { a=pt.dep.ammo, s=pt.dep.shirts, r=pt.dep.rifle or 0, m=pt.dep.medical or 0 } or false end
     if logi.job then d.job={kind=logi.job.kind,left=logi.job.left,total=logi.job.total} end
     for i, tr in ipairs(logi.trucks) do
-        logi.syncHealth(tr, now())
+        assert(logi.syncHealth(tr, now()) or tr.state == "dead", "HP nativo do caminhão desconhecido")
         local q={state=tr.state,hp=tr.hp,salv=tr.salv or 0,wait=math.max(0,(tr.waitT or now())-now()),
             rebuild=math.max(0,(tr.rebuildT or now())-now())}
         if tr.cargo then
@@ -6386,11 +6456,14 @@ end
 
 function sv.collect()
     local t = now()
+    -- Snapshots podem observar mortes e conceder recompensa: resolver antes de copiar a carteira.
+    local collection = logi.colSnapshot()
+    local logistics, enemyLogistics = logi.snapshot(), logi.eSnapshot()
     local d = { v = 2, map = sv.map(), world = sv.worldPath(), diff = S.difficulty, wave = combat.wave, kills = combat.kills,
         losses = combat.losses, elapsed = t - (combat.startT or t), mp = economy.manpower, aimp = ai.mp,
         shots = combat.shots and combat.shots[1] or 0, hits = combat.hits and combat.hits[1] or 0,
         nextIn = combat.nextWaveAt and math.max(0, combat.nextWaveAt - t) or nil, mode = combat.mode,
-        points = {}, squad = {}, enemies = {}, walls = {}, trenches = {}, tents = {}, wires = {}, logi = logi.snapshot(), elogi = logi.eSnapshot() }
+        points = {}, squad = {}, enemies = {}, walls = {}, trenches = {}, tents = {}, wires = {}, logi = logistics, elogi = enemyLogistics, collection = collection }
     -- dono: 1 nosso, 0 inimigo, -1 neutro
     for _, pt in ipairs(points) do d.points[#d.points + 1] = { x = pt.X, y = pt.Y, owner = pt.owner or -1, prog = pt.prog or 0 } end
     for _, m in ipairs(squad) do if alive(m) then d.squad[#d.squad + 1] = unitData(m) end end
@@ -6576,7 +6649,7 @@ function sv.validate(d)
     end
     local known = { v=1, map=1, world=1, diff=1, wave=1, kills=1, losses=1, elapsed=1, mp=1, aimp=1, shots=1, hits=1,
         nextIn=1, mode=1, points=1, squad=1, enemies=1, walls=1, trenches=1, tents=1, wires=1, logi=1, infra=1, enemy=1,
-        elogi=1, fwd=1 }
+        elogi=1, fwd=1, collection=1 }
     for k in pairs(d) do if not known[k] then return nil, "campo desconhecido: " .. tostring(k) end end
     if d.v == 1 and (d.infra ~= nil or d.enemy ~= nil or d.world ~= nil) then return nil, "v1 com campos de v2" end
     if d.v == 2 and (type(d.world) ~= "string" or #d.world == 0 or #d.world > 256) then return nil, "v2 sem mundo" end
@@ -6608,6 +6681,7 @@ function sv.validate(d)
             end
         end
     end
+    if d.collection and (d.v~=2 or not d.logi or not logi.colValid(d.collection, d.squad)) then return nil, "coleta inválida" end
     for _, k in ipairs({ "walls", "trenches", "tents", "wires" }) do
         local l = d[k] or {}
         if not list(l, P.maxList) then return nil, k end
@@ -6787,7 +6861,8 @@ function sv.save()
         end
         return false
     end
-    local d = sv.collect()
+    local collected, d = pcall(sv.collect)
+    if not collected then log("save recusado (arquivo anterior preservado): " .. tostring(d)); return false end
     local ok, why, soft = sv.validate(d)
     if ok and soft and soft.elogi then
         -- estado inimigo proprio invalido na hora de gravar: grava o resto sem a secao (nunca um elogi invalido)
@@ -6992,6 +7067,11 @@ function sv.load()
         if not okF then problems[#problems + 1] = "bases avançadas não refeitas"; pcall(logi.fwdStageClear)
         else for _, p in ipairs(bad) do problems[#problems + 1] = p end end
     end
+    if d.collection then
+        local okC, restored = false, false
+        if logi.on and pointsOk then okC, restored = pcall(logi.colRestore, d.collection) end
+        if not okC or not restored then problems[#problems+1] = "carga manual não restaurada" end
+    end
     sv.degraded = #problems > 0 and { why = table.concat(problems, ", "), start = combat.startT } or nil
     local where = combat.mode == "assault" and string.format("assalto, pontos inimigos %d/%d", pointsOwned(CFG.ENEMY_TEAM), #points)
         or string.format("onda %d/%d", combat.wave, CFG.WAVES_TO_WIN)
@@ -7037,7 +7117,7 @@ function sv.restore(d)
     end
     for i, u in ipairs(d.squad or {}) do
         local m = unit(u, i, CFG.FRIENDLY_TEAM)
-        if m then m.group = u.group or ((i % 2) + 1); m.sel = true; squad[#squad + 1] = m end
+        if m then m.group = u.group or ((i % 2) + 1); m.sel = true; m.savedIndex = i; squad[#squad + 1] = m end
     end
     for i, u in ipairs(d.enemies or {}) do
         local m = unit(u, i, CFG.ENEMY_TEAM)

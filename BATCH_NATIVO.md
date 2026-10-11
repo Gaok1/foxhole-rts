@@ -37,6 +37,21 @@ Plano abaixo preservado como contrato/reprodutor, não como aprovação.
   executada para esta alteração.
 
 ## Antes da única sessão no laboratório
+### Snapshot de comboio — candidato offline, não executado
+- No cenário de dano nativo já previsto, salvar imediatamente após morte real,
+  antes do próximo tick logístico. Não zerar Health só para obter aprovação.
+- A carga destruída não vira pending nem caminhão livre; perda entra no razão
+  uma vez, reconstrução entra uma vez, recompensa aparece na carteira do MESMO
+  save. Repetir save não duplica nada; desaparecimento sem HP0 não dá recompensa.
+- Continue deve manter a perda/fila/carteira; não confundir retorno da carga de
+  comboio vivo (política antiga) com ressurreição de carga destruída. Casco/TTL
+  continua a cargo do engine, sem esconder/destruir antecipadamente pelo save.
+- test_enemy_snapshot_health.py cobre funções reais com engine mockado, FAIL
+  na fonte anterior/PASS na candidata; ferimentos ainda não persistem.
+- Gate offline adicional: HP NaN/±infinito/schema desconhecido em qualquer frota
+  recusa snapshot/save e não toca arquivo anterior nem debita carga como morte.
+  Não escrever valores inválidos no ator vivo para validar esse caso.
+
 ### Contrato NPC — sonda preparada, não executada
 - Executar tools/probe_native_npc_roster.lua antes das ondas, durante ciclo e
   após cleanup: comandante, aliados, inimigos e pool; registrar localidade,

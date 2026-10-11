@@ -91,6 +91,12 @@ HEADLESS_LOCALPLAYER_20261011 (metadados estáticos, não criar jogador/login)
 - Nenhum objeto criado, ID lido ao vivo, main alterado ou laboratório reiniciado.
 
 ORACLE_CPU_NATIVO_20261011 (fixtures, não validação Unreal)
+- Movimento: bRunPhysicsWithNoController confirmado no descriptor143dfe420,
+  setter142a314d0 bit4/+1f1. Fluxo140ae1d60 primeiro testa localidade; se não
+  local e Controller presente, pula a consulta da flag para ramo140ae1e4d.
+  Oracle fragmento140ae1e16..140ae1e85/getter142778b00 reproduz seis combinações.
+  Não usar como substituto de bIsLocalPlayerController em NPC possuído.
+  Script externo test_native_npc_movement_gate.py; não prova simulação completa.
 - Helper303bytes SHA2567b031d3e9b00e8f8f6862c5b9faaa33f71a2e31633e7b69cffe00e96836b175f.
   Oito pares nulos acumulam; objeto não nulo posterior falha read0 em140b2b5f7.
   Controles comparação true/false fictícia verificam deduplicação e varredura.
