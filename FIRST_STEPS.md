@@ -1,50 +1,50 @@
-# Primeiros passos — Foxhole RTS
+# First steps — Foxhole RTS
 
-Este é um plano de investigação, não uma confirmação de que o mod já é tecnicamente viável.
+This is an investigation plan, not a confirmation that the mod is already technically feasible.
 
-## 1. Reconhecimento após a instalação
+## 1. Recon after installation
 
-- [x] Confirmar com o usuário que a instalação terminou.
-- [x] Confirmar a modalidade desejada: solo contra IA, controle por esquadrão.
-- [x] Localizar a instalação e registrar loja, versão/build e executáveis.
-- [x] Executar o scanner do toolkit em modo somente leitura.
-- [x] Identificar engine, proteções, configurações, logs e eventuais saves locais. Config/logs/saves só existem após o primeiro lançamento.
-- [x] Atualizar a pesquisa sobre ferramentas da comunidade e regras oficiais.
-- [x] Registrar evidências e dúvidas em `MODLOG.md` e a rota proposta em `MODDING_PLAN.md`.
+- [x] Confirm with the user that the installation finished.
+- [x] Confirm the desired mode: solo against AI, squad control.
+- [x] Locate the installation and record store, version/build and executables.
+- [x] Run the toolkit scanner in read-only mode.
+- [x] Identify engine, protections, settings, logs and any local saves. Config/logs/saves only exist after the first launch.
+- [x] Refresh the research on community tools and official rules.
+- [x] Record evidence and questions in `MODLOG.md` and the proposed route in `MODDING_PLAN.md`.
 
-## 2. Marco decisivo: controle da simulação
+## 2. Decisive milestone: control of the simulation
 
-- [x] Investigar se existe uma rota autorizada para carregar uma cena isolada e controlar sua simulação. Resultado desta rodada: não encontrada; detalhes em `ENVIRONMENT_RECON.md`.
-- [x] Verificar o que depende do servidor e o que pode ser modificado localmente. Estático: o único bloqueio do host é o perfil em `PostLogin`; ver `HOW_TO_MAKE_THE_MOD.md`. Falta confirmar em execução (T2).
-- [x] Não assumir que alterar câmera ou texturas permite criar e comandar unidades. Provado em execução em 2026-10-07 (soldados criados e comandados).
-- [ ] Se nenhuma rota utilizável for encontrada, documentar o bloqueio e discutir com o usuário antes de mudar o escopo.
+- [x] Investigate whether there is an authorized route to load an isolated scene and control its simulation. Result of this round: none found; details in `ENVIRONMENT_RECON.md`.
+- [x] Check what depends on the server and what can be modified locally. Static: the only host blocker is the profile in `PostLogin`; see `HOW_TO_MAKE_THE_MOD.md`. Still to confirm at runtime (T2).
+- [x] Do not assume that changing the camera or textures allows creating and commanding units. Proven at runtime on 2026-10-07 (soldiers created and commanded).
+- [ ] If no usable route is found, document the blocker and discuss with the user before changing the scope.
 
-## 3. Preparar o laboratório — somente com rota demonstrada
+## 3. Prepare the lab — only with a demonstrated route
 
-- [x] Apresentar alterações necessárias e pedir autorização para instalar qualquer loader. Autorizado (UE4SS só na cópia).
-- [x] Fazer backup dos arquivos/configurações afetados e registrar como restaurar: `tools/lab.ps1` faz `um backup` da config antes de cada `run`; a instalação Steam não é alterada.
-- [x] Separar ambiente de testes de partidas oficiais: cópia em `D:\FoxholeLab\Foxhole`, com trava que recusa loader na instalação Steam.
-- [x] Preparar logs e um teste repetível: `D:	oolsoxhole-labestart.sh` + canal `cmd.lua` + `um win shot`.
+- [x] Present the necessary changes and ask for authorization to install any loader. Authorized (UE4SS only in the copy).
+- [x] Back up the affected files/settings and record how to restore: `tools/lab.ps1` runs `um backup` of the config before each `run`; the Steam installation is not changed.
+- [x] Separate the test environment from official matches: copy in `D:\FoxholeLab\Foxhole`, with a lock that refuses a loader in the Steam installation.
+- [x] Prepare logs and a repeatable test: `tools/lab/restart.sh` + `cmd.lua` channel + `um win shot`.
 
-## 4. Primeira prova jogável
+## 4. First playable proof
 
-- [x] Carregar uma cena no ambiente isolado (`HomeRegionW` em listen).
-- [x] Criar ou disponibilizar uma unidade controlável (`HeadlessPlayerController`).
-- [x] Selecionar um esquadrão e dar uma ordem de movimento por clique (todos os membros se movem).
-- [x] Verificar execução real por logs e captura de tela.
+- [x] Load a scene in the isolated environment (`HomeRegionW` in listen).
+- [x] Create or provide a controllable unit (`HeadlessPlayerController`).
+- [x] Select a squad and give a move order by click (all members move).
+- [x] Verify real execution through logs and screenshot.
 
-Critério de sucesso: uma unidade executa uma ordem RTS em uma simulação sob nosso controle. Câmera livre, mockup ou vídeo conceitual não contam como essa prova.
+Success criterion: a unit executes an RTS order in a simulation under our control. Free camera, mockup or concept video do not count as this proof.
 
-## 5. Expandir apenas após a prova
+## 5. Expand only after the proof
 
-1. Seleção múltipla, câmera RTS e ordens básicas. *(câmera e ordens por esquadrão feitas; seleção múltipla não)*
-2. Navegação, combate e IA simples. *(v0.3: combate com dano simulado e efeitos do jogo, IA de ondas, desvio de obstáculo simples; arma real pendente)*
-3. Batalha pequena: dois grupos de infantaria, um tanque e um objetivo.
-4. Produção, transporte e abastecimento.
-5. Construção, trincheiras e persistência, conforme a rota permitir.
+1. Multiple selection, RTS camera and basic orders. *(camera and per-squad orders done; multiple selection not)*
+2. Navigation, combat and simple AI. *(v0.3: combat with simulated damage and game effects, wave AI, simple obstacle avoidance; real weapon pending)*
+3. Small battle: two infantry groups, one tank and one objective.
+4. Production, transport and supply.
+5. Construction, trenches and persistence, as far as the route allows.
 
-## Encerramento de cada sessão
+## Closing each session
 
-- Atualizar o diário com resultados, falhas, evidências e próximo passo.
-- Distinguir claramente o que foi testado do que é hipótese.
-- Quando houver descobertas úteis, preparar uma nota para a base de conhecimento; publicar somente com autorização.
+- Update the diary with results, failures, evidence and next step.
+- Clearly distinguish what was tested from what is a hypothesis.
+- When there are useful findings, prepare a note for the knowledge base; publish only with authorization.

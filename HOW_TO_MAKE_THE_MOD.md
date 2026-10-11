@@ -1,228 +1,228 @@
-# Como fazer o Foxhole RTS: rota, arquitetura, limitações e testes
+# How to make Foxhole RTS: route, architecture, limitations and tests
 
-Atualizado em 2026-10-06, com base no build Steam 25730371 (PE 1.64.6.1, `DefaultGame.ini` 1.67.10.1).
+Updated on 2026-10-06, based on Steam build 25730371 (PE 1.64.6.1, `DefaultGame.ini` 1.67.10.1).
 
-As decisões do usuário são três: modo solo contra IA, controle por esquadrão e o desenho normativo aprovado (ver "Regras do laboratório").
+The user made three decisions: solo mode against AI, squad control and the approved normative design (see "Lab rules").
 
-As evidências estão em `ENVIRONMENT_RECON.md`. Este documento é o "como fazer". As seções 1–8 vieram de análise estática (2026-10-06). A **seção 0** registra o que foi validado com o jogo rodando e **prevalece** quando houver conflito.
+The evidence is in `ENVIRONMENT_RECON.md`. This document is the "how to". Sections 1–8 came from static analysis (2026-10-06). **Section 0** records what was validated with the game running and **prevails** when there is a conflict.
 
 ---
 
-## 0. Validado em execução (2026-10-07) — receita que funciona
+## 0. Validated at runtime (2026-10-07) — the recipe that works
 
-Rodando na cópia `D:\FoxholeLab\Foxhole` com UE4SS + `mod/FoxholeRTS` v0.3. Detalhes e logs em `MODLOG.md`.
+Running in the copy `D:\FoxholeLab\Foxhole` with UE4SS + `mod/FoxholeRTS` v0.3. Details and logs in `MODLOG.md`.
 
-| Etapa | Como | Armadilha encontrada |
+| Step | How | Pitfall found |
 |---|---|---|
-| Lançar | `tools\lab.ps1 run` com o **Steam aberto e logado** + `steam_appid.txt` | Sem Steam aberto, `SteamAPI_Init` falha |
-| Abrir sessão local | `GameplayStatics:OpenLevel(world, "/Game/Maps/HomeRegionW", true, "listen")` pelo mod | Shipping **ignora** o mapa da linha de comando |
-| Não crashar | Hook em `SimPlayerController:ClientStartRespawnTimer`: na chamada aninhada, `Role` vai a AutonomousProxy | A RPC recursa no host (stack overflow) |
-| Comandante (jogador) | `GameMode:RestartPlayerAtTransform(pc, transform)` em chão firme | `RestartPlayer` nasce sobre o vazio e morre na queda; **não precisa de stub de perfil** |
-| Ver o mundo | `PlayerCameraManager:StopCameraFade()` + `SetManualCameraFade(0)` | O fade preto nunca é desfeito: tela preta com HUD visível |
-| Câmera RTS | `CameraActor` como view target (pitch -60), pan pela borda/setas, zoom | A câmera do Foxhole fica dentro do personagem (zoom não inicializado) |
-| Soldados | `SpawnActor(HeadlessPlayerController)` + `PlayerInput` + `bIsLocalPlayerController=true` + `RestartPlayerAtTransform` | `CreatePlayer` crasha (UI de opções por jogador); pawn de `AIController` é recolhido para (0,0,0) após ~20 s |
-| Mover soldados | `AddMovementInput` a cada 33 ms, com `BrakingDecelerationWalking=0`, `GroundFriction=0`, `MaxAcceleration=20000`; `StopMovementImmediately` na chegada | Sem frenagem zero, pulsos espaçados mal saem do lugar |
-| Ordem por clique | `GetHitResultUnderCursorByChannel(0, false, hit)` → `hit.ImpactPoint` | Parâmetros de saída do UE4SS: passar tabela vazia |
-| Times | `PlayerState.TeamId` direto + `pawn.TeamId` + `OnRep_TeamIdNotify` + `BPSetTeamVisuals` (Colonials=0, Wardens=1) | `ServerJoinWar(0)` no HPC não mudou o PlayerState |
-| Combate (v0.3) | `ApplyDamage` + efeitos do jogo (`RifleMF`, `BloodSplat`, `SimpleRifleImpact`, `RifleShot_Cue`) + visada por traço | Arma real ainda não: `ServerTakePickup` recursa no host (quebra-recursão evita o crash, item não entra) |
-| Mensagens | `SimPlayerController:ClientAlertMessage(str, s)` | — |
-| Recarregar o mod | reiniciar o jogo (`restart.sh`) | Ctrl+R do UE4SS travou o game thread |
+| Launch | `tools\lab.ps1 run` with **Steam open and logged in** + `steam_appid.txt` | Without Steam open, `SteamAPI_Init` fails |
+| Open a local session | `GameplayStatics:OpenLevel(world, "/Game/Maps/HomeRegionW", true, "listen")` from the mod | Shipping **ignores** the map on the command line |
+| Not crashing | Hook on `SimPlayerController:ClientStartRespawnTimer`: in the nested call, `Role` goes to AutonomousProxy | The RPC recurses on the host (stack overflow) |
+| Commander (player) | `GameMode:RestartPlayerAtTransform(pc, transform)` on solid ground | `RestartPlayer` spawns over the void and dies in the fall; **no profile stub needed** |
+| Seeing the world | `PlayerCameraManager:StopCameraFade()` + `SetManualCameraFade(0)` | The black fade is never undone: black screen with visible HUD |
+| RTS camera | `CameraActor` as view target (pitch -60), edge/arrow pan, zoom | Foxhole's camera sits inside the character (zoom not initialized) |
+| Soldiers | `SpawnActor(HeadlessPlayerController)` + `PlayerInput` + `bIsLocalPlayerController=true` + `RestartPlayerAtTransform` | `CreatePlayer` crashes (per-player options UI); an `AIController`'s pawn is pulled to (0,0,0) after ~20 s |
+| Moving soldiers | `AddMovementInput` every 33 ms, with `BrakingDecelerationWalking=0`, `GroundFriction=0`, `MaxAcceleration=20000`; `StopMovementImmediately` on arrival | Without zero braking, spaced pulses barely move |
+| Click order | `GetHitResultUnderCursorByChannel(0, false, hit)` → `hit.ImpactPoint` | UE4SS out parameters: pass an empty table |
+| Teams | `PlayerState.TeamId` directly + `pawn.TeamId` + `OnRep_TeamIdNotify` + `BPSetTeamVisuals` (Colonials=0, Wardens=1) | `ServerJoinWar(0)` on the HPC did not change the PlayerState |
+| Combat (v0.3) | `ApplyDamage` + game effects (`RifleMF`, `BloodSplat`, `SimpleRifleImpact`, `RifleShot_Cue`) + line of sight by trace | No real weapon yet: `ServerTakePickup` recurses on the host (a recursion breaker avoids the crash, the item does not go in) |
+| Messages | `SimPlayerController:ClientAlertMessage(str, s)` | — |
+| Reloading the mod | restart the game (`tools/lab/restart.sh`) | UE4SS Ctrl+R froze the game thread |
 
-Ferramentas: `um win shot --title '^War'` (captura GPU; a janela principal do processo é o console do UE4SS), `um win drive --title '^War'` (acrescentado ao toolkit nesta data), canal `D:\tools\foxhole-lab\cmd.lua` → `cmd.out` (`run.sh`).
+Tools: `um win shot --title '^War'` (GPU capture; the process's main window is the UE4SS console), `um win drive --title '^War'` (added to the toolkit on this date), channel `D:\tools\foxhole-lab\cmd.lua` → `cmd.out` (`tools/lab/run.sh`).
 
 ---
 
-## 1. Resumo em uma tela
+## 1. Summary on one screen
 
-| Pergunta | Resposta | Confiança |
+| Question | Answer | Confidence |
 |---|---|---|
-| Existe rota oficial (offline, bots, SDK, servidor privado)? | Não | Alta (fontes oficiais) |
-| O cliente consegue ser o servidor? | Provavelmente sim: código de servidor compilado (target *Game*), `UWorld::Listen`, fallback `IpNetDriver`, mapas com `DefaultGameMode = SimGameMode`. O `GameInstance` **pula o fluxo de menu quando a linha de comando traz `/Game/Maps/`** | Alta para "código presente", não testado em execução |
-| O que pode impedir? | Um ponto só no caminho do host: o **carregamento de perfil em `PostLogin`** (pedido HTTP montado, mas só enviado em servidor dedicado). Auth (`FExternalWarService`), travel e `PreLogin` ficam fora desse caminho | Alta (decompilado e validado); falta medir em execução (T2) |
-| VAC? | Sem EAC/BattlEye. Há VAC. Num cliente, o servidor Steam **só sobe** com `bInitServerOnClient`/`OSS.SteamInitServerOnClient`, ausentes na config. Se subisse, `bVACEnabled` (embutido = 1) daria modo seguro; `lab.ps1` grava `bVACEnabled=0` por garantia | Alta (decompilado) |
-| Assets acessíveis? | PAK sem compressão, sem AES, sem `.sig`, sem IoStore | Alta (índice lido e verificado) |
-| IA e navegação? | AIModule/Recast/Detour/Crowd compilados, mas o jogo não usa IA de soldado e os mapas não têm NavMesh | Alta |
-| Soldados controláveis? | Sim, em princípio: o modo de teste de carga `-headless` já cria jogadores locais extras cujo controller move o `ASimCharacter` por código (`AddMovementInput`) | Alta para o mecanismo; não testado |
-| Viável? | **Plausível.** Depende de: (1) o mapa abrir em `?listen` (T2), (2) um stub de perfil em C++/UE4SS (T6), (3) jogadores locais extras como soldados (T7) | — |
+| Is there an official route (offline, bots, SDK, private server)? | No | High (official sources) |
+| Can the client be the server? | Probably yes: server code compiled (*Game* target), `UWorld::Listen`, `IpNetDriver` fallback, maps with `DefaultGameMode = SimGameMode`. The `GameInstance` **skips the menu flow when the command line contains `/Game/Maps/`** | High for "code present", not tested at runtime |
+| What could block it? | Only one point on the host path: **profile loading in `PostLogin`** (HTTP request built, but only sent on a dedicated server). Auth (`FExternalWarService`), travel and `PreLogin` are off that path | High (decompiled and validated); still to measure at runtime (T2) |
+| VAC? | No EAC/BattlEye. There is VAC. On a client, the Steam server **only starts** with `bInitServerOnClient`/`OSS.SteamInitServerOnClient`, absent from the config. If it started, `bVACEnabled` (embedded = 1) would give secure mode; `lab.ps1` writes `bVACEnabled=0` to be safe | High (decompiled) |
+| Accessible assets? | PAK without compression, no AES, no `.sig`, no IoStore | High (index read and verified) |
+| AI and navigation? | AIModule/Recast/Detour/Crowd compiled, but the game uses no soldier AI and the maps have no NavMesh | High |
+| Controllable soldiers? | Yes, in principle: the `-headless` load-test mode already creates extra local players whose controller moves the `ASimCharacter` by code (`AddMovementInput`) | High for the mechanism; not tested |
+| Feasible? | **Plausible.** Depends on: (1) the map opening in `?listen` (T2), (2) a C++/UE4SS profile stub (T6), (3) extra local players as soldiers (T7) | — |
 
 ---
 
-## 2. Rota escolhida: listen server local isolado + UE4SS
+## 2. Chosen route: isolated local listen server + UE4SS
 
 ```
-Steam (posse verificada normalmente)
-  └─ Cópia de laboratório  D:\FoxholeLab\Foxhole   (nunca conecta em servidor oficial)
+Steam (ownership checked normally)
+  └─ Lab copy  D:\FoxholeLab\Foxhole   (never connects to an official server)
        ├─ War-Win64-Shipping.exe  /Game/Maps/HomeRegionW?listen  -log
-       │     └─ ASimGameMode (autoridade local)
-       │           ├─ PostLogin → UPlayerProfileManager → STUB DE PERFIL (C++, só nesta sessão)
-       │           ├─ jogadores locais extras = soldados (SimPlayerController + ASimCharacter)
-       │           └─ Steam game server: não sobe num cliente → sem VAC de servidor
-       └─ UE4SS (proxy dll só na cópia)
-             ├─ C++: stub de perfil (detour 0x1409a74f0), depois seleção/UI/pathfinding
-             └─ Lua: criar soldados, ordens de esquadrão, IA adversária
+       │     └─ ASimGameMode (local authority)
+       │           ├─ PostLogin → UPlayerProfileManager → PROFILE STUB (C++, only in this session)
+       │           ├─ extra local players = soldiers (SimPlayerController + ASimCharacter)
+       │           └─ Steam game server: does not start on a client → no server VAC
+       └─ UE4SS (proxy dll only in the copy)
+             ├─ C++: profile stub (detour 0x1409a74f0), then selection/UI/pathfinding
+             └─ Lua: create soldiers, squad orders, opposing AI
 ```
 
-### Por que essa rota
-- Foxhole é **server-authoritative**. Só quem é servidor pode criar soldados e mover unidades de verdade. A sessão local `?listen` torna o próprio cliente o servidor, e aí as ordens RTS são legítimas dentro da simulação.
-- A câmera do Foxhole já é isométrica e de cima. A "câmera RTS" é a parte mais barata do mod.
-- UE4SS é a forma padrão de injetar lógica num UE4 sem editor nem código-fonte. O índice aberto do PAK permite ler os Blueprints para descobrir nomes de propriedades e funções.
+### Why this route
+- Foxhole is **server-authoritative**. Only the server can create soldiers and really move units. The local `?listen` session makes the client itself the server, and then RTS orders are legitimate inside the simulation.
+- Foxhole's camera is already isometric and top-down. The "RTS camera" is the cheapest part of the mod.
+- UE4SS is the standard way to inject logic into UE4 without an editor or source code. The PAK's open index allows reading the Blueprints to find property and function names.
 
-### Rotas descartadas e por quê
+### Discarded routes and why
 
-| Rota | Motivo |
+| Route | Reason |
 |---|---|
-| Mod no cliente conectado a servidor oficial | O servidor é a autoridade, então o cliente não comanda nada. Também viola o Code of Conduct e expõe a conta ao VAC |
-| "Autenticar online e depois offline" | Um processo modificado conversaria com o backend oficial. É o maior risco de ban |
-| Servidor dedicado (`-server`) | Não há string `-server` nem binário de servidor. O target dedicado não é distribuído |
-| Emulador de servidor completo | Não existe; reimplementar o servidor é inviável |
-| Pak mod de Blueprint com lógica nova | Exige cozinhar assets num UE 4.24 com o projeto `War`, que não temos. Só serve para trocas pontuais (fase tardia) |
+| Mod on a client connected to an official server | The server is the authority, so the client commands nothing. It also violates the Code of Conduct and exposes the account to VAC |
+| "Authenticate online and then go offline" | A modified process would talk to the official backend. It is the biggest ban risk |
+| Dedicated server (`-server`) | There is no `-server` string nor server binary. The dedicated target is not distributed |
+| Full server emulator | Does not exist; reimplementing the server is not feasible |
+| Blueprint pak mod with new logic | Requires cooking assets in UE 4.24 with the `War` project, which we do not have. Only useful for one-off swaps (late phase) |
 
-### Planos B, se a rota principal cair
-1. **Pak mod visual/UI:** tolerado pela comunidade, mas não dá RTS.
-2. **Painel RTS-like sobre a War API:** só leitura, legítimo, mas não é jogo.
-3. **Perguntar à Siege Camp:** há um rascunho em `ENVIRONMENT_RECON.md`.
+### Plan B options, if the main route falls
+1. **Visual/UI pak mod:** tolerated by the community, but it does not give an RTS.
+2. **RTS-like dashboard over the War API:** read-only, legitimate, but not a game.
+3. **Ask Siege Camp:** there is a draft in `ENVIRONMENT_RECON.md`.
 
 ---
 
-## 3. Arquitetura do mod (camadas)
+## 3. Mod architecture (layers)
 
-Cada camada só começa depois que a anterior passar no teste correspondente (seção 6).
+Each layer only starts after the previous one passes its test (section 6).
 
-### Camada 0: laboratório
-- Cópia completa do jogo em `D:\FoxholeLab\Foxhole` (≈25,7 GB). A instalação da Steam continua intocada para jogar online.
-- `steam_appid.txt` (conteúdo `505460`) ao lado do exe da cópia. É o mecanismo padrão da Steamworks para rodar o binário fora da pasta da Steam; a Steam continua exigindo login e posse do jogo.
-- UE4SS (`dwmapi.dll` + pasta `ue4ss/`) **só** em `D:\FoxholeLab\Foxhole\War\Binaries\Win64`.
-- Config do laboratório: `%LOCALAPPDATA%\War\Saved\Config\WindowsNoEditor\Engine.ini`. **Atenção:** essa pasta é compartilhada entre a cópia e a instalação da Steam. Todo ajuste precisa ser seguro também para o jogo online, ou ser aplicado/removido por um script de lançamento.
-- Backup: `um backup create "%LOCALAPPDATA%\War" --name foxhole-config` antes de cada sessão modificada.
+### Layer 0: lab
+- Full copy of the game in `D:\FoxholeLab\Foxhole` (≈25.7 GB). The Steam installation stays untouched for playing online.
+- `steam_appid.txt` (content `505460`) next to the copy's exe. It is Steamworks' standard mechanism to run the binary outside the Steam folder; Steam still requires login and ownership of the game.
+- UE4SS (`dwmapi.dll` + `ue4ss/` folder) **only** in `D:\FoxholeLab\Foxhole\War\Binaries\Win64`.
+- Lab config: `%LOCALAPPDATA%\War\Saved\Config\WindowsNoEditor\Engine.ini`. **Caution:** this folder is shared between the copy and the Steam installation. Every tweak must also be safe for the online game, or be applied/removed by a launch script. (Later found: the real folder is `%LOCALAPPDATA%\Foxhole`, not `War`.)
+- Backup: `um backup create "%LOCALAPPDATA%\War" --name foxhole-config` before each modified session.
 
-### Camada 1: sessão local
-- URL: `/Game/Maps/HomeRegionW?listen` (48 MB, o menor mapa jogável, `SimGameMode`). Alternativas: `HomeRegionC`, `LykosIsleHex` (98 MB) e `DeadlandsHex`, o `ServerDefaultMap`, como controle.
-- **O que o host local exige do backend** (decompilado e validado em 2026-10-06):
+### Layer 1: local session
+- URL: `/Game/Maps/HomeRegionW?listen` (48 MB, the smallest playable map, `SimGameMode`). Alternatives: `HomeRegionC`, `LykosIsleHex` (98 MB) and `DeadlandsHex`, the `ServerDefaultMap`, as a control.
+- **What the local host requires from the backend** (decompiled and validated on 2026-10-06):
 
-| Etapa | Função | Depende do backend? | Ação |
+| Step | Function | Depends on the backend? | Action |
 |---|---|---|---|
-| Boot sem menu | `UWarGameInstance::StartGameInstance` 0x141150070 | Não: com `/Game/Maps/` na linha de comando, pula o `MainMenu` (vfunc `+0x378` = 0x141145270, carrega `/Game/Maps/MainMenu`) | Nenhuma |
-| `PreLogin` | `ASimGameMode` 0x140b79540 | Só para clientes remotos | Nenhuma (host não passa) |
-| `Login` | 0x140b6a7a0 | Não chama o WarService. Exige reserva (`?FactionId=0/1` + fila) **somente se** `WarTweakables.bCheckReservationsOnLogin` (`ServerSettings+0x5d9`) | Medir em T2. Se rejeitar, zerar a flag ou passar `?FactionId=` |
-| **`PostLogin` → perfil** | `UPlayerProfileManager` 0x1409a74f0, callback 0x140b6f290 | **Sim, é o bloqueio real.** O pedido HTTP de perfil é montado, mas só é enviado (`ProcessRequest`, vfunc `0x88`) se `GetNetMode()==1` (dedicado). Em listen, o callback nunca roda e o personagem não é liberado. Se o mundo/HTTP for nulo, o callback roda com falha → "Unable to load Profile" (kick) | **Stub obrigatório:** detour em 0x1409a74f0 que invoca o callback com sucesso e um perfil local sem ban |
-| `FExternalWarService` (auth) | `SendAuthMessage` 0x14092f2c0 / `OnAuthResponse` 0x140915aa0 | Criado em `UWarGameInstance::Init`, mas fora do caminho Login/PostLogin | Nenhuma; deve apenas falhar a conexão (aviso de UI) |
-| TravelManager/reserva de travel | 0x140dd6850 | Só criado em servidor dedicado | Nenhuma |
+| Boot without menu | `UWarGameInstance::StartGameInstance` 0x141150070 | No: with `/Game/Maps/` on the command line, it skips the `MainMenu` (vfunc `+0x378` = 0x141145270, loads `/Game/Maps/MainMenu`) | None |
+| `PreLogin` | `ASimGameMode` 0x140b79540 | Only for remote clients | None (the host does not go through it) |
+| `Login` | 0x140b6a7a0 | Does not call the WarService. Requires a reservation (`?FactionId=0/1` + queue) **only if** `WarTweakables.bCheckReservationsOnLogin` (`ServerSettings+0x5d9`) | Measure in T2. If it rejects, zero the flag or pass `?FactionId=` |
+| **`PostLogin` → profile** | `UPlayerProfileManager` 0x1409a74f0, callback 0x140b6f290 | **Yes, it is the real blocker.** The profile HTTP request is built but only sent (`ProcessRequest`, vfunc `0x88`) if `GetNetMode()==1` (dedicated). In listen, the callback never runs and the character is not released. If the world/HTTP is null, the callback runs with a failure → "Unable to load Profile" (kick) | **Mandatory stub:** detour at 0x1409a74f0 that invokes the callback with success and a local profile without a ban |
+| `FExternalWarService` (auth) | `SendAuthMessage` 0x14092f2c0 / `OnAuthResponse` 0x140915aa0 | Created in `UWarGameInstance::Init`, but off the Login/PostLogin path | None; it should just fail to connect (UI warning) |
+| TravelManager/travel reservation | 0x140dd6850 | Only created on a dedicated server | None |
 
-- **Como fazer o stub:**
-  - 0x1409a74f0 é função nativa, não UFunction. O `RegisterHook` do Lua não alcança; é preciso um **mod C++ do UE4SS** com detour por assinatura (AOB).
-  - O formato do perfil esperado pelo callback 0x140b6f290 ainda precisa ser mapeado. Próxima tarefa de RE: decompilar 0x140b6f290 e `OnBanAndProfileLoadComplete` 0x1409bc580 para montar o perfil mínimo.
-- **Proibido pela regra 2:** fazer o pedido sair para a Siege Camp, ou falsificar a resposta deles na rede. O stub vive só dentro do processo.
-- Switches de linha de comando que existem (FParse): `adminall`, `adminnone`, `noqueue`, `RepDriverDisable`, `headless`, `headlessclients=`, `supportsheadless`, `maxsplitscreensperconnection=`, `forceloadsavefromdisk`, `BeaconPort=`, `nosteam`. **Não existem** `-offline`, `-nowarservice` nem `-skipauth`.
-- **VAC (resolvido por config, falta confirmar em execução):**
-  - Cadeia: `FOnlineSubsystemSteam::Init` 0x140562ce0 → `InitSteamworksServer` 0x1405f8980 → 0x1405f78e0 → `SteamInternal_GameServer_Init`. Num cliente, **o servidor Steam só sobe se** a cvar `OSS.SteamInitServerOnClient` ≠ 0 **ou** `[OnlineSubsystemSteam] bInitServerOnClient=True`. Nenhuma das duas existe na config do jogo, então num `?listen` padrão **não há servidor Steam nem VAC de servidor**.
-  - Se subisse: `GConfig [OnlineSubsystemSteam] bVACEnabled` → `eServerMode = 2 + bVACEnabled`.
-  - O `BaseEngine.ini` embutido tem `bVACEnabled=1`, e o `DefaultEngine.ini` do War não sobrescreve. Então `tools/lab.ps1` grava `bVACEnabled=0` em `%LOCALAPPDATA%\War\Saved\Config\WindowsNoEditor\Engine.ini` antes de cada `run`.
-  - Isso é inofensivo online, onde o cliente nunca é servidor.
-- **Entrar direto no mapa:** `FUN_141150070` (GameInstance) só chama o fluxo padrão de menu (vfunc `+0x378`) se a linha de comando **não** tiver `/Game/Maps/`. Com `/Game/Maps/HomeRegionW?listen`, o engine abre o mapa direto (Browse padrão do `UGameInstance::StartGameInstance`).
-- **Host local não passa por `PreLogin`:** o jogador local de um listen server entra via `SpawnPlayActor` → `GameMode::Login`, e não pelo handshake de rede (`NotifyControlMessage`). O risco de auth fica em `Login`/`PostLogin`/perfil (`UPlayerProfileManager`).
+- **How to build the stub:**
+  - 0x1409a74f0 is a native function, not a UFunction. Lua's `RegisterHook` cannot reach it; a **UE4SS C++ mod** with a signature (AOB) detour is needed.
+  - The profile format expected by callback 0x140b6f290 still needs mapping. Next RE task: decompile 0x140b6f290 and `OnBanAndProfileLoadComplete` 0x1409bc580 to build the minimal profile.
+- **Forbidden by rule 2:** letting the request go out to Siege Camp, or faking their answer on the network. The stub lives only inside the process.
+- Command-line switches that exist (FParse): `adminall`, `adminnone`, `noqueue`, `RepDriverDisable`, `headless`, `headlessclients=`, `supportsheadless`, `maxsplitscreensperconnection=`, `forceloadsavefromdisk`, `BeaconPort=`, `nosteam`. `-offline`, `-nowarservice` and `-skipauth` **do not exist**.
+- **VAC (solved by config, still to confirm at runtime):**
+  - Chain: `FOnlineSubsystemSteam::Init` 0x140562ce0 → `InitSteamworksServer` 0x1405f8980 → 0x1405f78e0 → `SteamInternal_GameServer_Init`. On a client, **the Steam server only starts if** the cvar `OSS.SteamInitServerOnClient` ≠ 0 **or** `[OnlineSubsystemSteam] bInitServerOnClient=True`. Neither exists in the game config, so in a default `?listen` **there is no Steam server nor server VAC**.
+  - If it started: `GConfig [OnlineSubsystemSteam] bVACEnabled` → `eServerMode = 2 + bVACEnabled`.
+  - The embedded `BaseEngine.ini` has `bVACEnabled=1`, and War's `DefaultEngine.ini` does not override it. So `tools/lab.ps1` writes `bVACEnabled=0` to `%LOCALAPPDATA%\War\Saved\Config\WindowsNoEditor\Engine.ini` before each `run`.
+  - This is harmless online, where the client is never the server.
+- **Going straight into the map:** `FUN_141150070` (GameInstance) only calls the default menu flow (vfunc `+0x378`) if the command line does **not** contain `/Game/Maps/`. With `/Game/Maps/HomeRegionW?listen`, the engine opens the map directly (default Browse of `UGameInstance::StartGameInstance`).
+- **The local host does not go through `PreLogin`:** a listen server's local player enters via `SpawnPlayActor` → `GameMode::Login`, not through the network handshake (`NotifyControlMessage`). The auth risk is in `Login`/`PostLogin`/profile (`UPlayerProfileManager`).
 
-### Camada 2: soldados controláveis
-- Classe base nativa: `ASimCharacter` (Blueprint `/Game/Blueprints/Character/Character`).
-- **Descartado: `AOfflineCharacter`** (o "personagem offline" deixado ao deslogar). É `AActor`, não Pawn: só malhas e `MulticastApplyFatalHit`, sem movimento nem Possess. Além disso, fica desligado nos HomeRegion (0x140b53be0). Serve só de figurante ou alvo.
-- **Rota principal: soldados = jogadores locais extras no host.** O jogo já faz isso no modo de teste de carga `-headless`:
-  - `UWarGameInstance::OnStart` (0x141147150) cria `-headlessclients=N` jogadores locais (`UHeadlessLocalPlayer`).
-  - Cada um recebe um `AHeadlessPlayerController : ASimPlayerController`, cujo `PlayerTick` (0x140a2deb0, validado) pega o pawn `ASimCharacter` e chama `AddMovementInput` (vfunc `0x720`). É um bot de movimento nativo.
-  - Cada jogador local passa pelo fluxo normal: Login → `SimPlayerController` + `PlayerState` + `ASimCharacter`. Assim, inventário, animação e vida funcionam como para um humano.
-  - No mod: `GameplayStatics:CreatePlayer(world, id, true)` via UE4SS, ou o próprio `-headless -headlessclients=N` (avaliar o efeito no jogador 0). Depois o mod controla o movimento (`AddMovementInput`) em vez do padrão aleatório.
-  - Requisitos: o stub de perfil (camada 1) vale para cada jogador local; e sem splitscreen (`[/Script/EngineSettings.GameMapsSettings] bUseSplitscreen=False` no Engine.ini do laboratório).
-- **Rota B:** `AAIController` + `Possess` direto num `ASimCharacter`. Os casts em `ASimCharacter` parecem condicionais, mas a dependência de `ASimPlayerController`/`PlayerState` não foi provada nem descartada.
-- **Navegação:** os mapas não têm `RecastNavMesh`. Há `NavigationSystemConfig` com `bEnableNavigationSystem`/`bAutoSpawnMissingNavData` serializados, o que indica que estão desligados. Opções, em ordem:
-  1. Ligar o NavigationSystem e criar um `RecastNavMesh` dinâmico em runtime, só em volta da área da batalha (Recast está compilado). Custa CPU; limitar com um `NavMeshBoundsVolume` pequeno.
-  2. Fallback: pathfinding próprio em grade (A* sobre heightfield/traces), com `AddMovementInput` a cada tick. Funciona sem NavMesh.
-- Dados de unidades e armas: DataTables `BPItemDynamicData`, `BPWeaponDynamicData`, `DTDamageProfiles`, `DTArmourProfiles` (leitura via FModel/CUE4Parse, sem extrair para o repo).
+### Layer 2: controllable soldiers
+- Native base class: `ASimCharacter` (Blueprint `/Game/Blueprints/Character/Character`).
+- **Discarded: `AOfflineCharacter`** (the "offline character" left behind on logout). It is an `AActor`, not a Pawn: only meshes and `MulticastApplyFatalHit`, no movement nor Possess. It is also disabled in the HomeRegions (0x140b53be0). Only useful as an extra or a target.
+- **Main route: soldiers = extra local players on the host.** The game already does this in the `-headless` load-test mode:
+  - `UWarGameInstance::OnStart` (0x141147150) creates `-headlessclients=N` local players (`UHeadlessLocalPlayer`).
+  - Each one gets an `AHeadlessPlayerController : ASimPlayerController`, whose `PlayerTick` (0x140a2deb0, validated) takes the `ASimCharacter` pawn and calls `AddMovementInput` (vfunc `0x720`). It is a native movement bot.
+  - Each local player goes through the normal flow: Login → `SimPlayerController` + `PlayerState` + `ASimCharacter`. So inventory, animation and health work as for a human.
+  - In the mod: `GameplayStatics:CreatePlayer(world, id, true)` through UE4SS, or `-headless -headlessclients=N` itself (assess the effect on player 0). Then the mod drives the movement (`AddMovementInput`) instead of the random pattern.
+  - Requirements: the profile stub (layer 1) applies to each local player; and no splitscreen (`[/Script/EngineSettings.GameMapsSettings] bUseSplitscreen=False` in the lab's Engine.ini).
+- **Route B:** `AAIController` + `Possess` directly on an `ASimCharacter`. The casts in `ASimCharacter` look conditional, but the dependency on `ASimPlayerController`/`PlayerState` was neither proven nor ruled out.
+- **Navigation:** the maps have no `RecastNavMesh`. There is a `NavigationSystemConfig` with `bEnableNavigationSystem`/`bAutoSpawnMissingNavData` serialized, which suggests they are off. Options, in order:
+  1. Turn on the NavigationSystem and create a dynamic `RecastNavMesh` at runtime, only around the battle area (Recast is compiled). Costs CPU; limit it with a small `NavMeshBoundsVolume`.
+  2. Fallback: our own grid pathfinding (A* over heightfield/traces), with `AddMovementInput` every tick. Works without a NavMesh.
+- Unit and weapon data: DataTables `BPItemDynamicData`, `BPWeaponDynamicData`, `DTDamageProfiles`, `DTArmourProfiles` (read through FModel/CUE4Parse, without extracting into the repo).
 
-### Camada 3: controle por esquadrão (jogador)
-- **Esquadrão:** um líder e N membros (jogadores locais extras) em formação relativa, com offset por slot. A ordem vai ao esquadrão; os membros seguem o líder.
-- **Entrada:**
-  - fase 1: teclas e console UE4SS (Lua `RegisterKeyBind`) + clique para destino (raycast do cursor);
-  - fase 2: seleção por retângulo e painel de esquadrões (C++ mod com overlay ImGui do UE4SS).
-- **Câmera:** usar a câmera do `ASimPlayerController` (já top-down), com zoom maior e desacoplada do personagem do jogador. Opção: um pawn espectador.
-- **Ordens mínimas:** mover, atacar-mover, segurar posição, recuar.
+### Layer 3: squad control (player)
+- **Squad:** one leader and N members (extra local players) in relative formation, with an offset per slot. The order goes to the squad; the members follow the leader.
+- **Input:**
+  - phase 1: keys and the UE4SS console (Lua `RegisterKeyBind`) + click for the destination (cursor raycast);
+  - phase 2: rectangle selection and a squad panel (C++ mod with UE4SS's ImGui overlay).
+- **Camera:** use the `ASimPlayerController`'s camera (already top-down), with a larger zoom and detached from the player's character. Option: a spectator pawn.
+- **Minimal orders:** move, attack-move, hold position, retreat.
 
-### Camada 4: IA adversária
-- Duas camadas, ambas em Lua/C++, sem BehaviorTree. O jogo não tem BT, e não temos editor para criar.
-  - **Comandante:** máquina de estados sobre objetivos (capturar ponto, defender, reforçar).
-  - **Esquadrão:** reage a contato (ataque, cobertura, recuo por moral/vida).
-- O disparo de armas tem de passar pelas funções de servidor do personagem ou da arma. As "Server RPCs" do jogo precisam ser mapeadas no dump do UE4SS.
+### Layer 4: opposing AI
+- Two layers, both in Lua/C++, without a BehaviorTree. The game has no BT, and we have no editor to create one.
+  - **Commander:** state machine over objectives (capture point, defend, reinforce).
+  - **Squad:** reacts to contact (attack, cover, retreat by morale/health).
+- Weapon fire must go through the character's or weapon's server functions. The game's "Server RPCs" need to be mapped in the UE4SS dump.
 
-### Camada 5: conteúdo e escopo
-1. Prova: 1 esquadrão se move por clique.
-2. Dois esquadrões de infantaria contra a IA num `HomeRegion`.
-3. Um tanque/veículo (`ASimVehicle`) e um objetivo.
-4. Produção, logística e construção, só se as camadas anteriores estiverem estáveis.
-
----
-
-## 4. Limitações conhecidas
-
-- **Updates quebram o mod.** Cada patch muda offsets, assinaturas do UE4SS e possivelmente Blueprints. Mitigação: a cópia de laboratório congela a versão; manter uma tabela "build suportado".
-- **Risco de conta.** A proteção vem de uma regra rígida: nunca abrir a cópia modificada conectando a servidor oficial, e nunca colocar o UE4SS na instalação da Steam. Mesmo assim, o VAC é da Valve e não há garantia formal. Usar por conta e risco.
-- **Pasta de config compartilhada** (`%LOCALAPPDATA%\War`) entre cópia e instalação oficial (ver camada 0).
-- **Sem editor/SDK:** nada de Blueprints novos cozidos, só lógica injetada e reaproveitamento de assets existentes.
-- **Soldados nunca foram feitos para IA.** Animação, inventário e vida podem depender de `PlayerState`/perfil. Isso pode exigir stubs extras.
-- **Sem NavMesh:** pathfinding é trabalho nosso (ver camada 2).
-- **Performance:** hexes carregam 100–280 MB e proxies; o listen server roda tudo num processo só.
-- **Política:** o Code of Conduct proíbe modificar o cliente "para vantagem injusta". O uso local e offline não dá vantagem a ninguém, mas não há permissão explícita da Siege Camp.
-- **Distribuição:** o mod distribui só nossos scripts e DLLs. Nunca arquivos do jogo, assets extraídos ou decompilação.
+### Layer 5: content and scope
+1. Proof: 1 squad moves by click.
+2. Two infantry squads against the AI in a `HomeRegion`.
+3. One tank/vehicle (`ASimVehicle`) and one objective.
+4. Production, logistics and construction, only if the previous layers are stable.
 
 ---
 
-## 5. Regras do laboratório (aprovadas em 2026-10-06)
+## 4. Known limitations
 
-1. A posse do jogo continua verificada pela Steam; não tocar em DRM nem em tickets.
-2. A sessão modificada nunca contata serviços da Siege Camp. Os stubs respondem só dentro da sessão local.
-3. O servidor local roda sem VAC.
-4. O mod fica inativo fora do modo RTS local, e o UE4SS fica só na cópia de laboratório.
-5. Backup antes de cada sessão modificada; registrar tudo no `MODLOG.md`.
+- **Updates break the mod.** Each patch changes offsets, UE4SS signatures and possibly Blueprints. Mitigation: the lab copy freezes the version; keep a "supported build" table.
+- **Account risk.** Protection comes from a strict rule: never open the modified copy connected to an official server, and never put UE4SS in the Steam installation. Even so, VAC belongs to Valve and there is no formal guarantee. Use at your own risk.
+- **Shared config folder** (`%LOCALAPPDATA%\War`) between the copy and the official installation (see layer 0).
+- **No editor/SDK:** no new cooked Blueprints, only injected logic and reuse of existing assets.
+- **Soldiers were never made for AI.** Animation, inventory and health may depend on `PlayerState`/profile. This may require extra stubs.
+- **No NavMesh:** pathfinding is our job (see layer 2).
+- **Performance:** hexes load 100–280 MB plus proxies; the listen server runs everything in a single process.
+- **Policy:** the Code of Conduct forbids modifying the client "for an unfair advantage". Local, offline use gives nobody an advantage, but there is no explicit permission from Siege Camp.
+- **Distribution:** the mod distributes only our scripts and DLLs. Never game files, extracted assets or decompilation.
 
 ---
 
-## 6. Protocolo de testes (para rodar com o usuário presente)
+## 5. Lab rules (approved on 2026-10-06)
 
-Cada teste tem um critério objetivo de sucesso e a evidência a guardar (trecho de log em `MODLOG.md` e captura via `um win shot`). Comandos a partir de `D:\GitHub\universal-modder`.
+1. Game ownership stays verified by Steam; do not touch DRM or tickets.
+2. The modified session never contacts Siege Camp services. The stubs answer only inside the local session.
+3. The local server runs without VAC.
+4. The mod stays inactive outside the local RTS mode, and UE4SS stays only in the lab copy.
+5. Backup before each modified session; record everything in `MODLOG.md`.
 
-| # | Teste | Como | Sucesso | Se falhar |
+---
+
+## 6. Test protocol (to run with the user present)
+
+Each test has an objective success criterion and the evidence to keep (log excerpt in `MODLOG.md` and a screenshot via `um win shot`). Commands from `D:\GitHub\universal-modder`.
+
+| # | Test | How | Success | If it fails |
 |---|---|---|---|---|
-| T0 | Lançamento original | `python -m um win launch --steam 505460 -- -log` e ir até o menu; fechar | `%LOCALAPPDATA%\War\Saved\Logs\War.log` existe. Anotar hosts, auth, NetDriver, carregamento de perfil | Registrar o erro; sem T0 nada segue |
-| T1 | Cópia de laboratório | `steam_appid.txt` = `505460` em `D:\FoxholeLab\Foxhole\War\Binaries\Win64`; lançar o exe da cópia com `-log` | Abre o menu a partir da cópia (log aponta o caminho da cópia) | Se a Steam relançar a instalação oficial, usar o exe com `-log` via `um win launch "<exe>"` e investigar `RestartAppIfNecessary` |
-| T2 | Listen sem mod | Cópia, sem UE4SS, **com a internet do processo bloqueada** (regra de firewall de saída para o exe da cópia): `War-Win64-Shipping.exe /Game/Maps/HomeRegionW?listen -log` | O log mostra `LoadMap` do HomeRegionW, `SimGameMode` e o driver ouvindo (`SteamSocketsNetDriver` ou `IpNetDriver`). **Esperado:** host parado esperando perfil, ou "Unable to load Profile" | Se quebrar antes do PostLogin (Login/reserva), anotar a mensagem: define a flag de reserva da camada 1 |
-| T3 | VAC local | Log de T2 (com `-LogCmds="LogOnline Verbose"`) | **Ausência** de "Initializing Steam Game Server" e de "Steam Dedicated Server API initialized" | Se aparecer, `bInitServerOnClient`/`OSS.SteamInitServerOnClient` foi ligado em algum lugar: parar e investigar antes de seguir |
-| T4 | UE4SS | Copiar o UE4SS (experimental-latest) só para a cópia; lançar no menu | `UE4SS.log` sem erro de AOB; Live View lista `ASimCharacter`, `ASimGameMode` | Configurar override de versão 4.24 / AOBs customizados |
-| T5 | Dump | UE4SS: dump de objetos e headers (CXX header dump) | SDK com `ASimCharacter`, `ASimPlayerController`, `FExternalWarService`, funções `Server*` | — |
-| T6 | Stub de perfil | Mod C++ do UE4SS: detour em `UPlayerProfileManager` 0x1409a74f0 → callback 0x140b6f290 com sucesso e perfil local. Se `Login` rejeitar: `bCheckReservationsOnLogin` (`ServerSettings+0x5d9`) = 0 | Sessão `?listen` com o personagem do host em campo | Voltar ao Ghidra: estrutura do perfil em 0x140b6f290 / 0x1409bc580 |
-| T7 | Primeiro soldado | Lua: `GameplayStatics:CreatePlayer(world, 1, true)` (ou `-headless -headlessclients=2` na cópia) + `AddMovementInput` por 10 m | O segundo personagem anda sozinho (captura + log) | Rota B: `SpawnAIFromClass` + `AAIController` |
-| T8 | Navegação | Gerar NavMesh dinâmico na área, ou ligar o pathfinding próprio | `MoveToLocation` contornando um obstáculo | Fallback A* |
-| T9 | **Marco** | Selecionar o esquadrão (tecla) e clicar no destino | **Todos os membros se movem até o ponto** | — |
+| T0 | Original launch | `python -m um win launch --steam 505460 -- -log` and go to the menu; close | `%LOCALAPPDATA%\War\Saved\Logs\War.log` exists. Note hosts, auth, NetDriver, profile loading | Record the error; nothing proceeds without T0 |
+| T1 | Lab copy | `steam_appid.txt` = `505460` in `D:\FoxholeLab\Foxhole\War\Binaries\Win64`; launch the copy's exe with `-log` | Opens the menu from the copy (the log points to the copy's path) | If Steam relaunches the official installation, use the exe with `-log` via `um win launch "<exe>"` and investigate `RestartAppIfNecessary` |
+| T2 | Listen without mod | Copy, without UE4SS, **with the process's internet blocked** (outbound firewall rule for the copy's exe): `War-Win64-Shipping.exe /Game/Maps/HomeRegionW?listen -log` | The log shows the `LoadMap` of HomeRegionW, `SimGameMode` and the driver listening (`SteamSocketsNetDriver` or `IpNetDriver`). **Expected:** host stuck waiting for the profile, or "Unable to load Profile" | If it breaks before PostLogin (Login/reservation), note the message: it defines layer 1's reservation flag |
+| T3 | Local VAC | T2's log (with `-LogCmds="LogOnline Verbose"`) | **Absence** of "Initializing Steam Game Server" and of "Steam Dedicated Server API initialized" | If it appears, `bInitServerOnClient`/`OSS.SteamInitServerOnClient` was turned on somewhere: stop and investigate before going on |
+| T4 | UE4SS | Copy UE4SS (experimental-latest) only into the copy; launch to the menu | `UE4SS.log` without AOB errors; Live View lists `ASimCharacter`, `ASimGameMode` | Configure the 4.24 version override / custom AOBs |
+| T5 | Dump | UE4SS: object and header dump (CXX header dump) | SDK with `ASimCharacter`, `ASimPlayerController`, `FExternalWarService`, `Server*` functions | — |
+| T6 | Profile stub | UE4SS C++ mod: detour at `UPlayerProfileManager` 0x1409a74f0 → callback 0x140b6f290 with success and a local profile. If `Login` rejects: `bCheckReservationsOnLogin` (`ServerSettings+0x5d9`) = 0 | `?listen` session with the host's character in the field | Back to Ghidra: profile structure in 0x140b6f290 / 0x1409bc580 |
+| T7 | First soldier | Lua: `GameplayStatics:CreatePlayer(world, 1, true)` (or `-headless -headlessclients=2` in the copy) + `AddMovementInput` for 10 m | The second character walks by itself (screenshot + log) | Route B: `SpawnAIFromClass` + `AAIController` |
+| T8 | Navigation | Generate a dynamic NavMesh in the area, or turn on our own pathfinding | `MoveToLocation` going around an obstacle | A* fallback |
+| T9 | **Milestone** | Select the squad (key) and click the destination | **All members move to the point** | — |
 
 ---
 
-## 7. Estado atual das ferramentas
+## 7. Current state of the tools
 
-| Ferramenta | Onde | Estado |
+| Tool | Where | State |
 |---|---|---|
-| Ghidra 12.1.2 + GhidraMCP 5.14.2 | `D:\tools\ghidra`, `D:\tools\ghidra-mcp-v5.14.2` | Auto-análise concluída (57 min). Decompilação por string: `D:\tools\ghidra-scripts\DecompStrRefs.java` (saída em `D:\tools\foxhole-lab\decomp*`) |
-| Índice do PAK | `D:\tools\foxhole-lab\pak-index.tsv`, `pak-config-excerpts.txt` | Pronto (25.898 entradas) |
-| Cópia de laboratório | `D:\FoxholeLab\Foxhole` | Pronta (97 arquivos, 26.035.003.749 bytes, idêntica à Steam), com `steam_appid.txt` |
-| Script do laboratório | `tools/lab.ps1` | `check`/`prepare` executados. `vac-off` testado em pasta temporária (4 casos). `run`/`ue4ss-*` aguardam o usuário |
-| Mod (esqueleto) | `mod/FoxholeRTS/Scripts/main.lua` | Escrito, **não executado** (F5 status, F6 esquadrão, F7 mover, F8 limpar) |
-| UE4SS | — | Pendente: o download foi bloqueado pelo modo automático; precisa ser liberado pelo usuário |
-| Lançar o jogo | `um win launch` | Bloqueado pelo modo automático sem o usuário presente |
+| Ghidra 12.1.2 + GhidraMCP 5.14.2 | `D:\tools\ghidra`, `D:\tools\ghidra-mcp-v5.14.2` | Auto-analysis done (57 min). Decompilation by string: `D:\tools\ghidra-scripts\DecompStrRefs.java` (output in `D:\tools\foxhole-lab\decomp*`) |
+| PAK index | `D:\tools\foxhole-lab\pak-index.tsv`, `pak-config-excerpts.txt` | Ready (25,898 entries) |
+| Lab copy | `D:\FoxholeLab\Foxhole` | Ready (97 files, 26,035,003,749 bytes, identical to Steam), with `steam_appid.txt` |
+| Lab script | `tools/lab.ps1` | `check`/`prepare` run. `vac-off` tested in a temporary folder (4 cases). `run`/`ue4ss-*` waiting for the user |
+| Mod (skeleton) | `mod/FoxholeRTS/Scripts/main.lua` | Written, **not run** (F5 status, F6 squad, F7 move, F8 clear) |
+| UE4SS | — | Pending: the download was blocked by auto mode; needs to be released by the user |
+| Launching the game | `um win launch` | Blocked by auto mode without the user present |
 
-## 8. Perguntas ao binário: respondidas e abertas
+## 8. Questions to the binary: answered and open
 
-Respondidas (decompilação validada; funções em `D:\tools\foxhole-lab\decomp*`):
-1. **`?listen` no código:** é o boot do servidor dedicado oficial (só em `NM_DedicatedServer` e `ServerType` WorldConquest/HomeRegion), que acrescenta `?listen` ao mapa do save. Não é modo de treino offline. O modo dedicado é inalcançável neste exe: o ramo `IsRunningDedicatedServer` foi compilado fora e `GIsClient=1`. Ganho prático: a linha de comando com `/Game/Maps/...` pula o menu.
-2. **VAC:** sem servidor Steam num cliente, a menos que `bInitServerOnClient`/`OSS.SteamInitServerOnClient` esteja ligado; ver camada 1.
-3. **Backend:** o único bloqueio no caminho do host é o perfil em `PostLogin`; ver a tabela da camada 1.
-4. **Controle:** o jogo move um `ASimCharacter` por código via `AHeadlessPlayerController`. Soldados = jogadores locais extras.
+Answered (validated decompilation; functions in `D:\tools\foxhole-lab\decomp*`):
+1. **`?listen` in the code:** it is the boot of the official dedicated server (only in `NM_DedicatedServer` and `ServerType` WorldConquest/HomeRegion), which appends `?listen` to the save's map. It is not an offline training mode. Dedicated mode is unreachable in this exe: the `IsRunningDedicatedServer` branch was compiled out and `GIsClient=1`. Practical gain: a command line with `/Game/Maps/...` skips the menu.
+2. **VAC:** no Steam server on a client, unless `bInitServerOnClient`/`OSS.SteamInitServerOnClient` is on; see layer 1.
+3. **Backend:** the only blocker on the host path is the profile in `PostLogin`; see layer 1's table.
+4. **Control:** the game moves an `ASimCharacter` by code through `AHeadlessPlayerController`. Soldiers = extra local players.
 
-Abertas:
-- Estrutura do perfil esperado por 0x140b6f290 / 0x1409bc580, para o stub do T6.
-- Valor padrão de `WarTweakables.bCheckReservationsOnLogin` numa sessão sem backend.
-- Se `-headless` muda o jogador 0, já que `LocalPlayerClass` vira `UHeadlessLocalPlayer`.
-- Se `ASimCharacter` funciona com `AAIController` puro (rota B).
+Open:
+- Structure of the profile expected by 0x140b6f290 / 0x1409bc580, for the T6 stub.
+- Default value of `WarTweakables.bCheckReservationsOnLogin` in a session without a backend.
+- Whether `-headless` changes player 0, since `LocalPlayerClass` becomes `UHeadlessLocalPlayer`.
+- Whether `ASimCharacter` works with a pure `AAIController` (route B).

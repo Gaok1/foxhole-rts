@@ -1,347 +1,348 @@
-# Foxhole RTS — protótipo local v0.9 (totalmente offline)
+# Foxhole RTS — local prototype v0.9 (fully offline)
 
-Mod Lua desenvolvido com assistência de IA, usando UE4SS e Universal Modder.
-Personagens e efeitos pertencem ao jogo e não estão incluídos aqui.
+Lua mod developed with AI assistance, using UE4SS and Universal Modder.
+Characters and effects belong to the game and are not included here.
+In-game texts (alerts, panel, key help) are still in Portuguese; they are quoted here as they appear.
 
-**Lote logístico v4.1 em desenvolvimento:** coleta manual, bases avançadas, economia ampliada, cadeia inimiga e save v2. Testes offline passaram; criação/recrutamento em base e save/restore passaram em HomeRegionW. Transporte, hex e equilíbrio ainda pendentes. Crash de teclas e flicker continuam abertos por decisão do usuário.
+**Logistics batch v4.1 in development:** manual collection, forward bases, wider economy, enemy chain and save v2. Offline tests passed; base creation/recruitment and save/restore passed in HomeRegionW. Transport, hex and balance still pending. The key crash and the flicker remain open by the user's decision.
 
-## Requisitos e instalação no laboratório
+## Requirements and installation in the lab
 
-- Cópia própria do Foxhole; build testado anteriormente: Steam 25730371 / UE 4.24.
-- Steam aberto e autenticado; não modificar verificações de posse.
-- Cópia separada do jogo com isolamento de rede conferido antes de executar.
-- UE4SS já configurado para essa cópia e versão da engine.
-- Backup de `%LOCALAPPDATA%\Foxhole` antes de cada lançamento modificado.
+- Your own copy of Foxhole; build tested previously: Steam 25730371 / UE 4.24.
+- Steam open and authenticated; do not modify ownership checks.
+- A separate copy of the game with network isolation checked before running.
+- UE4SS already configured for that copy and engine version.
+- Back up `%LOCALAPPDATA%\Foxhole` before each modified launch.
 
-Com o processo encerrado, copie `FoxholeRTS` para
-`War\Binaries\Win64\ue4ss\Mods` **da cópia de laboratório**. `enabled.txt`
-habilita o mod. Nunca instale no cliente oficial nem conecte a cópia aos servidores
-oficiais. Não há garantia de compatibilidade ou de segurança de conta.
-Não distribua a cópia do jogo, suas DLLs ou assets extraídos.
+With the process closed, copy `FoxholeRTS` to
+`War\Binaries\Win64\ue4ss\Mods` **of the lab copy**. `enabled.txt`
+enables the mod. Never install it on the official client nor connect the copy to the official
+servers. There is no guarantee of compatibility or account safety.
+Do not distribute the game copy, its DLLs or extracted assets.
 
-F9 abre a sessão local; F10 ativa a câmera RTS. O autostart e o canal de comandos
-são opcionais de desenvolvimento, habilitados por `FoxholeRTS/autostart.txt`;
-o canal executa Lua local arbitrário, não é uma sandbox.
+F9 opens the local session; F10 turns on the RTS camera. The autostart and the command channel
+are optional development features, enabled by `FoxholeRTS/autostart.txt`;
+the channel runs arbitrary local Lua, it is not a sandbox.
 
-**Começo rápido:** com o modo RTS ligado, Shift+F6 inicia uma partida (esquadrão de 6, três pontos de
-controle, ondas automáticas). Capture os pontos, recrute com Ctrl+1–4 e vença 10 ondas — ou segure os três pontos por 90 s. F5 mostra as teclas.
-Em um hex sem cadeia ativa, Alt+L tenta a implantação inicial descrita em **Logística**, depois Shift+F6.
+**Quick start:** with RTS mode on, Shift+F6 starts a match (squad of 6, three control
+points, automatic waves). Capture the points, recruit with Ctrl+1–4 and win 10 waves — or hold the three points for 90 s. F5 shows the keys.
+In a hex without an active chain, Alt+L tries the initial deployment described in **Logistics**, then Shift+F6.
 
-## Controles
+## Controls
 
-| Tecla | Ação |
+| Key | Action |
 |---|---|
-| F6 | Criar esquadrão misto grátis (caixa de areia; até 12) |
-| Ctrl+1 / 2 / 3 / 4 / 0 | Recrutar fuzileiro (20) / metralhador (35) / atirador (45) / médico (30) / oficial (40, só um) com mão de obra no Assalto; na logística usa camisas e, para fuzileiro, fuzil |
-| 1–5 / 0 | Seleciona o grupo (dois toques rápidos = câmera vai até ele) / todos |
-| Alt+1–5 | Põe os selecionados no grupo (um grupo por frente; cada soldado nasce no 1 ou no 2) |
-| Espaço | Câmera vai ao último alerta; de novo (em 4 s) = alertas anteriores |
-| Q / E | Câmera no ponto de controle anterior / próximo |
-| L | O próximo caminhão de suprimentos vai ao depósito sob o cursor (base ou ponto seu); fora deles = automático |
-| Shift+L | Prioridade da fábrica: automático → munição → camisas → fuzis → bandagens |
-| Ctrl+L | Câmera passa pela fábrica, refinaria, campo de sucata e caminhões |
-| Alt+L | Implantar refinaria/fábrica nos locais nativos e caminhões faltantes, com orçamento inicial do cenário |
-| Botão esquerdo | Selecionar soldado; arrastar = caixa; Shift soma (contorno amarelo brilhante = selecionado) |
-| Botão direito / F7 | Mover selecionados em formação; sobre um inimigo = atacar esse alvo |
-| Shift+botão direito / Shift+F7 | Pôr o destino na fila (percorrem os pontos em sequência) |
-| Ctrl+botão direito / Ctrl+F7 | Fogo de supressão em área por 20 s (sem visada só suprime; gasta munição) |
-| K | Erguer barreira de concreto sob o cursor (15 de mão de obra, até 30; cobertura baixa; F11 remove) |
-| Ctrl+5 | Fogo de morteiro sob o cursor (40 de mão de obra, recarga 20 s; 3 granadas após 2,5 s; só ferem o inimigo) |
-| J | Criar ponto de controle sob o cursor (até 5) |
-| Home | Recuar: selecionados correm ao ponto seu mais próximo (ou ao comandante) sem atirar e levam metade dos acertos |
-| End | Segurar posição: param e não buscam cobertura; continuam atirando; nova ordem libera |
-| Shift+F6 | Nova partida: limpa tudo, esquadrão de 6, ondas automáticas e três pontos de controle |
-| Alt+F6 | Assalto: o inimigo começa dono dos três pontos, entrincheirado e com arame; tome todos |
-| Ctrl+F6 | Continuar a partida salva (gravada sozinha a cada 30 s durante as ondas automáticas) |
-| F4 / Shift+F4 | Criar onda / alternar ondas automáticas |
-| F11 | Limpar soldados, inimigos, corpos, barreiras e pontos |
-| F2 / WASD ou setas / roda do mouse ou PageUp, PageDown | Centralizar / pan / zoom |
-| Pause ou Ctrl+Espaço | Pausa tática: o jogo para, mas a câmera, a seleção e as ordens funcionam |
-| Insert | Velocidade 1x / 2x / 3x (desligar o RTS volta a 1x) |
-| F3 | Alternar pan pela borda (desligado por padrão) |
-| F5 | Mostrar/esconder a ajuda de teclas na tela (aparece sozinha por 40 s ao ligar o RTS) e registrar o status no log |
-| Shift+F5 | Dificuldade: fácil / normal / difícil (precisão inimiga, tamanho das ondas, mão de obra); fica salva em `settings.txt` |
-| Ctrl+6 | Caixa de suprimentos sob o cursor (−25): recarrega munição a até 4,5 m por 60 s (máx. 3) |
-| Ctrl+7 | Trincheira sob o cursor (−20): até 4 soldados dentro; tiros acertam 60% menos e suprimem pela metade (granada e morteiro não) |
-| Ctrl+8 | Posto de socorro sob o cursor (−30, até 2): soldados seus a 6 m, fora de fogo pesado, curam 4 HP/s e param de sangrar |
-| Ctrl+9 | Arame farpado sob o cursor (−10, até 10): faixa de 6 m atravessada à ameaça; quem passa (os dois lados) anda a 35% |
+| F6 | Create a free mixed squad (sandbox; up to 12) |
+| Ctrl+1 / 2 / 3 / 4 / 0 | Recruit rifleman (20) / machine gunner (35) / sniper (45) / medic (30) / officer (40, only one) with manpower in Assault; in logistics it uses shirts and, for the rifleman, a rifle |
+| 1–5 / 0 | Selects the group (two quick taps = the camera goes to it) / all |
+| Alt+1–5 | Puts the selected soldiers in the group (one group per front; each soldier spawns in 1 or 2) |
+| Space | Camera goes to the latest alert; again (within 4 s) = previous alerts |
+| Q / E | Camera on the previous / next control point |
+| L | The next supply truck goes to the depot under the cursor (base or one of your points); outside them = automatic |
+| Shift+L | Factory priority: automatic → ammunition → shirts → rifles → bandages |
+| Ctrl+L | Camera goes through the factory, refinery, salvage field and trucks |
+| Alt+L | Deploy refinery/factory at the native sites and the missing trucks, with the scenario's starting budget |
+| Left button | Select soldier; drag = box; Shift adds (bright yellow outline = selected) |
+| Right button / F7 | Move the selected soldiers in formation; over an enemy = attack that target |
+| Shift+right button / Shift+F7 | Queue the destination (they go through the points in sequence) |
+| Ctrl+right button / Ctrl+F7 | Area suppressive fire for 20 s (without line of sight it only suppresses; uses ammunition) |
+| K | Raise a concrete barrier under the cursor (15 manpower, up to 30; low cover; F11 removes) |
+| Ctrl+5 | Mortar fire under the cursor (40 manpower, 20 s reload; 3 shells after 2.5 s; only hurt the enemy) |
+| J | Create a control point under the cursor (up to 5) |
+| Home | Retreat: the selected soldiers run to your nearest point (or to the commander) without shooting and take half the hits |
+| End | Hold position: they stop and do not look for cover; they keep shooting; a new order releases them |
+| Shift+F6 | New match: clears everything, squad of 6, automatic waves and three control points |
+| Alt+F6 | Assault: the enemy starts owning the three points, dug in and with wire; take them all |
+| Ctrl+F6 | Continue the saved match (saved automatically every 30 s during automatic waves) |
+| F4 / Shift+F4 | Create a wave / toggle automatic waves |
+| F11 | Clear soldiers, enemies, bodies, barriers and points |
+| F2 / WASD or arrows / mouse wheel or PageUp, PageDown | Center / pan / zoom |
+| Pause or Ctrl+Space | Tactical pause: the game stops, but camera, selection and orders work |
+| Insert | Speed 1x / 2x / 3x (turning the RTS off goes back to 1x) |
+| F3 | Toggle edge pan (off by default) |
+| F5 | Show/hide the key help on screen (it appears by itself for 40 s when the RTS turns on) and log the status |
+| Shift+F5 | Difficulty: easy / normal / hard (enemy accuracy, wave size, manpower); saved in `settings.txt` |
+| Ctrl+6 | Supply crate under the cursor (−25): reloads ammunition within 4.5 m for 60 s (max. 3) |
+| Ctrl+7 | Trench under the cursor (−20): up to 4 soldiers inside; shots hit 60% less and suppress half as much (grenade and mortar do not) |
+| Ctrl+8 | First aid post under the cursor (−30, up to 2): your soldiers within 6 m, out of heavy fire, heal 4 HP/s and stop bleeding |
+| Ctrl+9 | Barbed wire under the cursor (−10, up to 10): a 6 m strip across the threat; whoever crosses (both sides) walks at 35% |
 
-As teclas evitam os mapeamentos padrão do jogo (B = construir, H = callouts, F8 = esconder interface,
-Shift+1–7 = comandos de admin). 1–5, 0, Espaço, Q e E são ações do soldado no jogo (arma, gestos, escalar,
-montar, usar), sem efeito no RTS, que desliga a entrada do comandante.
-No modo RTS a entrada do comandante fica desligada, para o clique esquerdo (Fire no jogo) não fazê-lo atacar.
+The keys avoid the game's default mappings (B = build, H = callouts, F8 = hide interface,
+Shift+1–7 = admin commands). 1–5, 0, Space, Q and E are soldier actions in the game (weapon, gestures, climb,
+mount, use), with no effect in the RTS, which turns off the commander's input.
+In RTS mode the commander's input is off, so the left click (Fire in the game) does not make it attack.
 
-## Classes e economia
+## Classes and economy
 
-Os custos de mão de obra da tabela valem no Assalto/fora da logística. Na logística, recrutamento gasta o estoque da base de nascimento, não esses custos.
+The manpower costs in the table apply in Assault/outside logistics. In logistics, recruitment spends the stock of the spawn base, not these costs.
 
-Com o modo RTS ligado, um painel no canto superior esquerdo mostra mão de obra, esquadrão (selecionados),
-onda, inimigos, abates, perdas e a contagem da próxima onda automática.
+With RTS mode on, a panel in the top-left corner shows manpower, squad (selected),
+wave, enemies, kills, losses and the countdown to the next automatic wave.
 
-| Classe | Custo | Alcance | Tiro a cada | Dano | Precisão base | Munição | Notas |
+| Class | Cost | Range | Shot every | Damage | Base accuracy | Ammo | Notes |
 |---|---|---|---|---|---|---|---|
-| Fuzileiro | 20 | 22 m | 1,6 s | 34 | 60% | 40 | — |
-| Metralhador | 35 | 26 m | 0,35 s | 14 | 30% | 150 | anda a 75%; só atira montado (parado 1 s): +30% de acerto, +50% de supressão |
-| Atirador | 45 | 40 m | 3,5 s | 70 | 85% | 15 | — |
-| Médico | 30 | 15 m | 2 s | 20 | 40% | 24 | cura 12 HP e estanca o mais ferido a ≤3,5 m a cada 1,5 s; vai até feridos a ≤12 m |
-| Oficial | 40 | 18 m | 1,8 s | 25 | 50% | 24 | só um por esquadrão; aliados a ≤10 m acertam 15% mais e se recuperam da supressão 1,8× mais rápido; estandarte sobre a cabeça |
+| Rifleman | 20 | 22 m | 1.6 s | 34 | 60% | 40 | — |
+| Machine gunner | 35 | 26 m | 0.35 s | 14 | 30% | 150 | walks at 75%; only fires when set up (still for 1 s): +30% hit, +50% suppression |
+| Sniper | 45 | 40 m | 3.5 s | 70 | 85% | 15 | — |
+| Medic | 30 | 15 m | 2 s | 20 | 40% | 24 | heals 12 HP and stops the bleeding of the most wounded within ≤3.5 m every 1.5 s; goes to wounded within ≤12 m |
+| Officer | 40 | 18 m | 1.8 s | 25 | 50% | 24 | only one per squad; allies within ≤10 m hit 15% more and recover from suppression 1.8× faster; banner above the head |
 
-**Munição:** cada soldado seu carrega a munição da tabela e para de atirar quando ela acaba (alerta e "SEM MUNIÇÃO" no painel; abaixo de 25%, "munição baixa" no painel e uma caixinha de munição sobre a cabeça). Dentro de um ponto seu ou a até 5 m da base (onde o comandante estava ao ligar o RTS; F2 centraliza nela), recarrega 15% por segundo. O inimigo não tem limite de munição.
+**Ammunition:** each of your soldiers carries the ammunition in the table and stops shooting when it runs out (alert and "SEM MUNIÇÃO" in the panel; below 25%, "munição baixa" in the panel and a small ammo box above the head). Inside one of your points or within 5 m of the base (where the commander was when the RTS turned on; F2 centers on it), it reloads 15% per second. The enemy has no ammunition limit.
 
-Fuzileiros tentam lançar granada (recarga 18 s) contra cobertura baixa, até 18 m e dentro
-dos limites de velocidade dos dados do jogo. **Lote offline de 11/10, ainda não publicado:**
-projétil BPGrenadeW (Warden) ou Grenade_C (Colonial), dados de cada facção,
-fusível real de 4 s, balística/colisão/dano/efeitos nativos; sem arco
-teleportado ou dano próprio de granada. Se o solver/spawn recusar, não gasta recarga e
-continua o tiro normal. Contexto local ancorado até os projéteis terminarem; reset cancela
-somente os projéteis próprios. Equipe/atribuição/dano em soldados e integração logística
-aguardam o batch vivo. Tiros de fuzil e morteiro ainda usam o protótipo próprio — dívida
-explícita, não equivalentes a combate nativo completo.
-**Morte:** aliados e inimigos param e caem com o ragdoll do próprio jogo. O mod retira o corpo do controle de
-animação antes de acionar a morte nativa; o corpo fica no chão por 20 s e então é removido (não continua correndo).
-Veterania: a cada 2 abates o soldado sobe um nível (até 3), com +10% de precisão por nível; vale também para o inimigo.
-A precisão cai até a metade no alcance máximo. Todo tiro suprime o alvo (a MG mais rápido): suprimido erra mais e anda devagar,
-e o inimigo muito suprimido fica preso no lugar. Alvo atrás de cobertura baixa (muro, barreira) leva metade dos acertos.
-Soldados parados e sem ordem (aliados e inimigos) procuram sozinhos cobertura a até 4 m quando estão expostos; uma trincheira com vaga a até 4,5 m tem preferência. Mover para dentro de uma trincheira acomoda 4 nela e o resto em linha atrás. A mão de obra começa em 60,
-regenera 1/s mais 0,5/s por ponto de controle seu (máx. 200) e rende +8 por abate e +30 por onda eliminada.
-Nas ondas automáticas, vence quem eliminar a 10ª onda ou segurar todos os pontos de controle por 90 s seguidos; a derrota ocorre sem soldados e sem mão de obra
-para um fuzileiro, ou quando o inimigo domina todos os pontos de controle. A precisão inimiga cresce 4% por onda (até +50%), e cada onda traz um inimigo a mais para cada ~2,5 soldados seus (até 16 por onda).
+Riflemen try to throw a grenade (18 s reload) at low cover, up to 18 m and within
+the speed limits of the game's data. **Offline batch of 10/11, not published yet:**
+projectile BPGrenadeW (Warden) or Grenade_C (Colonial), each faction's data,
+real 4 s fuse, native ballistics/collision/damage/effects; no teleported
+arc or our own grenade damage. If the solver/spawn refuses, it does not spend the reload and
+normal fire continues. Local context anchored until the projectiles finish; a reset cancels
+only our own projectiles. Team/attribution/damage on soldiers and logistics integration
+wait for the live batch. Rifle shots and the mortar still use our own prototype — explicit
+debt, not equivalent to complete native combat.
+**Death:** allies and enemies stop and fall with the game's own ragdoll. The mod removes the body from the
+animation control before triggering the native death; the body stays on the ground for 20 s and is then removed (it does not keep running).
+Veterancy: every 2 kills the soldier goes up one level (up to 3), with +10% accuracy per level; it also applies to the enemy.
+Accuracy drops to half at maximum range. Every shot suppresses the target (the MG faster): a suppressed soldier misses more and walks slowly,
+and a heavily suppressed enemy gets pinned in place. A target behind low cover (wall, barrier) takes half the hits.
+Soldiers standing without an order (allies and enemies) look for cover within 4 m by themselves when exposed; a trench with a free slot within 4.5 m is preferred. Moving into a trench fits 4 in it and the rest in a line behind. Manpower starts at 60,
+regenerates 1/s plus 0.5/s per control point of yours (max. 200) and gives +8 per kill and +30 per wave eliminated.
+In automatic waves, whoever eliminates the 10th wave or holds all control points for 90 s in a row wins; defeat happens with no soldiers and no manpower
+for a rifleman, or when the enemy owns all control points. Enemy accuracy grows 4% per wave (up to +50%), and each wave brings one more enemy for every ~2.5 of your soldiers (up to 16 per wave).
 
-## Evacuação de feridos
+## Evacuation of the wounded
 
-Um soldado seu abaixo de 30% de vida, parado e sem ordem sua há 15 s, recua sozinho (sem atirar, como o Home) ao
-posto de socorro mais perto; sem posto, a um ponto seu; sem ponto, ao médico. Quando chega a 80% ele se libera.
-Qualquer ordem sua cancela a evacuação.
+One of your soldiers below 30% health, standing and without an order from you for 15 s, retreats by itself (without shooting, like Home) to
+the nearest first aid post; without a post, to one of your points; without a point, to the medic. At 80% it is released.
+Any order from you cancels the evacuation.
 
-## Moral inimiga
+## Enemy morale
 
-Uma onda de 6 ou mais que cai a um quarto do tamanho quebra: os sobreviventes fogem de volta por onde vieram
-(sem atirar e levando metade dos acertos) e somem ao chegar, sem contar abate. A morte de um oficial inimigo
-também abala (suprime) quem estava perto dele. No assalto as guarnições não fogem.
+A wave of 6 or more that drops to a quarter of its size breaks: the survivors flee back the way they came
+(without shooting and taking half the hits) and vanish on arrival, without counting as kills. The death of an enemy officer
+also shakes (suppresses) those near him. In Assault the garrisons do not flee.
 
-## Oficial inimigo e metralhadora inimiga
+## Enemy officer and enemy machine gun
 
-A partir da onda 3, cada onda chega com um oficial (estandarte verde sobre a cabeça) que dá aos inimigos perto
-dele a mesma aura do seu oficial; abatê-lo rende +20 de mão de obra. No assalto, a guarnição do ponto da frente
-tem um oficial. A metralhadora inimiga que perde você de vista continua suprimindo por 8 s o lugar onde o viu
-por último: esconder-se atrás de um muro não basta, é preciso sair da área ou flanqueá-la.
+From wave 3, each wave arrives with an officer (green banner above the head) who gives the enemies near
+him the same aura as your officer; killing him gives +20 manpower. In Assault, the garrison of the front point
+has an officer. An enemy machine gun that loses sight of you keeps suppressing for 8 s the place where it last
+saw you: hiding behind a wall is not enough, you need to leave the area or flank it.
 
-## Morteiro inimigo
+## Enemy mortar
 
-A partir da onda 4, cerca de 40% das ondas chegam em pinça (dois grupos por lados diferentes). A partir da onda 4 o inimigo dispara morteiro (2 granadas, 3 s de aviso com som e anel laranja) sobre
-grupos de 3 ou mais soldados seus. Soldados sob o aviso correm para fora do anel sozinhos, exceto os
-que estão segurando posição (End) ou muito suprimidos: esses levam o fogo.
+From wave 4, about 40% of waves arrive as a pincer (two groups from different sides). From wave 4 the enemy fires mortar (2 shells, 3 s warning with sound and an orange ring) at
+groups of 3 or more of your soldiers. Soldiers under the warning run out of the ring by themselves, except
+those holding position (End) or heavily suppressed: those take the fire.
 
-## Pontos de controle
+## Control points
 
-Ligar as ondas automáticas (Shift+F4) sem pontos cria três ao redor do esquadrão (frente e flancos),
-em chão plano e livre de veículos; J cria outros sob o cursor. Cada ponto é um anel pontilhado laranja
-de 5 m de raio com o estandarte do dono no centro (azul = seu, verde = inimigo, nenhum = neutro).
+Turning on automatic waves (Shift+F4) without points creates three around the squad (front and flanks),
+on flat ground free of vehicles; J creates others under the cursor. Each point is an orange dotted ring
+5 m in radius with the owner's banner in the center (blue = yours, green = enemy, none = neutral).
 
-- Capturar: ter soldados dentro do anel sem inimigos. Um soldado leva 10 s de neutro a dono; até três aceleram.
-  Os dois lados dentro = disputado (para). Para tirar o ponto do dono é preciso levá-lo de volta a neutro primeiro.
-- Cada ponto seu rende +0,5 de mão de obra por segundo.
-- Ao tomar um ponto, o inimigo cava de graça uma trincheira no centro dele; ela serve a quem estiver dentro, então retomá-lo pede granada ou morteiro.
-  Ele também estende uma faixa de arame a 9 m do centro, do lado do seu esquadrão: contorne-a ou atravesse sob fogo de supressão.
-- Ponto seu é posto de socorro e depósito: soldados dentro do anel recarregam 15% da munição por segundo e, sem supressão, recuperam 2 HP/s.
-- Inimigos fora de combate marcham ao ponto mais próximo que ainda não dominam e o seguram.
-- Ponto inimigo longe do seu esquadrão (>15 m) vira entrada das próximas ondas: retome-o para afastá-las.
-- No Assalto, recrutar (Ctrl+1..4) dentro de um ponto seu faz o soldado nascer nele. Na logística, só base principal ou base avançada abastecida é local de recrutamento.
-- O painel mostra `pontos 1/3 [A+ Bx Co]`: `+` seu, `x` inimigo, `o` neutro (com % durante a captura).
+- Capture: have soldiers inside the ring without enemies. One soldier takes 10 s from neutral to owner; up to three speed it up.
+  Both sides inside = contested (stops). To take the point from its owner you first need to bring it back to neutral.
+- Each of your points gives +0.5 manpower per second.
+- On taking a point, the enemy digs a free trench in its center; it serves whoever is inside, so retaking it calls for a grenade or mortar.
+  It also lays a strip of wire 9 m from the center, on your squad's side: go around it or cross under suppressive fire.
+- Your point is a first aid post and a depot: soldiers inside the ring reload 15% of their ammunition per second and, without suppression, recover 2 HP/s.
+- Enemies out of combat march to the nearest point they do not own yet and hold it.
+- An enemy point far from your squad (>15 m) becomes the entry of the next waves: retake it to push them away.
+- In Assault, recruiting (Ctrl+1..4) inside one of your points makes the soldier spawn there. In logistics, only the main base or a supplied forward base is a recruitment site.
+- The panel shows `pontos 1/3 [A+ Bx Co]`: `+` yours, `x` enemy, `o` neutral (with % during capture).
 
-## Assalto (Alt+F6)
+## Assault (Alt+F6)
 
-Outro jeito de jogar: você começa com 8 soldados e 120 de mão de obra, e o inimigo já é dono dos três pontos
-(26–36 m à frente e nos flancos), cada um com trincheira, uma faixa de arame do seu lado e 4 soldados de
-guarnição. Não há ondas: o inimigo só recebe reforços pela renda dos pontos que ainda segura, e cada ponto que
-você toma provoca um contra-ataque em poucos segundos. Vence quem tomar os três pontos sem sobrar inimigo
-vivo, ou segurá-los por 60 s. Perde quem ficar sem soldados e sem mão de obra para um fuzileiro. Fogo de
-supressão em área, granadas e morteiro são as ferramentas para tirar a guarnição da trincheira.
+Another way to play: you start with 8 soldiers and 120 manpower, and the enemy already owns the three points
+(26–36 m ahead and on the flanks), each with a trench, a strip of wire on your side and 4 garrison
+soldiers. There are no waves: the enemy only gets reinforcements from the income of the points it still holds, and each point
+you take triggers a counterattack within a few seconds. You win by taking the three points with no enemy left
+alive, or by holding them for 60 s. You lose with no soldiers and no manpower for a rifleman. Area
+suppressive fire, grenades and mortar are the tools to get the garrison out of the trench.
 
-## Salvar e continuar
+## Save and continue
 
-**Validação integrada de 11/10:** granadas nativas por facção, Owner/Instigator,
-reset/contextos e GC em voo passaram num lote único. Friendlyfire ocorreu.
-Caminhão sem colisão não recebeu dano; a frota permanece assim, portanto interdição
-nativa ainda não está entregue. A cadeia fresca falhou (0 sucata entregue, ~110
-perdidas, sem caminhão de recurso), apesar de combate/reabastecimento. Build
-experimental; detalhes e próxima prioridade no ROADMAP. Notas offline abaixo são históricas.
+**Integrated validation of 10/11:** native grenades per faction, Owner/Instigator,
+reset/contexts and GC in flight passed in a single batch. Friendly fire happened.
+A truck without collision took no damage; the fleet stays that way, so native
+interdiction is not delivered yet. The fresh chain failed (0 salvage delivered, ~110
+lost, no resource truck), despite combat/resupply. Experimental
+build; details and next priority in the ROADMAP. The offline notes below are historical.
 
-**Candidato offline de 11/10:** HP dos caminhões vem do ator do jogo e aparece no
-painel. HP0 ou ator inválido interrompe transporte e registra a perda de carga uma
-vez; o engine mantém explosão/casco/TTL. Removido DPS abstrato de emboscada e dano
-próprio de morteiro contra caminhões. **Fuzis ainda não cortam comboios neste
-candidato**: executor local nativo pendente; granada contra veículos também precisa
-do gate de colisão. Sem publicação/validação integrada ainda. Save antigo não aplica
-HP fictício ao ator; ferimentos nativos não são persistidos por enquanto.
+**Offline candidate of 10/11:** truck HP comes from the game's actor and appears in the
+panel. HP 0 or an invalid actor stops transport and records the cargo loss once;
+the engine keeps explosion/hull/TTL. Removed the abstract ambush DPS and our own
+mortar damage against trucks. **Rifles do not cut convoys yet in this
+candidate**: native local executor pending; grenades against vehicles also need
+the collision gate. No publish/integrated validation yet. An old save does not apply
+fictitious HP to the actor; native wounds are not persisted for now.
 
-Save **v2**, a cada30s durante ondas automáticas: estado de combate, estoques/produção/coleta, infraestrutura paga/carteira, cadeia inimiga e bases avançadas. Sem endereços de ator; rotas/ações em voo não persistem. Carga manual dos trabalhadores é descartada ao continuar.
+Save **v2**, every 30 s during automatic waves: combat state, stocks/production/collection, paid infrastructure/wallet, enemy chain and forward bases. No actor addresses; routes/actions in flight do not persist. The workers' manual cargo is discarded on continue.
 
-Ctrl+F6 valida arquivo/mundo/posições antes de apagar a partida atual. Infraestrutura paga é reconstruída sem novo débito, tudo ou nada. Save inválido recusa preservando estado; seção inimiga inválida descarta somente ela e avisa reinício do estoque de cenário. Restauração incompleta suspende autosave.
+Ctrl+F6 validates file/world/positions before wiping the current match. Paid infrastructure is rebuilt without a new debit, all or nothing. An invalid save refuses while keeping the state; an invalid enemy section discards only itself and warns that the scenario stock restarts. An incomplete restore suspends autosave.
 
-Grava temporário com releitura e backup; recuperação tenta save, tmp, bak. Saves antigos são aceitos; a versão anterior do mod não aceita campos novos. Vitória/derrota limpam os arquivos. Save/restore de base avançada e estoques passou em HomeRegionW. Em CallumsCape, infraestrutura paga e carteira foram restauradas após reinício, sem débito novo ou duplicação ao repetir.
+It writes a temporary file with a reread and a backup; recovery tries save, tmp, bak. Old saves are accepted; the previous version of the mod does not accept new fields. Victory/defeat clear the files. Save/restore of forward bases and stocks passed in HomeRegionW. In CallumsCape, paid infrastructure and wallet were restored after a restart, with no new debit or duplication when repeating.
 
-## Fogo de supressão em área
+## Area suppressive fire
 
-Ctrl+botão direito (ou Ctrl+F7) manda os selecionados atirarem por 20 s num círculo de 4,5 m sob o cursor;
-os médicos ficam de fora. Quem está fora do alcance anda até ele. Sem visada não há dano: cada tiro suprime
-todo inimigo dentro do círculo (a MG montada suprime mais), o que prende quem está atrás de um muro ou numa
-trincheira enquanto outro grupo flanqueia. Inimigo que aparece à vista leva tiro normal. Gasta munição;
-qualquer ordem nova cancela. Um anel de pontos laranja marca o círculo enquanto a ordem vale.
+Ctrl+right button (or Ctrl+F7) makes the selected soldiers fire for 20 s into a 4.5 m circle under the cursor;
+medics stay out. Those out of range walk into it. Without line of sight there is no damage: each shot suppresses
+every enemy inside the circle (a set-up MG suppresses more), which pins whoever is behind a wall or in a
+trench while another group flanks. An enemy that shows up in sight takes normal fire. Uses ammunition;
+any new order cancels it. A ring of orange dots marks the circle while the order lasts.
 
-## Reforços inimigos
+## Enemy reinforcements
 
-Cada ponto que o inimigo segura rende mão de obra para ele (0,6/s). Durante uma onda, a cada 20 s, ele manda
-2 ou 3 reforços (até 6 por onda), que surgem atrás do ponto dele mais perto do seu esquadrão. O painel mostra
-"reforço inimigo N". Retomar os pontos corta essa renda.
+Each point the enemy holds gives it manpower (0.6/s). During a wave, every 20 s, it sends
+2 or 3 reinforcements (up to 6 per wave), which appear behind its point nearest your squad. The panel shows
+"reforço inimigo N". Retaking the points cuts that income.
 
-## Animação
+## Animation
 
-Os soldados seguram a arma com as duas mãos e, parados e em combate, levam o fuzil ao ombro e miram no alvo,
-com coice a cada tiro. Ao andar, levam a arma em posição de descanso.
-Dentro de uma trincheira, ou sob fogo pesado, ficam agachados; ao recuar (Home), correm curvados. O médico
-faz a animação de primeiros socorros ao curar, e o fuzileiro a de arremesso ao jogar granada.
-Cada classe dispara com o som da própria arma do jogo, e os dois lados soam diferente (fuzil Warden x carabina
-Colonial, metralhadoras, fuzis de precisão, pistola).
-Soldados seus feridos mostram uma barra de vida sobre a cabeça (verde, amarela abaixo de 60%, vermelha abaixo de
-30%), que some quando se recuperam. Inimigos não têm barra: ela revelaria quem o jogo esconde por falta de visão.
+Soldiers hold the weapon with both hands and, standing still in combat, bring the rifle to the shoulder and aim at the target,
+with recoil on each shot. When walking, they carry the weapon at rest.
+Inside a trench, or under heavy fire, they crouch; when retreating (Home), they run hunched. The medic
+plays the first aid animation when healing, and the rifleman the throwing one when throwing a grenade.
+Each class fires with the sound of its own weapon from the game, and the two sides sound different (Warden rifle x Colonial
+carbine, machine guns, sniper rifles, pistol).
+Your wounded soldiers show a health bar above the head (green, yellow below 60%, red below
+30%), which disappears when they recover. Enemies have no bar: it would reveal who the game hides for lack of vision.
 
-O aviso "Falha ao baixar informações do servidor" no menu vem do próprio jogo (a cópia de laboratório não
-acessa a rede de propósito) e não pode ser fechado pelo mod; o autostart sai do menu em 2 s.
+The warning "Falha ao baixar informações do servidor" (failed to download server information) in the menu comes from the game itself (the lab copy does not
+reach the network on purpose) and cannot be closed by the mod; the autostart leaves the menu in 2 s.
 
-## Visual com a câmera alta
+## Visuals with the high camera
 
-O jogo foi feito para a câmera baixa de um soldado. Com o RTS ligado o mod desenha objetos pequenos e sombras
-mais longe (`r.ViewDistanceScale 3`, `r.Shadow.DistanceScale 2.5`), desliga o sombreamento de linha de visão
-do jogo (as faixas escuras que irradiavam do "olho"). O zoom vai até 160 m, para olhar várias frentes: a
-distância de desenho cresce com a altura (`r.ViewDistanceScale` = altura / 20 m, no mínimo 3). Desligar o RTS
-restaura essas alterações. VSync fica ligado no RTS para evitar o corte horizontal observado ao mover
-a câmera; ao desligar o modo, restaura o valor anterior, sem gravar configurações do jogo.
+The game was made for a soldier's low camera. With the RTS on, the mod draws small objects and shadows
+farther away (`r.ViewDistanceScale 3`, `r.Shadow.DistanceScale 2.5`) and turns off the game's line-of-sight shading
+(the dark bands that radiated from the "eye"). The zoom goes up to 160 m, to watch several fronts: the
+draw distance grows with height (`r.ViewDistanceScale` = height / 20 m, at least 3). Turning the RTS off
+restores these changes. VSync stays on in the RTS to avoid the horizontal tear observed when moving
+the camera; turning the mode off restores the previous value, without writing the game's settings.
 
-## Logística
+## Logistics
 
-**Novo lote integrado; validação ao vivo pendente.** Sistemas próprios offline, sem inventário/RPC do jogo.
+**New integrated batch; live validation pending.** Our own offline systems, without the game's inventory/RPC.
 
-- **Alt+L:** implantação explícita nos locais nativos, agora com carteira de **1000 bmat**: refinaria400 + fábrica400 + dois caminhões de suprimento100 cada. Rollback e idempotência preservados. Ruínas não são instalações ativas.
-- **Início (Shift+F6):** três trabalhadores sem fuzil coletam sucata a pé; não nasce caminhão de recurso. A refinaria converte2sucata em1bmat; a fábrica começa com40bmat e reserva100para produzir/repor o caminhão de recurso. Perder esse caminhão reativa coleta manual.
-- **CallumsCape:** os ensaios antigos ficaram presos no muro/rochas. Com amostragem fina, três trabalhadores entregaram120 sucata sem perdas nem intervenção. Isso aprova esse percurso, não toda a cadeia ou qualquer terreno.
-- A coleta recusa a reta quando a busca falha, freia e indica **sem rota**. Tentativas no mesmo trecho não renovam o prazo. Procura chegada acessível dentro da área de serviço.
-- Micro-resgate experimental: após quatro segundos imóvel, tenta80/160cm com colisão varrida; teleporte excepcional só para destino com cápsula livre quando a origem já está penetrada. Não dá recursos nem estende a viagem. Passou offline, mas **não resgatou os presos no ensaio real**.
-- Rota da coleta amostra o relevo a cada50cm para não pular rochas estreitas durante simplificação. No ensaio CallumsCape, os três entregaram120 sucata sem perdas/resgate. A cadeia inteira ainda não está aprovada: a reconstrução do caminhão de recurso deixou estado ativo sem ator físico.
-- Reconstrução transacional: busca vaga segura na fábrica e exige ator íntegro900HP antes de cobrar100bmat/ativar. Falha preserva estoque/estado morto e tenta novamente em5s. Bateria29/29 PASS; sonda no hex criou ator real e confirmou débito único. Transporte pela estrada continua pendente.
-- **Trabalhadores:** reposição custa camisa da base; sem camisas não há reposição mágica. Não contam no tamanho das ondas nem no centro do esquadrão de combate.
-- **Produção:** munição, camisas, fuzis e bandagens, com receitas próprias baseadas nos dados extraídos. Granadas exigem explosivo e não foram adicionadas como receita gratuita. Shift+L alterna prioridade; estoque/reserva/produção aparecem no painel.
-- **Transporte:** dois caminhões abastecem depósitos; L aponta o destino. Carga em retorno só é creditada na chegada, não ao perder destino. Transporte ainda em reta/sem colisão; rede de estradas não integrada. Não considerar cenário regional pronto.
-- **Recrutamento:** nasce na base principal ou base avançada abastecida; custa camisa e, no fuzileiro, fuzil. Ponto de controle comum não reforça por padrão. No Assalto permanece mão de obra.
-- **Bases avançadas (Shift+J):** num ponto seu elegível, primeiro toque apresenta local/custo; segundo em4s confirma300bmat da fábrica. Até3bases, classeForwardBase1. Posição/terreno/ator exigem validação. Estrutura, estoque e perda afetam reforços; ainda pendente validar spawn/fluxo no engine.
-- **Cadeia inimiga:** retaguarda produz, caminhões levam suprimento à frente e ondas consomem estoque; cortar o transporte reduz reforços. Existe piso de tropas de cenário, explícito no painel/configuração; não é bloqueio absoluto por falta de carga.
+- **Alt+L:** explicit deployment at the native sites, now with a wallet of **1000 bmat**: refinery 400 + factory 400 + two supply trucks at 100 each. Rollback and idempotence kept. Ruins are not active installations.
+- **Start (Shift+F6):** three workers without rifles collect salvage on foot; no resource truck spawns. The refinery converts 2 salvage into 1 bmat; the factory starts with 40 bmat and reserves 100 to produce/replace the resource truck. Losing that truck reactivates manual collection.
+- **CallumsCape:** the old rehearsals got stuck on the wall/rocks. With fine sampling, three workers delivered 120 salvage with no losses nor intervention. That approves this route, not the whole chain or any terrain.
+- Collection refuses the straight line when the search fails, brakes and shows **sem rota** (no route). Attempts on the same stretch do not renew the deadline. It looks for a reachable arrival inside the service area.
+- Experimental micro-rescue: after four seconds without moving, it tries 80/160 cm with swept collision; an exceptional teleport only to a destination with a free capsule when the origin is already penetrating. It gives no resources nor extends the trip. Passed offline, but **did not rescue the stuck ones in the real rehearsal**.
+- The collection route samples the terrain every 50 cm so it does not skip narrow rocks during simplification. In the CallumsCape rehearsal, the three delivered 120 salvage without losses/rescue. The whole chain is not approved yet: rebuilding the resource truck left an active state without a physical actor.
+- Transactional rebuild: looks for a safe spot at the factory and requires an intact 900 HP actor before charging 100 bmat/activating. A failure keeps the stock/dead state and retries in 5 s. Battery 29/29 PASS; a probe in the hex created a real actor and confirmed a single debit. Transport by road is still pending.
+- **Workers:** a replacement costs a shirt from the base; without shirts there is no magic replacement. They do not count toward wave size nor toward the combat squad's center.
+- **Production:** ammunition, shirts, rifles and bandages, with our own recipes based on the extracted data. Grenades require explosive and were not added as a free recipe. Shift+L toggles priority; stock/reserve/production appear in the panel.
+- **Transport:** two trucks supply depots; L points the destination. Cargo on a return is only credited on arrival, not when losing the destination. Transport still straight/without collision; road network not integrated. Do not consider the regional scenario ready.
+- **Recruitment:** spawns at the main base or at a supplied forward base; costs a shirt and, for the rifleman, a rifle. A common control point does not reinforce by default. In Assault it stays manpower.
+- **Forward bases (Shift+J):** on an eligible point of yours, the first tap shows site/cost; a second within 4 s confirms 300 bmat from the factory. Up to 3 bases, class ForwardBase1. Position/terrain/actor require validation. Structure, stock and loss affect reinforcements; spawn/flow in the engine still to be validated.
+- **Enemy chain:** the rear produces, trucks take supply to the front and waves consume stock; cutting transport reduces reinforcements. There is a scenario troop floor, explicit in the panel/configuration; it is not an absolute block for lack of cargo.
 
-HomeRegionW é bancada de teste. O destino é uma cadeia curta em CallumsCapeHex; carregar mapa/terreno/instalações não prova equilíbrio, estrada transitável ou visibilidade pela câmera. Facilities não implementadas.
+HomeRegionW is a test bench. The destination is a short chain in CallumsCapeHex; loading map/terrain/installations does not prove balance, a passable road or visibility from the camera. Facilities not implemented.
 
-## Várias frentes
+## Several fronts
 
-- **Seleção em qualquer zoom:** somente soldados aliados selecionados recebem contorno amarelo brilhante,
-  acompanhando posição e animação. Partes encobertas recebem preenchimento amarelo do pós-processo nativo.
-  Desmarcar, morrer ou sair do RTS remove ambos. Sem círculo no pé nem bolinhas de unidades/caminhões.
-  Inclui casaco, cabeça, capacete, mãos, pernas, mochila e arma. Compartilha a pose com quatro cópias por peça
-  visível (28 atores no soldado atual). **Experimental:** aparência aprovada pelo usuário, mas houve quedas
-  nativas UE4SS após ampliar às peças; stability/GC/reseleção/morte e seleção grande ainda pendentes.
-  A retomada acrescentou proteções para pawn/clone/câmera em destruição e fonte inválida, incluindo a
-  limpeza de CustomDepth. Regressão offline passou; isso não identifica nem certifica a correção das quedas nativas.
-  Otimização integrada: uma transformação nativa completa por cópia substitui três setters; conversão de rotação
-  uma vez por peça. Equivalência geométrica verificada offline e por oráculo ao vivo. Em carga limpa, seis
-  selecionados mantiveram 168 cópias com stratTick inicialmente 7,91 ms/quadro (antes 16,72 ms);
-  após GC/reseleção uma nova janela mediu 16,40 ms. Ganho sustentado ainda não demonstrado.
-  GC e reseleção passaram funcionalmente; não é certificação prolongada nem benchmark de FPS/renderização.
-  A carga seguinte caiu no UE4SS com erro de Registry; guards/otimizações não resolveram a estabilidade.
-  Registro do hook de animação agora permite tentar novamente após falha inicial; correção Lua independente,
-  sem evidência de que explique a queda nativa.
-  Retomada de 10/10: repetição limpa com seis selecionados/168 cópias passou 195 s;
-  controle sem seleção passou 201 s. A causa antiga não foi reproduzida nem isolada;
-  isso não libera o lote logístico candidato. Contorno mediu ~11–12 ms/quadro em stratTick,
-  contra ~0,5 ms sem seleção. Evidências em `data/parallel/stability/RESUME_20261010.md`.
-  Outra carga limpa completou 620 s com seis selecionados/168 cópias, seguida de GC/morte/recriação
-  e mais 186 s sem queda observada. Entrada real e causa antiga continuam pendentes;
-  gate manual de dez minutos em `MANUAL_TEST.md`.
-  **Gate manual reprovado em 10/10:** fatal error durante teste dos números, após log de grupo1.
-  A build continua experimental; os ensaios automáticos não cobriram essa falha com interação real.
-  Variante de diagnóstico: as teclas agora entram numa fila Lua drenada pelo loop persistente
-  antes do gate de autoridade (F9/F10 continuam disponíveis no menu). Evita criar um callback
-  ExecuteInGameThread por pressão; FIFO/erros/reentrância passaram offline. Não é correção
-  certificada do crash: entrada rápida real e sincronização do UE4SS ainda precisam validação.
-  Também passaram 100 ciclos de des/reseleção e 20 mortes/recriações; GC deixou 168 cópias
-  rastreadas e zero atores em destruição. O cache de componentes da unidade viva desmarcada
-  permanece intencionalmente para limpar o CustomDepth que o jogo reativa; na morte é removido.
-  Ver `data/trace_selection.txt`. Se pesar, o próximo caminho é shader de borda, não voltar aos discos.
-- **Alertas de frente:** ponto seu sob ataque, ponto perdido, onda chegando e baixa entram numa fila (até 8) com o
-  lugar; o painel mostra "! N alertas (Espaço)". Espaço leva a câmera ao mais novo; apertado de novo, aos
-  anteriores. O mesmo alerta no mesmo lugar não se repete por 20 s.
-- **Grupos por frente:** Alt+1–5 põe os selecionados num grupo; 1–5 seleciona; dois toques vão até ele; 0 = todos.
-- **Pontos:** Q/E passam a câmera de ponto em ponto, com o dono no aviso.
+- **Selection at any zoom:** only selected allied soldiers get a bright yellow outline,
+  following position and animation. Hidden parts get a yellow fill from the native post-process.
+  Deselecting, dying or leaving the RTS removes both. No circle at the feet nor dots on units/trucks.
+  Includes coat, head, helmet, hands, legs, backpack and weapon. It shares the pose with four copies per visible
+  part (28 actors on the current soldier). **Experimental:** appearance approved by the user, but there were native
+  UE4SS crashes after extending to the parts; stability/GC/reselection/death and large selection still pending.
+  The resumed work added protections for pawn/clone/camera being destroyed and an invalid source, including the
+  CustomDepth cleanup. The offline regression passed; it neither identifies nor certifies the fix of the native crashes.
+  Integrated optimization: one complete native transform per copy replaces three setters; rotation conversion
+  once per part. Geometric equivalence verified offline and by a live oracle. In a clean load, six
+  selected kept 168 copies with stratTick initially at 7.91 ms/frame (before 16.72 ms);
+  after GC/reselection a new window measured 16.40 ms. Sustained gain not demonstrated yet.
+  GC and reselection passed functionally; it is not a prolonged certification nor an FPS/rendering benchmark.
+  The next load crashed in UE4SS with a Registry error; guards/optimizations did not solve stability.
+  Registering the animation hook now allows retrying after an initial failure; an independent Lua fix,
+  without evidence that it explains the native crash.
+  Resumed on 10/10: a clean repeat with six selected/168 copies passed 195 s;
+  a control without selection passed 201 s. The old cause was neither reproduced nor isolated;
+  this does not release the candidate logistics batch. The outline measured ~11–12 ms/frame in stratTick,
+  versus ~0.5 ms without selection. Evidence in `data/parallel/stability/RESUME_20261010.md`.
+  Another clean load completed 620 s with six selected/168 copies, followed by GC/death/recreation
+  and another 186 s without an observed crash. Real input and the old cause remain pending;
+  ten-minute manual gate in `MANUAL_TEST.md`.
+  **Manual gate failed on 10/10:** fatal error during the number keys test, after a group 1 log line.
+  The build is still experimental; the automatic rehearsals did not cover that failure with real interaction.
+  Diagnostic variant: keys now go into a Lua queue drained by the persistent loop
+  before the authority gate (F9/F10 still available in the menu). It avoids creating an
+  ExecuteInGameThread callback per press; FIFO/errors/reentrancy passed offline. It is not a certified
+  fix of the crash: fast real input and UE4SS synchronization still need validation.
+  100 de/reselection cycles and 20 deaths/recreations also passed; GC left 168 tracked copies
+  and zero actors being destroyed. The component cache of a deselected live unit
+  stays on purpose to clear the CustomDepth the game reactivates; on death it is removed.
+  See `data/trace_selection.txt`. If it gets heavy, the next path is an edge shader, not going back to discs.
+- **Front alerts:** your point under attack, point lost, wave coming and casualty go into a queue (up to 8) with the
+  place; the panel shows "! N alertas (Espaço)". Space takes the camera to the newest; pressed again, to the
+  previous ones. The same alert in the same place does not repeat for 20 s.
+- **Groups per front:** Alt+1–5 puts the selected soldiers in a group; 1–5 selects; two taps go to it; 0 = all.
+- **Points:** Q/E move the camera from point to point, with the owner in the notice.
 
-## Visão
+## Vision
 
-O jogo só desenha inimigos que o pawn do comandante enxerga (relevo e prédios bloqueiam). No modo RTS o
-comandante vira um "olho" invisível que acompanha o foco da câmera no chão, inclusive durante pausa.
-Antes ficava no soldado mais próximo e escondia caminhões longe do grupo; o foco em caminhão foi validado
-no hex. Isso ainda não certifica visibilidade em toda a tela/zoom/relevo. A base (depósito de munição, F2)
-fica onde o comandante estava ao ligar o RTS.
+The game only draws enemies the commander's pawn can see (terrain and buildings block). In RTS mode the
+commander becomes an invisible "eye" that follows the camera focus on the ground, including during pause.
+Before, it stayed at the nearest soldier and hid trucks far from the group; focus on a truck was validated
+in the hex. That still does not certify visibility across the whole screen/zoom/terrain. The base (ammo depot, F2)
+stays where the commander was when the RTS turned on.
 
-## Limitações e verificação
+## Limitations and verification
 
-- Totalmente offline, com modelo de combate próprio (dano, efeitos e malhas do jogo).
-  Não usa inventário nem RPCs de servidor do Foxhole.
-- Ordens de marcha e o avanço inimigo usam rota própria (A* em grade, sem NavMesh), calculada em
-  fatias por frame quando a linha reta está bloqueada.
-- Testado em HomeRegionW (padrão) e HomeRegionC. Para trocar, ponha o caminho do mapa na 1ª linha de
-  `FoxholeRTS/map.txt` (ex.: `/Game/Maps/HomeRegionC`). Das hexes grandes de `Maps/Master`, `DeadLandsHex` foi testada; nela o painel "Introdução ao Foxhole"
-  aparece por cima e precisa ser fechado com o mouse (seta).
-- Cada mecânica até a v0.8 foi validada no jogo pelo canal de comandos e por capturas de tela, e partidas
-  inteiras foram jogadas por um "jogador-robô" scriptado. Teclas e mouse ainda **não foram testados com
-  entrada real**: o roteiro está em `MANUAL_TEST.md`.
-- Desempenho medido: o mod gasta ~1,5–4 ms por quadro com ~25 soldados; o resto do custo é dos
-  personagens do próprio jogo (com 12 soldados, ~60 ms por quadro na máquina de teste, janela sem foco).
-- A escolha automática do lugar dos pontos foi ajustada em HomeRegionW; em outros mapas,
-  use J para pôr os pontos onde quiser.
-- Não use hot reload repetido do UE4SS: já houve travamento. Reinicie a cópia.
-- Para desativar, com o jogo fechado retire `enabled.txt` da pasta do mod.
-  Isso não remove o loader nem torna a cópia apropriada para jogar online.
-# Estado do MVP (11/10)
+- Fully offline, with our own combat model (the game's damage, effects and meshes).
+  It does not use Foxhole's inventory nor server RPCs.
+- March orders and the enemy advance use our own route (grid A*, no NavMesh), computed in
+  slices per frame when the straight line is blocked.
+- Tested in HomeRegionW (default) and HomeRegionC. To switch, put the map path on the 1st line of
+  `FoxholeRTS/map.txt` (e.g. `/Game/Maps/HomeRegionC`). Of the large hexes in `Maps/Master`, `DeadLandsHex` was tested; there the "Introduction to Foxhole" panel
+  appears on top and must be closed with the mouse (arrow).
+- Each mechanic up to v0.8 was validated in game through the command channel and screenshots, and whole
+  matches were played by a scripted "bot player". Keys and mouse have **not been tested with
+  real input** yet: the script is in `MANUAL_TEST.md`.
+- Measured performance: the mod spends ~1.5–4 ms per frame with ~25 soldiers; the rest of the cost is the
+  game's own characters (with 12 soldiers, ~60 ms per frame on the test machine, window without focus).
+- The automatic choice of point locations was tuned in HomeRegionW; on other maps,
+  use J to put the points where you want.
+- Do not use repeated UE4SS hot reload: it has frozen before. Restart the copy.
+- To disable, with the game closed remove `enabled.txt` from the mod folder.
+  This does not remove the loader nor make the copy suitable for playing online.
 
-DPS abstrato de caminhões removido: HP vem do ator real. Fuzil local em veículo
-continua pendente; granadas não atingem a frota com colisão desligada.
-Rastreamento offline distingue consultas de tiro/HitNotify de aplicação de impacto;
-callbacks de apresentação e armas de veículos não comprovam executor do rifle.
+# MVP state (10/11)
 
-Ajuste publicado experimental: evacuação automática de coletor ferido conserva a sucata nas
-mãos e retoma a rota após cura. Não coleta nem entrega durante o recuo; morte e
-ordens explícitas ainda perdem carga. Testes offline PASS, validação interrompida por crash.
-Reposição automática aguarda a saída da base ficar sem inimigo a35m,
-sem gastar camisa nem criar trabalhador durante a recusa. O aviso pede proteger
-a base; combatentes continuam recrutáveis. Ainda sem aprovação Unreal.
+Abstract truck DPS removed: HP comes from the real actor. Local rifle fire on vehicles
+is still pending; grenades do not hit the fleet with collision off.
+Offline tracing tells shot/HitNotify queries apart from impact application;
+presentation callbacks and vehicle weapons do not prove the rifle's executor.
 
-Prioridade: provar a cadeia jogável na região pequena; acabamento de chegada/espera dos
-trabalhadores foi adiado. Coleta entrega por proximidade (15 m), não pela porta da refinaria.
-Caminhões ainda usam movimento reto sem colisão e podem atravessar/subir estruturas.
-Grafo regional extraído, ainda sem validação física ou integração. Sonda viva
-confirmou movimento RWD e raiz/updated VehicleCollision(Box); não é driver integrado.
-O lote recente caiu (PID4696/158s); último autosave60s sem crescimento de bmat.
-Relatório final perdido, causa completa pendente; não considerar build estável.
-Diagnóstico offline ligou o crash à lista nativa de UniqueId dos participantes.
-IDs vazios de bots são hipótese, não causa completa comprovada; desligar voz não
-protege todo o fluxo. Correção de controlador/NPC ainda em investigação.
-Correção candidata de save: observa morte nativa do comboio antes de converter
-carga viva em pendente e registra a recompensa na mesma carteira salva. Testes
-offline passaram; ainda não publicada/validada no laboratório. Ferimentos de
-veículos continuam sem persistência, não considerar esta correção um save completo deles.
-HP nativo desconhecido também recusa o save inteiro e preserva o arquivo anterior,
-sem inventar morte/perda. Candidato offline. A carga manual em mãos dos coletores
-ainda não é persistida; continuar durante a coleta pode perdê-la.
-Oracle offline das funções nativas reproduziu esse fluxo com voz false e mesmo
-sem PlayerSaveGame; fixtures não comprovam causa completa nem correção no jogo.
-Sonda de contrato NPC/roster preparada para o próximo lote, sem ler IDs Steam
-ou alterar atores; teste offline não comprova estabilidade no jogo.
-Criar HeadlessLocalPlayer sozinho também não é correção comprovada: o init
-nativo é separado e seu vínculo ao PlayerState local permanece pendente.
-Navegação usa raio real50 cm do soldado; casos antigos de medevac preso não estão resolvidos.
+Experimental adjustment published: automatic evacuation of a wounded collector keeps the salvage in
+hand and resumes the route after healing. It neither collects nor delivers during the retreat; death and
+explicit orders still lose cargo. Offline tests PASS, validation interrupted by a crash.
+Automatic replacement waits for the base exit to be free of enemies within 35 m,
+without spending a shirt nor creating a worker during the refusal. The warning asks to protect
+the base; fighters remain recruitable. No Unreal approval yet.
 
+Priority: prove the playable chain in the small region; polishing the workers' arrival/waiting
+was postponed. Collection delivers by proximity (15 m), not through the refinery door.
+Trucks still use straight movement without collision and can go through/climb structures.
+Regional graph extracted, still without physical validation or integration. A live probe
+confirmed RWD movement and root/updated VehicleCollision(Box); it is not an integrated driver.
+The recent batch crashed (PID4696/158 s); the last 60 s autosave without bmat growth.
+Final report lost, full cause pending; do not consider the build stable.
+Offline diagnosis linked the crash to the native UniqueId list of participants.
+Empty bot IDs are a hypothesis, not a proven complete cause; turning voice off does not
+protect the whole flow. The controller/NPC fix is still under investigation.
+Candidate save fix: observes the convoy's native death before converting
+live cargo into pending and records the reward in the same saved wallet. Offline tests
+passed; not published/validated in the lab yet. Vehicle wounds
+still have no persistence, do not consider this fix a complete save of them.
+Unknown native HP also refuses the whole save and keeps the previous file,
+without inventing death/loss. Offline candidate. The collectors' manual cargo in hand
+is not persisted yet; continuing during collection may lose it.
+An offline oracle of the native functions reproduced this flow with voice false and even
+without PlayerSaveGame; fixtures do not prove the complete cause nor a fix in the game.
+An NPC/roster contract probe is prepared for the next batch, without reading Steam IDs
+or changing actors; an offline test does not prove stability in the game.
+Creating a HeadlessLocalPlayer alone is not a proven fix either: the native
+init is separate and its link to the local PlayerState remains pending.
+Navigation uses the soldier's real 50 cm radius; old cases of a stuck medevac are not solved.

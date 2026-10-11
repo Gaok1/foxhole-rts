@@ -1,313 +1,315 @@
-# Roteiro do Foxhole RTS
+# Foxhole RTS roadmap
 
-## Estado atual — depois do batch integrado de 11/10
+Public checklist with percentages: `PROGRESS.md`. This file is the detailed working roadmap.
 
-**Estamos na fase 3: MVP logístico em uma região pequena, ainda não aprovado.**
-**Lote logístico 2:** ajustes publicados, mas validação interrompida por crash
-(PID4696/158s desde início). Último autosave60s tinha bmat40/sucata0; relatório
-final perdido. Causa completa pendente; não aprovar cadeia/medevac/contratação.
-Contrato vivo do caminhão confirmou RWDVehicleMovementComponent, raiz/updated
-VehicleCollision(Box), ignoreNonRoot=true e colisão true→false ao ligar logística.
-Não prova estrada/suporte. Sem segundo restart; diagnóstico segue offline.
-Diagnóstico estreitou o crash para lista de PlayerState.UniqueId no fluxo local
-de participantes/voz. IDs vazios de bots são hipótese; desligar voz não protege
-todo o loop. Falta corrigir o contrato de NPC/controlador sem quebrar movimento
-ou fabricar identidade; não há correção aprovada ainda.
-Oracle CPU executou produtor/bridge/controlador/helper reais com fixtures: voz
-false ou PlayerSaveGame ausente ainda permitem acumular nulos; objeto não nulo
-posterior reproduz read0 no RVA do crash. Não prova quem os produz no jogo.
-bRunPhysicsWithNoController também não substitui localidade de NPC possuído:
-gate nativo e oracle CPU mostram que Controller presente pula essa flag.
-Não desapossar NPC nem publicar esse atalho; posse/GC/movimento ainda necessários.
-Sonda read-only de localidade/PlayerState/roster de tropas e pool preparada para
-o próximo lote integrado; teste offline PASS, ainda não executada no Unreal.
-Init nativo de HeadlessLocalPlayer rastreado parcialmente; constructor sozinho
-não completa o contrato. Sem executor local refletido comprovado, não usar
-conexão/login/RPC ou criação cega de LocalPlayer como correção.
-As entradas históricas abaixo não substituem os resultados atuais:
+## Current state — after the integrated batch of 10/11
 
-- **Implementado:** implantação de refinaria/fábrica, coleta manual, refino/produção,
-  caminhões, depósitos, recrutamento por estoque, bases avançadas, economia inimiga,
-  ordens/grupos/alertas e save. Transporte continua reto/sem colisão, não por estrada.
-- **Granadas integradas e testadas:** Warden/Colonial usam classes/data nativos;
-  Owner/Instigator, fuse4, dano, reset em voo, classes simultâneas, contexto emprestado/
-  trocado e GC em voo passaram no lote. Friendlyfire foi observado (soldado100→1).
-  Não comprovada morte nativa do soldado/lançador nem estabilidade geral prolongada.
-- **Falha de colisão comprovada:** Warden no caminhão collision-on900→788;
-  collision-off900→900. A frota ainda desliga colisão, portanto explosivos não são
-  integração funcional de interdição logística. Fuzil local continua pendente;
-  DPS fictício de caminhão foi removido, não restaurá-lo para maquiar esse buraco.
-- **Cadeia fresca falhou:** 353s/35amostras no hex: sucata entregue0/perdida110,02,
-  bmat40 sem crescimento, caminhão de recurso não produzido. Combate/reabastecimento
-  e cadeia inimiga ocorreram (4entregas/15camisas consumidas), conservação PASS;
-  derrota na onda3. Logs registram perdas por morte e "ordem do jogador"; causa
-  completa ainda não isolada. O ciclo antigo com120entregues não aprova esta partida.
-- **Gate de morte/perda do caminhão também falhou:** dezesseis granadas Colonial
-  deixaram o ator850HP; sem morte/carga perdida, não creditar cleanup como prova.
+**We are in phase 3: logistics MVP in a small region, not approved yet.**
+**Logistics batch 2:** adjustments published, but validation interrupted by a crash
+(PID4696/158 s after start). The last autosave at 60 s had bmat 40/salvage 0; the final
+report was lost. Full cause pending; do not approve chain/medevac/hiring.
+The live truck contract confirmed RWDVehicleMovementComponent, root/updated
+VehicleCollision(Box), ignoreNonRoot=true and collision true→false when logistics turns on.
+It does not prove road/support. No second restart; diagnosis continues offline.
+Diagnosis narrowed the crash down to a list of PlayerState.UniqueId in the local
+participants/voice flow. Empty bot IDs are a hypothesis; turning voice off does not protect
+the whole loop. The NPC/controller contract still needs fixing without breaking movement
+or fabricating an identity; there is no approved fix yet.
+The CPU oracle ran the real producer/bridge/controller/helper with fixtures: voice
+false or missing PlayerSaveGame still allow nulls to accumulate; a later non-null object
+reproduces the read 0 at the crash RVA. It does not prove who produces them in the game.
+bRunPhysicsWithNoController does not replace the locality of a possessed NPC either:
+native gate and CPU oracle show a present Controller skips that flag.
+Do not unpossess NPCs nor publish that shortcut; possession/GC/movement are still required.
+A read-only probe of locality/PlayerState/troop roster and pool is prepared for
+the next integrated batch; offline test PASS, not run in Unreal yet.
+Native init of HeadlessLocalPlayer partially traced; the constructor alone
+does not complete the contract. Without a proven reflected local executor, do not use
+connection/login/RPC or blind LocalPlayer creation as a fix.
+The historical entries below do not replace the current results:
 
-### Próximo lote, em ordem
-**Candidato offline — save de comboios:** eSnapshot observa morte nativa antes
-de converter carga em pendente; sv.collect captura a carteira após recompensas
-dessas observações. Regressão FAIL antes/PASS depois, bateria15testes PASS.
-Ainda sem publicação/validação viva; não resolve persistência de ferimentos.
-Ambos os snapshots recusam HP desconhecido; save preserva arquivo anterior sem
-perda inventada. Falta também persistir carga manual dos coletores (unitData não
-guarda m.col): reatar ao trabalhador e replanejar entrega física, nunca creditar
-refinaria só por carregar o save.
-**Ajustes publicados, sem aprovação viva:** isolado no log que medevac automático descartava carga como
-"ordem do jogador". Correção conserva carga durante evacuação e retoma a rota após
-cura; morte/ordens explícitas continuam contabilizando perda. Dez testes offline
-PASS; publicados no lote interrompido, não aprova a cadeia fresca.
-Reposição automática também aguarda saída sem inimigo dentro do raio de perigo
-já usado pela coleta; não gasta camisa na recusa. Sem aprovação viva, não prova
-da causa de todas as mortes. Gate de reconstrução agora recusa registro ausente
-em vez de tratar silêncio como sucesso. Treze testes offline PASS.
+- **Implemented:** refinery/factory deployment, manual collection, refining/production,
+  trucks, depots, stock-based recruitment, forward bases, enemy economy,
+  orders/groups/alerts and save. Transport is still straight/without collision, not by road.
+- **Grenades integrated and tested:** Warden/Colonial use native classes/data;
+  Owner/Instigator, fuse 4, damage, reset in flight, simultaneous classes, borrowed/swapped
+  context and GC in flight passed in the batch. Friendly fire was observed (soldier 100→1).
+  Native death of the soldier/thrower and long-run general stability not proven.
+- **Collision failure proven:** Warden on the truck collision-on 900→788;
+  collision-off 900→900. The fleet still turns collision off, so explosives are not a
+  working integration of logistics interdiction. The local rifle is still pending;
+  fictitious truck DPS was removed, do not restore it to cover up this hole.
+- **Fresh chain failed:** 353 s/35 samples in the hex: salvage delivered 0/lost 110.02,
+  bmat 40 without growth, resource truck not produced. Combat/resupply
+  and the enemy chain happened (4 deliveries/15 shirts consumed), conservation PASS;
+  defeat on wave 3. Logs record losses by death and "player order"; full
+  cause not isolated yet. The old cycle with 120 delivered does not approve this match.
+- **Truck death/loss gate also failed:** sixteen Colonial grenades
+  left the actor at 850 HP; without death/lost cargo, do not credit cleanup as proof.
 
-1. Isolar por que a coleta fresca não entrega e perde carga/consome camisas; corrigir
-   sem dinheiro extra, entrega fictícia ou retirar combate para esconder a falha.
-2. Tornar caminhões acessíveis a impactos nativos sem destruir transporte; estrada,
-   obstáculos/água/pontes continuam parte do requisito, não simples ajuste visual.
-3. Completar executor local de fuzil/impacto e morte/perda logística nativas;
-   morteiro ainda próprio é dívida. Não alterar proteções/debug para forçar resultado.
-   Pesquisa offline ampliou callers de trace e descartou confusão com consultas
-   aéreas/mount e callbacks de apresentação; ainda sem executor de rifle comprovado.
-4. Repetir ciclo integrado com critérios de coleta/refino/produção/transporte/
-   consumo/corte/expansão. Mais UI, refinamento e mundo só depois do núcleo funcionar.
+### Next batch, in order
+**Offline candidate — convoy save:** eSnapshot observes the native death before
+converting cargo into pending; sv.collect captures the wallet after the rewards
+of those observations. Regression FAIL before/PASS after, battery of 15 tests PASS.
+No publish/live validation yet; it does not solve persisting wounds.
+Both snapshots refuse unknown HP; the save keeps the previous file without
+invented loss. Persisting the collectors' manual cargo is also missing (unitData does not
+keep m.col): reattach it to the worker and replan the physical delivery, never credit
+the refinery just for loading the save.
+**Adjustments published, no live approval:** isolated in the log that automatic medevac discarded cargo as
+"player order". The fix keeps the cargo during evacuation and resumes the route after
+healing; death/explicit orders still count as loss. Ten offline tests
+PASS; published in the interrupted batch, it does not approve the fresh chain.
+Automatic replacement also waits for an exit without an enemy inside the danger radius
+already used by collection; it does not spend a shirt on the refusal. Without live approval, it does not prove
+the cause of all deaths. The rebuild gate now refuses a missing record
+instead of treating silence as success. Thirteen offline tests PASS.
 
-Evidências: `data/trace_native_batch_integrated.txt` e
-`data/trace_batch_mvp_integrated.txt`; verificadores estritos retornam1 pelos gates
-não aprovados. Uma publicação/run, sem crash observado; laboratório encerrado e
-Steam preservado. Fonte publicada SHA256 ACB6ADFD3AE05828AB50C3D26CC3970673B09184E8FCD4BBCB3D010042CEFA64.
+1. Isolate why the fresh collection does not deliver and loses cargo/consumes shirts; fix it
+   without extra money, fictitious delivery or removing combat to hide the failure.
+2. Make trucks reachable by native impacts without destroying transport; road,
+   obstacles/water/bridges remain part of the requirement, not a simple visual tweak.
+3. Complete the local rifle/impact executor and native logistics death/loss;
+   the mortar still being our own is debt. Do not change protections/debug to force a result.
+   Offline research widened the trace callers and ruled out confusion with air/mount
+   queries and presentation callbacks; still no proven rifle executor.
+4. Repeat the integrated cycle with criteria for collection/refining/production/transport/
+   consumption/cutting/expansion. More UI, polish and the world only after the core works.
 
-## Direção vigente — MVP primeiro (10/10)
+Evidence: `data/trace_native_batch_integrated.txt` and
+`data/trace_batch_mvp_integrated.txt`; strict checkers return 1 for the
+unapproved gates. One publish/run, no crash observed; lab closed and
+Steam preserved. Published source SHA256 ACB6ADFD3AE05828AB50C3D26CC3970673B09184E8FCD4BBCB3D010042CEFA64.
 
-**Candidato offline 11/10 — HP logístico nativo:** `logi.syncHealth` observa o
-Health do ator antes de transportar/entregar; HP0/perda de ator encerra a viagem
-e contabiliza carga perdida uma vez, sem esconder/destruir antecipadamente o casco.
-DPS abstrato de emboscadas e dano próprio de morteiro contra veículos removidos.
-Não entregue como combate completo: fuzil local, colisão das granadas com caminhões
-e persistência de ferimentos pendentes. Nove scripts de teste offline PASS;
-sem publicação. Gates vivos acumulados em `NATIVE_BATCH.md`, uma única sessão futura.
+## Current direction — MVP first (10/10)
 
-**Correção explícita do usuário:** MVP pouco refinado NÃO autoriza reinventar dano,
-tiros e veículos já existentes no jogo. Prioridade antes de calibrar emboscadas:
-rastrear disparo/projétil/impacto/dano nativo de veículo, provar execução local e
-reutilizar o fluxo. IA/ordens/economy próprias continuam; sistemas de engine do
-jogo não devem ser substituídos por DPS abstrato sem demonstrar a impossibilidade.
-Ramo atual logi.hit/logi.blast/convoyTick é dívida de implementação, não direção aceita.
+**Offline candidate 10/11 — native logistics HP:** `logi.syncHealth` observes the
+actor's Health before transporting/delivering; HP 0/actor loss ends the trip
+and counts the lost cargo once, without hiding/destroying the hull early.
+Abstract ambush DPS and the mortar's own damage against vehicles removed.
+Not delivered as complete combat: local rifle, grenade collision with trucks
+and persisting wounds pending. Nine offline test scripts PASS;
+no publish. Live gates accumulated in `NATIVE_BATCH.md`, one single future session.
 
-**Autorização 11/10:** reutilizar configuração nativa local do cliente, mantendo tudo
-offline. `ServerSettings` deriva de `SaveGame`; constructor nativo preenche os
-tweakables. Primeiro gate: `tools/probe_native_settings.lua` compara uma instância
-própria com os defaults rastreados, sem associá-la ao GameInstance nem aplicar dano.
-Sonda executada com defaults/binding confirmados; Steam aberto/logado pelo usuário.
-Não criar rede/RPC, alterar CDO, desligar proteção ou inventar fórmulas.
+**Explicit correction by the user:** a rough MVP does NOT authorize reinventing damage,
+shots and vehicles that already exist in the game. Priority before calibrating ambushes:
+trace native firing/projectile/impact/vehicle damage, prove local execution and
+reuse the flow. Our own AI/orders/economy continue; the game's engine systems
+must not be replaced by abstract DPS without demonstrating it is impossible.
+The current logi.hit/logi.blast/convoyTick branch is implementation debt, not an accepted direction.
 
-**Gate vivo 11/10:** defaults e binding PASS; ApplyDamage45Explosive em caminhão
-exclusivo deu retorno31.5/HP900→869 com settings recém-criada/associada imediatamente,
-contra0/900 sem settings. Restore e cleanup PASS. Dano genérico comprovado; falta
-integração/lifetime ancorado, morte e disparo nativo. Rastro `data/trace_damage_settings_fresh.txt`.
-Oracle posterior (`data/trace_damage_native_repeated.txt`) comprovou Light/Heavy/Explosive
-e HP até0 sem crash, com restore/cleanup. Wreck/destruição completa e rifle ainda não provados;
-ator de teste foi removido manualmente só no cleanup, não creditar isso como morte nativa.
-Usuário confirmou visualmente explosão e algo dropado nesse teste; registrar como
-reação visual nativa observada, com identidade/conteúdo do drop ainda desconhecidos.
-Lifecycle estático: Health0 aciona morte nativa e SetLifeSpan15s; casco ainda válido
-imediatamente é esperado. Não chamar OnRep/morte manual para antecipar o timer.
-**Explosivo local comprovado:** SpawnActor BPGrenadeW e timer nativo20s causaram
-Health900→780 no caminhão sem ApplyDamage manual nem inventário/RPC. Restore/cleanup
-PASS. Integração de lançamento/fuse real/atribuição ainda pendente; não é prova de rifle.
+**Authorization 10/11:** reuse the client's local native configuration, keeping everything
+offline. `ServerSettings` derives from `SaveGame`; the native constructor fills the
+tweakables. First gate: `tools/probe_native_settings.lua` compares our own instance
+with the traced defaults, without attaching it to the GameInstance nor applying damage.
+Probe run with defaults/binding confirmed; Steam open/logged in by the user.
+Do not create network/RPC, change a CDO, turn off a protection or invent formulas.
 
-**Evidência nova:** ciclo de403s em CallumsCape com ondas/estoques reais do mod:
-120sucata entregue/perda0, reconstrução de caminhão, produção/entrega na base,
-reabastecimento em combate,4entregas inimigas/13camisas consumidas e derrota na onda4
-com apenas3trabalhadores vivos. Conservação conferida em36amostras.
-`tools/check_mvp_trace.py` verifica `data/trace_mvp_cycle.txt`.
-Corte de comboio, expansão/base avançada em combate e vitória ainda não provados nesse ciclo.
+**Live gate 10/11:** defaults and binding PASS; ApplyDamage 45 Explosive on an exclusive truck
+returned 31.5/HP 900→869 with settings freshly created/attached immediately,
+versus 0/900 without settings. Restore and cleanup PASS. Generic damage proven; still missing:
+anchored integration/lifetime, death and native firing. Trace `data/trace_damage_settings_fresh.txt`.
+A later oracle (`data/trace_damage_native_repeated.txt`) proved Light/Heavy/Explosive
+and HP down to 0 without a crash, with restore/cleanup. Wreck/full destruction and rifle not proven yet;
+the test actor was removed by hand only in cleanup, do not credit that as a native death.
+The user visually confirmed an explosion and something dropped in that test; record it as an
+observed native visual reaction, with the drop's identity/content still unknown.
+Static lifecycle: Health 0 triggers native death and SetLifeSpan 15 s; the hull still being valid
+right away is expected. Do not call OnRep/death by hand to anticipate the timer.
+**Local explosive proven:** SpawnActor BPGrenadeW and the native 20 s timer caused
+Health 900→780 on the truck without manual ApplyDamage nor inventory/RPC. Restore/cleanup
+PASS. Integration of launch/real fuse/attribution still pending; it is not proof of the rifle.
 
-Usuário pediu provar o conceito, aceitando implementação grossa e pouco refinada.
-Priorizar cadeia jogável na região pequena: recurso -> refino -> fábrica -> transporte ->
-abastecimento -> combate/expansão. Não gastar o próximo lote polindo chegada/animação.
-Transporte atravessando estruturas permanece limitação funcional do protótipo, não prova de
-acesso físico por estrada. Crashes e visibilidade que impedem jogar não viram mero cosmético.
+**New evidence:** 403 s cycle in CallumsCape with the mod's real waves/stocks:
+120 salvage delivered/0 lost, truck rebuild, production/delivery at the base,
+resupply in combat, 4 enemy deliveries/13 shirts consumed and defeat on wave 4
+with only 3 workers alive. Conservation checked in 36 samples.
+`tools/check_mvp_trace.py` checks `data/trace_mvp_cycle.txt`.
+Convoy cutting, expansion/forward base in combat and victory not proven yet in that cycle.
 
-### Refinamentos adiados, não bloqueiam o MVP
-- [ ] Trabalhadores chegarem a um acesso/ponto de entrega e depois esperarem em local seguro,
-  em vez de parar no trilho por entrar no raio de entrega de 15 m.
-  Sondas: data/trace_access_refinery.txt e data/trace_area_use_refinery.txt;
-  UseAreaBox/TransferLocation nativos encontrados, sem integração nem interação nativa.
-- [ ] Marcha/medevac dos soldados já presos em saves antigos; não confundir unidade sem ordem
-  com falha de rota, nem usar sucesso da coleta para declarar navegação geral resolvida.
+The user asked to prove the concept, accepting a rough and unpolished implementation.
+Prioritize a playable chain in the small region: resource -> refining -> factory -> transport ->
+supply -> combat/expansion. Do not spend the next batch polishing arrival/animation.
+Transport going through structures remains a functional limitation of the prototype, not proof of
+physical road access. Crashes and visibility problems that prevent playing are not mere cosmetics.
 
-Esta direção substitui as prioridades históricas abaixo: entrega regional funcional/MVP
-antes de refinamento do estacionamento dos trabalhadores.
+### Postponed polish, does not block the MVP
+- [ ] Workers reach an access/delivery point and then wait in a safe spot,
+  instead of stopping on the track because they entered the 15 m delivery radius.
+  Probes: data/trace_access_refinery.txt and data/trace_area_use_refinery.txt;
+  native UseAreaBox/TransferLocation found, without integration nor native interaction.
+- [ ] March/medevac of soldiers already stuck in old saves; do not confuse a unit without an order
+  with a route failure, nor use the collection's success to declare general navigation solved.
 
-**Visual (10/10):** linha horizontal durante movimento desapareceu no teste do usuário com VSync1.
-Publicado VSync no RTS/restauração na saída e olho no foco da câmera (inclusive pausa); caminhão longe
-do esquadrão reapareceu. Corrigida origem de nova partida para base independente do olho.
-Visibilidade geral e soldados presos continuam abertos: próxima prioridade é marcha/medevac dos
-trabalhadores com base correta, sem extrapolar a entrega120 de um percurso para navegação geral.
+This direction replaces the historical priorities below: working regional delivery/MVP
+before polishing the workers' parking.
 
-**Atualização mais recente (10/10):** coleta fina entregou120/perda0 sem auxílio. Reconstrução transacional
-publicada: ator900HP na fábrica e débito único100 validados; nova partida comprou/reaproveitou o ator
-após coleta/refino sem créditos. Bateria29/29 PASS. Próximo: caminhões pela estrada real; transporte
-atual reto/sem colisão não aprova cadeia regional. Detalhes no topo do MODLOG.md.
+**Visual (10/10):** the horizontal line during movement disappeared in the user's test with VSync 1.
+Published VSync in the RTS/restore on exit and the eye at the camera focus (including pause); a truck far
+from the squad reappeared. Fixed the new match's origin to a base independent of the eye.
+General visibility and stuck soldiers remain open: next priority is the workers' march/medevac
+with the correct base, without extrapolating the 120 delivery of one route to general navigation.
 
-**Prioridade atual (10/10):** o usuário pediu continuar desenvolvimento e adiar crashes/efeito amarelo.
-Lote logístico v4.1 integrado à fonte: 29/29 testes offline passaram. Validação Unreal ainda pendente;
-não chamar de estável nem bloquear novas features pelo antigo gate manual. Estradas continuam pendentes.
+**Latest update (10/10):** fine collection delivered 120/lost 0 unaided. Transactional rebuild
+published: 900 HP actor at the factory and a single debit of 100 validated; a new match bought/reused the actor
+after collection/refining without credits. Battery 29/29 PASS. Next: trucks on the real road; current
+straight/no-collision transport does not approve a regional chain. Details at the top of MODLOG.md.
 
-**Validação de 10/10:** base nativa construída, recruta em base abastecida e save v2 restaurado após reinício
-e na mesma carga em HomeRegionW. Estoque 9 camisas/19 fuzis preservado; testes com créditos de laboratório,
-não equilíbrio nem transporte real. Infraestrutura/carteira no hex e rede de estradas ainda precisam validação.
+**Current priority (10/10):** the user asked to continue development and postpone crashes/the yellow effect.
+Logistics batch v4.1 integrated into the source: 29/29 offline tests passed. Unreal validation still pending;
+do not call it stable nor block new features with the old manual gate. Roads still pending.
 
-**Lote seguinte de 10/10:** implantação de 1000 e restauração de infraestrutura/carteira passaram em CallumsCape,
-inclusive repetição sem duplicar. Coleta manual NÃO passou: 120 sucata recolhida, retorno bloqueado por
-IndustrialWall03Snow31, zero entregue. Próximo trabalho é navegação dos trabalhadores em volta do muro.
-Rede da região exportada (405 controles/431 segmentos), mas superfície/envelope/acessos continuam pendentes.
+**Validation of 10/10:** native base built, recruit at a supplied base and save v2 restored after a restart
+and in the same load in HomeRegionW. Stock of 9 shirts/19 rifles kept; tests with lab credits,
+not balance nor real transport. Infrastructure/wallet in the hex and the road network still need validation.
 
-**Navegação da coleta:** fallback cego removido só desse ramo e recusa/frenagem validadas no jogo.
-Ainda falta encontrar a passagem real ao redor do muro e completar entrega sem auxílio do usuário.
-Rastro: data/trace_path_collection.txt. Limite de inclinação do planner difere do nativo, mas ampliar limites sozinho não resolveu.
+**Following batch of 10/10:** deployment of 1000 and restoring infrastructure/wallet passed in CallumsCape,
+including a repeat without duplicating. Manual collection did NOT pass: 120 salvage collected, return blocked by
+IndustrialWall03Snow31, zero delivered. Next work is the workers' navigation around the wall.
+The region's network was exported (405 controls/431 segments), but surface/envelope/accesses remain pending.
 
-Direção do usuário (2026-10-09): o mundo do Foxhole é enorme, então começamos numa **região pequena**,
-melhoramos até ficar bom, e só depois vamos para o mundo todo. No Foxhole **a guerra é a parte pequena da
-engrenagem**: o que move tudo é a logística (recursos, refino, fábrica, transporte, abastecimento da frente),
-com veículos, navios e aviões. O RTS precisa ter isso como centro, não só o combate de esquadrão.
+**Collection navigation:** blind fallback removed only from that branch and refusal/braking validated in game.
+Still need to find the real passage around the wall and complete delivery without the user's help.
+Trace: data/trace_path_collection.txt. The planner's slope limit differs from the native one, but widening the limits alone did not solve it.
 
-## Fase 1 — Frente pequena (agora: HomeRegionW)
-Combate de esquadrão, pontos, ondas, assalto, fortificação, tempo, câmera e ferramentas de várias frentes
-(lotes 1–11). Falta: os testes com entrada real do usuário (`MANUAL_TEST.md`).
+User's direction (2026-10-09): Foxhole's world is huge, so we start in a **small region**,
+improve until it is good, and only then go to the whole world. In Foxhole **the war is the small part of the
+machine**: what moves everything is logistics (resources, refining, factory, transport, front supply),
+with vehicles, ships and planes. The RTS must have that at its center, not only squad combat.
 
-## Fase 2 — Estudo das mecânicas do jogo (pelos dados do próprio jogo)
-**Primeira leitura feita (2026-10-09): `MECHANICS_STUDY.md`.** HomeRegionW tem campos, refinarias,
-fábrica e caminhões para prototipar a cadeia, mas é a ilha de treinamento/embarque dos Wardens,
-não uma região da guerra. O laboratório não substitui a validação num mapa `Maps/Master/*Hex`.
-Ler em tempo de execução (UE4SS) o que o Foxhole já define, para que os números do mod venham do jogo:
-- **Itens e custos:** classes de item, o que cada caixa contém, custo em material (bmat, emat, rmat, combustível).
-- **Produção:** refinaria, fábrica, fábrica de munição, oficina de veículos, estaleiro: receitas e tempos.
-- **Recursos:** campos de sucata, componentes, enxofre, petróleo, carvão; o que o mapa de teste tem.
-- **Veículos:** caminhões (capacidade, velocidade, combustível), blindados, tanques, artilharia.
-- **Navios e aviões:** quais existem na versão do cliente (a tela "Foxhole Airborne" indica aviões), papel de cada um.
-- **Estruturas:** base avançada, depósito, porto, casamata, bunker, trincheira: custo, vida, função.
-- **Mapas:** quais regiões estão no cliente e qual é um bom "pedaço" do mundo para a fase 3.
+## Phase 1 — Small front (now: HomeRegionW)
+Squad combat, points, waves, assault, fortification, time, camera and tools for several fronts
+(batches 1–11). Missing: the tests with the user's real input (`MANUAL_TEST.md`).
 
-## Princípio: rastrear antes de reinventar (pedido do usuário, 2026-10-09)
-O mod chama peças do jogo uma a uma e às vezes esquece uma (ex.: soldado morto que continua "correndo" no lugar).
-Antes de implementar ou consertar uma mecânica:
-0. **Consultar o universal-modder:** skill `reverse-engineering` (seção "Make it an oracle": gravar traços reais
-   e comparar com o que o mod faz) e `um kb search`.
-1. **Procurar a chamada de alto nível** que o jogo já usa (morrer, atirar, recarregar, curar, construir) e
-   preferir ela a montar os efeitos à mão. Ferramentas: lista de UFunctions da classe (`ForEachFunction`),
-   Ghidra para o código nativo (projeto já montado, `ghidra-setup`).
-2. **Rastrear o fluxo real uma vez:** ligar hooks do UE4SS nas UFunctions das classes envolvidas (personagem,
-   controlador, arma, AnimInstance) e gravar a ordem das chamadas e os valores que mudam quando a ação acontece
-   de verdade (o usuário faz a ação com o personagem dele, ou o jogo faz sozinho, como a morte).
-3. **Montar o contrato:** a lista do que o fluxo real muda (variáveis de animação, velocidade, flags replicadas,
-   efeitos, sons). Se o mod precisa reinventar (porque o caminho do jogo exige servidor ou inventário, que
-   ficaram fora do modo offline), ele cumpre esse contrato item por item.
-4. **Testar o contrato:** um teste ao vivo lê esses mesmos valores depois da ação do mod e compara com o rastro.
-Limite: o jogo não tem IA de soldado; nossos soldados são "jogadores" sem teclado, então a parte de decidir sempre
-será do mod. O que dá para ganhar de graça é o que vem depois da decisão (animação, morte, efeitos).
+## Phase 2 — Study of the game's mechanics (from the game's own data)
+**First reading done (2026-10-09): `MECHANICS_STUDY.md`.** HomeRegionW has fields, refineries,
+a factory and trucks to prototype the chain, but it is the Wardens' training/boarding island,
+not a war region. The lab does not replace validation on a `Maps/Master/*Hex` map.
+Read at runtime (UE4SS) what Foxhole already defines, so the mod's numbers come from the game:
+- **Items and costs:** item classes, what each crate contains, material cost (bmat, emat, rmat, fuel).
+- **Production:** refinery, factory, ammunition factory, vehicle workshop, shipyard: recipes and times.
+- **Resources:** salvage, component, sulfur, oil, coal fields; what the test map has.
+- **Vehicles:** trucks (capacity, speed, fuel), armored cars, tanks, artillery.
+- **Ships and planes:** which exist in the client version (the "Foxhole Airborne" screen points to planes), role of each one.
+- **Structures:** forward base, depot, port, pillbox, bunker, trench: cost, health, function.
+- **Maps:** which regions are in the client and which is a good "piece" of the world for phase 3.
 
-**Primeiro contrato validado (lote 14): morte.** `ApplyDamage` no host zerava HP sem acionar o ragdoll;
-`OnRep_Health` faz a transição visual nativa. O mod agora para o movimento, devolve os valores originais e
-retira o cache de animação antes dessa chamada. Rastro antes/depois: `data/trace_death.txt`.
+## Principle: trace before reinventing (user's request, 2026-10-09)
+The mod calls pieces of the game one by one and sometimes forgets one (e.g. a dead soldier that keeps "running" in place).
+Before implementing or fixing a mechanic (skill: `skills/trace-before-reinvent`):
+0. **Consult universal-modder:** skill `reverse-engineering` (section "Make it an oracle": record real traces
+   and compare with what the mod does) and `um kb search`.
+1. **Look for the high-level call** the game already uses (die, fire, reload, heal, build) and
+   prefer it to assembling the effects by hand. Tools: the class's UFunction list (`ForEachFunction`),
+   Ghidra for native code (project already set up, `ghidra-setup`).
+2. **Trace the real flow once:** hook UE4SS onto the UFunctions of the classes involved (character,
+   controller, weapon, AnimInstance) and record the order of calls and the values that change when the action
+   really happens (the user does it with their character, or the game does it alone, like death).
+3. **Write the contract:** the list of what the real flow changes (animation variables, velocity, replicated flags,
+   effects, sounds). If the mod has to reinvent (because the game's path requires a server or inventory, which
+   were left out of the offline mode), it fulfils this contract item by item.
+4. **Test the contract:** a live test reads the same values after the mod's action and compares them with the trace.
+Limit: the game has no soldier AI; our soldiers are "players" without a keyboard, so deciding will always
+be the mod's job. What can be gained for free is what comes after the decision (animation, death, effects).
 
-## Interface e retorno visual (pedidos do usuário, 2026-10-09)
-Vale em qualquer fase; entra quando a mecânica correspondente estiver firme.
-- **Visibilidade RTS (pedido de 10/10):** resolver soldados, caminhões e estruturas ficando invisíveis.
-  **Reforço de 11/10 — pendente:** usuário ainda observa coisas sumindo pela distância.
-  Incluir reprodução por afastamento/zoom, distinguindo distância de renderização (culling/LOD),
-  LOS e oclusão; identificar quais atores somem e confirmar que continuam vivos/carregados.
-  Critério: unidades e instalações relevantes permanecem visíveis no alcance/zoom do RTS.
-  Falha funcional prioritária junto ao transporte: observar várias frentes não pode depender da proximidade
-  do pawn do comandante. Rastrear LOS, ocultação nativa e oclusão da câmera separadamente; conferir atores
-  vivos/carregados e HiddenInGame antes de concluir ausência. `rts.eyeTick` já acompanha o foco da câmera,
-  mas isso não resolveu todo o desaparecimento relatado. Validar câmera afastada do grupo, foco em comboio, zoom alto, neve e instalações em
-  diferentes ângulos; não resolver com bolinhas nem confundir contorno de seleção com visibilidade normal.
-- **Linha/tremeluzir ao mover câmera (relato de 10/10):** usuário descreve uma linha no meio da tela,
-  não desenhada, semelhante a atraso de renderização. Investigar temporalmente; tearing é hipótese,
-  não diagnóstico. Separar sincronização/apresentação, atualização de câmera e LOS/pós-processamento.
-  Comparar movimento parado/ativo e VSync sem alterar permanentemente configuração do usuário.
-- **Caixa de seleção visível:** hoje arrastar seleciona uma área invisível. Desenhar o retângulo enquanto o botão
-  está apertado. Caminho provável: um `Border`/`Image` semitransparente no mesmo widget do painel (clone do
-  `CrosshairWidget_C` com `CanvasPanel`), posicionado pelas coordenadas do mouse. O desenho de depuração
-  (`DrawDebug*`) costuma não existir em build Shipping.
-- **Seleção (lote 17):** contorno amarelo brilhante no corpo SOMENTE selecionado, sem discos. A sonda do
-  `M_OccludedOutline` mostrou preenchimento de partes encobertas, não borda visível; mantido também só na
-  seleção. Corpo/cabeça/mãos/pernas/equipamento têm CustomDepth separado. Contorno completo usa cópias aderentes
-  com MasterPose, sem IA/física; aparência aprovada, mas quedas nativas UE4SS ao ampliar às peças ainda NÃO
-  resolvidas. Prioridade ao retomar: stability/GC/reseleção/morte; depois seleção grande/zoom alto. Shader cooked é
-  alternativa caso o custo das cópias pese. Não expandir interface neste encerramento autorizado.
-- **Mais interface, quando fizer sentido:** painel de logística (fábrica, depósitos, caminhões) em vez de linha de
-  texto; ícones de ordem; barra de produção; mini-mapa da região; botões clicáveis para quem não decora teclas.
-  **Minimapa confirmado pelo usuário:** implementar junto à evolução da UI, sem prioridade no lote atual.
+**First validated contract (batch 14): death.** `ApplyDamage` on the host zeroed HP without triggering the ragdoll;
+`OnRep_Health` performs the native visual transition. The mod now stops movement, restores the original values and
+removes the animation cache before that call. Before/after trace: `data/trace_death.txt`.
 
-## Fase 3 — Logística numa região
-**Em andamento (2026-10-09).** Feito: lote 12 (cadeia de sucata a depósito, consumo de camisas e munição,
-caminhões que podem ser destruídos) e lote 13 (comboio inimigo que pode ser emboscado e encolhe as ondas).
-Lote 17 validou a cadeia própria em CallumsCapeHex: implantação explícita com orçamento/rollback e entrega
-de caixas na base. Falta: caminhões pela estrada (água/pontes/colisão), mais tipos de caixa, cadeia inimiga
-mais completa e equilíbrio/combate prolongado no hex. Detalhes no topo do `MODLOG.md`.
+## Interface and visual feedback (user's requests, 2026-10-09)
+Valid in any phase; it comes in when the matching mechanic is solid.
+- **RTS visibility (request of 10/10):** solve soldiers, trucks and structures turning invisible.
+  **Reinforced on 10/11 — pending:** the user still sees things vanishing with distance.
+  Include a reproduction by distance/zoom, telling render distance (culling/LOD),
+  LOS and occlusion apart; identify which actors vanish and confirm they are still alive/loaded.
+  Criterion: relevant units and installations stay visible within the RTS range/zoom.
+  A priority functional failure alongside transport: watching several fronts cannot depend on the proximity
+  of the commander's pawn. Trace LOS, native hiding and camera occlusion separately; check actors
+  alive/loaded and HiddenInGame before concluding absence. `rts.eyeTick` already follows the camera focus,
+  but that did not solve all the reported disappearing. Validate the camera away from the group, focus on a convoy, high zoom, snow and installations at
+  different angles; do not solve it with dots nor confuse the selection outline with normal visibility.
+- **Line/flicker when moving the camera (report of 10/10):** the user describes a line across the middle of the screen,
+  not drawn, similar to a rendering lag. Investigate over time; tearing is a hypothesis,
+  not a diagnosis. Separate sync/presentation, camera update and LOS/post-processing.
+  Compare still/active movement and VSync without permanently changing the user's settings.
+- **Visible selection box:** today dragging selects an invisible area. Draw the rectangle while the button
+  is held. Likely path: a semi-transparent `Border`/`Image` in the same widget as the panel (a clone of
+  `CrosshairWidget_C` with a `CanvasPanel`), positioned by the mouse coordinates. Debug drawing
+  (`DrawDebug*`) usually does not exist in a Shipping build.
+- **Selection (batch 17):** bright yellow outline on the body ONLY when selected, no discs. The probe of
+  `M_OccludedOutline` showed a fill of hidden parts, not a visible border; also kept only on
+  selection. Body/head/hands/legs/equipment have separate CustomDepth. The full outline uses attached copies
+  with MasterPose, without AI/physics; appearance approved, but native UE4SS crashes when extending to the parts are still NOT
+  solved. Priority when resuming: stability/GC/reselection/death; then large selection/high zoom. A cooked shader is
+  an alternative if the cost of the copies weighs. Do not expand the interface in this authorized wrap-up.
+- **More interface, when it makes sense:** logistics panel (factory, depots, trucks) instead of a line of
+  text; order icons; production bar; region minimap; clickable buttons for those who do not memorize keys.
+  **Minimap confirmed by the user:** implement along with the UI's evolution, no priority in the current batch.
 
-**Escopo corrigido pelo usuário (2026-10-09):** HomeRegionW é bancada de teste, não o destino da fase 3.
-Antes de expandir a cadeia, reconhecer um mapa `*Hex` local: carregamento/streaming, posição inicial segura,
-terreno, estradas, campos e estruturas realmente presentes. Ter o `.umap` no cliente não prova que toda
-a população de uma guerra exista offline. Escolher uma região com uma cadeia curta após esse inventário.
-Descobrir a rede por mundo carregado, sem reutilizar coordenadas/cache do lobby. Se faltar uma instalação
-ou acesso, indicar a ausência; não considerar uma entrega concluída nem inventar uma instalação silenciosa.
-**Primeiro reconhecimento local:** `data/trace_regions.txt`. Deadlands carregou com estradas e instalações
-em ruínas; CallumsCape tem um campo de sucata ativo e ruínas de refinaria/fábricas próximas, mas não caminhões
-ativos nas sondas. Candidata à cadeia pequena **após** rastrear reconstrução nos locais nativos e criar
-veículos reais do cenário. Não concluir ausência por imagem: LOS/oclusão pode esconder estruturas e veículos.
+## Phase 3 — Logistics in one region
+**In progress (2026-10-09).** Done: batch 12 (salvage-to-depot chain, consumption of shirts and ammunition,
+trucks that can be destroyed) and batch 13 (enemy convoy that can be ambushed and shrinks the waves).
+Batch 17 validated our chain in CallumsCapeHex: explicit deployment with budget/rollback and delivery
+of crates at the base. Missing: trucks on the road (water/bridges/collision), more crate types, a more complete
+enemy chain and balance/prolonged combat in the hex. Details at the top of `MODLOG.md`.
 
-**Lote 16 — contrato parcial:** `data/trace_rebuild.txt`. Corrigido o schema dos custos:
-refinaria/fábrica 400 bmat cada, TruckW 100. Spawn das classes ativas na transformação da ruína validou
-classe/HP, mas não é conclusão nativa de construção. Canteiro cru veio sem alvo; estacionamento ingênuo
-pegou telhado e ator já em destruição.
+**Scope corrected by the user (2026-10-09):** HomeRegionW is a test bench, not phase 3's destination.
+Before expanding the chain, recon a local `*Hex` map: loading/streaming, safe starting position,
+terrain, roads, fields and structures really present. Having the `.umap` in the client does not prove that the whole
+population of a war exists offline. Pick a region with a short chain after that inventory.
+Discover the network from the loaded world, without reusing coordinates/cache from the lobby. If an installation
+or access is missing, report the absence; do not consider a delivery done nor silently invent an installation.
+**First local recon:** `data/trace_regions.txt`. Deadlands loaded with roads and installations
+in ruins; CallumsCape has an active salvage field and ruins of a refinery/factories nearby, but no active trucks
+in the probes. A candidate for the small chain **after** tracing rebuilding at the native sites and creating
+real scenario vehicles. Do not conclude absence from a picture: LOS/occlusion can hide structures and vehicles.
 
-**Lote 17 — implantação própria:** Alt+L reusa estruturas ativas ou substitui ruínas nos locais nativos,
-com 1100 bmat do cenário (400+400+3×100), estacionamento Landscape validado e rollback sem débito/limpeza
-da partida. Repetir não duplica. Em 65,21 s no hex produziu três caixas e entregou munição/camisas.
-Não é chamada nativa de conclusão de canteiro nem facilities; carteira/infraestrutura não persistem no save.
-Acesso por estrada ainda necessário antes de considerar o cenário pronto.
+**Batch 16 — partial contract:** `data/trace_rebuild.txt`. Fixed the costs schema:
+refinery/factory 400 bmat each, TruckW 100. Spawning the active classes in the ruin's transformation validated
+class/HP, but it is not a native completion of construction. A raw site came without a target; naive parking
+hit a roof and an actor already being destroyed.
 
-**Construção tem dois ramos:** fábricas/refinarias tradicionais são estruturas do mundo em locais fixos;
-facilities são complexos industriais construídos pelos jogadores. Não tratar toda fábrica como livremente
-construível nem dar a toda facility as mesmas receitas da fábrica urbana. Contexto:
-[estruturas fixas e construídas](https://foxhole.wiki.gg/wiki/Structure) e
-[devblog oficial de facilities](https://www.foxholegame.com/post/devblog-foxhole-inferno).
-Confirmar classes, requisitos e fluxo no cliente instalado antes de implementar; economia e IA continuam
-próprias do mod, sem servidor/RPC/inventário. Construção de facilities ainda não foi implementada.
+**Batch 17 — own deployment:** Alt+L reuses active structures or replaces ruins at the native sites,
+with 1100 bmat of the scenario (400+400+3×100), Landscape parking validated and rollback without debit/clearing
+the match. Repeating does not duplicate. In 65.21 s in the hex it produced three crates and delivered ammunition/shirts.
+It is not a native call completing a site nor facilities; wallet/infrastructure do not persist in the save.
+Road access still required before considering the scenario ready.
 
-Trocar a "mão de obra" abstrata por uma cadeia de verdade, pequena:
-1. **Coleta:** soldados ou caminhões tiram sucata de um campo.
-2. **Refino:** a refinaria transforma sucata em material de construção (bmat).
-3. **Fábrica:** bmat vira caixas (fuzil, munição, médico, granada).
-4. **Transporte:** caminhões levam as caixas da base até a frente por estrada (podem ser emboscados).
-5. **Consumo:** soldados recrutados e reabastecidos só onde há caixas; a frente sem suprimento definha.
-A IA inimiga roda a mesma cadeia: cortar a estrada dela vira estratégia.
+**Construction has two branches:** traditional factories/refineries are world structures at fixed sites;
+facilities are industrial complexes built by players. Do not treat every factory as freely
+buildable nor give every facility the same recipes as the town factory. Context:
+[fixed and built structures](https://foxhole.wiki.gg/wiki/Structure) and
+[official facilities devblog](https://www.foxholegame.com/post/devblog-foxhole-inferno).
+Confirm classes, requirements and flow in the installed client before implementing; economy and AI remain
+the mod's own, without server/RPC/inventory. Facility construction has not been implemented yet.
 
-**Decisão de design (2026-10-09, delegada pelo usuário ao Claude): de onde vêm os soldados.** No Foxhole cada
-soldado é um jogador que renasce numa estrutura de spawn e gasta camisas (Soldier Supplies) do estoque dela. O RTS
-segue esse modelo, sem andar do fundo do mapa até a frente (o mapa é grande demais):
-- **Pontos de spawn = estruturas:** a base principal e **bases avançadas** construídas perto da frente (classe real
-  `ForwardBase1`, 300 bmat, estoque 15, em `data/game_costs.txt`; outras classes de spawn só depois de rastrear).
-- **Recrutar gasta o estoque do ponto:** 1 camisa por soldado, mais a arma da função (fuzil para fuzileiro etc.).
-  Nasce no ponto abastecido mais próximo do cursor/frente; sem estoque ali, recusa com aviso (sem mão de obra mágica).
-  Na partida com logística a mão de obra abstrata deixa de ser o limite; ela continua no modo Assalto.
-- **A logística move suprimento, não soldados:** caminhões levam camisas e armas às bases avançadas; cortar o
-  abastecimento de uma base impede reforço nela. Transporte de tropa fica para a fase 4.
-- **Trabalhadores no estilo aldeão (Age of Empires):** a partida começa sem caminhão de recurso; soldados sem fuzil,
-  nascidos na base principal (1 camisa), coletam sucata à mão; a fábrica produz o caminhão como melhoria; perder o
-  caminhão volta à coleta. A base mantém sozinha o número de trabalhadores de `CFG` enquanto houver camisas.
+Replace the abstract "manpower" with a real, small chain:
+1. **Collection:** soldiers or trucks take salvage from a field.
+2. **Refining:** the refinery turns salvage into building material (bmat).
+3. **Factory:** bmat becomes crates (rifle, ammunition, medical, grenade).
+4. **Transport:** trucks take the crates from the base to the front by road (they can be ambushed).
+5. **Consumption:** soldiers recruited and resupplied only where there are crates; a front without supply withers.
+The enemy AI runs the same chain: cutting its road becomes strategy.
 
-## Fase 4 — Veículos e armas pesadas
-Caminhões dirigidos pela IA do mod, blindados, artilharia com munição produzida, construção de base avançada.
+**Design decision (2026-10-09, delegated by the user to Claude): where soldiers come from.** In Foxhole each
+soldier is a player who respawns at a spawn structure and spends shirts (Soldier Supplies) from its stock. The RTS
+follows this model, without walking from the back of the map to the front (the map is too big):
+- **Spawn points = structures:** the main base and **forward bases** built near the front (real class
+  `ForwardBase1`, 300 bmat, stock 15, in `data/game_costs.txt`; other spawn classes only after tracing).
+- **Recruiting spends the point's stock:** 1 shirt per soldier, plus the role's weapon (rifle for a rifleman etc.).
+  It spawns at the supplied point nearest the cursor/front; without stock there, it refuses with a warning (no magic manpower).
+  In a match with logistics the abstract manpower stops being the limit; it stays in Assault mode.
+- **Logistics moves supply, not soldiers:** trucks take shirts and weapons to the forward bases; cutting a base's
+  supply prevents reinforcing it. Troop transport is left for phase 4.
+- **Villager-style workers (Age of Empires):** the match starts without a resource truck; soldiers without a rifle,
+  spawned at the main base (1 shirt), collect salvage by hand; the factory produces the truck as an upgrade; losing the
+  truck goes back to hand collection. The base keeps the number of workers in `CFG` by itself while there are shirts.
 
-## Fase 5 — Várias regiões e o mundo
-Duas ou mais regiões ligadas, frentes múltiplas de verdade, portos e navios de transporte, aviões; por fim, uma
-campanha pelo mapa do mundo.
+## Phase 4 — Vehicles and heavy weapons
+Trucks driven by the mod's AI, armored cars, artillery with produced ammunition, forward base construction.
 
-Cada fase segue o fluxo do projeto: construir em lotes, testar no laboratório, registrar no `MODLOG.md`.
+## Phase 5 — Several regions and the world
+Two or more linked regions, real multiple fronts, ports and transport ships, planes; finally, a
+campaign over the world map.
+
+Each phase follows the project's flow: build in batches, test in the lab, record in `MODLOG.md`.

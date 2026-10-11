@@ -1,261 +1,262 @@
-* Plano de trabalho paralelo — Foxhole RTS — 2026-10-09
-* Legenda: [ ] livre; [ . ] em andamento; [ x ] concluída.
-* Indentação define subtasks e comentários da task acima.
-* Cada task de primeiro nível pertence a um agente independente; suas subtasks pertencem ao mesmo agente.
-* Ao assumir: mudar para [ . ] e registrar responsável neste arquivo. Ao terminar: anexar evidências e mudar para [ x ].
-* Nenhuma task está atribuída ou em execução na criação deste plano.
-* Reservas posteriores são exclusivas: task com responsável nomeado NÃO é livre, mesmo se ainda [ ].
-* Claude será disparado pelo usuário. Reserva não significa execução; só o agente responsável muda para [ . ] ao começar.
-* Antes de trabalhar: ler AGENTS.md, MODLOG.md/Como retomar e ROADMAP.md; consultar universal-modder e registrar aprendizados.
-* Não marcar concluída apenas por intenção ou teste offline quando houver requisito ao vivo.
-* Todos: offline, Steam/DRM/firewall preservados; sem injeção de teclado/mouse, RPC ou inventário nativo.
-* Arquivo compartilhado: editar somente o bloco da própria task, preservando os demais estados.
-* main.lua é compartilhado e este diretório não tem histórico git: agentes entregam propostas/patches separados,
-  sem editar main.lua simultaneamente. O agente de integração aplica e valida em sequência.
-* Relatórios/patches por task: data/parallel/<identificador>/; sondas temporárias: D:/tools/foxhole-lab/.
-* Apenas o agente de laboratório publica, reinicia ou usa o canal de comandos; nunca junto com botloop.
-* Trabalho em lotes: preparar offline em paralelo, integrar, executar uma sessão de validação ao vivo.
+* Parallel work plan — Foxhole RTS — 2026-10-09
+* Legend: [ ] free; [ . ] in progress; [ x ] done.
+* Indentation defines subtasks and comments on the task above.
+* Each top-level task belongs to one independent agent; its subtasks belong to the same agent.
+* When taking a task: change it to [ . ] and record the owner in this file. When done: attach evidence and change it to [ x ].
+* No task was assigned or running when this plan was created.
+* Later reservations are exclusive: a task with a named owner is NOT free, even if still [ ].
+* Claude will be launched by the user. A reservation does not mean execution; only the owning agent changes it to [ . ] when starting.
+* Before working: read AGENTS.md, MODLOG.md/How to resume and ROADMAP.md; consult universal-modder and record learnings.
+* Do not mark done just by intention or an offline test when there is a live requirement.
+* Everyone: offline, Steam/DRM/firewall preserved; no keyboard/mouse injection, RPC or native inventory.
+* Shared file: edit only your own task's block, keeping the other states.
+* main.lua is shared and this folder had no git history at the time: agents deliver separate proposals/patches,
+  without editing main.lua at the same time. The integration agent applies and validates them in sequence.
+* Reports/patches per task: data/parallel/<identifier>/; temporary probes: D:/tools/foxhole-lab/.
+* Only the lab agent publishes, restarts or uses the command channel; never together with botloop.
+* Work in batches: prepare offline in parallel, integrate, run one live validation session.
+* Note (2026-10-11): folder and file names were translated to English; task identifiers below keep their original names.
 
-[ . ] ESTABILIDADE — Isolar e corrigir as quedas do contorno completo
-    * Responsável: agente estabilidade (/root/stability). Prioridade crítica; preservar a aparência aprovada, sem voltar a discos.
-    * Fontes: data/trace_selection.txt; MODLOG.md lote 17; rts.setOutline/clearOutline/updateOutline.
-    [ x ] Auditar callbacks, referências, caches por endereço e limpeza antes de morte/destruição
-    [ x ] Preparar reprodução controlada por componente, sem hotpatch que contamine o diagnóstico
-    [ ] Distinguir hipóteses de GC, MasterPose e Lua Registry com evidência reproduzível
-    [ x ] Propor correção mínima e regressão offline que falhe antes dela
-    * Novo crash PID4408/lote2: acesso0x63, Registry Ref was not function; comparado com2crashes antigos em data/parallel/stability/callback_registry.md. Causa não isolada; gates live continuam pendentes.
-    * Live curto PID4436: 28 cópias, des/reseleção, morte/reap/limpeza/recriação e CollectGarbage PASS; reseleção aos89s PASS. Causa original não isolada; não declarar estável. Análise de custo em data/parallel/stability/optimization.md.
-    * Integração: coordenador aplicou guard em outlineDepth/updateOutline; regressão testa main.lua real. Validação ao vivo pendente.
-    * Evidência offline: data/parallel/stability/test_lifetime.py; proposta update_outline.before.lua/after.lua; matriz em audit.md. Não comprova causa nativa; gate ao vivo pendente.
-    [ ] Medir custo de seleção múltipla e zoom alto; considerar shader cooked se necessário
-    [ ] Solicitar ao laboratório validação prolongada, GC, desseleção/reseleção, morte e recriação
-    * Conclusão: causa/correção documentadas e fluxo completo validado ao vivo, não só aparência.
+[ . ] ESTABILIDADE (stability) — Isolate and fix the crashes of the full outline
+    * Owner: stability agent (/root/stability). Critical priority; keep the approved appearance, no going back to discs.
+    * Sources: data/trace_selection.txt; MODLOG.md batch 17; rts.setOutline/clearOutline/updateOutline.
+    [ x ] Audit callbacks, references, caches keyed by address and cleanup before death/destruction
+    [ x ] Prepare a controlled reproduction per component, without a hotpatch that contaminates the diagnosis
+    [ ] Tell the GC, MasterPose and Lua Registry hypotheses apart with reproducible evidence
+    [ x ] Propose a minimal fix and an offline regression that fails before it
+    * New crash PID4408/batch 2: access 0x63, Registry Ref was not function; compared with 2 old crashes in data/parallel/stability/callback_registry.md. Cause not isolated; live gates still pending.
+    * Short live PID4436: 28 copies, de/reselection, death/reap/cleanup/recreation and CollectGarbage PASS; reselection at 89 s PASS. Original cause not isolated; do not declare stable. Cost analysis in data/parallel/stability/optimization.md.
+    * Integration: the coordinator applied a guard in outlineDepth/updateOutline; the regression tests the real main.lua. Live validation pending.
+    * Offline evidence: data/parallel/stability/test_lifetime.py; proposal update_outline.before.lua/after.lua; matrix in audit.md. Does not prove the native cause; live gate pending.
+    [ ] Measure the cost of multiple selection and high zoom; consider a cooked shader if needed
+    [ ] Ask the lab for prolonged validation, GC, deselection/reselection, death and recreation
+    * Done means: cause/fix documented and the full flow validated live, not only the appearance.
 
-[ . ] ESTRADAS — Transporte regional pela rede nativa
-    * Responsável: agente Codex /root/roads. Offline; entrega isolada, integração após estabilidade.
-    * Fontes: data/trace_regions.txt; tools/inspect_region.lua; planPath; logi no main.lua.
-    * Entrega offline: data/parallel/roads/DELIVERY.md, roads.lua e test_roads.py; teste passou (lupa).
-    * Dependência: exportar schema/conexões/curvas nativas e validar superfície/ponte/folga no laboratório; task não concluída.
-    [ ] Mapear segmentos/conexões da rede descoberta no mundo carregado, sem coordenadas do lobby
-    [ ] Definir acesso seguro entre estrada, campo, refinaria, fábrica e frente
-    [ ] Reutilizar navegação existente e explicitar limites para caminhões, água, pontes e folga
-    [ ] Implementar proposta de rotas e seguimento, sem reta de emergência através de prédios
-    [ ] Tratar rota ausente, veículo destruído, bloqueio e invalidação ao trocar de região
-    [ ] Criar testes offline de rede desconectada, acesso, bloqueio e preservação de carga
-    [ ] Solicitar trajetos ao vivo no hex com obstáculos, água/pontes e entrega real
-    * Conclusão: transporte verificável por estrada; falha explícita sem entrega fictícia.
+[ . ] ESTRADAS (roads) — Regional transport over the native network
+    * Owner: Codex agent /root/roads. Offline; isolated delivery, integration after stability.
+    * Sources: data/trace_regions.txt; tools/inspect_region.lua; planPath; logi in main.lua.
+    * Offline delivery: data/parallel/roads/DELIVERY.md, roads.lua and test_roads.py; test passed (lupa).
+    * Dependency: export the native schema/connections/curves and validate surface/bridge/clearance in the lab; task not done.
+    [ ] Map segments/connections of the network discovered in the loaded world, without lobby coordinates
+    [ ] Define safe access between road, field, refinery, factory and front
+    [ ] Reuse the existing navigation and make the limits explicit for trucks, water, bridges and clearance
+    [ ] Implement a route and route-following proposal, without an emergency straight line through buildings
+    [ ] Handle a missing route, a destroyed vehicle, a blockage and invalidation when switching regions
+    [ ] Create offline tests for a disconnected network, access, blockage and cargo preservation
+    [ ] Ask for live routes in the hex with obstacles, water/bridges and real delivery
+    * Done means: verifiable transport by road; explicit failure without fictitious delivery.
 
-[ . ] INTERFACE — Painel de logística e ferramentas de várias frentes
-    * Responsável: Codex agente interface. Offline; proposta isolada, sem main.lua/jogo/canal.
-    [ x ] Rastrear widgets nativos já utilizados e definir contrato de leitura dos dados do mod
-    [ ] Desenhar caixa visível durante seleção por arrasto, sem capturar ordens indevidamente
-    [ ] Mostrar estoques, filas de produção, carga/destino dos caminhões e falta de suprimento
-    [ ] Oferecer foco em instalação/frente e alertas acionáveis sem poluição visual
-    [ ] FUTURO — Adicionar minimapa da região junto à evolução da UI
-        * Pedido do usuário: todo RTS precisa de minimapa; não é prioridade agora.
-        * Mostrar câmera, unidades, instalações e alertas com dados reais; permitir foco em várias frentes.
-        * Planejar projeção/escala da região e interação quando o trabalho de UI entrar no lote, sem antecipar implementação.
-    [ ] Cobrir atualização, ocultação, troca de mapa e destruição de atores nos testes
-    [ ] Preparar roteiro de validação visual e entrada real para o usuário
-    * Conclusão: UI legível e coerente com estado real; entrada real só validada pelo usuário.
-    * Entrega offline: data/parallel/interface/REPORT.md, painel.lua, painel.patch e test_interface.py (PASS).
-    * Patch só formata HUD existente; caixa exige sonda de projeção/DPI/UMG; gates visuais/entrada continuam abertos.
+[ . ] INTERFACE — Logistics panel and multi-front tools
+    * Owner: Codex interface agent. Offline; isolated proposal, no main.lua/game/channel.
+    [ x ] Trace the native widgets already used and define the contract for reading the mod's data
+    [ ] Draw a visible box during drag selection, without wrongly capturing orders
+    [ ] Show stocks, production queues, truck cargo/destination and lack of supply
+    [ ] Offer focus on an installation/front and actionable alerts without visual clutter
+    [ ] FUTURE — Add a region minimap along with the UI's evolution
+        * User's request: every RTS needs a minimap; not a priority now.
+        * Show camera, units, installations and alerts with real data; allow focus on several fronts.
+        * Plan the region's projection/scale and interaction when UI work enters the batch, without implementing early.
+    [ ] Cover updates, hiding, map changes and actor destruction in the tests
+    [ ] Prepare a script for visual validation and real input for the user
+    * Done means: readable UI consistent with the real state; real input validated only by the user.
+    * Offline delivery: data/parallel/interface/REPORT.md, painel.lua, painel.patch and test_interface.py (PASS).
+    * The patch only formats the existing HUD; the box needs a projection/DPI/UMG probe; visual/input gates still open.
 
-[ . ] ECONOMIA — Ampliar produção e abastecimento da cadeia curta
-    * Responsável: Codex agente interface/economy (segunda entrega offline). Sem main.lua/jogo/canal.
-    * Fontes: MECHANICS_STUDY.md; data/game_costs.txt; tools/test_costs.py.
-    [ x ] Conferir receitas/conteúdo de caixas de armas, granadas e médico nos dados extraídos
-    [ ] Propor produção, transporte e consumo próprios usando os custos do jogo
-    [ ] Evitar custo zero por erro de schema, duplicação e débito sem produção
-    [ ] Definir recrutamento/reabastecimento dependentes de suprimento na frente
-    [ ] Criar testes de escassez, interrupção de transporte e conservação de estoque
-    [ ] Solicitar cadeia completa ao vivo, sem estoque inicial artificial mascarando falhas
-    * Conclusão: novos produtos percorrem a cadeia e afetam a frente com contabilidade verificável.
-    * Entrega: data/parallel/economy/economy.lua, test_economy.py (PASS), REPORT.md. Módulo contábil isolado, não integrado.
-    * GrenadeW exige Explosive40 além de bmat100; cadeia atual não fornece explosivo. Gates de integração/efeitos/ao vivo abertos.
-    * Segunda entrega: economy_integrated.patch/build_patch.py + functions.lua/save.lua. test_integration.py e suíte test_orders candidata em memória PASS.
-    * Integra produção/transporte/depot/prioridade/recruit rifle/medic ativo/save; políticas gratuitas/passivas e gates engine/visual explicitados no relatório.
+[ . ] ECONOMIA (economy) — Expand production and supply of the short chain
+    * Owner: Codex interface/economy agent (second offline delivery). No main.lua/game/channel.
+    * Sources: MECHANICS_STUDY.md; data/game_costs.txt; tools/test_costs.py.
+    [ x ] Check recipes/contents of weapon, grenade and medical crates in the extracted data
+    [ ] Propose our own production, transport and consumption using the game's costs
+    [ ] Avoid zero cost from a schema error, duplication and debit without production
+    [ ] Define recruitment/resupply dependent on supply at the front
+    [ ] Create tests for scarcity, transport interruption and stock conservation
+    [ ] Ask for the full chain live, without artificial starting stock masking failures
+    * Done means: new products go through the chain and affect the front with verifiable accounting.
+    * Delivery: data/parallel/economy/economy.lua, test_economy.py (PASS), REPORT.md. Isolated accounting module, not integrated.
+    * GrenadeW requires Explosive 40 besides bmat 100; the current chain does not provide explosive. Integration/effects/live gates open.
+    * Second delivery: economy_integrated.patch/build_patch.py + functions.lua/save.lua. test_integration.py and the candidate test_orders suite in memory PASS.
+    * Integrates production/transport/depot/priority/rifle recruit/active medic/save; free/passive policies and engine/visual gates spelled out in the report.
 
-[ . ] IA_LOGISTICA — Cadeia inimiga e interdição estratégica
-    * Responsável exclusivo: CLAUDE_IA_LOGISTICA — reservado ao Claude que o usuário disparará. Codex não assume.
-    * 2026-10-09: CLAUDE_IA_LOGISTICA iniciou (subagente do Claude disparado pelo usuário). Offline, entrega em data/parallel/logistics_ai/.
-    * Depende dos contratos de ESTRADAS e ECONOMIA para integração.
-    * Entrega exclusiva: data/parallel/logistics_ai/. Sem main.lua, laboratório ou docs compartilhadas; editar somente este bloco.
-    * Primeiro ler entregas atuais de roads/economy e definir contratos compatíveis; entregar patch isolado e testes.
-    [ x ] Auditar economy/convoy atuais e separar estoque real de bônus abstratos de ondas
-        * A1–A6 em REPORT.md (carga do nada, waveCut abstrato, save sem carga, munição/ondas/morteiro grátis); test_base_audit.py PASS.
-    [ x ] Definir coleta/refino/produção/transporte inimigos com regras próprias equivalentes
-        * Retaguarda fora do mapa com CFG.LOGI.recipes, refino 2:1 e custos de game_costs.txt; receita sem custo recusa a cadeia.
-    [ ] Fazer destruição/interdição reduzir suprimento sem criar ou duplicar carga
-        * Offline PASS (25 sementes × 600 passos, razão fechado; BPTruckC só debita após ator válido). Falta caminhão real ao vivo.
-    [ ] Testar recuperação, escassez, perda de comboio e continuidade da partida
-        * Offline PASS (corte total → piso 3 com byCut; corte até 420 s → 10ª onda 13/13; sem bmat → partida continua). Falta ao vivo.
-    [ ] Solicitar regressão de combate/equilíbrio prolongada no hex
-        * Roteiro pronto (LAB_SCRIPT.md L1–L12, B0–B3; sonda t_logistics_ai.lua não executada); aguarda LABORATORIO.
-    * Conclusão: cortar a cadeia inimiga tem efeito rastreável na frente, não só contador cosmético.
-    * Entrega offline 2026-10-09: data/parallel/logistics_ai/ (RELATORIO, logistics_ai.lua, logistics_ai.patch sobre ECONOMIA,
-      logistics_ai_base.patch sobre main puro, build_patch.py, testes, TEST_OUTPUT.txt, PROPOSED_GOTCHAS.md). main.lua intacto.
-    * Testes reexecutados pelo orquestrador: test_ia_logistica (2 candidatos), test_orders_candidato (4 execuções, inclui
-      economy/test_integracao), test_auditoria_base: PASS. Sintaxe OK, 178 locais, check_globals sem saída.
-    * Ordem: ESTABILIDADE → ECONOMIA → IA_LOGISTICA → INTERFACE; trocar bloco "enemy convoy" de test_orders por
-      test_orders_convoy_block.lua. Depois: driver ESTRADAS (true só na chegada + tr.routeStatus) e schema elogi da PERSISTENCIA.
-    * Achados p/ coordenador: patch ECONOMIA não aplica sobre INTERFACE (âncora table.concat(deps, " | "), foe) some);
-      hipótese não testada: logi.tick do jogador pode gastar bmat na fábrica e impedir reconstruir caminhão (100 bmat).
-    * Risco de equilíbrio: corte total leva ondas ao piso 3 (antes −4 máx.); calibrar em CFG.ECHAIN.
-    [ x ] ACABAMENTO offline (Claude/Sonnet, 2026-10-09): calibração CFG.ECHAIN, hipótese bmat×caminhão do jogador e
-          reconciliação elogi com PERSISTENCIA. Entrega em data/parallel/logistics_ai/finishing/.
-        * run_all.sh: TUDO PASS (reexecutado pelo orquestrador); test_elogi 22, test_persistencia_v2 54, bmat 31/31; 178 locais.
-        * Calibração v2: free 3→5, want 6/30→4/20, trip 25→20. Corte total: média ondas 5–10 de 28%→52% do pedido (antigo −4: 63%).
-          Achado: calibração original já enfraquecia ondas SEM corte em cadência ≤50 s (refinaria satura em 2 bmat/s).
-        * bmat×caminhão confirmado offline (0/31 voltam): fábrica inicia aos 80 e nunca deixa chegar a 100; trocar ordem não resolve.
-          bmat_reserve.patch: com caminhão destruído, fábrica só inicia se sobrar 100 bmat por caminhão → 31/31, pior 49,5 s.
-        * elogi: inválido/futuro/ausente descarta SÓ a seção, cadeia inimiga reinicia do cenário com aviso; resto do save restaura.
-        * Decisões abertas (usuário/coordenador): estoque de recomeço do elogi descartado; caminhão de recurso destruído com
-          bmat=0 e sucata=0 nunca volta (reserva permanente ou reconstrução gratuita). Ordem: ECONOMIA → IA v2 → reserva_bmat →
-          INTERFACE → PERSISTENCIA v2. Gates ao vivo: cadência real das ondas, eReport, aviso "fábrica guarda…", elogi corrompido.
-        * Decisões do usuário (2026-10-09): elogi descartado recomeça do estoque do cenário; caminhão de recurso perdido sem
-          bmat/sucata → COLETA MANUAL LENTA por soldados (sem material do nada).
-    [ x ] COLETA_MANUAL offline (Claude/Sonnet, 2026-10-09): soldados coletam sucata devagar quando a cadeia trava.
-        * Entregue: manual_collection/candidate_v3/main.lua SHA256 9b89b113…63e6 (6644 linhas); run_all.sh rc_final=0 (reexecutado
-          pelo orquestrador): partida_manual 14, núcleo 18, travamento 4, persistência 10, spawn_interface 9, test_orders_v3,
-          test_pilha_v3 22/22. Pilha v3 = v2 + manual_collection.patch. 175 locais (regex), check_globals limpo.
-        * Início sem caminhão de recurso (Alt+L: refinaria+fábrica+2 de suprimento por 1000), bmat0 40, startRifles 10, 3
-          trabalhadores sem arma (1 camisa, via logi.spawnSite/spawnCommit). Números de coleta (0,5 sucata/s, cap 40) são
-          proposta: não há dado de coleta a pé. Harness: 1º caminhão em 165 s a 80 m / ~6 min a 470 m; deadlock antigo resolvido.
-        * Decisões do orquestrador (delegadas): números mantidos até calibrar no laboratório; trabalhadores NÃO contam no
-          SQUAD_MAX (12) — custo é camisa, não vaga de combate (implementar na etapa 2 das bases); trabalhador ocioso fica na base.
-          Save v3 não abre no v2 (só avança): aceito e documentar no README.
-        * Gates ao vivo: A* real até campo/refinaria, animação sem arma (grip=0) no ABP_Male_C, spawnSoldier com role worker,
-          caminhão spawnado pelo spawnTruck, custo do colStep, fluxo humano.
-          Entrega em data/parallel/logistics_ai/finishing/manual_collection/; depois pilha v3 no ENSAIO_INTEGRACAO.
-        * Escopo ampliado pelo usuário (2026-10-09): estilo aldeões do Age of Empires. A partida começa SEM caminhão de recurso;
-          trabalhadores coletam à mão e a fábrica produz o caminhão (100 bmat) como melhoria; perder o caminhão volta à coleta.
+[ . ] IA_LOGISTICA (logistics AI) — Enemy chain and strategic interdiction
+    * Exclusive owner: CLAUDE_IA_LOGISTICA — reserved for the Claude the user will launch. Codex does not take it.
+    * 2026-10-09: CLAUDE_IA_LOGISTICA started (subagent of the Claude launched by the user). Offline, delivery in data/parallel/logistics_ai/.
+    * Depends on the ESTRADAS and ECONOMIA contracts for integration.
+    * Exclusive delivery: data/parallel/logistics_ai/. No main.lua, lab or shared docs; edit only this block.
+    * First read the current roads/economy deliveries and define compatible contracts; deliver an isolated patch and tests.
+    [ x ] Audit the current economy/convoy and separate real stock from abstract wave bonuses
+        * A1–A6 in REPORT.md (cargo from nothing, abstract waveCut, save without cargo, free ammo/waves/mortar); test_base_audit.py PASS.
+    [ x ] Define enemy collection/refining/production/transport with equivalent rules of its own
+        * Off-map rear with CFG.LOGI.recipes, refining 2:1 and costs from game_costs.txt; a recipe without a cost refuses the chain.
+    [ ] Make destruction/interdiction reduce supply without creating or duplicating cargo
+        * Offline PASS (25 seeds × 600 steps, closed ledger; BPTruckC only debits after a valid actor). Real truck live still missing.
+    [ ] Test recovery, scarcity, convoy loss and match continuity
+        * Offline PASS (total cut → floor 3 with byCut; cut until 420 s → 10th wave 13/13; no bmat → match continues). Live missing.
+    [ ] Ask for a prolonged combat/balance regression in the hex
+        * Script ready (LAB_SCRIPT.md L1–L12, B0–B3; probe t_logistics_ai.lua not run); waiting for LABORATORIO.
+    * Done means: cutting the enemy chain has a traceable effect at the front, not just a cosmetic counter.
+    * Offline delivery 2026-10-09: data/parallel/logistics_ai/ (REPORT, logistics_ai.lua, logistics_ai.patch over ECONOMIA,
+      logistics_ai_base.patch over plain main, build_patch.py, tests, TEST_OUTPUT.txt, PROPOSED_GOTCHAS.md). main.lua untouched.
+    * Tests rerun by the orchestrator: test_logistics_ai (2 candidates), test_orders_candidate (4 runs, includes
+      economy/test_integration), test_base_audit: PASS. Syntax OK, 178 locals, check_globals with no output.
+    * Order: ESTABILIDADE → ECONOMIA → IA_LOGISTICA → INTERFACE; replace the "enemy convoy" block of test_orders with
+      test_orders_convoy_block.lua. Then: ESTRADAS driver (true only on arrival + tr.routeStatus) and the elogi schema from PERSISTENCIA.
+    * Findings for the coordinator: the ECONOMIA patch does not apply over INTERFACE (anchor table.concat(deps, " | "), foe) disappears);
+      untested hypothesis: the player's logi.tick may spend bmat at the factory and prevent rebuilding a truck (100 bmat).
+    * Balance risk: a total cut takes waves to floor 3 (before −4 max); calibrate in CFG.ECHAIN.
+    [ x ] ACABAMENTO (finishing) offline (Claude/Sonnet, 2026-10-09): CFG.ECHAIN calibration, the player's bmat×truck hypothesis and
+          elogi reconciliation with PERSISTENCIA. Delivery in data/parallel/logistics_ai/finishing/.
+        * run_all.sh: ALL PASS (rerun by the orchestrator); test_elogi 22, test_persistence_v2 54, bmat 31/31; 178 locals.
+        * Calibration v2: free 3→5, want 6/30→4/20, trip 25→20. Total cut: average of waves 5–10 from 28%→52% of the request (old −4: 63%).
+          Finding: the original calibration already weakened waves WITHOUT a cut at a cadence ≤50 s (the refinery saturates at 2 bmat/s).
+        * bmat×truck confirmed offline (0/31 come back): the factory starts at 80 and never lets it reach 100; swapping the order does not solve it.
+          bmat_reserve.patch: with the truck destroyed, the factory only starts if 100 bmat per truck are left → 31/31, worst 49.5 s.
+        * elogi: invalid/future/missing discards ONLY the section, the enemy chain restarts from the scenario with a warning; the rest of the save restores.
+        * Open decisions (user/coordinator): restart stock of a discarded elogi; a destroyed resource truck with
+          bmat=0 and salvage=0 never comes back (permanent reserve or free rebuild). Order: ECONOMIA → IA v2 → reserva_bmat →
+          INTERFACE → PERSISTENCIA v2. Live gates: real wave cadence, eReport, warning "fábrica guarda…", corrupted elogi.
+        * User's decisions (2026-10-09): a discarded elogi restarts from the scenario stock; a lost resource truck without
+          bmat/salvage → SLOW MANUAL COLLECTION by soldiers (no material from nothing).
+    [ x ] COLETA_MANUAL (manual collection) offline (Claude/Sonnet, 2026-10-09): soldiers collect salvage slowly when the chain stalls.
+        * Delivered: manual_collection/candidate_v3/main.lua SHA256 9b89b113…63e6 (6644 lines); run_all.sh rc_final=0 (rerun
+          by the orchestrator): manual_match 14, core 18, freeze 4, persistence 10, spawn_interface 9, test_orders_v3,
+          test_stack_v3 22/22. Stack v3 = v2 + manual_collection.patch. 175 locals (regex), check_globals clean.
+        * Start without a resource truck (Alt+L: refinery+factory+2 supply trucks for 1000), bmat0 40, startRifles 10, 3
+          unarmed workers (1 shirt, via logi.spawnSite/spawnCommit). Collection numbers (0.5 salvage/s, cap 40) are a
+          proposal: there is no data for collection on foot. Harness: 1st truck at 165 s at 80 m / ~6 min at 470 m; old deadlock solved.
+        * Orchestrator's decisions (delegated): numbers kept until calibrated in the lab; workers do NOT count toward
+          SQUAD_MAX (12) — the cost is a shirt, not a combat slot (implement in stage 2 of the bases); an idle worker stays at the base.
+          A v3 save does not open in v2 (only forward): accepted, document in the README.
+        * Live gates: real A* to field/refinery, animation without a weapon (grip=0) in ABP_Male_C, spawnSoldier with role worker,
+          truck spawned by spawnTruck, colStep cost, human flow.
+          Delivery in data/parallel/logistics_ai/finishing/manual_collection/; then stack v3 in ENSAIO_INTEGRACAO.
+        * Scope widened by the user (2026-10-09): Age of Empires villager style. The match starts WITHOUT a resource truck;
+          workers collect by hand and the factory produces the truck (100 bmat) as an upgrade; losing the truck goes back to collection.
 
-[ . ] PERSISTENCIA — Salvar infraestrutura e logística regional com segurança
-    * Responsável exclusivo: CLAUDE_PERSISTENCIA — reservado ao Claude que o usuário disparará. Codex não assume.
-    * 2026-10-09: CLAUDE_PERSISTENCIA iniciou (subagente do Claude disparado pelo usuário). Offline, entrega em data/parallel/persistence/.
-    * Coordenar schema com ECONOMIA e ESTRADAS; infraestrutura hoje não persiste.
-    * Entrega exclusiva: data/parallel/persistence/. Sem main.lua, laboratório ou docs compartilhadas; editar somente este bloco.
-    * ECONOMIA já propôs save.lua para job/carga/estoques: reconciliar essa proposta, não sobrescrever nem duplicar schema.
-    * Entregar patch isolado e testes de restauração/rollback; integração final pertence ao coordenador.
-    [ x ] Auditar save/continue e definir versão/schema para carteira, instalações, cargas e produção
-        * A1–A10 em REPORT.md. Schema v2 = v1 + world + infra v1 (carteira/pago por código/XYZ/yaw) + logi v2 da ECONOMIA
-          (inalterado) + elogi da IA_LOGISTICA (logi.eValid) + enemy reservado. v1 aceito; versão futura/campo desconhecido recusa.
-    [ x ] Persistir identificadores/data, nunca userdata ou endereços de atores
-        * Sem ator/userdata/endereço/rota (rota recalculada, contrato ESTRADAS). Leitura por parser de literais, sem load/dofile.
-    [ ] Revalidar mundo, superfície, atores e orçamento antes de restaurar
-        * Preflight sem efeito (mundo, superfície, chão, ruína/ativo ≤2 m/≤1°, sucata, caminhões ≤ pagos, vagas) e restauração sem
-          recobrar nem duplicar: offline PASS. Falta ao vivo: GetFullName do mundo, ruína/yaw entre cargas, spawn real.
-    [ ] Tratar arquivo inválido/incompatível sem apagar a sessão ou duplicar infraestrutura
-        * Gravação atômica (tmp relido, .bak/.corrupt; destino removido antes do rename no Windows), leitura save→.tmp→.bak;
-          falha pós-preflight marca INCOMPLETA e suspende autosave. Offline PASS; falta semântica real de io/os.rename no UE4SS.
-    [ x ] Criar testes de ida/volta, corrupção, mapa errado e restauração repetida
-        * test_persistence.py PASS 36/36 (9 cenários × Lua 5.4/5.5 × pilhas com/sem IA); test_regression.py PASS (test_orders nas
-          2 pilhas, economy/test_integracao, logistics_ai sobre a pilha, check_globals). ~11 ms por save com 120+ unidades.
-    [ ] Solicitar save/continue ao vivo numa nova carga do hex
-        * Roteiro pronto (LAB_SCRIPT.md L0–L12; sonda só leitura lab/t_persist_state.lua não executada); aguarda LABORATORIO.
-    * Conclusão: restauração consistente e sem perda/duplicação de recursos ou atores.
-    * Entrega offline 2026-10-09: data/parallel/persistence/ (RELATORIO, persistence.lua em sv.*/CFG.PERSIST, implantacao
-      before/after com logi.applyPlan + logi.deploy, build_patch.py → candidate/main.lua e main_with_ai.lua, patches, testes,
-      PROPOSED_GOTCHAS.md). main.lua intacto (SHA256 33d6c7e5…e679). Testes reexecutados pelo orquestrador: PASS.
-    * Ordem: ESTABILIDADE → ECONOMIA → IA_LOGISTICA (opcional) → PERSISTENCIA (substitui a linha sv.load em que a IA ancora;
-      build reconhece as duas variantes). Usar build_patch.py (gera CRLF); os .patch são LF. Sem tecla nova.
-    * SUPERADO pela persistencia_v2 do ACABAMENTO (pilha v2+): elogi inválido descarta só a seção, não o save inteiro.
-    * Achados p/ coordenador: sv.parse agora só decodifica; validação do save é sv.parseSave. elogi inválido recusa o save
-      inteiro (mais estrito que a IA). README deve descrever save v2, recusas e autosave suspenso. Transporte segue em reta até
-      driver ESTRADAS. economy/__pycache__ pode ter sido regravado pelo import do build.
+[ . ] PERSISTENCIA (persistence) — Save infrastructure and regional logistics safely
+    * Exclusive owner: CLAUDE_PERSISTENCIA — reserved for the Claude the user will launch. Codex does not take it.
+    * 2026-10-09: CLAUDE_PERSISTENCIA started (subagent of the Claude launched by the user). Offline, delivery in data/parallel/persistence/.
+    * Coordinate the schema with ECONOMIA and ESTRADAS; infrastructure does not persist today.
+    * Exclusive delivery: data/parallel/persistence/. No main.lua, lab or shared docs; edit only this block.
+    * ECONOMIA already proposed save.lua for job/cargo/stocks: reconcile that proposal, do not overwrite nor duplicate the schema.
+    * Deliver an isolated patch and restore/rollback tests; the final integration belongs to the coordinator.
+    [ x ] Audit save/continue and define the version/schema for wallet, installations, cargo and production
+        * A1–A10 in REPORT.md. Schema v2 = v1 + world + infra v1 (wallet/paid per code/XYZ/yaw) + ECONOMIA's logi v2
+          (unchanged) + IA_LOGISTICA's elogi (logi.eValid) + enemy reserved. v1 accepted; a future version/unknown field refuses.
+    [x ] Persist identifiers/data, never userdata or actor addresses
+        * No actor/userdata/address/route (route recomputed, ESTRADAS contract). Reading by a literal parser, without load/dofile.
+    [ ] Revalidate world, surface, actors and budget before restoring
+        * Side-effect-free preflight (world, surface, ground, ruin/active ≤2 m/≤1°, salvage, trucks ≤ paid, slots) and restore without
+          charging again nor duplicating: offline PASS. Live missing: the world's GetFullName, ruin/yaw between loads, real spawn.
+    [ ] Handle an invalid/incompatible file without wiping the session or duplicating infrastructure
+        * Atomic write (tmp reread, .bak/.corrupt; destination removed before the rename on Windows), read save→.tmp→.bak;
+          a post-preflight failure marks INCOMPLETE and suspends autosave. Offline PASS; real io/os.rename semantics in UE4SS missing.
+    [ x ] Create round-trip, corruption, wrong-map and repeated-restore tests
+        * test_persistence.py PASS 36/36 (9 scenarios × Lua 5.4/5.5 × stacks with/without AI); test_regression.py PASS (test_orders on the
+          2 stacks, economy/test_integration, logistics_ai over the stack, check_globals). ~11 ms per save with 120+ units.
+    [ ] Ask for save/continue live in a new load of the hex
+        * Script ready (LAB_SCRIPT.md L0–L12; read-only probe lab/t_persist_state.lua not run); waiting for LABORATORIO.
+    * Done means: consistent restore without loss/duplication of resources or actors.
+    * Offline delivery 2026-10-09: data/parallel/persistence/ (REPORT, persistence.lua in sv.*/CFG.PERSIST, deployment
+      before/after with logi.applyPlan + logi.deploy, build_patch.py → candidate/main.lua and main_with_ai.lua, patches, tests,
+      PROPOSED_GOTCHAS.md). main.lua untouched (SHA256 33d6c7e5…e679). Tests rerun by the orchestrator: PASS.
+    * Order: ESTABILIDADE → ECONOMIA → IA_LOGISTICA (optional) → PERSISTENCIA (replaces the sv.load line the AI anchors on;
+      the build recognizes both variants). Use build_patch.py (it generates CRLF); the .patch files are LF. No new key.
+    * SUPERSEDED by ACABAMENTO's persistence_v2 (stack v2+): an invalid elogi discards only the section, not the whole save.
+    * Findings for the coordinator: sv.parse now only decodes; save validation is sv.parseSave. An invalid elogi refuses the whole
+      save (stricter than the AI). The README must describe save v2, refusals and suspended autosave. Transport stays straight until
+      the ESTRADAS driver. economy/__pycache__ may have been rewritten by the build's import.
 
-[ x ] ENSAIO_INTEGRACAO — Pilha completa de patches montada e testada offline (pré-trabalho da INTEGRACAO)
-    * Responsável: Claude (subagente Sonnet), 2026-10-09. Não aplica no main.lua real nem substitui a task INTEGRACAO do Codex.
-    * Entrega exclusiva: data/parallel/integration_rehearsal/. Não edita entregas de outros agentes; propõe rebase em pasta própria.
-    [ x ] Compor ESTABILIDADE(main atual) + ECONOMIA + IA_LOGISTICA + INTERFACE + PERSISTENCIA numa cópia, ordem documentada
-        * Ordem ECONOMIA > IA_LOGISTICA > INTERFACE (painel rebaseado) > PERSISTENCIA; IA e INTERFACE comutam (texto idêntico).
-          ESTRADAS não aplicada. candidate/main.lua CRLF 6245 linhas, SHA256 fe91ce77…65ed; stack.diff aplica no main real byte a byte.
-    [ x ] Resolver o conflito ECONOMIA × INTERFACE (âncora do HUD) com patch rebaseado próprio
-        * painel_rebase.patch troca logi.hudLine inteira preservando extraHud. Mudanças a revisar: linha INIMIGO via logi.eHud()
-          (combat.cargo virou alias) e carga do caminhão mostra fuzis/bandagens.
-    [ x ] Rodar sintaxe, locais (≤200), check_globals, test_orders, test_costs, test_inventory_probe e as suítes de cada pasta
-        * test_stack.py: 17 etapas, 17 PASS (reexecutado pelo orquestrador). 178 locais ativos (folga 22); 6 mutações detectadas.
-          Sem tecla nova; env do canal sem entrada nova; CFG.ECHAIN e CFG.PERSIST novos.
-    * Conclusão: um main.lua candidato reproduzível pelo script, com todas as suítes PASS, pronto para o coordenador revisar.
-    [ x ] Pilha v2 com o ACABAMENTO: ECONOMIA > IA v2 > reserva_bmat > INTERFACE v2 > PERSISTENCIA v2
-        * candidate_v2/main.lua SHA256 a93c1531…eda6 (6302 linhas); stack_v2.diff aplica byte a byte. test_stack.py v2: 20/20 PASS
-          (reexecutado pelo orquestrador); 4 ordens alternativas idênticas; 5 mutações detectadas; 178 locais; sem tecla/env novos.
-        * Painel v2: "Fábrica | guarda 100 bmat para reconstruir caminhão" e linha INIMIGO com "piso grátis 5/onda".
-        * Decisão do usuário (2026-10-09): elogi descartado recomeça do estoque do cenário (já implementado).
-        * Recomendação ao coordenador: integrar a v2 (stack_v2.diff ou candidate_v2), não a v1.
-    * Achados p/ coordenador: aplicar via stack.diff ou candidato (os .patch misturam CRLF/LF). roads/native_adapter.lua e
-      RETURN_PATCH.lua ainda creditam factory.ammo/shirts (dois produtos): perderiam fuzis/bandagens; alvo correto é logi.fac
-      via logi.moveCargo. Após aplicar, os build_patch.py das pastas deixam de valer e test_orders.py precisa do bloco de comboio
-      novo. README/TESTE_MANUAL: Shift+L cicla fuzis/bandagens, recrutar exige fuzil, médico depende de bandagem, cadeia
-      inimiga, painel multilinha (12×222, clipping é gate visual), save v2 (.tmp/.bak/.corrupt). combat.convoys zera no continue.
+[ x ] ENSAIO_INTEGRACAO (integration rehearsal) — Full patch stack assembled and tested offline (pre-work for INTEGRACAO)
+    * Owner: Claude (Sonnet subagent), 2026-10-09. Does not apply to the real main.lua nor replace Codex's INTEGRACAO task.
+    * Exclusive delivery: data/parallel/integration_rehearsal/. Does not edit other agents' deliveries; proposes a rebase in its own folder.
+    [ x ] Compose ESTABILIDADE(current main) + ECONOMIA + IA_LOGISTICA + INTERFACE + PERSISTENCIA in a copy, order documented
+        * Order ECONOMIA > IA_LOGISTICA > INTERFACE (rebased panel) > PERSISTENCIA; IA and INTERFACE commute (identical text).
+          ESTRADAS not applied. candidate/main.lua CRLF 6245 lines, SHA256 fe91ce77…65ed; stack.diff applies to the real main byte for byte.
+    [ x ] Solve the ECONOMIA × INTERFACE conflict (HUD anchor) with its own rebased patch
+        * painel_rebase.patch replaces the whole logi.hudLine keeping extraHud. Changes to review: ENEMY line via logi.eHud()
+          (combat.cargo became an alias) and the truck's cargo shows rifles/bandages.
+    [ x ] Run syntax, locals (≤200), check_globals, test_orders, test_costs, test_inventory_probe and each folder's suites
+        * test_stack.py: 17 steps, 17 PASS (rerun by the orchestrator). 178 active locals (22 spare); 6 mutations detected.
+          No new key; channel env without a new entry; new CFG.ECHAIN and CFG.PERSIST.
+    * Done means: a candidate main.lua reproducible by the script, with all suites PASS, ready for the coordinator to review.
+    [ x ] Stack v2 with ACABAMENTO: ECONOMIA > IA v2 > reserva_bmat > INTERFACE v2 > PERSISTENCIA v2
+        * candidate_v2/main.lua SHA256 a93c1531…eda6 (6302 lines); stack_v2.diff applies byte for byte. test_stack.py v2: 20/20 PASS
+          (rerun by the orchestrator); 4 alternative orders identical; 5 mutations detected; 178 locals; no new key/env.
+        * Panel v2: "Fábrica | guarda 100 bmat para reconstruir caminhão" and the ENEMY line with "piso grátis 5/onda".
+        * User's decision (2026-10-09): a discarded elogi restarts from the scenario stock (already implemented).
+        * Recommendation to the coordinator: integrate v2 (stack_v2.diff or candidate_v2), not v1.
+    * Findings for the coordinator: apply via stack.diff or the candidate (the .patch files mix CRLF/LF). roads/native_adapter.lua and
+      RETURN_PATCH.lua still credit factory.ammo/shirts (two products): they would lose rifles/bandages; the right target is logi.fac
+      via logi.moveCargo. After applying, the folders' build_patch.py stop being valid and test_orders.py needs the new convoy
+      block. README/MANUAL_TEST: Shift+L cycles rifles/bandages, recruiting requires a rifle, the medic depends on bandages, enemy
+      chain, multi-line panel (12×222, clipping is a visual gate), save v2 (.tmp/.bak/.corrupt). combat.convoys resets on continue.
 
-[ . ] BASES_AVANCADAS — Spawn em estruturas abastecidas (modelo Foxhole), decisão em ROADMAP.md fase 3
-    * Responsável: Claude (subagentes Sonnet), 2026-10-09. Offline; entrega em data/parallel/forward_bases/.
-    * Etapa 1 (agora): especificação + dados do jogo + contratos com recruit/logi.depotOf/ECONOMIA/PERSISTENCIA; sem código.
-    * Etapa 2 (após COLETA_MANUAL/pilha v3): patch sobre o candidato v3, testes, pilha v4 no ENSAIO_INTEGRACAO.
-        * 2026-10-09: etapa 2 iniciada (Sonnet) sobre manual_collection/candidate_v3; entrega em forward_bases/stage2/.
-        * 2026-10-10: etapa 2 entregue. candidate_v4/main.lua SHA256 025e3b80…aab0 = v3 + bases.patch. run_all.sh rc_final=0
-          (reexecutado pelo orquestrador): construção 12, recrutamento 14, perda 18 (fuzz), trabalhadores 8, persistência 16,
-          painel/teclas 9, test_orders_v4, coleta sobre v4 5/5, test_pilha_v4 22/22, 21/21 mutantes pegos. 178 locais.
-        * Pilha v4: ECONOMIA > IA v2 > reserva_bmat > INTERFACE v2 > PERSISTENCIA v2 > COLETA_MANUAL > BASES. Tecla nova Shift+J
-          (J passou a exigir sem modificador); textos de TESTE_MANUAL 11b–11h e HELP_TEXT no stage2/REPORT.md.
-        * Expectativas alteradas documentadas (diffs/test_stack_v4.diff): suítes antigas que entregam em ponto sem base rodam com
-          pointSpawn=true; default novo testado à parte. Save com bases não abre no v3. Plano B visual não implementado.
-        * Incidente: o agente rodou uma vez manual_collection/test_stack_v3.py, que regravou manual_collection/test_output_v3.txt (log).
-    [ x ] Implementar e testar offline (recusa sem estoque, corte de abastecimento, destruição da base, save)
-    [ x ] Rastrear nos dados as classes de spawn (ForwardBase1, RelicBase, Garrison...) e o que o mod já tem (pontos, depósitos)
-        * SPEC.md §1–2; sondas só leitura probes/A1–A4 (sintaxe OK, não executadas). BPForwardBase1_C nunca nasceu.
-    [ x ] Especificar construção/posição/estoque da base avançada e o recrutamento por estoque do ponto
-        * SPEC.md §3–5 + DECISIONS.md: Shift+J sobre ponto próprio (2 toques), 300 bmat da fábrica com pedido pendente,
-          estoque 15 slots (provisório), ponto sem base não reforça, inimigo não constrói na v1, startRifles=10.
-          Interface comum com COLETA_MANUAL: logi.spawnSite(role, cursor, opts) pura + logi.spawnCommit(site, role) após
-          spawn confirmado + CFG.SPAWN.roles[role] + logi.canReinforce().
-    [ ] Solicitar ao LABORATORIO: spawn real da classe no hex, recrutamento e entrega de camisas por caminhão
+[ . ] BASES_AVANCADAS (forward bases) — Spawn at supplied structures (Foxhole model), decision in ROADMAP.md phase 3
+    * Owner: Claude (Sonnet subagents), 2026-10-09. Offline; delivery in data/parallel/forward_bases/.
+    * Stage 1 (now): spec + game data + contracts with recruit/logi.depotOf/ECONOMIA/PERSISTENCIA; no code.
+    * Stage 2 (after COLETA_MANUAL/stack v3): patch over the v3 candidate, tests, stack v4 in ENSAIO_INTEGRACAO.
+        * 2026-10-09: stage 2 started (Sonnet) over manual_collection/candidate_v3; delivery in forward_bases/stage2/.
+        * 2026-10-10: stage 2 delivered. candidate_v4/main.lua SHA256 025e3b80…aab0 = v3 + bases.patch. run_all.sh rc_final=0
+          (rerun by the orchestrator): construction 12, recruitment 14, loss 18 (fuzz), workers 8, persistence 16,
+          panel/keys 9, test_orders_v4, collection over v4 5/5, test_stack_v4 22/22, 21/21 mutants caught. 178 locals.
+        * Stack v4: ECONOMIA > IA v2 > reserva_bmat > INTERFACE v2 > PERSISTENCIA v2 > COLETA_MANUAL > BASES. New key Shift+J
+          (J now requires no modifier); MANUAL_TEST texts 11b–11h and HELP_TEXT in stage2/REPORT.md.
+        * Changed expectations documented (diffs/test_stack_v4.diff): old suites that deliver at a point without a base run with
+          pointSpawn=true; the new default tested separately. A save with bases does not open in v3. Visual plan B not implemented.
+        * Incident: the agent ran manual_collection/test_stack_v3.py once, which rewrote manual_collection/test_output_v3.txt (log).
+    [ x ] Implement and test offline (refusal without stock, supply cut, base destruction, save)
+    [ x ] Trace in the data the spawn classes (ForwardBase1, RelicBase, Garrison...) and what the mod already has (points, depots)
+        * SPEC.md §1–2; read-only probes probes/A1–A4 (syntax OK, not run). BPForwardBase1_C never spawned.
+    [ x ] Specify construction/position/stock of the forward base and recruitment from the point's stock
+        * SPEC.md §3–5 + DECISIONS.md: Shift+J over an own point (2 taps), 300 bmat from the factory with a pending order,
+          stock of 15 slots (provisional), a point without a base does not reinforce, the enemy does not build in v1, startRifles=10.
+          Common interface with COLETA_MANUAL: pure logi.spawnSite(role, cursor, opts) + logi.spawnCommit(site, role) after
+          a confirmed spawn + CFG.SPAWN.roles[role] + logi.canReinforce().
+    [ ] Ask LABORATORIO: real spawn of the class in the hex, recruitment and delivery of shirts by truck
 
-[ x ] PACOTE_V4 — Pacote de entrega da pilha v4 para INTEGRACAO/LABORATORIO
-    * CANDIDATO A INTEGRAR: data/parallel/package_v4/v4_1/candidate/main.lua SHA256 62245d23…598f (CRLF, 7323 linhas) =
-      candidate_v4 + v4_1.patch (4 trocas: onda, aviso e derrota no Assalto por rts.combatCount(); squadCenter só de combatentes,
-      fallback todos os vivos). test_v4_1.py: v4 falha nos casos que mudam, v4.1 passa (reexecutado pelo orquestrador).
-      bateria_pos_integracao 28/28, sensibilidade 26/26 (21 mutantes). Docs do pacote apontam a v4.1; DECISOES_EM_ABERTO: 16 itens.
-    * Responsável: Claude (subagente Sonnet), 2026-10-10. Offline; entrega em data/parallel/package_v4/. Não aplica nada.
-    [ x ] Rascunhos de README/TESTE_MANUAL/HELP/MODLOG fiéis ao candidate_v4 (sem aplicar nos docs)
-        * HOW_TO_INTEGRATE.md, README_/TESTE_MANUAL_/MODLOG_DRAFT.md, OPEN_DECISIONS.md (17 itens); apply_test_orders.py
-          (dry-run, idempotente), post_integration_battery.py (27/27 numa cópia do repo no scratchpad; mutantes reprovam), read_save.py.
-    [ x ] Roteiro único de laboratório priorizado (gate de estabilidade primeiro), juntando os roteiros das pastas
-        * BATCH_SCRIPT.md + 22 sondas: ~285 min (5h40 com margem), 6 cargas limpas; robô opcional. Recomendação: rodar B2/A2 do
-          gate de estabilidade com a fonte 33d6c7e5 ANTES de publicar a v4 (a v4 muda o hash da fonte do gate).
-    [ x ] Gotchas consolidados para a nota universal-modder (sem editar o universal-modder)
-        * CONSOLIDATED_GOTCHAS.md itens 48–76, todos "só offline".
-    * Divergências relatório×código corrigidas no pacote (texto segue o código): newGame já liga ondas; raio de ponto/depósito 5 m;
-      trabalhadores fora do SQUAD_MAX. Divergência "onda conta #squad com trabalhadores": decidido excluir (v4.1 em andamento).
+[ x ] PACOTE_V4 (package v4) — Delivery package of stack v4 for INTEGRACAO/LABORATORIO
+    * CANDIDATE TO INTEGRATE: data/parallel/package_v4/v4_1/candidate/main.lua SHA256 62245d23…598f (CRLF, 7323 lines) =
+      candidate_v4 + v4_1.patch (4 swaps: wave, warning and defeat in Assault by rts.combatCount(); squadCenter only from fighters,
+      fallback all alive). test_v4_1.py: v4 fails in the changing cases, v4.1 passes (rerun by the orchestrator).
+      post_integration_battery 28/28, sensitivity 26/26 (21 mutants). The package's docs point to v4.1; OPEN_DECISIONS: 16 items.
+    * Owner: Claude (Sonnet subagent), 2026-10-10. Offline; delivery in data/parallel/package_v4/. Applies nothing.
+    [ x ] Drafts of README/MANUAL_TEST/HELP/MODLOG faithful to candidate_v4 (without applying them to the docs)
+        * HOW_TO_INTEGRATE.md, README_/MANUAL_TEST_/MODLOG_DRAFT.md, OPEN_DECISIONS.md (17 items); apply_test_orders.py
+          (dry-run, idempotent), post_integration_battery.py (27/27 on a copy of the repo in the scratchpad; mutants fail), read_save.py.
+    [ x ] Single prioritized lab script (stability gate first), joining the folders' scripts
+        * BATCH_SCRIPT.md + 22 probes: ~285 min (5h40 with margin), 6 clean loads; bot optional. Recommendation: run B2/A2 of the
+          stability gate with source 33d6c7e5 BEFORE publishing v4 (v4 changes the hash of the gate's source).
+    [ x ] Consolidated gotchas for the universal-modder note (without editing universal-modder)
+        * CONSOLIDATED_GOTCHAS.md items 48–76, all "offline only".
+    * Report×code divergences fixed in the package (the text follows the code): newGame already turns waves on; point/depot radius 5 m;
+      workers outside SQUAD_MAX. Divergence "wave counts #squad with workers": decided to exclude (v4.1 in progress).
 
-[ . ] RISCOS_V4 — Mitigar offline os dois riscos visuais da v4.1 (Claude/Sonnet, 2026-10-10)
-    [ . ] Trabalhador com marreta real (SledgeHammer_SK do pak) em vez de grip=0 sem arma (risco de T-pose).
-          Entrega em data/parallel/logistics_ai/finishing/manual_collection/tool/.
-    [ . ] Plano B visual da base avançada (malha do próprio jogo) se BPForwardBase1_C não nascer íntegra.
-          Entrega em data/parallel/forward_bases/plan_b/.
-    [ ] Juntar os dois em v4.2 no package_v4 e atualizar o pacote.
+[ . ] RISCOS_V4 (v4 risks) — Mitigate offline the two visual risks of v4.1 (Claude/Sonnet, 2026-10-10)
+    [ . ] Worker with a real sledgehammer (SledgeHammer_SK from the pak) instead of grip=0 without a weapon (T-pose risk).
+          Delivery in data/parallel/logistics_ai/finishing/manual_collection/tool/.
+    [ . ] Visual plan B for the forward base (the game's own mesh) if BPForwardBase1_C does not spawn intact.
+          Delivery in data/parallel/forward_bases/plan_b/.
+    [ ] Join both into v4.2 in package_v4 and update the package.
 
-[ ] LABORATORIO — Validação exclusiva do lote integrado
-    * Responsável exclusivo: Codex coordenador (/root). Nenhum Claude ou subagente assume jogo/canal.
-    * Último estado: PID20144 encerrado; Steam preservado. Console estava em Selecionar/QuickEdit.
-    * Claude CLI: tentativa Sonnet falhou por OAuth expirado; login é responsabilidade do usuário.
-    [ ] Conferir Steam aberto/logado, cópia correta e ausência de botloop antes de lançar
-    [ ] Publicar pelo restart.sh com Git Bash explícito; não usar Ctrl+R
-    [ ] Verificar carregamento por log/processo; não reiniciar só por timeout/Not responding
-    [ ] Executar matrizes solicitadas pelas tasks, registrar hashes, medições e falhas
-    [ ] Separar validação técnica, visual, entrada real e equilíbrio nos relatórios
-    [ ] Encerrar apenas o PID da cópia ao terminar; preservar Steam e firewall
-    * Conclusão: evidência reproduzível do lote, limitações explícitas e laboratório fechado.
+[ ] LABORATORIO (lab) — Exclusive validation of the integrated batch
+    * Exclusive owner: Codex coordinator (/root). No Claude or subagent takes the game/channel.
+    * Last state: PID20144 closed; Steam preserved. The console was in Select/QuickEdit.
+    * Claude CLI: a Sonnet attempt failed because of an expired OAuth; logging in is the user's responsibility.
+    [ ] Check Steam open/logged in, the right copy and no botloop before launching
+    [ ] Publish through restart.sh with explicit Git Bash; do not use Ctrl+R
+    [ ] Check loading by log/process; do not restart just because of a timeout/Not responding
+    [ ] Run the matrices requested by the tasks, record hashes, measurements and failures
+    [ ] Separate technical, visual, real-input and balance validation in the reports
+    [ ] Close only the copy's PID at the end; preserve Steam and firewall
+    * Done means: reproducible evidence of the batch, explicit limitations and the lab closed.
 
-[ ] INTEGRACAO — Revisar entregas e manter uma versão profissional verificável
-    * Responsável exclusivo: Codex coordenador (/root). Único aplicador dos patches no main.lua durante o lote.
-    [ ] Revisar contratos/dependências e integrar ESTABILIDADE antes de ampliar features
-    [ ] Aplicar patches sequencialmente, preservar limite de locais e ambiente do canal
-    [ ] Executar sintaxe, check_globals.py, test_orders.py, test_costs.py e test_inventory_probe.py
-    [ ] Conferir teclas e atualizar teste/MANUAL_TEST.md quando houver controle novo
-    [ ] Solicitar validação do lote ao agente LABORATORIO; corrigir regressões antes de aprovar
-    [ ] Atualizar mod/README.md, MODLOG.md no topo e ROADMAP.md com resultados reais
-    [ ] Registrar Gotchas no universal-modder e executar um kb check local; sem PR não autorizado
-    * Conclusão: features integradas e verificadas, documentação fiel; não declarar o mod inteiro pronto por um lote.
+[ ] INTEGRACAO (integration) — Review deliveries and keep a professional, verifiable version
+    * Exclusive owner: Codex coordinator (/root). The only one applying patches to main.lua during the batch.
+    [ ] Review contracts/dependencies and integrate ESTABILIDADE before widening features
+    [ ] Apply patches in sequence, keep the locals limit and the channel environment
+    [ ] Run syntax, check_globals.py, test_orders.py, test_costs.py and test_inventory_probe.py
+    [ ] Check keys and update the test/MANUAL_TEST.md when there is a new control
+    [ ] Ask the LABORATORIO agent to validate the batch; fix regressions before approving
+    [ ] Update mod/README.md, MODLOG.md at the top and ROADMAP.md with real results
+    [ ] Record gotchas in universal-modder and run a local kb check; no unauthorized PR
+    * Done means: features integrated and verified, faithful documentation; do not declare the whole mod ready because of one batch.

@@ -1,16 +1,16 @@
-# Investigação do ambiente de simulação
+# Investigation of the simulation environment
 
-Data: 2026-10-06 | Steam build local: 25730371
+Date: 2026-10-06 | Local Steam build: 25730371
 
-## Resultado
+## Result
 
-Não foi encontrada uma rota pública, documentada e utilizável para executar o Foxhole instalado como uma simulação offline/controlada para o mod RTS. Isso é um resultado limitado da investigação, não uma prova de impossibilidade técnica.
+No public, documented and usable route was found to run the installed Foxhole as an offline/controlled simulation for the RTS mod. This is a limited result of the investigation, not proof of technical impossibility.
 
-## Evidências locais — somente leitura
+## Local evidence — read-only
 
-Instalação: `D:\SteamLibrary\steamapps\common\Foxhole`.
+Installation: `D:\SteamLibrary\steamapps\common\Foxhole`.
 
-Executáveis encontrados na listagem recursiva:
+Executables found in the recursive listing:
 
 - `War.exe`
 - `War\Binaries\Win64\War-Win64-Shipping.exe`
@@ -18,122 +18,122 @@ Executáveis encontrados na listagem recursiva:
 - `Engine\Binaries\Win64\UnrealCEFSubProcess.exe`
 - `Engine\Extras\Redist\en-us\UE4PrereqSetup_x64.exe`
 
-Não foram encontrados arquivos soltos com extensões `.bat`, `.cmd`, `.ini`, `.uproject` ou `.uplugin` nessa listagem. Não foi identificado executável separado de servidor ou editor. Isso não demonstra que todo código de servidor esteja ausente do executável do cliente; essa hipótese não foi testada.
+No loose files with the extensions `.bat`, `.cmd`, `.ini`, `.uproject` or `.uplugin` were found in that listing. No separate server or editor executable was identified. This does not show that all server code is absent from the client executable; that hypothesis was not tested.
 
-Na pasta específica `War\Content\Paks`, há um pacote: `War-WindowsNoEditor.pak`, com 25.681.549.397 bytes. A contagem de dois PAKs do scan inicial não deve ser interpretada como dois pacotes de gameplay: há pacotes auxiliares fora dessa pasta, inclusive do crash reporter e do navegador embutido.
+In the specific folder `War\Content\Paks` there is one package: `War-WindowsNoEditor.pak`, 25,681,549,397 bytes. The count of two PAKs in the initial scan must not be read as two gameplay packages: there are auxiliary packages outside that folder, including the crash reporter's and the embedded browser's.
 
-O manifesto NonUFS identifica o executável Shipping e bibliotecas auxiliares. A ocorrência `vivoxsdk.dll` corresponde ao SDK de voz Vivox, não a um SDK de modding do Foxhole.
+The NonUFS manifest identifies the Shipping executable and auxiliary libraries. The `vivoxsdk.dll` entry is the Vivox voice SDK, not a Foxhole modding SDK.
 
-## Fontes primárias consultadas
+## Primary sources consulted
 
-### FAQ oficial
+### Official FAQ
 
 https://www.foxholegame.com/faq
 
-Declara ausência de suporte oficial a mods, single-player e bots. Menciona mods visuais que não deem vantagem. Não fornece uma rota offline para simulação RTS.
+States there is no official support for mods, single-player or bots. Mentions visual mods that give no advantage. Does not provide an offline route for an RTS simulation.
 
-### War API oficial
+### Official War API
 
 https://github.com/clapfoot/warapi
 
-Documenta consultas GET de estado da guerra, relatórios e mapas. Não documenta comandos para criar unidades, mover personagens ou executar um servidor. Serve para consulta/visualização, não como interface de controle RTS.
+Documents GET queries for war state, reports and maps. Does not document commands to create units, move characters or run a server. Useful for querying/visualizing, not as an RTS control interface.
 
-### Foxhole Data Extractor — documentação do autor
+### Foxhole Data Extractor — author's documentation
 
 https://github.com/C1ach0/fde
 
-Ferramenta que lê PAKs locais com CUE4Parse e produz catálogos JSON e ícones. O termo “server-oriented” descreve a execução do extrator em servidor, não um servidor jogável de Foxhole. Não foi instalado nem executado.
+A tool that reads local PAKs with CUE4Parse and produces JSON catalogs and icons. The term "server-oriented" describes running the extractor on a server, not a playable Foxhole server. It was not installed or run.
 
-### Tutorial de criação de mod — autor yurisuika
+### Mod creation tutorial — author yurisuika
 
 https://steamcommunity.com/sharedfiles/filedetails/?id=3207287574
 
-O escopo declarado é modificar texturas via extração, edição e reempacotamento. Não demonstra controle da simulação. A página exibe avisos de remoção/incompatibilidade; não é receita validada para nosso build.
+The declared scope is changing textures through extraction, editing and repacking. It does not demonstrate control of the simulation. The page shows removal/incompatibility warnings; it is not a validated recipe for our build.
 
-## O que não foi feito
+## What was not done
 
-- Nenhuma injeção, patch, extração de PAK ou instrumentação.
-- Nenhum lançamento do jogo ou conexão a servidores.
-- Nenhuma tentativa de ativar comandos não documentados ou contornar autenticação/proteção.
-- Nenhum download de servidor/SDK vazado ou envio de mensagens a terceiros.
+- No injection, patch, PAK extraction or instrumentation.
+- No game launch or connection to servers.
+- No attempt to enable undocumented commands or bypass authentication/protection.
+- No download of a leaked server/SDK and no messages sent to third parties.
 
-## Próximo passo que pode resolver o bloqueio
+## Next step that could solve the blocker
 
-Obter informação específica da Siege Camp ou da comunidade de modding sobre um ambiente offline autorizado, SDK ou servidor de testes disponibilizado legitimamente. Pergunta sugerida, ainda NÃO enviada:
+Get specific information from Siege Camp or the modding community about an authorized offline environment, SDK or legitimately provided test server. Suggested question, NOT sent yet:
 
-> Tenho Foxhole na Steam e gostaria de experimentar uma conversão RTS estritamente offline, sem interagir com servidores oficiais. Existe um ambiente de teste, SDK, servidor dedicado ou procedimento autorizado para executar uma cena local com controle da simulação? Mods de gameplay desse tipo são permitidos nesse ambiente?
+> I own Foxhole on Steam and would like to try a strictly offline RTS conversion, without interacting with official servers. Is there a test environment, SDK, dedicated server or authorized procedure to run a local scene with control of the simulation? Are gameplay mods of this kind allowed in that environment?
 
-Se aparecer uma ferramenta candidata, verificar origem, permissões e compatibilidade com o build antes de instalar. O projeto permanece um mod para Foxhole; nenhuma mudança para jogo independente foi feita.
+If a candidate tool shows up, check its origin, permissions and compatibility with the build before installing. The project remains a mod for Foxhole; no change to a standalone game was made.
 
 ---
 
-# Rodada 2 — recon aprofundado (2026-10-06)
+# Round 2 — deeper recon (2026-10-06)
 
-Quatro agentes em paralelo, todos somente leitura (nada executado, injetado, extraído ou alterado). Ferramentas: `python -m um scan`/`kb` do universal-modder, pefile/capstone para análise estática, WebSearch/WebFetch. Rascunhos e dumps ficaram fora do repositório (scratchpad da sessão).
+Four agents in parallel, all read-only (nothing run, injected, extracted or changed). Tools: universal-modder's `python -m um scan`/`kb`, pefile/capstone for static analysis, WebSearch/WebFetch. Drafts and dumps stayed outside the repository (the session's scratchpad).
 
-## Resultado curto
+## Short result
 
-1. **O cliente contém código de servidor.** O `War-Win64-Shipping.exe` é target *Game* (não *Client*): aceitação de login/join, `UWorld::Listen`, opção de URL `Listen`, ReplicationGraph do jogo e `ASimGameMode` estão compilados e referenciados. Listen server local é tecnicamente plausível; servidor dedicado (`-server`) provavelmente não.
-2. **Bloqueio provável: backend externo.** O servidor do jogo depende de `FExternalWarService` (auth, perfis, reservas de travel, config da guerra). Uma simulação local deve quebrar nesses pontos. Não medido ainda — exige decompilação.
-3. **Nenhuma rota pública:** sem offline, bots, servidor privado/dedicado distribuído, SDK, editor ou Workshop (fontes oficiais).
-4. **Proteção:** sem EAC/BattlEye/EOS/packer. Há **VAC**, detecção própria de discrepância de tempo e `bAllowMods` nas configurações de servidor. Código de assinatura de PAK existe, mas não está ativo (sem `.sig`).
-5. **PAK aberto:** índice não criptografado; mods de textura/UI em `War\Content\Paks` são prática corrente da comunidade (TrenchKit, Nexus, itch.io).
+1. **The client contains server code.** `War-Win64-Shipping.exe` is a *Game* target (not *Client*): login/join acceptance, `UWorld::Listen`, the `Listen` URL option, the game's ReplicationGraph and `ASimGameMode` are compiled and referenced. A local listen server is technically plausible; a dedicated server (`-server`) probably not.
+2. **Likely blocker: external backend.** The game server depends on `FExternalWarService` (auth, profiles, travel reservations, war config). A local simulation should break at these points. Not measured yet — requires decompilation.
+3. **No public route:** no offline mode, bots, distributed private/dedicated server, SDK, editor or Workshop (official sources).
+4. **Protection:** no EAC/BattlEye/EOS/packer. There is **VAC**, the game's own time-discrepancy detection and `bAllowMods` in the server settings. PAK signing code exists but is not active (no `.sig`).
+5. **Open PAK:** unencrypted index; texture/UI mods in `War\Content\Paks` are common community practice (TrenchKit, Nexus, itch.io).
 
-## Evidências locais (Sonnet — recon)
+## Local evidence (Sonnet — recon)
 
-| Tema | Achado | Status |
+| Topic | Finding | Status |
 |---|---|---|
-| Anti-cheat | Nenhum arquivo/string de EAC, BattlEye, EOS, `start_protected_game`; Steam `gameprocess_log.txt` de jan/2026 mostra só `War.exe`, Shipping, CrashReportClient e CEF | Verificado |
-| BEService no Windows | Pertence a Rainbow Six Siege (`%LOCALAPPDATA%\BattlEye\r6s`), não a Foxhole | Verificado |
-| Manifesto Steam | Sem `LaunchOptions`; build 25730371, depot 505461 | Verificado |
-| Config/logs/saves | Inexistentes: o jogo nunca rodou nesta instalação. Já rodou em jan/2026 numa instalação antiga em `G:\steam\...` (removida) | Verificado |
-| PAK `War-WindowsNoEditor.pak` | Footer v8 (UE4.24), índice em 25.678.359.878 (3.189.298 bytes), SHA1 `b0693e21…8dba5b`, **índice não criptografado** (flag 0, GUID zero), sem `.sig`, sem IoStore | Verificado (só o footer foi lido) |
-| Binários | Shipping 80 MB; plugins Vivox e Discord RPC; `steam_api64.dll` (Steamv151) | Verificado |
+| Anti-cheat | No EAC, BattlEye, EOS or `start_protected_game` file/string; Steam `gameprocess_log.txt` from Jan/2026 shows only `War.exe`, Shipping, CrashReportClient and CEF | Verified |
+| BEService on Windows | Belongs to Rainbow Six Siege (`%LOCALAPPDATA%\BattlEye\r6s`), not Foxhole | Verified |
+| Steam manifest | No `LaunchOptions`; build 25730371, depot 505461 | Verified |
+| Config/logs/saves | Missing: the game never ran on this installation. It ran in Jan/2026 on an old installation in `G:\steam\...` (removed) | Verified |
+| PAK `War-WindowsNoEditor.pak` | Footer v8 (UE4.24), index at 25,678,359,878 (3,189,298 bytes), SHA1 `b0693e21…8dba5b`, **unencrypted index** (flag 0, zero GUID), no `.sig`, no IoStore | Verified (only the footer was read) |
+| Binaries | Shipping 80 MB; Vivox and Discord RPC plugins; `steam_api64.dll` (Steamv151) | Verified |
 
-## Análise estática do executável (Opus)
+## Static analysis of the executable (Opus)
 
-PE: `Foxhole4.24.3: 87680`, ProductVersion 1.64.6.1, build embutido "Oct 5 2026". Sem packer, sem Authenticode, PDB ausente, strings e nomes de reflexão intactos (3049 classes nativas).
+PE: `Foxhole4.24.3: 87680`, ProductVersion 1.64.6.1, embedded build "Oct 5 2026". No packer, no Authenticode, PDB missing, strings and reflection names intact (3049 native classes).
 
-| Evidência | Força |
+| Evidence | Strength |
 |---|---|
-| Target *Game* (nome `War-Win64-Shipping`, não `WarClient`) → WITH_SERVER_CODE | Forte (inferência por convenção UBT) |
-| `UWorld::NotifyControlMessage` lado servidor (VA 0x1429de920): "Login request…", "PreLogin failure", "Join succeeded" | Forte |
-| `UWorld::Listen` (VA 0x1429dc8e0), "IpNetDriver listening on port %i"; `UEngine::LoadMap` testa `Listen` | Forte |
-| `UWarReplicationGraph` e nós próprios (Rail/Air vehicle, GridSpatialization2D) — lógica só de servidor | Forte |
-| `ASimGameMode`, `AWarGameMode`, `AWarGameSession`, `UPlayerProfileManager`, `UWarSaveGame` | Forte |
-| `UServerSettings`: `NextWarMapOverride`, `WarTweakables`, `IsCommunityServer`, `bAllowMods`, `bFriendlyFire`… | Forte |
-| `EWarServerType::Skirmish/WorldConquest/Event/Training/HomeRegion*` | Média |
-| `"?listen"` montado por código do jogo (VA 0x141150223, provável `UWarGameInstance`) — finalidade não identificada | Média |
-| `-server` como string isolada: ausente | Inferência: dedicado indisponível |
-| Backend: `FExternalWarService::SendAuthMessage/OnAuthResponse/MapDataResponse/OnNextWarConfigMessage`, `FailureWarServiceUnavailable`; config remota em `s3.amazonaws.com/foxhole-updates/config/client_config*.json` | Forte (dependência) |
-| IA/navegação: AIModule, BehaviorTree, EQS, Recast/Detour, Crowd compilados; o jogo usa IA só em torretas (`UAITurretComponent`…) | Engine forte / uso pelo jogo fraco |
-| Console/cheats: `UConsole`, `UCheatManager` compilados; ativação no Shipping improvável; cheats próprios são requests de admin de regimento/squad | Classes fortes / console ativo desconhecido |
-| `Mods/` na tabela de FPaths = `ProjectModsDir` padrão do UE, não loader do Foxhole | Inferência |
-| VAC: "VAC ban detected - kicking…", `ETimeDiscrepancyType::AntiCheat` | Forte |
-| UE4SS: FNamePool/GUObjectArray localizáveis → compatibilidade técnica provável, não testada | Inferência |
+| *Game* target (name `War-Win64-Shipping`, not `WarClient`) → WITH_SERVER_CODE | Strong (inference from UBT convention) |
+| Server-side `UWorld::NotifyControlMessage` (VA 0x1429de920): "Login request…", "PreLogin failure", "Join succeeded" | Strong |
+| `UWorld::Listen` (VA 0x1429dc8e0), "IpNetDriver listening on port %i"; `UEngine::LoadMap` tests `Listen` | Strong |
+| `UWarReplicationGraph` and its own nodes (Rail/Air vehicle, GridSpatialization2D) — server-only logic | Strong |
+| `ASimGameMode`, `AWarGameMode`, `AWarGameSession`, `UPlayerProfileManager`, `UWarSaveGame` | Strong |
+| `UServerSettings`: `NextWarMapOverride`, `WarTweakables`, `IsCommunityServer`, `bAllowMods`, `bFriendlyFire`… | Strong |
+| `EWarServerType::Skirmish/WorldConquest/Event/Training/HomeRegion*` | Medium |
+| `"?listen"` built by game code (VA 0x141150223, probably `UWarGameInstance`) — purpose not identified | Medium |
+| `-server` as a standalone string: absent | Inference: dedicated unavailable |
+| Backend: `FExternalWarService::SendAuthMessage/OnAuthResponse/MapDataResponse/OnNextWarConfigMessage`, `FailureWarServiceUnavailable`; remote config at `s3.amazonaws.com/foxhole-updates/config/client_config*.json` | Strong (dependency) |
+| AI/navigation: AIModule, BehaviorTree, EQS, Recast/Detour, Crowd compiled; the game uses AI only in turrets (`UAITurretComponent`…) | Engine strong / use by the game weak |
+| Console/cheats: `UConsole`, `UCheatManager` compiled; activation in Shipping unlikely; the game's own cheats are regiment/squad admin requests | Classes strong / active console unknown |
+| `Mods/` in the FPaths table = UE's default `ProjectModsDir`, not a Foxhole loader | Inference |
+| VAC: "VAC ban detected - kicking…", `ETimeDiscrepancyType::AntiCheat` | Strong |
+| UE4SS: FNamePool/GUObjectArray locatable → technical compatibility likely, not tested | Inference |
 
-## Pesquisa pública (Sonnet — web)
+## Public research (Sonnet — web)
 
-- **Servidores:** shards são centrais (Live1, Live2, Dev Branch via Steam Betas). Nenhum servidor privado/dedicado distribuído, nenhum emulador. Fontes: https://foxhole.wiki.gg/wiki/Shard, https://foxhole.wiki.gg/wiki/Development_Branch. Confiança média-alta (ausência de evidência; Discord/devblogs não lidos).
-- **Offline/bots:** inexistentes — FAQ oficial. "Modbox para Foxhole" em buscas é spam de SEO; descartado.
-- **Anti-cheat e política:** "VAC integration and other behind the scenes tools" — https://www.foxholegame.com/moderation-faq. Code of Conduct (Siege Camp, 2020): proíbe modificar o cliente para obter vantagem injusta. Nenhum caso documentado de ban por mod visual.
-- **Comunidade:** pak mods de textura/UI ativos; TrenchKit (MIT, https://github.com/Tapawingo/TrenchKit) gerencia ordem por prefixo. Nada de UE4SS, gameplay mods, bots ou emuladores.
-- **Ferramentas oficiais:** só War API (consulta) e Dev Branch. Sem SDK/editor/Workshop.
+- **Servers:** shards are central (Live1, Live2, Dev Branch via Steam Betas). No distributed private/dedicated server, no emulator. Sources: https://foxhole.wiki.gg/wiki/Shard, https://foxhole.wiki.gg/wiki/Development_Branch. Medium-high confidence (absence of evidence; Discord/devblogs not read).
+- **Offline/bots:** nonexistent — official FAQ. "Modbox for Foxhole" in searches is SEO spam; discarded.
+- **Anti-cheat and policy:** "VAC integration and other behind the scenes tools" — https://www.foxholegame.com/moderation-faq. Code of Conduct (Siege Camp, 2020): forbids modifying the client to gain an unfair advantage. No documented case of a ban for a visual mod.
+- **Community:** active texture/UI pak mods; TrenchKit (MIT, https://github.com/Tapawingo/TrenchKit) manages the load order by prefix. Nothing on UE4SS, gameplay mods, bots or emulators.
+- **Official tools:** only the War API (queries) and Dev Branch. No SDK/editor/Workshop.
 
-## Base de conhecimento do toolkit (Haiku)
+## Toolkit knowledge base (Haiku)
 
-Nenhuma nota prévia de Foxhole. Regra do toolkit (`skills/mod-any-game/references/safety.md`): parar se online-only sem servidor do usuário ou com anti-cheat ativo, a menos que exista modo offline que o desative. Rota aceita para jogos server-authoritative: servidor próprio + cliente original. Exemplos: AzerothCore, Project Zomboid dedicated.
+No previous Foxhole note. Toolkit rule (`skills/mod-any-game/references/safety.md`): stop if online-only without a server of the user's or with active anti-cheat, unless an offline mode disables it. Accepted route for server-authoritative games: own server + original client. Examples: AzerothCore, Project Zomboid dedicated.
 
-## Leitura conjunta
+## Combined reading
 
-- O executável contém a autoridade da simulação. É a única pista concreta de uma "simulação sob nosso controle" com o binário oficial.
-- Duas incógnitas decidem a viabilidade:
-  1. **Técnica:** o caminho `?listen` e o `ASimGameMode` funcionam sem o `FExternalWarService`? Isso se mede com decompilação, e o Ghidra está sendo preparado.
-  2. **Normativa:** substituir ou simular o serviço de auth/backend da Siege Camp, mesmo offline, pode ser contornar uma verificação de propriedade/autenticação. Isso é vedado pelas regras do toolkit e precisa de decisão explícita antes de qualquer passo.
-- VAC: qualquer injeção (UE4SS, proxy DLL) só seria aceitável numa cópia isolada que nunca conecte a servidores oficiais. Mesmo assim, há risco de conta, a avaliar.
+- The executable contains the simulation's authority. It is the only concrete lead to a "simulation under our control" with the official binary.
+- Two unknowns decide feasibility:
+  1. **Technical:** do the `?listen` path and `ASimGameMode` work without `FExternalWarService`? This is measured by decompilation, and Ghidra is being prepared.
+  2. **Normative:** replacing or simulating Siege Camp's auth/backend service, even offline, may amount to bypassing an ownership/authentication check. This is forbidden by the toolkit's rules and needs an explicit decision before any step.
+- VAC: any injection (UE4SS, proxy DLL) would only be acceptable in an isolated copy that never connects to official servers. Even then, there is account risk, to be assessed.
 
-## Pendências
+## Pending
 
-- [ ] Decompilar no Ghidra a função que monta `?listen` (VA ~0x141150070–0x141150380) e o fluxo `ASimGameMode` ↔ `FExternalWarService`. Medir o que é bloqueante sem backend.
-- [ ] Verificar no índice do PAK se os mapas têm NavMesh (`RecastNavMesh`) gerado. Ler só o índice, sem extrair.
-- [ ] Decidir com o usuário a rota normativa antes de qualquer execução modificada.
+- [ ] Decompile in Ghidra the function that builds `?listen` (VA ~0x141150070–0x141150380) and the `ASimGameMode` ↔ `FExternalWarService` flow. Measure what blocks without a backend.
+- [ ] Check in the PAK index whether the maps have a generated NavMesh (`RecastNavMesh`). Read only the index, without extracting.
+- [ ] Decide the normative route with the user before any modified run.

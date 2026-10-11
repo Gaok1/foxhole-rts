@@ -1,12 +1,12 @@
-# Universal Modder — uso e avaliação no Foxhole RTS
+# Universal Modder — use and evaluation in Foxhole RTS
 
-Registro de 2026-10-07. Toolkit: `D:\GitHub\universal-modder`.
-Separar resultado desta rodada, evidência histórica do MODLOG e hipótese.
-Scanner e decompilação não substituem teste no jogo.
+Record of 2026-10-07. Toolkit: `D:\GitHub\universal-modder` (https://github.com/rehan-remade/universal-modder).
+Separate this round's results, historical evidence from the MODLOG and hypotheses.
+Scanner and decompilation do not replace an in-game test.
 
-## Como usar neste Windows
+## How to use it on this Windows machine
 
-Em PowerShell, execute o toolkit dentro de seu repositório:
+In PowerShell, run the toolkit inside its repository:
 
 ```powershell
 Set-Location D:\GitHub\universal-modder
@@ -21,47 +21,47 @@ python -m um win shot --title '^War' --scale 0.5 D:\tools\foxhole-lab\check.png
 python -m um publish check D:\GitHub\foxhole-rts\mod --game D:\SteamLibrary\steamapps\common\Foxhole
 ```
 
-Não execute a lista cegamente: captura exige jogo aberto; backup deve preceder
-alteração de configuração/lançamento. Use o mesmo `UM_HOME` para criar e consultar
-snapshots. Para recuperar, consulte `python -m um backup restore --help` e prefira
-restaurar primeiro para uma pasta separada com `--to`.
+Do not run the list blindly: a screenshot needs the game open; a backup must come before
+changing the configuration/launching. Use the same `UM_HOME` to create and look up
+snapshots. To recover, see `python -m um backup restore --help` and prefer
+restoring first to a separate folder with `--to`.
 
-`python -m um <grupo> --help` mostra a interface local realmente instalada.
-Não foi necessário instalar outra cópia nem usar WSL para chamar a CLI.
+`python -m um <group> --help` shows the locally installed interface.
+It was not necessary to install another copy or use WSL to call the CLI.
 
-**Falha reproduzida nesta continuação:** `kb search inventory` abortou ao imprimir
-uma seta Unicode usando stdout cp1252 (`UnicodeEncodeError`). Reexecutar com
-`$env:PYTHONIOENCODING='utf-8'` terminou com código 0 e exibiu todas as notas.
-É configuração da saída Python; não exige editar a KB nem instalar dependência.
-Saída parcial antes do traceback não deve ser tomada como busca concluída.
+**Failure reproduced in this continuation:** `kb search inventory` aborted while printing
+a Unicode arrow through a cp1252 stdout (`UnicodeEncodeError`). Running again with
+`$env:PYTHONIOENCODING='utf-8'` finished with code 0 and showed all notes.
+It is a Python output setting; it does not require editing the KB or installing a dependency.
+Partial output before the traceback must not be taken as a finished search.
 
-### Skills utilizadas
+### Skills used
 
-- `mod-any-game`: reconhecimento, laboratório, fatia funcional e prova em jogo.
-- `reverse-engineering`: código/reflexão antes de adivinhar RPCs; decompilações fora do repo.
-- `game-automation`: captura GPU, processo por PID e teste repetível.
-- Playbook `mod-any-game/references/engines/unreal.md`: UE4SS/PAK e limites.
+- `mod-any-game`: recon, lab, vertical slice and in-game proof.
+- `reverse-engineering`: code/reflection before guessing RPCs; decompilations outside the repo.
+- `game-automation`: GPU capture, process by PID and repeatable test.
+- Playbook `mod-any-game/references/engines/unreal.md`: UE4SS/PAK and limits.
 
-## O que funciona bem / o que não resolve
+## What works well / what it does not solve
 
-| Recurso | Evidência | Bom para | Limite observado |
+| Feature | Evidence | Good for | Observed limit |
 |---|---|---|---|
-| `kb search foxhole` | Rodada atual | Recuperar receitas e tentativas fracassadas | Nota é experiência, não certificação; pode ficar desatualizada |
-| `scan` | Recon histórico | Instalação, engine e rotas possíveis | Sugestão UE4SS genérica não prova suporte ou autorização |
-| `backup` | Histórico no launcher | Preservar config compartilhada | Não isola rede nem separa perfis automaticamente |
-| `win shot --title '^War'` | Capturas históricas | Captura GPU da janela certa | `--exe` já capturou console UE4SS; conferir a imagem |
-| `win drive --title` | Alteração local anterior | Input dirigido à janela correta | Toma mouse/teclado: pedir antes, checar idle/foco |
-| `win kill PID` | Reinícios históricos | Encerrar processo identificado | Conferir caminho; nunca matar por padrão de nome |
-| `publish check` | Rodada atual | Lint de pacote | Não prova estabilidade, isolamento ou direitos de distribuição |
-| Ghidra + reflexão UE4SS | Histórico | Entender classes/RPCs | Complementares ao toolkit; hipótese estática precisa de teste |
+| `kb search foxhole` | Current round | Recovering recipes and failed attempts | A note is experience, not certification; it can go stale |
+| `scan` | Historical recon | Installation, engine and possible routes | The generic UE4SS suggestion does not prove support or authorization |
+| `backup` | History in the launcher | Preserving shared config | Does not isolate the network nor separate profiles automatically |
+| `win shot --title '^War'` | Historical screenshots | GPU capture of the right window | `--exe` once captured the UE4SS console; check the image |
+| `win drive --title` | Earlier local change | Input directed at the correct window | Takes mouse/keyboard: ask first, check idle/focus |
+| `win kill PID` | Historical restarts | Ending an identified process | Check the path; never kill by name pattern |
+| `publish check` | Current round | Package lint | Does not prove stability, isolation or distribution rights |
+| Ghidra + UE4SS reflection | History | Understanding classes/RPCs | Complementary to the toolkit; a static hypothesis needs a test |
 
-## Próxima execução: procedimento e critério de sucesso
+## Next run: procedure and success criterion
 
-1. Conferir instalação oficial limpa e cópia com `tools/lab.ps1 check` no repo do mod.
-2. Confirmar bloqueio de rede do executável exato da cópia. Nesta rodada,
-   `Get-NetFirewallRule -DisplayName '*Foxhole*'` retornou **acesso negado**.
-   Não prova ausência nem presença da regra. Não houve novo lançamento.
-3. Executar os testes offline:
+1. Check the clean official installation and the copy with `tools/lab.ps1 check` in the mod repo.
+2. Confirm the network block of the copy's exact executable. In this round,
+   `Get-NetFirewallRule -DisplayName '*Foxhole*'` returned **access denied**.
+   It proves neither absence nor presence of the rule. There was no new launch.
+3. Run the offline tests:
 
    ```powershell
    Set-Location D:\GitHub\foxhole-rts
@@ -69,51 +69,51 @@ Saída parcial antes do traceback não deve ser tomada como busca concluída.
    python tools\test_orders.py
    ```
 
-   Usa `lupa` 2.8 já disponível. Exercita funções reais com APIs simuladas;
-   não verifica física Unreal, RPCs, tecla real ou renderização.
-4. Backup e reinício controlado da cópia; não usar Ctrl+R. O helper histórico
-   `D:\tools\foxhole-lab\restart.sh` fica fora do repo e não verifica isolamento.
-   Carregamento já levou ~95 s; `Responding=False` sozinho não prova deadlock.
-5. F6, grupo 1, ordem de mover, H: grupo 1 deve parar sem deslizar; grupo 2 mantém
-   a ordem anterior. Nova ordem deve fazer o grupo 1 andar. Repetir com todos
-   selecionados e inimigos (tiro automático deve continuar).
-6. Guardar log e screenshot GPU, abrir e conferir a imagem. Só então marcar
-   v0.3.1 como validada em jogo.
+   Uses `lupa` 2.8, already available. Exercises real functions with simulated APIs;
+   does not check Unreal physics, RPCs, real keys or rendering.
+4. Backup and controlled restart of the copy; do not use Ctrl+R. The restart helper
+   (now `tools/lab/restart.sh`) does not check isolation.
+   Loading once took ~95 s; `Responding=False` alone does not prove a deadlock.
+5. F6, group 1, move order, H: group 1 must stop without sliding; group 2 keeps
+   the previous order. A new order must make group 1 walk. Repeat with all
+   selected and enemies (automatic fire must continue).
+6. Keep the log and a GPU screenshot, open and check the image. Only then mark
+   v0.3.1 as validated in game.
 
-## Tentativas que não devem virar falsas soluções
+## Attempts that must not become false solutions
 
-- `ServerTakePickup` sem erro não significa item adquirido: inventário ficou vazio.
-  Alterar temporariamente `bIsLocalPlayerController` não resolveu.
-- Anular argumento da RPC aninhada evitou crash, mas pode interromper o caminho
-  necessário ao inventário. Rifles reais continuam em investigação.
-- `CreatePlayer` puxou UI extra e crashou; `AIController` perdeu o pawn.
-  `HeadlessPlayerController` é a rota validada anteriormente para soldados.
-- Tela preta anterior era fade da câmera; alterar show flags não solucionou.
-- Lint não é teste funcional, e mocks não provam funcionamento no jogo.
+- `ServerTakePickup` without error does not mean the item was acquired: the inventory stayed empty.
+  Temporarily changing `bIsLocalPlayerController` did not solve it.
+- Nulling the nested RPC argument avoided a crash, but may interrupt the path
+  needed for the inventory. Real rifles are still under investigation.
+- `CreatePlayer` pulled extra UI and crashed; `AIController` lost the pawn.
+  `HeadlessPlayerController` is the route validated earlier for soldiers.
+- The earlier black screen was a camera fade; changing show flags did not solve it.
+- Lint is not a functional test, and mocks do not prove it works in the game.
 
-Nenhuma publicação, PR, commit ou instalação de loader nesta rodada.
+No publishing, PR, commit or loader installation in this round.
 
-### RE de rifles: lição adicional
+### Rifle RE: additional lesson
 
-Seguindo a skill `reverse-engineering`, conferir construtores/assembly evitou
-confiar numa vtable base como se fosse a final de PlayerCharacter. O helper
-`D:\tools\foxhole-lab\re-agent\pe.py` é complementar, **não faz parte da CLI um**,
-e tem essa limitação. Detalhes em `RIFLES_INVESTIGATION.md`.
-O próximo probe mede pré-condições antes de repetir RPCs; testes com mocks em
-`tools/test_inventory_probe.py` cobrem campos indisponíveis, pawn inválido e travas.
+Following the `reverse-engineering` skill, checking constructors/assembly avoided
+trusting a base vtable as if it were PlayerCharacter's final one. The helper
+`D:\tools\foxhole-lab\re-agent\pe.py` is complementary, **not part of the um CLI**,
+and has that limitation. Details in `RIFLES_INVESTIGATION.md`.
+The next probe measures preconditions before repeating RPCs; tests with mocks in
+`tools/test_inventory_probe.py` cover unavailable fields, invalid pawn and locks.
 
-### Resultado final dos checks desta rodada
+### Final result of this round's checks
 
-- `publish check`: **PASS**, 3 arquivos, 0 falhas, 0 avisos após adicionar README.
-- `kb check --index`: **FAIL**, 60 notas verificadas; índice `knowledge/INDEX.md`
-  desatualizado. A busca Foxhole funcionou, mas a validação global não passou.
-  O toolkit sugere `python -m um kb index` para regenerar; não alterei o índice
-  compartilhado nesta rodada. Isso não é falha do código do mod.
+- `publish check`: **PASS**, 3 files, 0 failures, 0 warnings after adding a README.
+- `kb check --index`: **FAIL**, 60 notes checked; index `knowledge/INDEX.md`
+  out of date. The Foxhole search worked, but the global validation did not pass.
+  The toolkit suggests `python -m um kb index` to regenerate; I did not change the shared
+  index in this round. This is not a failure of the mod's code.
 
-## Isolamento: consulta alternativa e ação necessária
+## Isolation: alternative query and required action
 
-Na continuação, consultas **somente leitura** com `netsh` funcionaram mesmo quando
-`Get-NetFirewallRule` falhou:
+In the continuation, **read-only** queries with `netsh` worked even when
+`Get-NetFirewallRule` failed:
 
 ```powershell
 netsh advfirewall show allprofiles state
@@ -121,13 +121,13 @@ netsh advfirewall firewall show rule name=all verbose |
     Select-String -Pattern 'Foxhole|War-Win64' -Context 8,12
 ```
 
-Resultado: três perfis ligados; encontradas apenas regras de entrada permitindo
-`D:\SteamLibrary\steamapps\common\Foxhole\War.exe`. Nenhuma regra específica
-de bloqueio da cópia foi encontrada. Isso não descarta outras políticas genéricas,
-mas não fornece a evidência de isolamento exigida. O jogo permaneceu fechado.
+Result: three profiles on; only inbound rules allowing
+`D:\SteamLibrary\steamapps\common\Foxhole\War.exe` were found. No specific
+block rule for the copy was found. This does not rule out other generic policies,
+but it does not give the required evidence of isolation. The game stayed closed.
 
-**Ação manual solicitada ao usuário**, em PowerShell como administrador, se não
-houver outra regra equivalente já instalada (não executada pelo agente):
+**Manual action requested from the user**, in PowerShell as administrator, if there is
+no equivalent rule already installed (not run by the agent):
 
 ```powershell
 New-NetFirewallRule -DisplayName 'FoxholeRTS Lab - Block Outbound' `
@@ -135,13 +135,13 @@ New-NetFirewallRule -DisplayName 'FoxholeRTS Lab - Block Outbound' `
   -Program 'D:\FoxholeLab\Foxhole\War\Binaries\Win64\War-Win64-Shipping.exe'
 ```
 
-Depois, avisar o agente para conferir a regra com:
+Then tell the agent to check the rule with:
 
 ```powershell
 netsh advfirewall firewall show rule name="FoxholeRTS Lab - Block Outbound" verbose
 ```
 
-Conferir caminho exato, saída, bloqueio, habilitada e todos os perfis. A regra é
-do executável da cópia, não do cliente oficial. Não desabilitar o firewall.
-Isso é uma barreira de rede; não certifica ausência de todo tráfego indireto nem
-garante segurança de conta. Os demais cuidados do laboratório continuam exigidos.
+Check the exact path, outbound, block, enabled and all profiles. The rule is for
+the copy's executable, not the official client. Do not disable the firewall.
+This is a network barrier; it does not certify the absence of all indirect traffic nor
+guarantee account safety. The other lab precautions are still required.

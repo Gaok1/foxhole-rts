@@ -1,73 +1,73 @@
-# Foxhole RTS — reconhecimento inicial
+# Foxhole RTS — initial recon
 
-> Atualização 2026-10-07: o planejamento abaixo preserva hipóteses históricas.
-> O estado executado está no MODLOG: v0.3 validada anteriormente; v0.3.1 adiciona
-> parada por grupo (H), com testes offline aprovados e teste no jogo pendente.
-> Uso e avaliação do toolkit: UNIVERSAL_MODDER_NOTES.md. Rifles reais pendentes.
-> Atualização 2026-10-07 (noite): decisão de ficar totalmente offline com modelo próprio.
-> v0.4 validada no jogo: parada H corrigida, classes com armas na mão, recrutamento e economia.
-> Rifles via inventário/RPC saíram do caminho crítico.
+> Update 2026-10-07: the planning below keeps historical hypotheses.
+> The executed state is in the MODLOG: v0.3 validated earlier; v0.3.1 adds
+> per-group stop (H), with offline tests passed and in-game test pending.
+> Use and evaluation of the toolkit: UNIVERSAL_MODDER_NOTES.md. Real rifles pending.
+> Update 2026-10-07 (night): decision to stay fully offline with our own model.
+> v0.4 validated in game: H stop fixed, classes with weapons in hand, recruitment and economy.
+> Rifles through inventory/RPC left the critical path.
 
-Data: 2026-10-06. Status: investigação; nenhuma rota RTS demonstrada.
+Date: 2026-10-06. Status: investigation; no RTS route demonstrated.
 
-Atualização (rodada 2): o executável do cliente contém código de servidor (listen server via `?listen`, `ASimGameMode`, ReplicationGraph). O bloqueio provável é a dependência do backend `FExternalWarService`. Não há rota pública (offline, servidor privado, SDK). Detalhes em `ENVIRONMENT_RECON.md` (seção Rodada 2). Próximo passo: medir essa dependência por decompilação no Ghidra, sem executar o jogo.
+Update (round 2): the client executable contains server code (listen server via `?listen`, `ASimGameMode`, ReplicationGraph). The likely blocker is the dependency on the `FExternalWarService` backend. There is no public route (offline, private server, SDK). Details in `ENVIRONMENT_RECON.md` (section Round 2). Next step: measure that dependency by decompiling in Ghidra, without running the game.
 
-## Instalação verificada
+## Verified installation
 
-- Caminho: `D:\SteamLibrary\steamapps\common\Foxhole`.
-- Loja: Steam; App ID `505460`; build instalado `25730371`, conforme manifesto local.
-- Engine detectada pelo scanner: Unreal, assinatura `UE4+Release-4.24`. Não determina todas as customizações da engine.
-- Projeto: `War`; executável principal: `War\Binaries\Win64\War-Win64-Shipping.exe`.
-- Scanner encontrou dois arquivos PAK, sem IoStore, e nenhum loader instalado.
-- Sem EAC/BattlEye/EOS/packer (verificado em arquivos, strings e histórico de processos). Há VAC, detecção própria de discrepância de tempo e `bAllowMods` no servidor: tratar o cliente online como protegido.
-- PAK principal com índice não criptografado, sem `.sig`, sem IoStore.
-- Config/logs/saves inexistentes: o jogo nunca rodou nesta instalação. Só serão criados após o primeiro lançamento.
+- Path: `D:\SteamLibrary\steamapps\common\Foxhole`.
+- Store: Steam; App ID `505460`; installed build `25730371`, according to the local manifest.
+- Engine detected by the scanner: Unreal, signature `UE4+Release-4.24`. It does not determine all engine customizations.
+- Project: `War`; main executable: `War\Binaries\Win64\War-Win64-Shipping.exe`.
+- The scanner found two PAK files, no IoStore, and no installed loader.
+- No EAC/BattlEye/EOS/packer (checked in files, strings and process history). There is VAC, the game's own time-discrepancy detection and `bAllowMods` on the server: treat the online client as protected.
+- Main PAK with an unencrypted index, no `.sig`, no IoStore.
+- Config/logs/saves missing: the game never ran on this installation. They will only be created after the first launch.
 
-## Rota e limitações
+## Route and limitations
 
-A FAQ oficial não oferece suporte a mods de gameplay nem single-player com bots. Menciona somente mods visuais sem vantagem competitiva: https://www.foxholegame.com/faq.
+The official FAQ does not support gameplay mods or single-player with bots. It only mentions visual mods without competitive advantage: https://www.foxholegame.com/faq.
 
-O scanner sugere UE4SS/PAK por reconhecer Unreal. Essa sugestão é genérica, NÃO é compatibilidade confirmada com Foxhole e NÃO será aplicada ao cliente online.
+The scanner suggests UE4SS/PAK because it recognizes Unreal. That suggestion is generic, NOT confirmed compatibility with Foxhole, and will NOT be applied to the online client.
 
-Histórico: a rota inicial era reconhecimento somente leitura. Ela foi substituída pela rota abaixo, com o desenho normativo aprovado em 2026-10-06. O UE4SS vai **somente** na cópia de laboratório, nunca no cliente online.
+History: the initial route was read-only recon. It was replaced by the route below, with the normative design approved on 2026-10-06. UE4SS goes **only** into the lab copy, never into the online client.
 
-## Rota escolhida: listen server local isolado (viabilidade técnica pendente)
+## Chosen route: isolated local listen server (technical feasibility pending)
 
-"Listen server local isolado": usar o código de servidor já presente no cliente para hospedar uma sessão local, sem conectar aos servidores oficiais. A camada RTS (câmera, seleção, ordens) entra depois, via UE4SS/Lua ou pak.
+"Isolated local listen server": use the server code already present in the client to host a local session, without connecting to the official servers. The RTS layer (camera, selection, orders) comes later, through UE4SS/Lua or pak.
 
-Condições, todas ainda não satisfeitas:
-1. **Técnica:** `?listen` e `ASimGameMode` funcionam sem `FExternalWarService`, ou com dependência contornável sem falsificar autenticação. A medição é por decompilação.
-2. **Normativa (aprovada pelo usuário em 2026-10-06):**
-   - Manter intacta a verificação de posse do Steam (`steam_api64`, sem tocar em DRM nem em tickets).
-   - A sessão modificada nunca contata serviços da Siege Camp. As chamadas do `FExternalWarService` recebem respostas locais apenas dentro da sessão local.
-   - O servidor local roda sem VAC (modo inseguro, a confirmar).
-   - O mod fica inativo fora do modo RTS local.
-   - Rejeitado: "autenticar online e depois ficar offline", porque expõe um cliente modificado ao backend oficial (risco de VAC/ban).
-3. **Isolamento:** cópia de laboratório que nunca conecta a servidores oficiais (VAC). Backup e autorização antes de instalar loader.
+Conditions, none satisfied yet:
+1. **Technical:** `?listen` and `ASimGameMode` work without `FExternalWarService`, or with a dependency that can be worked around without faking authentication. Measured by decompilation.
+2. **Normative (approved by the user on 2026-10-06):**
+   - Keep the Steam ownership check intact (`steam_api64`, no touching DRM or tickets).
+   - The modified session never contacts Siege Camp services. `FExternalWarService` calls get local answers only inside the local session.
+   - The local server runs without VAC (insecure mode, to be confirmed).
+   - The mod stays inactive outside the local RTS mode.
+   - Rejected: "authenticate online and then go offline", because it exposes a modified client to the official backend (VAC/ban risk).
+3. **Isolation:** lab copy that never connects to official servers (VAC). Backup and authorization before installing a loader.
 
-Alternativas, se a rota cair:
-- (a) mod só visual/UI via pak, tolerado mas sem simulação;
-- (b) painel RTS-like sobre a War API, só leitura;
-- (c) perguntar à Siege Camp (rascunho em `ENVIRONMENT_RECON.md`).
+Alternatives, if the route falls:
+- (a) visual/UI-only mod through pak, tolerated but without simulation;
+- (b) RTS-like dashboard over the War API, read-only;
+- (c) ask Siege Camp (draft in `ENVIRONMENT_RECON.md`).
 
-## Próximas verificações
+## Next checks
 
-O documento operacional agora é `HOW_TO_MAKE_THE_MOD.md`: arquitetura, limitações e protocolo de testes T0–T9. Resumo do estado:
+The operational document is now `HOW_TO_MAKE_THE_MOD.md`: architecture, limitations and test protocol T0–T9. Summary of the state:
 
-1. **Feito (estático):**
-   - boot direto no mapa por linha de comando;
-   - sem servidor Steam/VAC num cliente;
-   - único bloqueio do host é o perfil em `PostLogin`;
-   - soldados = jogadores locais extras, molde `-headless`;
-   - mapas sem NavMesh.
-2. **A executar com o usuário:** T0–T3 (lançamentos do cliente e da cópia, `?listen`, conferência de VAC no log).
-3. **Depois:** UE4SS na cópia (T4–T5), stub de perfil em C++ (T6), primeiro soldado (T7), navegação (T8), marco do esquadrão (T9).
+1. **Done (static):**
+   - direct boot into the map from the command line;
+   - no Steam server/VAC in a client;
+   - the only host blocker is the profile in `PostLogin`;
+   - soldiers = extra local players, `-headless` template;
+   - maps without NavMesh.
+2. **To run with the user:** T0–T3 (launches of the client and the copy, `?listen`, VAC check in the log).
+3. **Later:** UE4SS in the copy (T4–T5), C++ profile stub (T6), first soldier (T7), navigation (T8), squad milestone (T9).
 
-## Verificação realizada
+## Verification performed
 
-- Rodada 2: recon local, análise estática PE/strings/xrefs, pesquisa web e varredura da KB, todos somente leitura. Ghidra 12.1.2 + GhidraMCP 5.14.2 instalados em `D:\tools`; projeto `D:\tools\ghidra-projects\Foxhole`, fora do repo.
+- Round 2: local recon, static PE/strings/xrefs analysis, web research and KB sweep, all read-only. Ghidra 12.1.2 + GhidraMCP 5.14.2 installed in `D:\tools`; project `D:\tools\ghidra-projects\Foxhole`, outside the repo.
 
-- `python -m um scan "Foxhole" --json` — inspeção estática, 43 arquivos indexados, sem truncamento informado.
-- Leitura do manifesto Steam e listagem superficial de executáveis.
-- Busca da base local por Foxhole sem resultados; notas Unreal encontradas não comprovam suporte a este jogo.
-- Nenhum jogo aberto, processo instrumentado, arquivo de instalação alterado ou pacote extraído.
+- `python -m um scan "Foxhole" --json` — static inspection, 43 files indexed, no truncation reported.
+- Reading the Steam manifest and a shallow listing of executables.
+- Local KB search for Foxhole with no results; the Unreal notes found do not prove support for this game.
+- No game opened, process instrumented, installation file changed or package extracted.
