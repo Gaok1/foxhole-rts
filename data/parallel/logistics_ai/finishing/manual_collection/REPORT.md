@@ -1,157 +1,157 @@
-# COLETA MANUAL — relatório (candidato v3)
+# MANUAL COLLECTION — report (candidate v3)
 
-Entrega do agente COLETA_MANUAL. Tudo nesta pasta; `main.lua`, docs compartilhados e pastas de outros agentes **não foram editados**.
-Offline (lupa Lua 5.4 e 5.5): **nada aqui prova física Unreal, rota real, animação, entrada nem equilíbrio** — ver "O que exige o laboratório".
+Delivery of the COLETA_MANUAL agent. Everything in this folder; `main.lua`, shared docs and other agents' folders **were not edited**.
+Offline (lupa Lua 5.4 and 5.5): **nothing here proves Unreal physics, a real route, animation, input or balance** — see "What requires the lab".
 
-- Base lida (somente leitura): `data/parallel/integration_rehearsal/candidate_v2/main.lua`, SHA256 `a93c1531588ea4534a7791dbb2e9578654ad0fa4a87373be1cbed569cbc3eda6` (inalterado antes/depois do build).
-- Saída: `candidate_v3/main.lua` (CRLF), SHA256 **`9b89b1136509d9e4416a8f80dd3aa6b3ed2a491df61bcb7c0afec35cb34d63e6`** (6644 linhas, 337 990 bytes).
-- Patch: `manual_collection.patch` (CRLF, aplica em `candidate_v2/main.lua` com `patch -p1`/`git apply`; +359/-14) e `manual_collection_lf.patch` (leitura).
-- `main.lua` real do mod: SHA256 `33d6c7e5920a…` intacto (conferido no início e no fim da pilha, etapa 99).
+- Base read (read-only): `data/parallel/integration_rehearsal/candidate_v2/main.lua`, SHA256 `a93c1531588ea4534a7791dbb2e9578654ad0fa4a87373be1cbed569cbc3eda6` (unchanged before/after the build).
+- Output: `candidate_v3/main.lua` (CRLF), SHA256 **`9b89b1136509d9e4416a8f80dd3aa6b3ed2a491df61bcb7c0afec35cb34d63e6`** (6644 lines, 337,990 bytes).
+- Patch: `manual_collection.patch` (CRLF, applies to `candidate_v2/main.lua` with `patch -p1`/`git apply`; +359/-14) and `manual_collection_lf.patch` (for reading).
+- The mod's real `main.lua`: SHA256 `33d6c7e5920a…` intact (checked at the start and at the end of the stack, step 99).
 
-## 1. Problema e decisão do usuário
+## 1. Problem and the user's decision
 
-Com o caminhão de recurso destruído, `bmat = 0` e `sucata = 0`, a fábrica não tem de onde tirar os 100 bmat da reconstrução e a cadeia trava
-para sempre (`test_truck_bmat.py`, "limite conhecido"). Decisão: **coleta manual lenta** — soldados coletam sucata a pé; nada nasce do
-nada e nenhum caminhão é grátis. Ampliada em três mensagens: a coleta manual é o **começo normal da partida** (estilo aldeões de RTS), o
-trabalhador é um soldado sem fuzil nascido na base por 1 camisa, e o nascimento usa a interface comum de `forward_bases/SPEC.md` §4.3.
+With the resource truck destroyed, `bmat = 0` and `salvage = 0`, the factory has nowhere to get the 100 bmat for the rebuild and the chain freezes
+forever (`test_truck_bmat.py`, "known limit"). Decision: **slow manual collection** — soldiers collect salvage on foot; nothing is born from
+nothing and no truck is free. Widened in three messages: manual collection is the **normal start of the match** (RTS villager style), the
+worker is a soldier without a rifle spawned at the base for 1 shirt, and the spawn uses the common interface of `forward_bases/SPEC.md` §4.3.
 
-## 2. Origem dos números (leia isto antes de equilibrar)
+## 2. Origin of the numbers (read this before balancing)
 
-| Valor | De onde vem |
+| Value | Where it comes from |
 |---|---|
-| caminhão custa **100 bmat**; razão **2 sucata : 1 bmat**; carga de caminhão 100 | já no mod (`CFG.LOGI.truckCost`, `ratio`, `trip`) e em `data/game_costs.txt` |
-| implantação **1000** (refinaria 400 + fábrica 400 + 2 caminhões de suprimento 100) | soma dos custos reais acima; era 1100 com o caminhão de recurso |
-| **`rate = 0,5` sucata/s, `cap = 40`, `workers = 3`, `bmat0 = 40`** | **PROPOSTAS de design minhas.** Não existe valor de coleta manual em `data/` nem em `MECHANICS_STUDY.md` (o jogo não tem coleta a pé desse tipo nesta cópia) |
-| raios/tempos (`fieldR 1000`, `refR 1500`, `stand 600`, `quiet 60`, `pause 60`, `leg 180`…) | escolhas de engenharia, ajustáveis em `CFG.COLETA` |
-| `bmat0 = 40` | `CFG.LOGI.bmat0 = 240` compraria o caminhão no 1º tick e a coleta nunca aconteceria; 40 deixa a fábrica pobre de propósito |
-| `startRifles = 10` | indicado pela interface de nascimento (§4.3) para a base principal; só vale na partida manual |
+| truck costs **100 bmat**; ratio **2 salvage : 1 bmat**; truck load 100 | already in the mod (`CFG.LOGI.truckCost`, `ratio`, `trip`) and in `data/game_costs.txt` |
+| deployment **1000** (refinery 400 + factory 400 + 2 supply trucks 100) | sum of the real costs above; it was 1100 with the resource truck |
+| **`rate = 0.5` salvage/s, `cap = 40`, `workers = 3`, `bmat0 = 40`** | **My design PROPOSALS.** There is no manual collection value in `data/` nor in `MECHANICS_STUDY.md` (the game has no on-foot collection of this kind in this copy) |
+| radii/times (`fieldR 1000`, `refR 1500`, `stand 600`, `quiet 60`, `pause 60`, `leg 180`…) | engineering choices, adjustable in `CFG.COLETA` |
+| `bmat0 = 40` | `CFG.LOGI.bmat0 = 240` would buy the truck on the 1st tick and collection would never happen; 40 keeps the factory poor on purpose |
+| `startRifles = 10` | indicated by the spawn interface (§4.3) for the main base; only applies in the manual match |
 
 ## 3. Design
 
-Tudo em `CFG.COLETA`/`CFG.SPAWN` e na tabela `logi` (**nenhum local de topo novo**: 175 pelo contador do `check_globals`, o mesmo do v2; folga 22 até o limite de 200).
+Everything in `CFG.COLETA`/`CFG.SPAWN` and in the `logi` table (**no new top-level local**: 175 by the `check_globals` counter, the same as v2; 22 of headroom to the 200 limit).
 
-1. **Início sem caminhão de recurso.** `CFG.COLETA.manualStart = true`. `Alt+L` implanta refinaria + fábrica + **2** caminhões de suprimento (orçamento 1000, 4 atores).
-   `logi.start` cria o de recurso já "morto" (`state="dead"`, sem ator), `bmat = 40`, base com `max(shirts0, workers)` camisas e 10 fuzis.
-   `logi.trucksNeeded()` substitui o "supply+1" fixo em `scan`/`deployPlan`/`infraPlan`.
-2. **A fábrica constrói o caminhão** pela reconstrução que já existia (`logi.truckStep`, 100 bmat, reserva `reserva_bmat`), agora com **prioridade
-   automática** (`resFirst`): o de recurso reconstrói antes dos de suprimento e das caixas. Como não há ator, `logi.spawnTruck` o cria no campo (visual; o custo já foi debitado).
-3. **Trabalhadores** = soldados reais, `role="worker"`, arma `CFG.WEAPONS.worker` (`grip=0`, alcance 0: nunca atira).
-   `logi.colMaintain` mantém até `workers` (3) vivos **enquanto a coleta é necessária**, repondo os mortos, uma camisa cada.
-4. **Interface de nascimento (§4.3), só para o trabalhador:**
-   `site, why = logi.spawnSite(role, cursor, opts)` é **pura** (não muda estoque nem cria ator) e devolve
-   `{dep, kind="base", name, at={X,Y,Z,exact=true}, need, explicit}` ou `nil, motivo` ("função sem receita", "ramo legado", "sem camisas em base",
+1. **Start without a resource truck.** `CFG.COLETA.manualStart = true`. `Alt+L` deploys refinery + factory + **2** supply trucks (budget 1000, 4 actors).
+   `logi.start` creates the resource truck already "dead" (`state="dead"`, no actor), `bmat = 40`, base with `max(shirts0, workers)` shirts and 10 rifles.
+   `logi.trucksNeeded()` replaces the fixed "supply+1" in `scan`/`deployPlan`/`infraPlan`.
+2. **The factory builds the truck** through the rebuild that already existed (`logi.truckStep`, 100 bmat, reserve `reserva_bmat`), now with **automatic
+   priority** (`resFirst`): the resource truck is rebuilt before the supply trucks and the crates. Since there is no actor, `logi.spawnTruck` creates it in the field (visual; the cost was already debited).
+3. **Workers** = real soldiers, `role="worker"`, weapon `CFG.WEAPONS.worker` (`grip=0`, range 0: never fires).
+   `logi.colMaintain` keeps up to `workers` (3) alive **while collection is needed**, replacing the dead, one shirt each.
+4. **Spawn interface (§4.3), only for the worker:**
+   `site, why = logi.spawnSite(role, cursor, opts)` is **pure** (changes no stock and creates no actor) and returns
+   `{dep, kind="base", name, at={X,Y,Z,exact=true}, need, explicit}` or `nil, reason` ("função sem receita", "ramo legado", "sem camisas em base",
    "camisas reservadas aos trabalhadores da coleta", "nenhum local de nascimento permitido");
-   `ok, why = logi.spawnCommit(site, role)` roda **uma vez, depois do ator confirmado**, revalida o estoque e debita (a única atribuição de `.shirts` no código novo — verificado por análise estática no teste).
-   Se o commit recusar depois do ator criado, o ator é desfeito (`anim.untrack`, destruir, soltar controlador). `recruit()` **não foi migrado**: só respeita a reserva de camisas dos trabalhadores.
-   `CFG.SPAWN.roles.worker = {shirts=1, sites={"base"}}`; `workerDepot()` é o ponto isolado que as bases avançadas trocam.
-5. **Coleta.** Estados `toField → gather → toRef`, rota pelo A* do mod (`routeTo`), movimento pelo `squadTick`. A sucata só vira estoque (`logi.salvage`) **na chegada à refinaria**; carga em mãos nunca é creditada.
-   Razão conferida a cada quadro: `colhido = entregue + perdido + em mãos`. Ativa só com o caminhão de recurso ausente/morto **e** falta de bmat (`bmat + sucata/2 < 100`); some quando o caminhão volta.
-6. **Segurança de cache (regra do `anim.untrack`).** Nunca guarda pawn/userdata entre quadros: guarda o registro do soldado e, antes de qualquer chamada, revalida pertencer ao esquadrão + `alive` + `not bActorIsBeingDestroyed`. Pawn inválido = **zero chamadas** (teste conta `pawn.touched`). `logi.reset` descarta a coleta sem tocar em pawn.
-7. **Ordem do jogador tira o trabalhador da coleta** (marcha, `hold`, foco, área, recuo, evacuação, fila; a carga é descartada e registrada). Só volta após `quiet = 60 s` sem ordem. Para isso a ordem em fila (`Shift+direito`) passou a marcar `orderT`, como as demais (âncora 4c; muda só essa marca).
-8. **Combate**: perigo (inimigo a < 35 m, tiro/supressão recentes, vida < 80%) impede recrutar e pausa a colheita; combate seguido > 60 s larga a coleta (carga perdida). Preso > 180 s num trecho: larga.
-9. **Persistência**: schema v2 do save **não mudou**. A carga em mãos não é salva (descarte registrado em log "descartada (reinício)"); trabalhadores voltam como `role="worker"`; a coleta recomeça sozinha.
-10. **Painel**: uma linha só quando há coleta, ex.: `coleta manual: 3 trabalhadores | 40/100 bmat para o caminhão | 25 sucata em mãos`.
-11. **Caminho antigo preservado**: `manualStart=false` devolve implantação de 3 caminhões/1100 e `bmat0` antigo; a coleta vira só resgate do travamento (volta em 264,9 s).
+   `ok, why = logi.spawnCommit(site, role)` runs **once, after the confirmed actor**, revalidates the stock and debits (the only assignment of `.shirts` in the new code — verified by static analysis in the test).
+   If the commit refuses after the actor was created, the actor is undone (`anim.untrack`, destroy, release the controller). `recruit()` **was not migrated**: it only respects the workers' shirt reserve.
+   `CFG.SPAWN.roles.worker = {shirts=1, sites={"base"}}`; `workerDepot()` is the isolated point the forward bases swap.
+5. **Collection.** States `toField → gather → toRef`, route through the mod's A* (`routeTo`), movement through `squadTick`. Salvage only becomes stock (`logi.salvage`) **on arrival at the refinery**; cargo in hand is never credited.
+   Ledger checked every frame: `collected = delivered + lost + in hand`. Active only with the resource truck missing/dead **and** a lack of bmat (`bmat + salvage/2 < 100`); it vanishes when the truck comes back.
+6. **Cache safety (the `anim.untrack` rule).** Never keeps a pawn/userdata between frames: it keeps the soldier's record and, before any call, revalidates squad membership + `alive` + `not bActorIsBeingDestroyed`. Invalid pawn = **zero calls** (the test counts `pawn.touched`). `logi.reset` discards the collection without touching a pawn.
+7. **A player order takes the worker out of collection** (march, `hold`, focus, area, retreat, evacuation, queue; the cargo is discarded and recorded). It only comes back after `quiet = 60 s` without an order. For that the queued order (`Shift+right`) now sets `orderT`, like the others (anchor 4c; it changes only that mark).
+8. **Combat**: danger (enemy < 35 m, recent fire/suppression, health < 80%) prevents recruiting and pauses gathering; continuous combat > 60 s drops the collection (cargo lost). Stuck > 180 s on a stretch: drop.
+9. **Persistence**: the save's v2 schema **did not change**. Cargo in hand is not saved (discard recorded in the log "descartada (reinício)"); workers come back as `role="worker"`; collection restarts on its own.
+10. **Panel**: one line only when there is collection, e.g.: `coleta manual: 3 trabalhadores | 40/100 bmat para o caminhão | 25 sucata em mãos`.
+11. **Old path preserved**: `manualStart=false` restores the 3-truck/1100 deployment and the old `bmat0`; collection becomes only a rescue from the freeze (back in 264.9 s).
 
-## 4. Números medidos (offline, geometria do harness: campo a 80 m da refinaria, andar 400 cm/s)
+## 4. Measured numbers (offline, harness geometry: field 80 m from the refinery, walking 400 cm/s)
 
-| Medida | Resultado |
+| Measurement | Result |
 |---|---|
-| **X** — 1º caminhão de recurso numa partida nova | **165,5 s** (colhido 120 = entregue 120, 3 viagens de 40) |
-| 1ª entrega de caixas depois do caminhão | 63,0 s depois |
-| **Y** — perder o caminhão com `bmat=0`, `sucata=0` | volta em **243,2 s** |
-| Travamento antigo (v2, mesmo cenário, 900 s) | **nunca** volta; v3 com início legado volta em 264,9 s |
-| Coleta vs. caminhão | 1,00 sucata/s (3 trabalhadores) vs 6,33 do caminhão: **6,3× mais lenta** |
-| Mutação `resFirst=false` | inverte a ordem de reconstrução (teste não é vacuoso) |
+| **X** — 1st resource truck in a new match | **165.5 s** (collected 120 = delivered 120, 3 trips of 40) |
+| 1st crate delivery after the truck | 63.0 s later |
+| **Y** — losing the truck with `bmat=0`, `salvage=0` | back in **243.2 s** |
+| Old freeze (v2, same scenario, 900 s) | **never** comes back; v3 with the legacy start comes back in 264.9 s |
+| Collection vs. truck | 1.00 salvage/s (3 workers) vs 6.33 for the truck: **6.3× slower** |
+| Mutation `resFirst=false` | inverts the rebuild order (the test is not vacuous) |
 
-Sensibilidade (`SENSITIVITY.txt`, `sensitivity.py`; segundos até o 1º caminhão; 3 trabalhadores, cap 40, rate 0,5 salvo a coluna variada):
+Sensitivity (`SENSITIVITY.txt`, `sensitivity.py`; seconds until the 1st truck; 3 workers, cap 40, rate 0.5 except the varied column):
 
 | | 80 m | 260 m | 470 m |
 |---|---|---|---|
-| 1 trabalhador | 373 | 637 | 951 |
-| 2 trabalhadores | 259 | 435 | 645 |
-| 3 trabalhadores | 165 | 254 | 359 |
+| 1 worker | 373 | 637 | 951 |
+| 2 workers | 259 | 435 | 645 |
+| 3 workers | 165 | 254 | 359 |
 | cap 20 | 187 | 363 | 573 |
 | cap 80 | 245 | 334 | 439 |
-| rate 0,25 | 245 | 334 | 439 |
-| rate 1,0 | 125 | 214 | 319 |
+| rate 0.25 | 245 | 334 | 439 |
+| rate 1.0 | 125 | 214 | 319 |
 
-Leitura: o tempo cresce principalmente com a **distância** campo–refinaria; 5 trabalhadores não ajudam o 1º caminhão (bastam 3 viagens de 40). `cap` 80 não ajuda no curto: a 1ª carga demora 160 s para encher (a 0,5/s) e o caminhão só precisa de 120 no total.
-Em HomeRegionW (campo ~470 m da refinaria) o 1º caminhão sai em ~6 min com 3 trabalhadores, não ~3 min.
+Reading: the time grows mainly with the field–refinery **distance**; 5 workers do not help the 1st truck (3 trips of 40 are enough). `cap` 80 does not help in the short run: the 1st load takes 160 s to fill (at 0.5/s) and the truck only needs 120 in total.
+In HomeRegionW (field ~470 m from the refinery) the 1st truck leaves in ~6 min with 3 workers, not ~3 min.
 
-Um erro real foi achado pela tabela e corrigido: o acúmulo de `rate*dt` em ponto flutuante parava a carga em 39,999999, a entrega ficava em 119,99999 e faltava uma viagem inteira
-para o limiar `bmat >= 100`. A carga cheia agora é fixada exatamente em `cap` (o razão `colhido` soma a diferença).
+A real bug was found by the table and fixed: accumulating `rate*dt` in floating point stopped the load at 39.999999, the delivery stayed at 119.99999 and a whole trip was missing
+for the `bmat >= 100` threshold. A full load is now pinned exactly at `cap` (the `collected` ledger adds the difference).
 
-## 5. O que foi testado (tudo PASS; saída completa em `TEST_OUTPUT.txt`)
+## 5. What was tested (all PASS; full output in `TEST_OUTPUT.txt`)
 
-Comando geral: `cd /d/GitHub/foxhole-rts && bash data/parallel/logistics_ai/finishing/manual_collection/run_all.sh` (reconstrói o candidato e roda tudo; `rc_final=0`).
-Cada comando individual: `cd /d/GitHub/foxhole-rts && PYTHONPATH=D:/tools/pylibs PYTHONDONTWRITEBYTECODE=1 python data/parallel/logistics_ai/finishing/manual_collection/<arquivo>.py`.
+General command: `cd /d/GitHub/foxhole-rts && bash data/parallel/logistics_ai/finishing/manual_collection/run_all.sh` (rebuilds the candidate and runs everything; `rc_final=0`).
+Each individual command: `cd /d/GitHub/foxhole-rts && PYTHONPATH=D:/tools/pylibs PYTHONDONTWRITEBYTECODE=1 python data/parallel/logistics_ai/finishing/manual_collection/<file>.py`.
 
-| Arquivo | Casos | Cobre |
+| File | Cases | Covers |
 |---|---|---|
-| `test_manual_match.py` | 14 (7 × 2 Lua) | partida nova sem caminhão → X; manual → caminhão → caixas; perder o caminhão → Y; nada de bmat/sucata sem coleta (falha de spawn, sem camisas, trabalhadores congelados, esquadrão cheio, comandado); prioridade `resFirst` (+ mutação); `manualStart=false`; implantação 1000/4 atores (v2: 1100/5) |
-| `test_collection_core.py` | 18 | cadeia saudável **nunca** ativa a coleta (4 cenários); coletor morre com carga; ordem do jogador remove da coleta; combate; revalidação de pawn inválido; mais lenta que o caminhão; painel; reserva de camisas; **fuzz** 20+5 sementes × 600 s com razão e entrega conferidos a cada quadro |
-| `test_freeze.py` | 4 | o deadlock antigo: v2 trava, v3 resolve; partida manual sob consumo contínuo |
-| `test_persistence_collection.py` | 10 | salvar/continuar durante a coleta (bmat/sucata idênticos, nada creditado); 4 ciclos idênticos; mesma sessão descarta e registra; save com implantação v3; save do v2 abre no v3; v2 recusa save de v3 |
-| `test_spawn_interface.py` | 9 | `spawnSite` pura; recusas com motivo; `spawnCommit` debita só após spawn confirmado e revalida; commit recusado desfaz o ator; estoque inicial (10 fuzis, camisas ≥ 3) e legado intacto; só `spawnCommit` atribui `.shirts` |
-| `test_orders_v3.py` | suite do mod | `tools/test_orders.py` contra o v3 (cópia em memória), com adaptações abaixo |
-| `test_stack_v3.py` | 22 etapas | cópia adaptada de `integration_rehearsal/test_stack.py` apontando para o v3: build reprodutível, sintaxe 5.4/5.5, limite de 200 locais (175), `check_globals` limpo, test_orders, costs, economia, IA, elogi, bmat_caminhao, painel, persistência v2, estradas, patches em sequência, ordens alternativas, intacto no fim. **22 PASS, 0 FAIL** |
+| `test_manual_match.py` | 14 (7 × 2 Lua) | new match without a truck → X; manual → truck → crates; losing the truck → Y; no bmat/salvage without collection (spawn failure, no shirts, frozen workers, full squad, commanded); `resFirst` priority (+ mutation); `manualStart=false`; deployment 1000/4 actors (v2: 1100/5) |
+| `test_collection_core.py` | 18 | a healthy chain **never** activates collection (4 scenarios); collector dies with cargo; player order removes from collection; combat; revalidation of an invalid pawn; slower than the truck; panel; shirt reserve; **fuzz** 20+5 seeds × 600 s with ledger and delivery checked every frame |
+| `test_freeze.py` | 4 | the old deadlock: v2 freezes, v3 solves it; manual match under continuous consumption |
+| `test_persistence_collection.py` | 10 | save/continue during collection (identical bmat/salvage, nothing credited); 4 identical cycles; the same session discards and records; save with a v3 deployment; a v2 save opens in v3; v2 refuses a v3 save |
+| `test_spawn_interface.py` | 9 | pure `spawnSite`; refusals with a reason; `spawnCommit` debits only after a confirmed spawn and revalidates; a refused commit undoes the actor; starting stock (10 rifles, shirts ≥ 3) and legacy intact; only `spawnCommit` assigns `.shirts` |
+| `test_orders_v3.py` | mod suite | `tools/test_orders.py` against v3 (in-memory copy), with the adaptations below |
+| `test_stack_v3.py` | 22 steps | adapted copy of `integration_rehearsal/test_stack.py` pointing at v3: reproducible build, syntax 5.4/5.5, 200-local limit (175), clean `check_globals`, test_orders, costs, economy, AI, elogi, bmat_caminhao, panel, persistence v2, roads, patches in sequence, alternative orders, intact at the end. **22 PASS, 0 FAIL** |
 
-Também: `tools/check_globals.py` contra o candidato: sem saída, rc 0.
+Also: `tools/check_globals.py` against the candidate: no output, rc 0.
 
-### Expectativas alteradas (cada uma documentada no código)
+### Changed expectations (each one documented in the code)
 
-`test_orders_v3.py` (`ADAPTACOES`, impressas a cada execução): (1) `start()` deixa o caminhão de recurso por construir — o bloco do fluxo da fábrica o torna vivo; (2) plano de implantação 1100/3 vagas → 1000/2;
-(3) carteira 1099 → 999 e 1100 → 1000; (4) rollback preserva 1000; (5) implantação cria 4 atores (não 5) e gasta 1000, duas vezes; (6) estacionamento inicial tolera o caminhão de recurso sem ator.
+`test_orders_v3.py` (`ADAPTACOES`, printed on each run): (1) `start()` leaves the resource truck to be built — the factory flow block makes it alive; (2) deployment plan 1100/3 spots → 1000/2;
+(3) wallet 1099 → 999 and 1100 → 1000; (4) rollback keeps 1000; (5) deployment creates 4 actors (not 5) and spends 1000, twice; (6) the starting parking tolerates the resource truck without an actor.
 
-`test_stack_v3.py` roda a suíte de persistência da pilha em **duas** variantes: a de números novos (`V3_PERSIST_ADAPT`, condicional à pilha candidata via `_v3()`, porque a mesma suíte também roda a pilha **sem** coleta, que continua em 1100/5):
-atores 5→4, carteira `0/1100/5`→`0/1000/4`, caminhões vivos 3→2, saldo 300→200. E `V3_ELOGI_ADAPT`: em `t_no_module` o mundo de carga ganha 1 caminhão nativo, porque um mod **sem** a coleta exige 3 caminhões e o save v3 pagou 2.
-As etapas **06b-L** e **08-L** rodam as mesmas suítes **sem nenhuma alteração** com `manualStart=false`: o caminho antigo está intacto. `diffs/test_stack_v3.diff` mostra tudo o que mudou em relação ao `test_stack.py` original.
+`test_stack_v3.py` runs the stack's persistence suite in **two** variants: the new-numbers one (`V3_PERSIST_ADAPT`, conditional on the candidate stack through `_v3()`, because the same suite also runs the stack **without** collection, which stays at 1100/5):
+actors 5→4, wallet `0/1100/5`→`0/1000/4`, live trucks 3→2, balance 300→200. And `V3_ELOGI_ADAPT`: in `t_no_module` the load world gains 1 native truck, because a mod **without** collection requires 3 trucks and the v3 save paid for 2.
+Steps **06b-L** and **08-L** run the same suites **without any change** with `manualStart=false`: the old path is intact. `diffs/test_stack_v3.diff` shows everything that changed relative to the original `test_stack.py`.
 
-## 6. O que exige o laboratório (nada disso foi visto)
+## 6. What requires the lab (none of this was seen)
 
-- **Movimento real dos trabalhadores**: colisão, travar em obstáculo/neve, o A* real do campo à refinaria, chegada dentro de `fieldR`/`refR` (o harness usa mundo plano).
-- Se o campo de sucata e a refinaria são **de fato** alcançáveis a pé no mapa (HomeRegionW) e a que distância; ajustar `fieldR`/`refR`/`stand`.
-- **Animação sem arma** (`grip=0`): o soldado nasce sem fuzil sem quebrar `ABP_Male_C` (sem T-pose, sem crash do hook de animação). `spawnSoldier` com `role="worker"` e a nova entrada de `CFG.WEAPONS`.
-- **Visual do caminhão de recurso spawnado** (`logi.spawnTruck`, no campo): ator válido, posição sobre o chão, não em destruição, não preso em telhado.
-- **Custo por quadro**: `colStep` roda todo `logi.tick`; é O(coletores) mais, a cada 0,5 s por coletor, uma varredura dos inimigos. Medir na partida real.
-- Fluxo humano: selecionar/dar ordem a um trabalhador, vê-lo sair da coleta e voltar 60 s depois; painel; mensagens; salvar/continuar com trabalhadores em campo.
-- Veículos inimigos/terreno: se os trabalhadores sobrevivem a uma onda no caminho do campo.
+- **Real movement of the workers**: collision, getting stuck on an obstacle/snow, the real A* from the field to the refinery, arrival within `fieldR`/`refR` (the harness uses a flat world).
+- Whether the salvage field and the refinery are **actually** reachable on foot on the map (HomeRegionW) and at what distance; adjust `fieldR`/`refR`/`stand`.
+- **Animation without a weapon** (`grip=0`): the soldier spawns without a rifle without breaking `ABP_Male_C` (no T-pose, no animation hook crash). `spawnSoldier` with `role="worker"` and the new `CFG.WEAPONS` entry.
+- **Visual of the spawned resource truck** (`logi.spawnTruck`, in the field): valid actor, position on the ground, not being destroyed, not stuck on a roof.
+- **Per-frame cost**: `colStep` runs every `logi.tick`; it is O(collectors) plus, every 0.5 s per collector, a sweep of the enemies. Measure in a real match.
+- Human flow: select/give an order to a worker, see them leave collection and come back 60 s later; panel; messages; save/continue with workers in the field.
+- Enemy vehicles/terrain: whether the workers survive a wave on the way to the field.
 
-## 7. Riscos
+## 7. Risks
 
-- **Save de v3 não abre em v2** quando há trabalhadores no esquadrão (papel `worker` desconhecido) nem quando a implantação paga 2 caminhões (v2 exige 3). v2 → v3 abre.
-- Trabalhadores ocupam vagas de `SQUAD_MAX` e são alvos como qualquer soldado; esquadrão cheio impede o nascimento (aviso a cada 30 s).
-- Coleta longa: trechos > `leg` (180 s) são abortados e a carga se perde; em campos muito distantes aumente `leg` ou `cap`.
-- Mudança de comportamento colateral mínima em código existente: a ordem em fila passou a marcar `orderT`.
-- `spawnSoldier` real nunca foi chamado com `role="worker"` (mock no harness).
-- A partida manual é mais lenta de propósito; se o equilíbrio ficar ruim, `manualStart=false` volta o comportamento antigo sem outro código.
+- **A v3 save does not open in v2** when there are workers in the squad (unknown `worker` role) nor when the deployment paid for 2 trucks (v2 requires 3). v2 → v3 opens.
+- Workers take `SQUAD_MAX` slots and are targets like any soldier; a full squad prevents spawning (warning every 30 s).
+- Long collection: stretches > `leg` (180 s) are aborted and the cargo is lost; on very distant fields increase `leg` or `cap`.
+- Minimal side behavior change in existing code: the queued order now sets `orderT`.
+- The real `spawnSoldier` was never called with `role="worker"` (mock in the harness).
+- The manual match is slower on purpose; if the balance is bad, `manualStart=false` restores the old behavior with no other code.
 
-## 8. O que o jogador vai notar (para README / TESTE_MANUAL)
+## 8. What the player will notice (for README / MANUAL_TEST)
 
-- Partida nova: a implantação (Alt+L) custa **1000**, não 1100, e traz refinaria, fábrica e **2** caminhões de suprimento — **sem caminhão de recurso**. O painel mostra o caminhão de recurso como destruído/por construir.
-- A base começa com **40 bmat** (antes 240), 10 fuzis e camisas.
-- ~5 s depois surgem **3 soldados sem arma** perto da base (cada um gasta 1 camisa) que vão ao campo de sucata, coletam e levam à refinaria. Painel: `coleta manual: N trabalhadores | x/100 bmat para o caminhão | y sucata em mãos`.
-- A fábrica passa a **guardar 100 bmat** e constrói o **caminhão de recurso** antes dos de suprimento e das caixas; ele aparece no campo, a coleta para sozinha e os trabalhadores ficam livres. Mensagens: "COLETA MANUAL: …" e "caminhão de recurso pronto: coleta manual encerrada".
-- Perder o caminhão de recurso depois, sem bmat/sucata, **reativa** a coleta (antes, travava para sempre).
-- Qualquer ordem dada a um trabalhador o tira da coleta (a carga em mãos se perde); sem ordem por 60 s ele volta sozinho. Trabalhadores mortos são repostos enquanto houver camisas.
-- Recrutar soldados de combate (Ctrl+1…4) não gasta as camisas reservadas aos trabalhadores enquanto não há caminhão de recurso (mensagem própria).
-- Salvar durante a coleta: a sucata em mãos não é salva; ao continuar, a coleta recomeça (mensagem no log).
-- Sem tecla nova.
+- New match: the deployment (Alt+L) costs **1000**, not 1100, and brings refinery, factory and **2** supply trucks — **no resource truck**. The panel shows the resource truck as destroyed/to be built.
+- The base starts with **40 bmat** (before 240), 10 rifles and shirts.
+- ~5 s later **3 soldiers without weapons** appear near the base (each spends 1 shirt), go to the salvage field, collect and take it to the refinery. Panel: `coleta manual: N trabalhadores | x/100 bmat para o caminhão | y sucata em mãos`.
+- The factory now **keeps 100 bmat** and builds the **resource truck** before the supply trucks and the crates; it appears in the field, collection stops on its own and the workers are free. Messages: "COLETA MANUAL: …" and "caminhão de recurso pronto: coleta manual encerrada".
+- Losing the resource truck later, without bmat/salvage, **reactivates** collection (before, it froze forever).
+- Any order given to a worker takes them out of collection (cargo in hand is lost); without an order for 60 s they come back on their own. Dead workers are replaced while there are shirts.
+- Recruiting combat soldiers (Ctrl+1…4) does not spend the shirts reserved for the workers while there is no resource truck (its own message).
+- Saving during collection: salvage in hand is not saved; on continue, collection restarts (message in the log).
+- No new key.
 
-## 9. Decisões de equilíbrio em aberto (são do usuário)
+## 9. Open balance decisions (they belong to the user)
 
-1. `bmat0 = 40`: 40 + 60 (de 120 sucata) = 100. Mais bmat inicial encurta o começo; 240 elimina a coleta.
-2. Orçamento da implantação `1000` (2 caminhões de suprimento). Pode-se pagar o de recurso à parte ou cortar 1 de suprimento.
-3. `rate = 0,5`, `cap = 40`, `workers = 3`: ver tabela; 3 já satura as 3 viagens do 1º caminhão, 5 só ajuda reposições.
-4. Trabalhadores usam vagas de `SQUAD_MAX` (alternativa: lista própria, mais código e persistência).
-5. Trabalhadores só são mantidos/repostos enquanto a coleta é necessária (depois ficam como soldados ociosos sem arma, não somem).
-6. **Distância campo–refinaria**: ~470 m em HomeRegionW dá ~6 min até o 1º caminhão com 3 trabalhadores (2 min 45 s no harness a 80 m). Talvez sustentar mais coletores, `cap` maior ou campo mais próximo no começo.
-7. `startRifles = 10` na base principal (indicado pela interface de nascimento); só vale na partida manual.
-8. Camisas: se a base ficar sem camisas e os trabalhadores morrerem, ninguém nasce e a coleta para (aviso no log/notify). A reserva só protege `recruit()`; novas camisas vêm da fábrica e dos caminhões de suprimento. Decidir se há piso mínimo de camisas.
+1. `bmat0 = 40`: 40 + 60 (from 120 salvage) = 100. More starting bmat shortens the start; 240 eliminates collection.
+2. Deployment budget `1000` (2 supply trucks). The resource truck could be paid separately or 1 supply truck cut.
+3. `rate = 0.5`, `cap = 40`, `workers = 3`: see table; 3 already saturates the 3 trips of the 1st truck, 5 only helps replacements.
+4. Workers use `SQUAD_MAX` slots (alternative: their own list, more code and persistence).
+5. Workers are only kept/replaced while collection is needed (afterwards they stay as idle soldiers without a weapon, they do not vanish).
+6. **Field–refinery distance**: ~470 m in HomeRegionW gives ~6 min until the 1st truck with 3 workers (2 min 45 s in the harness at 80 m). Maybe sustain more collectors, a larger `cap` or a closer field at the start.
+7. `startRifles = 10` at the main base (indicated by the spawn interface); only applies in the manual match.
+8. Shirts: if the base runs out of shirts and the workers die, nobody spawns and collection stops (warning in log/notify). The reserve only protects `recruit()`; new shirts come from the factory and the supply trucks. Decide whether there is a minimum shirt floor.
 
-## 10. Arquivos
+## 10. Files
 
-`build_collection.py` (gera tudo; âncoras únicas, falha se alguma não for), `collection_cfg.lua`, `collection_funcs.lua`, `manual_collection.patch`, `manual_collection_lf.patch`, `candidate_v3/{main.lua,SHA256.txt}`,
+`build_collection.py` (generates everything; unique anchors, fails if any is not), `collection_cfg.lua`, `collection_funcs.lua`, `manual_collection.patch`, `manual_collection_lf.patch`, `candidate_v3/{main.lua,SHA256.txt}`,
 `harness_collection.py`, `test_manual_match.py`, `test_collection_core.py`, `test_freeze.py`, `test_persistence_collection.py`, `test_spawn_interface.py`, `test_orders_v3.py`, `test_stack_v3.py`, `diffs/test_stack_v3.diff`,
-`sensitivity.py`, `SENSITIVITY.txt`, `run_all.sh`, `TEST_OUTPUT.txt`, `test_output_v3.txt` (log detalhado da pilha), `LAB_SCRIPT.md`.
+`sensitivity.py`, `SENSITIVITY.txt`, `run_all.sh`, `TEST_OUTPUT.txt`, `test_output_v3.txt` (detailed stack log), `LAB_SCRIPT.md`.
