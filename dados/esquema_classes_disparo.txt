@@ -1,0 +1,190 @@
+FOUND	HitScanWeaponComponent	true
+TYPE	Class /Script/War.HitScanWeaponComponent
+FIELD	Class /Script/War.HitScanWeaponComponent	FireCameraShake	ClassProperty
+FIELD	Class /Script/War.HitScanWeaponComponent	ImpactEffect	ClassProperty
+FIELD	Class /Script/War.HitScanWeaponComponent	WeaponFireFXClass	ClassProperty
+FIELD	Class /Script/War.HitScanWeaponComponent	ShotSoundCue	ObjectProperty
+FIELD	Class /Script/War.HitScanWeaponComponent	ShotNoAmmoSoundCue	ObjectProperty
+FIELD	Class /Script/War.HitScanWeaponComponent	ClipEmptiedSoundCue	ObjectProperty
+FIELD	Class /Script/War.HitScanWeaponComponent	MuzzleFlashPS	ObjectProperty
+FIELD	Class /Script/War.HitScanWeaponComponent	SkeletalMesh	ObjectProperty
+FIELD	Class /Script/War.HitScanWeaponComponent	TotalShotsFired	ByteProperty
+FIELD	Class /Script/War.HitScanWeaponComponent	BurstFiringRate	FloatProperty
+FIELD	Class /Script/War.HitScanWeaponComponent	MitigationType	EnumProperty
+FIELD	Class /Script/War.HitScanWeaponComponent	bCanFireFromVehicle	BoolProperty
+FIELD	Class /Script/War.HitScanWeaponComponent	bIsEquipped	BoolProperty
+FIELD	Class /Script/War.HitScanWeaponComponent	AimAssistOffsetZ	FloatProperty
+FIELD	Class /Script/War.HitScanWeaponComponent	SimulatedHitNotify	StructProperty
+TYPE	ScriptStruct /Script/War.HitNotify
+FIELD	ScriptStruct /Script/War.HitNotify	HitComponent	ObjectProperty
+FIELD	ScriptStruct /Script/War.HitNotify	HitLocation	StructProperty
+TYPE	ScriptStruct /Script/Engine.Vector_NetQuantize
+FIELD	ScriptStruct /Script/War.HitNotify	HitNormal	StructProperty
+TYPE	ScriptStruct /Script/Engine.Vector_NetQuantizeNormal
+FIELD	ScriptStruct /Script/War.HitNotify	HitFromDirection	StructProperty
+FIELD	ScriptStruct /Script/War.HitNotify	PhysMaterial	WeakObjectProperty
+FIELD	ScriptStruct /Script/War.HitNotify	Damage	FloatProperty
+METHOD	Function /Script/War.HitScanWeaponComponent:ServerStartInvoke
+PARAM	ServerStartInvoke	InvokeInfo	StructProperty
+TYPE	ScriptStruct /Script/War.CharacterInvokeInfo
+FIELD	ScriptStruct /Script/War.CharacterInvokeInfo	ImpactPoint	StructProperty
+TYPE	ScriptStruct /Script/War.Vector_NetQuantizedHex
+FIELD	ScriptStruct /Script/War.CharacterInvokeInfo	RenderTimestamp	StructProperty
+TYPE	ScriptStruct /Script/War.QuantizedTimestamp
+FIELD	ScriptStruct /Script/War.QuantizedTimestamp	Value	UInt32Property
+FIELD	ScriptStruct /Script/War.CharacterInvokeInfo	MuzzleOffset	StructProperty
+TYPE	ScriptStruct /Script/CoreUObject.Vector
+FIELD	ScriptStruct /Script/CoreUObject.Vector	X	FloatProperty
+FIELD	ScriptStruct /Script/CoreUObject.Vector	Y	FloatProperty
+FIELD	ScriptStruct /Script/CoreUObject.Vector	Z	FloatProperty
+FIELD	ScriptStruct /Script/War.CharacterInvokeInfo	AimYawPitch	StructProperty
+TYPE	ScriptStruct /Script/War.YawPitch_NetQuantize
+FIELD	ScriptStruct /Script/War.CharacterInvokeInfo	bHasMuzzleOffset	BoolProperty
+FIELD	ScriptStruct /Script/War.CharacterInvokeInfo	bHasAimYawPitch	BoolProperty
+PARAM	ServerStartInvoke	ActivityStateChange	StructProperty
+TYPE	ScriptStruct /Script/War.ActivityStateChange
+FIELD	ScriptStruct /Script/War.ActivityStateChange	LastAckedSequence	ByteProperty
+FIELD	ScriptStruct /Script/War.ActivityStateChange	Sequence	ByteProperty
+FIELD	ScriptStruct /Script/War.ActivityStateChange	State	EnumProperty
+METHOD	Function /Script/War.HitScanWeaponComponent:OnRep_SimulatedHitNotify
+METHOD	Function /Script/War.HitScanWeaponComponent:OnRep_IsEquipped
+FOUND	ItemComponent	true
+TYPE	Class /Script/War.ItemComponent
+FIELD	Class /Script/War.ItemComponent	EquippedGripType	EnumProperty
+FIELD	Class /Script/War.ItemComponent	ActivityStateInfos	StructProperty
+TYPE	ScriptStruct /Script/War.ActivityStateInfo
+FIELD	ScriptStruct /Script/War.ActivityStateInfo	ActivityMontage	ObjectProperty
+FIELD	ScriptStruct /Script/War.ActivityStateInfo	IsLooping	BoolProperty
+FIELD	ScriptStruct /Script/War.ActivityStateInfo	bIsReversed	BoolProperty
+FIELD	ScriptStruct /Script/War.ActivityStateInfo	Duration	FloatProperty
+FIELD	ScriptStruct /Script/War.ActivityStateInfo	SectionName	NameProperty
+FIELD	Class /Script/War.ItemComponent	ReloadSoundCue	ObjectProperty
+FIELD	Class /Script/War.ItemComponent	MeshAttachSocket	EnumProperty
+FIELD	Class /Script/War.ItemComponent	AnimClass	ClassProperty
+FIELD	Class /Script/War.ItemComponent	MuzzleSocketName	NameProperty
+FIELD	Class /Script/War.ItemComponent	CompatibleAmmoCodeName	NameProperty
+FIELD	Class /Script/War.ItemComponent	DeployCodeName	NameProperty
+FIELD	Class /Script/War.ItemComponent	SafeItem	BoolProperty
+FIELD	Class /Script/War.ItemComponent	AttachedItemMesh	ObjectProperty
+FIELD	Class /Script/War.ItemComponent	MeshOffset	StructProperty
+FIELD	Class /Script/War.ItemComponent	MeshRotation	StructProperty
+TYPE	ScriptStruct /Script/CoreUObject.Rotator
+FIELD	ScriptStruct /Script/CoreUObject.Rotator	Pitch	FloatProperty
+FIELD	ScriptStruct /Script/CoreUObject.Rotator	Yaw	FloatProperty
+FIELD	ScriptStruct /Script/CoreUObject.Rotator	Roll	FloatProperty
+FIELD	Class /Script/War.ItemComponent	GroundItemMesh	ObjectProperty
+FIELD	Class /Script/War.ItemComponent	GroundItemActivityState	EnumProperty
+FIELD	Class /Script/War.ItemComponent	GroundItemOffset	StructProperty
+FIELD	Class /Script/War.ItemComponent	bRequiresCoverOrLowStanceToInvoke	BoolProperty
+FIELD	Class /Script/War.ItemComponent	bAllowsMovementDuringReload	BoolProperty
+METHOD	Function /Script/War.ItemComponent:ClientSyncAmmo
+PARAM	ClientSyncAmmo	CurrentAmmo	IntProperty
+FOUND	ProjectileItemComponent	true
+TYPE	Class /Script/War.ProjectileItemComponent
+FIELD	Class /Script/War.ProjectileItemComponent	SkeletalMesh	ObjectProperty
+FIELD	Class /Script/War.ProjectileItemComponent	PayloadMesh	ObjectProperty
+FIELD	Class /Script/War.ProjectileItemComponent	MuzzleFlashPS	ObjectProperty
+FIELD	Class /Script/War.ProjectileItemComponent	BackMuzzleFlashPS	ObjectProperty
+FIELD	Class /Script/War.ProjectileItemComponent	ShotSoundCue	ObjectProperty
+FIELD	Class /Script/War.ProjectileItemComponent	ProjectileClasses	ArrayProperty
+FIELD	Class /Script/War.ProjectileItemComponent	FiringMode	EnumProperty
+FIELD	Class /Script/War.ProjectileItemComponent	SuggestedVelocitySpeed	FloatProperty
+FIELD	Class /Script/War.ProjectileItemComponent	FallbackAngle	FloatProperty
+FIELD	Class /Script/War.ProjectileItemComponent	MinDistance	FloatProperty
+FIELD	Class /Script/War.ProjectileItemComponent	bIsSingleUse	BoolProperty
+METHOD	Function /Script/War.ProjectileItemComponent:ServerStartInvoke
+PARAM	ServerStartInvoke	InvokeInfo	StructProperty
+PARAM	ServerStartInvoke	ActivityStateChange	StructProperty
+METHOD	Function /Script/War.ProjectileItemComponent:AllSpawnFiringEffects
+FOUND	HeavyMachineGunItemComponent	true
+TYPE	Class /Script/War.HeavyMachineGunItemComponent
+FIELD	Class /Script/War.HeavyMachineGunItemComponent	SkeletalMesh	ObjectProperty
+FIELD	Class /Script/War.HeavyMachineGunItemComponent	FireCameraShake	ClassProperty
+FIELD	Class /Script/War.HeavyMachineGunItemComponent	ImpactEffect	ClassProperty
+FIELD	Class /Script/War.HeavyMachineGunItemComponent	WeaponFireFXClass	ClassProperty
+FIELD	Class /Script/War.HeavyMachineGunItemComponent	WeaponShotSFX	StructProperty
+TYPE	ScriptStruct /Script/War.WeaponShotSFX
+FIELD	ScriptStruct /Script/War.WeaponShotSFX	FiringLoop	ObjectProperty
+FIELD	ScriptStruct /Script/War.WeaponShotSFX	FiringStopped	ObjectProperty
+FIELD	Class /Script/War.HeavyMachineGunItemComponent	ShotSoundCue	ObjectProperty
+FIELD	Class /Script/War.HeavyMachineGunItemComponent	MuzzleFlashPS	ObjectProperty
+FIELD	Class /Script/War.HeavyMachineGunItemComponent	FiringRate	FloatProperty
+FIELD	Class /Script/War.HeavyMachineGunItemComponent	bSpawnFakeTracerFX	BoolProperty
+FIELD	Class /Script/War.HeavyMachineGunItemComponent	MitigationType	EnumProperty
+FIELD	Class /Script/War.HeavyMachineGunItemComponent	bRequiresOpenVehiclePlatform	BoolProperty
+FIELD	Class /Script/War.HeavyMachineGunItemComponent	bIsVehiclePlatformHeavyWeaponsRestricted	BoolProperty
+FIELD	Class /Script/War.HeavyMachineGunItemComponent	bCheckForOpenSpaceWhenFiring	BoolProperty
+FIELD	Class /Script/War.HeavyMachineGunItemComponent	bCanFireFromVehicle	BoolProperty
+FIELD	Class /Script/War.HeavyMachineGunItemComponent	bIsEquipped	BoolProperty
+FIELD	Class /Script/War.HeavyMachineGunItemComponent	SimulatedHitNotify	StructProperty
+METHOD	Function /Script/War.HeavyMachineGunItemComponent:ServerStopInvoke
+METHOD	Function /Script/War.HeavyMachineGunItemComponent:ServerStartInvoke
+PARAM	ServerStartInvoke	InvokeInfo	StructProperty
+PARAM	ServerStartInvoke	ActivityStateChange	StructProperty
+METHOD	Function /Script/War.HeavyMachineGunItemComponent:OnRep_SimulatedHitNotify
+METHOD	Function /Script/War.HeavyMachineGunItemComponent:OnRep_IsEquipped
+FOUND	SimDamageType	true
+TYPE	Class /Script/War.SimDamageType
+FIELD	Class /Script/War.SimDamageType	Type	EnumProperty
+FIELD	Class /Script/War.SimDamageType	bAppliesBurning	BoolProperty
+FIELD	Class /Script/War.SimDamageType	bCanRuinStructures	BoolProperty
+FIELD	Class /Script/War.SimDamageType	bApplyDamageFalloff	BoolProperty
+FIELD	Class /Script/War.SimDamageType	bAlwaysAppliesBleeding	BoolProperty
+FIELD	Class /Script/War.SimDamageType	bNeverAppliesBleeding	BoolProperty
+FIELD	Class /Script/War.SimDamageType	bBypassesSpawnInvulnerability	BoolProperty
+FIELD	Class /Script/War.SimDamageType	bDisableVehicleCollisionsIfKilledBy	BoolProperty
+FIELD	Class /Script/War.SimDamageType	bCanCauseLeaks	BoolProperty
+FIELD	Class /Script/War.SimDamageType	bCanPenetrateArmour	BoolProperty
+FIELD	Class /Script/War.SimDamageType	bCanDisableSubsystems	BoolProperty
+FIELD	Class /Script/War.SimDamageType	bSuppressionAffectsVehicles	BoolProperty
+FIELD	Class /Script/War.SimDamageType	LeakChanceMultiplier	FloatProperty
+FIELD	Class /Script/War.SimDamageType	LeakSizeMultiplier	FloatProperty
+FIELD	Class /Script/War.SimDamageType	LargeLeakChance	FloatProperty
+FIELD	Class /Script/War.SimDamageType	TankArmourPenetrationFactor	FloatProperty
+FIELD	Class /Script/War.SimDamageType	TankArmourEffectType	EnumProperty
+FIELD	Class /Script/War.SimDamageType	VehicleSubsystemOverride	EnumProperty
+FIELD	Class /Script/War.SimDamageType	VehicleSubsystemDisableMultipliers	FloatProperty
+FIELD	Class /Script/War.SimDamageType	bCanWoundCharacter	BoolProperty
+FIELD	Class /Script/War.SimDamageType	bApplyTankArmourMechanics	BoolProperty
+FIELD	Class /Script/War.SimDamageType	bApplyTankArmourAngleRangeBonuses	BoolProperty
+FIELD	Class /Script/War.SimDamageType	bExposeInUI	BoolProperty
+FIELD	Class /Script/War.SimDamageType	bBreachesBunkers	BoolProperty
+FIELD	Class /Script/War.SimDamageType	bAffectedByShelterBonus	BoolProperty
+FIELD	Class /Script/War.SimDamageType	bIgnoreBreachesBunkersThreshold	BoolProperty
+FIELD	Class /Script/War.SimDamageType	Icon	StructProperty
+TYPE	ScriptStruct /Script/SlateCore.SlateBrush
+FIELD	ScriptStruct /Script/SlateCore.SlateBrush	ImageSize	StructProperty
+TYPE	ScriptStruct /Script/CoreUObject.Vector2D
+FIELD	ScriptStruct /Script/CoreUObject.Vector2D	X	FloatProperty
+FIELD	ScriptStruct /Script/CoreUObject.Vector2D	Y	FloatProperty
+FIELD	ScriptStruct /Script/SlateCore.SlateBrush	Margin	StructProperty
+TYPE	ScriptStruct /Script/SlateCore.Margin
+FIELD	ScriptStruct /Script/SlateCore.Margin	Left	FloatProperty
+FIELD	ScriptStruct /Script/SlateCore.Margin	Top	FloatProperty
+FIELD	ScriptStruct /Script/SlateCore.Margin	Right	FloatProperty
+FIELD	ScriptStruct /Script/SlateCore.Margin	Bottom	FloatProperty
+FIELD	ScriptStruct /Script/SlateCore.SlateBrush	TintColor	StructProperty
+TYPE	ScriptStruct /Script/SlateCore.SlateColor
+FIELD	ScriptStruct /Script/SlateCore.SlateColor	SpecifiedColor	StructProperty
+TYPE	ScriptStruct /Script/CoreUObject.LinearColor
+FIELD	ScriptStruct /Script/CoreUObject.LinearColor	R	FloatProperty
+FIELD	ScriptStruct /Script/CoreUObject.LinearColor	G	FloatProperty
+FIELD	ScriptStruct /Script/CoreUObject.LinearColor	B	FloatProperty
+FIELD	ScriptStruct /Script/CoreUObject.LinearColor	A	FloatProperty
+FIELD	ScriptStruct /Script/SlateCore.SlateColor	ColorUseRule	ByteProperty
+FIELD	ScriptStruct /Script/SlateCore.SlateBrush	ResourceObject	ObjectProperty
+FIELD	ScriptStruct /Script/SlateCore.SlateBrush	ResourceName	NameProperty
+FIELD	ScriptStruct /Script/SlateCore.SlateBrush	UVRegion	StructProperty
+TYPE	ScriptStruct /Script/CoreUObject.Box2D
+FIELD	ScriptStruct /Script/CoreUObject.Box2D	Min	StructProperty
+FIELD	ScriptStruct /Script/CoreUObject.Box2D	Max	StructProperty
+FIELD	ScriptStruct /Script/CoreUObject.Box2D	bIsValid	ByteProperty
+FIELD	ScriptStruct /Script/SlateCore.SlateBrush	DrawAs	ByteProperty
+FIELD	ScriptStruct /Script/SlateCore.SlateBrush	Tiling	ByteProperty
+FIELD	ScriptStruct /Script/SlateCore.SlateBrush	Mirroring	ByteProperty
+FIELD	ScriptStruct /Script/SlateCore.SlateBrush	ImageType	ByteProperty
+FIELD	ScriptStruct /Script/SlateCore.SlateBrush	bIsDynamicallyLoaded	BoolProperty
+FIELD	ScriptStruct /Script/SlateCore.SlateBrush	bHasUObject	BoolProperty
+FIELD	Class /Script/War.SimDamageType	DisplayName	TextProperty
+FIELD	Class /Script/War.SimDamageType	DescriptionDetails	ArrayProperty
+DONE	static metadata

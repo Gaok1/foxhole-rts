@@ -1,0 +1,265 @@
+--- ../../ia_logistica/acabamento/coleta_manual/test_pilha_v3.py	2026-10-09 22:19:26.252466100 -0300
++++ test_pilha_v4.py	2026-10-10 02:09:12.243141800 -0300
+@@ -1,16 +1,14 @@
+-"""COLETA_MANUAL: COPIA ADAPTADA de ensaio_integracao/test_pilha.py (variante v2) apontando ao candidato_v3 =
+-candidato_v2 (ECONOMIA > IA v2 > reserva_bmat > INTERFACE v2 > PERSISTENCIA v2) + coleta manual (build_coleta.apply).
+-Todas as etapas do original sao mantidas; cada mudanca de expectativa/caminho esta marcada com `V3:` (diff em diffs/test_pilha_v3.diff).
+-Original (v2) abaixo:
++"""BASES_AVANCADAS: COPIA ADAPTADA de coleta_manual/test_pilha_v3.py apontando ao candidato_v4 =
++candidato_v3 (ECONOMIA > IA v2 > reserva_bmat > INTERFACE v2 > PERSISTENCIA v2 > COLETA MANUAL) + bases avancadas (build_bases.apply).
++Todas as etapas do original sao mantidas; cada mudanca de expectativa/caminho esta marcada com `V4:` (diff em diffs/test_pilha_v4.diff).
++O original (v3) NAO e executado nem editado: ele grava saida_testes_v3.txt na pasta da coleta; este grava saida_testes_v4.txt aqui.
+ 
+ Uso (raiz do repo, bash):
+-  PYTHONPATH=D:/tools/pylibs PYTHONDONTWRITEBYTECODE=1 python dados/paralel/ia_logistica/acabamento/coleta_manual/test_pilha_v3.py
++  PYTHONPATH=D:/tools/pylibs PYTHONDONTWRITEBYTECODE=1 python dados/paralel/bases_avancadas/etapa2/test_pilha_v4.py
+ 
+-O main.lua real so e lido. Os testes das outras pastas NAO sao editados: cada um e executado em memoria por
+-exec() de uma COPIA do codigo-fonte com a(s) linha(s) de obtencao do candidato trocadas (tecnica ja usada por
+-ia_logistica/test_orders_candidato.py e persistencia/test_regressao.py). Cada etapa imprime PASS/FAIL; a saida
+-detalhada vai para saida_testes.txt (esta pasta). Nada aqui prova fisica Unreal, rota real, input, equilibrio
+-ou desempenho: isso e laboratorio.
++O main.lua real e o candidato_v3 so sao lidos. Os testes das outras pastas NAO sao editados: cada um e executado em memoria por
++exec() de uma COPIA do codigo-fonte com a(s) linha(s) de obtencao do candidato trocadas. Nada aqui prova fisica Unreal, rota real,
++input, equilibrio ou desempenho: isso e laboratorio.
+ """
+ import sys
+ 
+@@ -29,11 +27,15 @@
+ from lupa import LuaRuntime  # noqa: E402
+ 
+ HERE = Path(__file__).resolve().parent
+-ENSAIO = HERE.parents[2] / "ensaio_integracao"   # V3: build_pilha.py vive no ensaio (somente leitura)
+-sys.path.insert(0, str(HERE))
++PARALEL = HERE.parents[1]
++ENSAIO = PARALEL / "ensaio_integracao"                                  # build_pilha.py vive no ensaio (somente leitura)
++COLETA = PARALEL / "ia_logistica/acabamento/coleta_manual"             # V4: build_coleta.py e candidato_v3 (somente leitura)
++sys.path.insert(0, str(COLETA))
+ sys.path.insert(0, str(ENSAIO))
++sys.path.insert(0, str(HERE))
+ import build_pilha as bp  # noqa: E402
+ import build_coleta  # noqa: E402
++import build_bases  # noqa: E402  (V4)
+ 
+ ROOT = bp.ROOT
+ PAR = bp.PAR
+@@ -69,17 +71,20 @@
+ 
+ 
+ # ------------------------------------------------------------------------------------------------ candidato
+-VARIANT = "v3"                  # V3: pilha v2 + coleta manual
++VARIANT = "v4"                  # V4: pilha v2 + coleta manual + bases avancadas
+ V2 = True                       # V3: toda a logica de "v2" do original vale (calibracao, reserva, elogi...)
+-SFX = "_v3"
++SFX = "_v4"
+ ACAB = bp.ACAB                  # entregas v2 (somente leitura)
+ SOURCE, SHA_BEFORE, STAGES = bp.build_candidate("v2")
+-STAGES = STAGES + [("COLETA MANUAL", build_coleta.apply(STAGES[-1][1]))]   # V3: ultima etapa
+-CAND = STAGES[-1][1]            # texto LF do candidato v3
+-CAND_V2 = STAGES[-2][1]         # V3: candidato v2 (base da coleta)
+-CAND_LEGACY = CAND.replace("manualStart = true,", "manualStart = false,", 1)   # V3: mesma pilha com o inicio antigo (3 caminhoes, 1100)
++STAGES = STAGES + [("COLETA MANUAL", build_coleta.apply(STAGES[-1][1]))]   # V3: penultima etapa
++STAGES = STAGES + [("BASES AVANCADAS", build_bases.apply(STAGES[-1][1]))]  # V4: ultima etapa
++CAND = STAGES[-1][1]            # texto LF do candidato v4
++CAND_V3 = STAGES[-2][1]         # V4: candidato v3 (base das bases avancadas)
++CAND_V2 = STAGES[-3][1]         # candidato v2 (base da coleta)
++CAND_LEGACY = CAND.replace("manualStart = true,", "manualStart = false,", 1)   # mesma pilha com o inicio antigo (3 caminhoes, 1100)
+ assert CAND_LEGACY != CAND
+-CAND_FILE = HERE / "candidato_v3" / "main.lua"
++CAND_FILE = HERE / "candidato_v4" / "main.lua"
++CAND_V3_FILE = COLETA / "candidato_v3" / "main.lua"   # V4
+ CAND_V2_FILE = ENSAIO / "candidato_v2" / "main.lua"
+ MAIN_FILE = bp.MAIN
+ 
+@@ -145,11 +150,26 @@
+     return bool(ok), err
+ 
+ 
++def lua_slack(version, text):
++    """V4: folga real = maior numero de locais extras que o compilador ainda aceita no chunk."""
++    nl = chr(10)
++    lo, hi = 0, 250
++    while lo < hi:
++        mid = (lo + hi + 1) // 2
++        if compiles(version, text + nl + "local " + ",".join("__z%d" % i for i in range(mid)) + nl)[0]:
++            lo = mid
++        else:
++            hi = mid - 1
++    return lo
++
++
+ # ------------------------------------------------------------------------------------------------ etapas
+-@step("00 integridade: build reproduz candidato%s/main.lua (CRLF) e main.lua real intacto" % SFX)
++@step("00 integridade: build reproduz candidato%s/main.lua (CRLF), candidato_v3 em disco intacto e main.lua real intacto" % SFX)
+ def t_integridade():
+     disk = CAND_FILE.read_bytes()
+-    assert disk == bp.to_crlf_bytes(CAND), "candidato_v3/main.lua em disco diferente do build atual: rode build_coleta.py"
++    assert disk == bp.to_crlf_bytes(CAND), "candidato_v4/main.lua em disco diferente do build atual: rode build_bases.py"
++    assert CAND_V3_FILE.read_bytes() == bp.to_crlf_bytes(CAND_V3), "V4: candidato_v3 em disco diferente do build (rode build_coleta.py)"
++    assert bp.sha256(CAND_V3_FILE) == "9b89b1136509d9e4416a8f80dd3aa6b3ed2a491df61bcb7c0afec35cb34d63e6", "V4: candidato_v3 nao e o da base desta etapa"
+     assert CAND_V2_FILE.read_bytes() == bp.to_crlf_bytes(CAND_V2), "V3: candidato_v2 em disco diferente do build (rode build_pilha.py v2)"
+     assert disk.count(b"\r\n") == disk.count(b"\n") == disk.count(b"\r"), "candidato nao e CRLF consistente"
+     assert bp.sha256(MAIN_FILE) == SHA_BEFORE, "main.lua real mudou durante os testes"
+@@ -178,6 +198,10 @@
+     for n, t in STAGES:
+         log("locais de topo (check_globals) apos %-30s: %d" % (n, top_level_locals(t)))
+     assert cand <= 180, "locais de topo %d > 180 (limite do check_globals)" % cand
++    for v in ("lua54", "lua55"):   # V4: o compilador, nao a contagem textual, e o juiz: nao mais que 178 ativos (main real = 178)
++        used = 200 - lua_slack(v, CAND)
++        assert used <= 178, "%s: %d locais ativos no chunk (> 178)" % (v, used)
++        notes.append("%s: %d locais ativos <= 178" % (v, used))
+     return "locais de topo (contagem do check_globals): main real %d -> candidato %d; %s" % (real, cand, "; ".join(notes))
+ 
+ 
+@@ -199,9 +223,9 @@
+ 
+ @step("03b tools/test_orders.py contra o candidato (bloco 'enemy convoy' da IA%s)" % (" v2" if V2 else ""))
+ def t_orders_candidato():
+-    # V3: a suite roda com as ADAPTACOES documentadas em test_orders_v3.py (implantacao sem caminhao de recurso)
+-    import test_orders_v3
+-    test_orders_v3.main(CAND)
++    # V3/V4: a suite roda com as ADAPTACOES documentadas em test_orders_v4.py (coleta: implantacao sem caminhao de recurso; bases: Shift+J)
++    import test_orders_v4
++    test_orders_v4.main(CAND)
+ 
+ 
+ @step("04 tools/test_costs.py e tools/test_inventory_probe.py (independentes do main.lua)")
+@@ -220,10 +244,14 @@
+     t = (PAR / "economia/test_integracao.py").read_text(encoding="utf-8")
+     t = swap_once(t, "from build_patch import build, ROOT, HERE\n", "", "economia/test_integracao.py")
+     t = swap_once(t, "proposal=build(source)", "proposal=__CANDIDATE", "economia/test_integracao.py")
++    # V4 ADAPTACAO: o teste monta um caminhao fixo (L.pin) para o deposito do ponto A, que nao tem base avancada. No v4 camisas/fuzis
++    # so vao a deposito que possa reforcar; pointSpawn=true restaura o antigo. O novo default e testado no passo 09 e em test_recrutamento.
++    t = swap_once(t, "local L,C,P=api.logi,api.CFG,api.points\nclock=0\n",
++                  "local L,C,P=api.logi,api.CFG,api.points\nclock=0\nC.SPAWN.pointSpawn=true  -- V4 ADAPTACAO\n", "economia pointSpawn")
+     exec_src(t, "economia/test_integracao.py[candidato]", {"__name__": "__main__", "ROOT": ROOT, "__CANDIDATE": CAND})
+ 
+ 
+-@step("06 ia_logistica/test_ia_logistica%s.py contra o candidato (25x600 passos aleatorios + partidas)" % SFX)
++@step("06 acabamento/test_ia_logistica_v2.py contra o candidato (25x600 passos aleatorios + partidas)")
+ def t_ia():
+     p = (ACAB / "test_ia_logistica_v2.py") if V2 else (PAR / "ia_logistica/test_ia_logistica.py")
+     t = p.read_text(encoding="utf-8")
+@@ -270,6 +298,14 @@
+             assert t.count(old) >= 1, "adaptacao sem alvo: " + why
+             t = t.replace(old, new)
+             print("adaptacao persistencia:", why)
++    # V4: estas suites montam caminhoes que entregam camisas/fuzis em DEPOSITO DE PONTO sem base avancada. No v4 isso so vale com
++    # CFG.SPAWN.pointSpawn=true (ponto sem base nao e local de reforco, entao nao recebe camisas/fuzis). O interruptor restaura o
++    # comportamento antigo; o novo default (false) e testado em test_recrutamento.py / test_perda.py / aqui (09, 05).
++    t = swap_once(t, "    lua.globals().api = lua.execute(CANDIDATE + API_TAIL)\n",
++                  "    lua.globals().api = lua.execute(CANDIDATE + API_TAIL)\n"
++                  "    lua.execute('if api.CFG.SPAWN and api.CFG.SPAWN.pointSpawn == false then api.CFG.SPAWN.pointSpawn = true end')  # V4 ADAPTACAO\n",
++                  "persistencia_v2 new_load")
++    print("adaptacao persistencia (V4): CFG.SPAWN.pointSpawn=true (ponto sem base volta a receber camisas/fuzis, comportamento antigo)")
+     return p, t
+ 
+ 
+@@ -302,7 +338,7 @@
+     _elogi(CAND, False)
+ 
+ 
+-@step("06b-L acabamento/test_elogi.py contra o candidato v3 com manualStart=false (suite sem NENHUMA alteracao: caminho antigo intacto)")
++@step("06b-L acabamento/test_elogi.py contra o candidato v3 com manualStart=false (suite so com a adaptacao V4 pointSpawn=true; inicio antigo intacto)")
+ def t_elogi_legacy():
+     _elogi(CAND_LEGACY, True)
+ 
+@@ -429,8 +465,23 @@
+ local function depTotal(d) return (d.ammo or 0) + (d.shirts or 0) + (d.rifle or 0) + (d.medical or 0) end
+ local statuses = {"rota_ausente", "bloqueado", "regiao_invalida"}
+ 
+--- (a) jogador, destino = deposito: o driver so devolve true na chegada; false (qualquer routeStatus) nao entrega
++-- (a0) V4: o default novo (ponto sem base avancada nao e local de reforco) so carrega municao/bandagens para o deposito do ponto
+ setup()
++assert(C.SPAWN.pointSpawn == false, "default novo: ponto sem base nao reforca")
++local tr0, dep0 = L.trucks[1], L.depotOf(P[1])
++dep0.ammo, dep0.shirts, dep0.rifle, dep0.medical = 0, 0, 0, 0
++L.fac = {ammo=1, shirts=1, rifle=1, medical=1}; L.pin = dep0
++L.drive = function() return true end
++L.truckStep(tr0, 1, 1)
++assert(tr0.state == "toDep" and boxes(tr0.cargo) == 2 and (tr0.cargo.ammo or 0) == 1 and (tr0.cargo.medical or 0) == 1
++    and (tr0.cargo.shirts or 0) == 0 and (tr0.cargo.rifle or 0) == 0 and L.fac.shirts == 1 and L.fac.rifle == 1,
++    "V4: sem base avancada, camisas e fuzis ficam na fabrica; municao e bandagens seguem")
++-- V4 ADAPTACAO: o contrato do driver abaixo foi escrito com o deposito do ponto recebendo as 4 caixas (comportamento antigo,
++-- CFG.SPAWN.pointSpawn=true). O que se testa (entrega so na chegada / routeStatus) nao depende de camisas/fuzis; o interruptor restaura o antigo.
++local function setupOld() setup(); C.SPAWN.pointSpawn = true end
++
++-- (a) jogador, destino = deposito: o driver so devolve true na chegada; false (qualquer routeStatus) nao entrega
++setupOld()
+ local tr, dep = L.trucks[1], L.depotOf(P[1])
+ dep.ammo, dep.shirts, dep.rifle, dep.medical = 0, 0, 0, 0
+ L.fac = {ammo=1, shirts=1, rifle=1, medical=1}; L.pin = dep
+@@ -451,7 +502,7 @@
+ assert(depTotal(dep) == snapDep, "entrega uma unica vez")
+ 
+ -- (b) destino perdido: returnCargo, carga fica no caminhao; so a chegada fisica devolve a caixa fechada a fabrica
+-setup()
++setupOld()
+ tr, dep = L.trucks[1], L.depotOf(P[1])
+ L.fac = {ammo=0, shirts=0, rifle=2, medical=0}; L.pin = dep
+ L.drive = function() return true end
+@@ -586,7 +637,7 @@
+     return res.replace("\n", " || ")
+ 
+ 
+-@step("08-L persistencia_v2 contra o candidato v3 com manualStart=false (suite sem NENHUMA alteracao: caminho antigo intacto)")
++@step("08-L persistencia_v2 contra o candidato v3 com manualStart=false (suite so com a adaptacao V4 pointSpawn=true; inicio antigo intacto)")
+ def t_persistencia_legacy():
+     p, t = persist_v2_source(True)
+     exec_src(t, "acabamento/test_persistencia_v2.py[candidato, legado]", {"__name__": "__main__", "__file__": str(p), "__CANDIDATE": CAND_LEGACY})
+@@ -689,9 +740,9 @@
+         h = d / "coleta"
+         h.mkdir()
+         (h / "main.lua").write_bytes(CAND_V2.encode("utf-8"))
+-        rc, out = git_apply(h, HERE / "coleta_manual_lf.patch")
++        rc, out = git_apply(h, COLETA / "coleta_manual_lf.patch")   # V4: patch da coleta fica na pasta dela
+         assert rc == 0, "coleta_manual_lf.patch NAO aplica no candidato v2: " + out
+-        assert (h / "main.lua").read_text(encoding="utf-8") == CAND, "candidato v2 + coleta_manual_lf.patch != candidato v3"
++        assert (h / "main.lua").read_text(encoding="utf-8") == CAND_V3, "candidato v2 + coleta_manual_lf.patch != candidato v3"   # V4: CAND_V3
+         notes.append("coleta_manual_lf.patch aplica sobre o candidato v2 e == candidato v3 (LF)")
+         # pilha_v2.diff (CRLF) aplica direto no main.lua real (CRLF) e reproduz candidato_v2; coleta_manual.patch (CRLF) leva a v3
+         g = d / "real"
+@@ -704,10 +755,25 @@
+         k = d / "crlf"
+         k.mkdir()
+         (k / "main.lua").write_bytes(CAND_V2_FILE.read_bytes())
+-        rc, out = git_apply(k, HERE / "coleta_manual.patch")
++        rc, out = git_apply(k, COLETA / "coleta_manual.patch")
+         assert rc == 0, "coleta_manual.patch (CRLF) nao aplica em candidato_v2/main.lua: " + out
+-        assert (k / "main.lua").read_bytes() == CAND_FILE.read_bytes(), "candidato_v2 + coleta_manual.patch != candidato_v3/main.lua (bytes)"
++        assert (k / "main.lua").read_bytes() == CAND_V3_FILE.read_bytes(), "candidato_v2 + coleta_manual.patch != candidato_v3/main.lua (bytes)"
+         notes.append("pilha_v2.diff -> candidato_v2 e coleta_manual.patch (CRLF) -> candidato_v3 reproduzem os arquivos byte a byte")
++        # V4: bases_lf.patch (LF) sobre o candidato v3 == candidato v4; bases.patch (CRLF) sobre candidato_v3/main.lua em disco == candidato_v4/main.lua
++        b3 = d / "bases"
++        b3.mkdir()
++        (b3 / "main.lua").write_bytes(CAND_V3.encode("utf-8"))
++        rc, out = git_apply(b3, HERE / "bases_lf.patch")
++        assert rc == 0, "bases_lf.patch NAO aplica no candidato v3: " + out
++        assert (b3 / "main.lua").read_text(encoding="utf-8") == CAND, "candidato v3 + bases_lf.patch != candidato v4"
++        b4 = d / "basescrlf"
++        b4.mkdir()
++        (b4 / "main.lua").write_bytes(CAND_V3_FILE.read_bytes())
++        rc, out = git_apply(b4, HERE / "bases.patch")
++        assert rc == 0, "bases.patch (CRLF) nao aplica em candidato_v3/main.lua: " + out
++        assert (b4 / "main.lua").read_bytes() == CAND_FILE.read_bytes(), "candidato_v3 + bases.patch != candidato_v4/main.lua (bytes)"
++        assert eol(HERE / "bases.patch") == "CRLF" and eol(CAND_FILE) == "CRLF"
++        notes.append("bases_lf.patch (LF) e bases.patch (CRLF) sobre o candidato_v3 reproduzem o candidato_v4 byte a byte")
+     return "; ".join(notes)
+ 
+ 
+@@ -716,7 +782,7 @@
+     if V2:
+         alts = bp.alt_orders_v2(SOURCE)
+         for k, v in alts.items():
+-            assert build_coleta.apply(v) == CAND, "ordem alternativa + coleta diverge do candidato v3: " + k  # V3
++            assert build_bases.apply(build_coleta.apply(v)) == CAND, "ordem alternativa + coleta + bases diverge do candidato v4: " + k  # V4
+         return "%d ordens alternativas dao texto identico (%s)" % (len(alts), "; ".join(alts))
+     alt = bp.alt_order_interface_before_ia(SOURCE)
+     assert alt == CAND, "ordem alternativa diverge do candidato"
+@@ -757,5 +823,5 @@
+     print("\nRESUMO: %d etapas, %d PASS, %d FAIL" % (len(SUMMARY), len(SUMMARY) - len(bad), len(bad)))
+     for n, ok, dt, note in SUMMARY:
+         print("  [%s] %s" % ("PASS" if ok else "FAIL", n))
+-    print("(saida detalhada: dados/paralel/ia_logistica/acabamento/coleta_manual/saida_testes%s.txt; offline: nao prova nada do jogo)" % SFX)
++    print("(saida detalhada: dados/paralel/bases_avancadas/etapa2/saida_testes%s.txt; offline: nao prova nada do jogo)" % SFX)
+     sys.exit(1 if bad else 0)

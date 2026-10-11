@@ -1,0 +1,5 @@
+variante: v1 (ECONOMIA > IA_LOGISTICA > INTERFACE (painel rebaseado) > PERSISTENCIA)
+main.lua real (antes) : 33d6c7e5920a3b5e00b7f3bafbc7b8a86c984db810217241a567afe0901ee679
+main.lua real (depois): 33d6c7e5920a3b5e00b7f3bafbc7b8a86c984db810217241a567afe0901ee679
+iguais: True
+candidato/main.lua (CRLF): fe91ce776eec7f2c79a41223e1430f4bd9f37d9ba0e9d317daf2bf07b48765ed

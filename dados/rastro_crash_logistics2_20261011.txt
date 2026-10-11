@@ -1,0 +1,105 @@
+CrashType	Crash
+ErrorMessage	Unhandled Exception: EXCEPTION_ACCESS_VIOLATION reading address 0x00000000
+ProcessId	4696
+SecondsSinceStart	158
+PCallStack	
+War-Win64-Shipping  0x00000000e0f10000 + 27c66cb 
+War-Win64-Shipping  0x00000000e0f10000 + b33f8d  
+War-Win64-Shipping  0x00000000e0f10000 + b1460f  
+War-Win64-Shipping  0x00000000e0f10000 + b13770  
+War-Win64-Shipping  0x00000000e0f10000 + 22eb214 
+War-Win64-Shipping  0x00000000e0f10000 + 22d2c45 
+War-Win64-Shipping  0x00000000e0f10000 + 2964bd0 
+War-Win64-Shipping  0x00000000e0f10000 + 296900d 
+War-Win64-Shipping  0x00000000e0f10000 + 128a983 
+War-Win64-Shipping  0x00000000e0f10000 + 1294f0a 
+War-Win64-Shipping  0x00000000e0f10000 + 29737b0 
+War-Win64-Shipping  0x00000000e0f10000 + 2975d57 
+War-Win64-Shipping  0x00000000e0f10000 + 2628d9f 
+War-Win64-Shipping  0x00000000e0f10000 + 25452f7 
+UE4SS               0x0000000054a10000 + 4621b5  
+War-Win64-Shipping  0x00000000e0f10000 + 5220da  
+War-Win64-Shipping  0x00000000e0f10000 + 52847c  
+War-Win64-Shipping  0x00000000e0f10000 + 5284fa  
+War-Win64-Shipping  0x00000000e0f10000 + 53265b  
+War-Win64-Shipping  0x00000000e0f10000 + 32ae58e 
+KERNEL32            0x000000006ba80000 + 17374   
+ntdll               0x000000006d1d0000 + 4cc91   
+
+MINIDUMP_EXCEPTION_RVA	0xb2b5f7
+MINIDUMP_RCX	0x0
+INSTRUCTION	mov rax, qword ptr [rcx]
+LAST_AUTOSAVE	elapsed	60.043	wave	1	bmat	40.0	salvage	0	base_shirts	19
+
+DIAGNOSTICO_OFFLINE_20261011 (metadados próprios; decompilação permanece externa)
+- SimPlayerState virtual+0x6c8=14116c580 retorna &PlayerState.UniqueId (+0x248,
+  Struct FUniqueNetIdRepl confirmado pelo schema). O tick lê objeto/controlblock
+  em +0x250/+0x258, não uma lista de carga, animação ou perfil de arma.
+- 140b141a0 consulta personagens próximos e GameState.PlayerArray (+0x230).
+  IDs fora da lista próxima seguem 140b33df0(...,1,0), virtual controller+0x980,
+  1427c66b0 -> 1427f2a00 -> 140b2b5a0, no container controller+0x3f0.
+- A comparação do helper testa ID de entrada, mas dereferencia o item existente
+  sem checar se é nulo. Inserções de entrada nula não deduplicam; hipótese:
+  IDs vazios de bots acumulam, e um ID não nulo posterior encontra item nulo.
+  Origem de todos os itens e identidade do controlador ainda NÃO comprovadas.
+- 14116b6a0 resolve Controller.Player como WarLocalPlayer e retorna/carrega seu
+  PlayerSaveGame (+0x258). Gate +0x48 é bVoiceChatEnabled, confirmado pelo setter
+  gerado 1405efab0. bLocalChatEnabled=+0x49; bSquadChatEnabled=+0x4a.
+- Esse gate protege apenas a consulta de proximidade: GameState.PlayerArray e
+  inserção de IDs fora da proximidade continuam depois dele. Portanto desligar
+  voz NÃO é uma correção comprovada e pode manter as inserções de IDs vazios.
+- SimCharacter virtual+0x6a8=142778b00 consulta Controller (+0x258), virtual+0x690.
+  Esse resultado permite chamar o processamento no tick. Próximo: rastrear o
+  contrato de controlador local e o ciclo legítimo de PlayerState dos bots,
+  preservando movimento/posse/GC; não simplesmente desligar a flag usada pelo mod.
+- Sem IDs Steam fabricados/clonados, login, RPC, alteração por offset ou nova run.
+  Heap do container não consta dos ranges do minidump: não alegar inspeção da lista.
+
+CONTRATO_CONTROLADOR_NPC_20261011 (estático, não aprovação Unreal)
+- SimCharacter.virtual6a8 resolve Controller.virtual690; SimPlayerController e
+  HeadlessPlayerController compartilham 1427d3840. Ela consulta byte+54c, confirmado
+  como bIsLocalPlayerController pelo setter gerado142b01160. Se já true, retorna
+  true antes da consulta de modo de rede. O mod liga essa flag depois da posse
+  para movimento; portanto bots também podem entrar no fluxo local de voz.
+- OnRep_bIsInactive (wrapper142ae5390) -> SimPlayerState.virtual620=142806430
+  chama GameState.virtual660 (remove) e658 (add). Remoção142570150 remove um item
+  PlayerArray; adição14254f870 recusa bIsInactive (bit20/+222, setter confirmado).
+  Não executado: marcar bot como participante desconectado pode afetar lifecycle
+  próprio do jogo. Não é uma correção aprovada nem motivo para chamar OnRep.
+- tools/probe_native_npc_roster.lua preparado para próximo lote: leitura de
+  comandante/aliados/inimigos/pool, localidade, Player/Pawn/PlayerState, presença
+  no roster e flags bot/inactive. Não acessa UniqueId/Steam nem escreve propriedades.
+  gs() no canal é GameplayStatics, NÃO GameState; usa GetGameState(world()) com
+  assinatura confirmada. Sonda ainda não executada no laboratório.
+
+HEADLESS_LOCALPLAYER_20261011 (metadados estáticos, não criar jogador/login)
+- Helper externo pe.vtable_of seguia primeiro call do wrapper e retornava a
+  base LocalPlayer para HeadlessLocalPlayer/WarLocalPlayer. Corrigido para examinar
+  primeiro escrita inline da vtable derivada. Check falhou antes, PASS em sete
+  classes depois. Continua heurístico; slots importantes exigem confirmação.
+- HeadlessLocalPlayer vtable1437164f0; WarLocalPlayer143716220; base1437e3f08.
+  Validação dos slots SimCharacter/SimPlayerState/HeadlessPlayerController usados
+  no diagnóstico anterior mantém os mesmos valores (não dependiam desse erro).
+- Constructor1411e09d0 chama base e zera campos; não completa sozinho a identidade.
+  Virtual260=140924570 chama base, gera texto próprio via1408f70b0 e constrói um
+  identificador nativo de tipo NULL, repassado a1426541c0. Getter290=140903f80
+  copia esse texto. Virtual298=1408ff670 fornece opções FactionId=0?Headless=1.
+- HeadlessLocalPlayer não declara UFunctions/propriedades próprias refletidas.
+  Não comprovado binding Lua do init nem transporte desse identificador ao
+  PlayerState no cenário local. Só construir/associar LocalPlayer não é solução
+  provada; não invocar fluxo de conexão/login/RPC para completar o contrato.
+- Nenhum objeto criado, ID lido ao vivo, main alterado ou laboratório reiniciado.
+
+ORACLE_CPU_NATIVO_20261011 (fixtures, não validação Unreal)
+- Helper303bytes SHA2567b031d3e9b00e8f8f6862c5b9faaa33f71a2e31633e7b69cffe00e96836b175f.
+  Oito pares nulos acumulam; objeto não nulo posterior falha read0 em140b2b5f7.
+  Controles comparação true/false fictícia verificam deduplicação e varredura.
+- Segundo oracle executa produtor140b141a0, bridge140b33df0, virtual1427c66b0,
+  encaminhamento1427f2a00 e helper140b2b5a0 reais. Dois PS de fixture com objeto
+  nulo produzem oito entradas em quatro ticks, mesmo com voz false ou sem save.
+  Mudar um PS para objeto não nulo reproduz a mesma falha antes da inserção.
+- Controles roster vazio, PS ausente e objeto válido PASS. Mundo, classes, PS,
+  getters, destrutor e comparador são shims; nenhum ID Steam/objeto vivo acessado.
+  Não prova produtor real, controlador culpado, lifetime/GC ou correção Unreal.
+- Scripts/saídas externos em D:/tools/foxhole-lab/re-agent/test_native_null_roster.py,
+  test_native_roster_producer.py e D:/tools/foxhole-lab/logistics2-native-*-oracle.txt.

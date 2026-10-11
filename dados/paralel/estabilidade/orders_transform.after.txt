@@ -1,0 +1,12 @@
+    return object({path=path, CreateDynamicMaterialInstance=function() return fill end,
+        -- Mock de transporte: conversao quaternion real verificada pelo oracle nativo.
+        MakeTransform=function(_,p,r,scale) return {Rotation={X=r.Pitch,Y=r.Yaw,Z=r.Roll,W=1}} end})
+
+        K2_SetActorRotation=function(self, rot) self.rot=rot end,
+        SetActorScale3D=function(self, s) self.scale=s end,
+        K2_SetActorTransform=function(self,t,sweep,hit,teleport)
+            assert(sweep==false and teleport==true)
+            self.pos={X=t.Translation.X,Y=t.Translation.Y,Z=t.Translation.Z}
+            self.rot={Pitch=t.Rotation.X,Yaw=t.Rotation.Y,Roll=t.Rotation.Z}
+            self.scale={X=t.Scale3D.X,Y=t.Scale3D.Y,Z=t.Scale3D.Z}
+        end,

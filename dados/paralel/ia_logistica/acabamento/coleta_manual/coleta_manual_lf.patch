@@ -1,0 +1,476 @@
+--- a/main.lua
++++ b/main.lua
+@@ -1265,7 +1265,7 @@
+             k = k + 1
+             local sl = m.slot or slotFor(k)
+             local g = { X = goal.X + sl.X, Y = goal.Y + sl.Y, Z = goal.Z }
+-            m.hold, m.retreat = false, nil
++            m.hold, m.retreat, m.orderT = false, nil, os.clock()
+             if m.target or m.pathJob or m.focus then
+                 m.queue = m.queue or {}
+                 m.queue[#m.queue + 1] = g
+@@ -1438,8 +1438,10 @@
+         notify(string.format("sem suprimento de recrutamento no ponto %s: o recruta nasce na base", at.name), 3.0)
+         at, dep = nil, logi.base
+     end
+-    if dep and (dep.shirts or 0) < 1 then
+-        notify("sem camisas na base: a fábrica e os caminhões trazem (L manda um caminhão)", 3.0)
++    local keep = dep and logi.workerReserve(dep) or 0
++    if dep and (dep.shirts or 0) < 1 + keep then
++        notify(keep > 0 and string.format("camisas da base reservadas aos trabalhadores da coleta (%d, reserva %d)", dep.shirts or 0, keep)
++            or "sem camisas na base: a fábrica e os caminhões trazem (L manda um caminhão)", 3.0)
+         return false
+     end
+     if dep and role == "rifle" and (dep.rifle or 0) < 1 then
+@@ -2461,8 +2463,44 @@
+     hp = 900, ambush = 1500.0, dps = 25.0, rebuild = 30.0, truckCost = 100, supply = 2,
+ }
+ logi.on, logi.prio = false, "auto"
++-- COLETA MANUAL (CLAUDE_COLETA_MANUAL, 2026-10-09). Comeco normal da partida estilo "aldeoes": sem caminhao de recurso
++-- vivo, soldados livres do jogador coletam sucata a pe (campo -> refinaria) ate a fabrica produzir o caminhao
++-- (LOGI.truckCost bmat). Valores de rate/cap/max sao PROPOSTA de design (nao ha numero do jogo em dados/); equilibrio
++-- e do usuario. Tudo em CFG.COLETA e na tabela logi (nenhum local de topo novo).
++CFG.COLETA = {
++    manualStart = true,   -- partida nova SEM caminhao de recurso (false = comportamento anterior: 3 caminhoes na implantacao)
++    bmat0 = 40,           -- bmat inicial da fabrica na partida manual (CFG.LOGI.bmat0 = 240 compraria o caminhao no 1o tick)
++    resFirst = true,      -- caminhao de recurso (destruido/ainda nao construido) e reconstruido antes dos de suprimento
++    rate = 0.5,           -- sucata/s por soldado parado no campo (PROPOSTA: ~1 golpe de 1 sucata a cada 2 s)
++    cap = 40,             -- sucata que um soldado carrega (PROPOSTA; o caminhao de recurso leva LOGI.trip = 100)
++    workers = 3,          -- a base mantem (enquanto a coleta e necessaria) ate 3 trabalhadores; 1 camisa do estoque da base cada
++    spawnEvery = 3.0,     -- s entre tentativas de criar/repor um trabalhador
++    delay = 5.0,          -- s sem caminhao de recurso antes de chamar alguem
++    scan = 2.0,           -- s entre buscas de coletor livre
++    fieldR = 1000.0,      -- cm: dentro deste raio do campo conta como coletando
++    refR = 1500.0,        -- cm: dentro deste raio da refinaria a sucata e entregue (credito so aqui)
++    stand = 600.0,        -- cm: ponto de espera, do lado de onde o soldado vem, a esta distancia do centro do lugar
++    quiet = 60.0,         -- s (os.clock) sem ordem do jogador para o soldado contar como livre
++    fireQuiet = 8.0, danger = 3500.0, minHp = 0.8,   -- fora de combate: sem tiro recente, inimigo a mais de danger cm, vida >= 80%
++    pause = 60.0,         -- s de combate seguidos antes de largar a coleta (a carga se perde)
++    leg = 180.0,          -- s maximos por trecho de caminhada (preso: larga a coleta, carga perdida)
++    retry = 3.0,          -- s entre reenvios da rota
++}
++-- Trabalhador: soldado SEM fuzil (sem malha de arma, alcance 0: nunca atira), nasce na base (logi.workerDepot), custa 1 camisa
++-- do estoque desse deposito, debitada so apos o spawn confirmado. Fica no esquadrao (inimigo o enxerga e o ataca, morte,
++-- marcadores e save/continuar funcionam como em qualquer soldado). grip 0 = sem arma equipada (confirmar no laboratorio).
++CFG.WEAPONS.worker = { name = "trabalhador", cost = 0, range = 0.0, interval = 9.0, hit = 0.0, dmg = 0.0, supp = 0.0, pitch = 1.0, ammo = 0, grip = 0 }
++
++-- Interface comum de nascimento (ESPECIFICACAO de bases avancadas, 4.3): decidir (logi.spawnSite, pura) -> criar o ator ->
++-- logi.spawnCommit (unico debito de camisa/fuzil). Aqui so o trabalhador e o local "base"; as bases avancadas estendem
++-- CFG.SPAWN.roles (rifle, mg, ...) e os locais. startRifles: fuzis na base principal quando a partida comeca pela coleta manual.
++CFG.SPAWN = CFG.SPAWN or {}
++CFG.SPAWN.roles = CFG.SPAWN.roles or {}
++CFG.SPAWN.roles.worker = { shirts = 1, sites = { "base" } }
++CFG.SPAWN.startRifles = CFG.SPAWN.startRifles or 10
+ 
+ function logi.reset()
++    if logi.colReset then logi.colReset() end
+     for _, tr in ipairs(logi.trucks or {}) do
+         if tr.icon and valid(tr.icon) then pcall(function() tr.icon:K2_DestroyActor() end) end
+         tr.icon = nil
+@@ -2518,8 +2556,8 @@
+     for _, pair in ipairs({ {"field", "campo de sucata"}, {"refinery", "refinaria"}, {"factory", "fábrica"} }) do
+         if not setup[pair[1]] then missing[#missing + 1] = pair[2] end
+     end
+-    if #setup.trucks < CFG.LOGI.supply + 1 then
+-        missing[#missing + 1] = string.format("caminhões (%d/%d)", #setup.trucks, CFG.LOGI.supply + 1)
++    if #setup.trucks < logi.trucksNeeded() then
++        missing[#missing + 1] = string.format("caminhões (%d/%d)", #setup.trucks, logi.trucksNeeded())
+     end
+     if #missing > 0 then return nil, "sem atores ativos carregados: " .. table.concat(missing, ", ") end
+     table.sort(setup.trucks, function(x, y) return flatDist(setup.factory, x:K2_GetActorLocation()) < flatDist(setup.factory, y:K2_GetActorLocation()) end)
+@@ -2528,7 +2566,7 @@
+ 
+ -- Implantacao inicial propria do mod, NAO conclusao do canteiro/inventario do jogo.
+ -- Orcamento de cenario separado do estoque de producao; custos conferidos no lote 16.
+-CFG.DEPLOY = { budget = 1100, truckCost = 100, off = 174, radius = 160, half = 220,
++CFG.DEPLOY = { budget = CFG.COLETA.manualStart and 1000 or 1100, truckCost = 100, off = 174, radius = 160, half = 220,
+     spacing = 850, maxSlope = 60, maxHeight = 250, range = 40000,
+     truck = "/Game/Blueprints/Vehicles/Truck/BPTruckW.BPTruckW_C",
+     sites = { { active = "BPRefinery_C", ruin = "BPDestroyedRefinery_C", cost = 400, hp = 2700, code = "Refinery",
+@@ -2622,7 +2660,7 @@
+     for _, a in ipairs(FindAllOf("BPTruckW_C") or {}) do
+         if valid(a) and not a.bActorIsBeingDestroyed then occupied[#occupied+1] = a:K2_GetActorLocation() end
+     end
+-    local missing = math.max(0, CFG.LOGI.supply+1-#occupied)
++    local missing = math.max(0, logi.trucksNeeded()-#occupied)
+     plan.cost = plan.cost + missing * CFG.DEPLOY.truckCost
+     if plan.cost > logi.deployWallet().bmat then return nil, "orçamento de implantação insuficiente" end
+     if missing > 0 then plan.parking = logi.parking(ref, missing, occupied) else plan.parking = {} end
+@@ -2711,21 +2749,26 @@
+     if not setup then return false end  -- nao apaga a partida anterior numa recusa
+     logi.reset()
+     local C, b = CFG.LOGI, rts.base()
+-    logi.base = { name = "base", X = b.X, Y = b.Y, Z = b.Z, ammo = C.ammo0, shirts = C.shirts0, rifle = 0, medical = 0 }
++    logi.base = { name = "base", X = b.X, Y = b.Y, Z = b.Z, ammo = C.ammo0, shirts = math.max(C.shirts0, CFG.COLETA.workers),
++        rifle = CFG.COLETA.manualStart and CFG.SPAWN.startRifles or 0, medical = 0 }
+     logi.field, logi.refinery, logi.factory = setup.field, setup.refinery, setup.factory
+-    logi.bmat = C.bmat0
++    logi.bmat = CFG.COLETA.manualStart and CFG.COLETA.bmat0 or C.bmat0
+     combat.convoys, combat.convoysCut = 0, 0
+     logi.eReset()
+     logi.convoyT = now() + CFG.ECONVOY.first
+-    local pool = setup.trucks
++    local pool, manual = setup.trucks, CFG.COLETA.manualStart
+     for i = 1, C.supply + 1 do
+-        local a = pool[i]
++        local a = pool[manual and (i == 1 and C.supply + 1 or i - 1) or i]  -- manual: o de recurso usa o ultimo da fila (se houver), os de suprimento os primeiros
+         local tr = { kind = (i == 1) and "res" or "sup", pawn = a, hp = C.hp, off = 0, state = "idle", n = i }
+         if a then
+             local l = a:K2_GetActorLocation()
+             tr.off = l.Z - (groundZ(l.X, l.Y) or l.Z)
+             pcall(function() a:SetActorEnableCollision(false) end)  -- atravessa o que houver no caminho
+             logi.place(tr, l.X, l.Y)  -- preservar estacionamento real, nao teletransportar para offset de predio
++        end
++        if manual and i == 1 then  -- caminhao de recurso ainda nao construido: a fabrica o faz (reconstrucao normal, 100 bmat)
++            tr.hp, tr.state, tr.rebuildT = 0, "dead", now()
++            if a then pcall(function() a:SetActorHiddenInGame(true) end) end
+         end
+         logi.trucks[i] = tr
+     end
+@@ -2867,12 +2910,12 @@
+     local C = CFG.LOGI
+     tr.moving = false
+     if tr.state == "dead" then
+-        if t >= tr.rebuildT and logi.bmat >= C.truckCost then
++        if t >= tr.rebuildT and logi.bmat >= C.truckCost and (tr.kind == "res" or not CFG.COLETA.resFirst or not logi.colDown()) then
+             logi.bmat = logi.bmat - C.truckCost
+             tr.hp, tr.state, tr.cargo, tr.dest, tr.salv = C.hp, "idle", nil, nil, nil
+             local home = tr.kind == "res" and logi.field or logi.factory
+             logi.place(tr, home.X + 400, home.Y + 300)
+-            if tr.pawn and valid(tr.pawn) then tr.pawn:SetActorHiddenInGame(false) end
++            if tr.pawn and valid(tr.pawn) then tr.pawn:SetActorHiddenInGame(false) else pcall(logi.spawnTruck, tr) end
+             notify("novo caminhão pronto na fábrica (-" .. C.truckCost .. " bmat)", 3.0)
+         end
+         return
+@@ -2946,6 +2989,304 @@
+     logi.hit(tr, n * CFG.LOGI.dps * dt, t)
+ end
+ 
++-- COLETA MANUAL: soldados reais do jogador carregam sucata do campo ate a refinaria. Estado em logi.col
++-- (units = {m = registro do soldado, state, carry, goal, ...}); nunca guarda ator/userdata entre quadros: revalida
++-- pertencer ao esquadrao + alive + bActorIsBeingDestroyed a cada passo (mesma regra do anim.untrack).
++-- Conservacao: gathered == delivered + lost + sucata em maos; logi.salvage so cresce em delivered.
++function logi.trucksNeeded() return CFG.LOGI.supply + (CFG.COLETA.manualStart and 0 or 1) end
++
++-- Sem caminhao de recurso vivo (destruido, ainda nao construido ou ausente).
++function logi.colDown()
++    for _, tr in ipairs(logi.trucks or {}) do
++        if tr.kind == "res" then return tr.state == "dead" end
++    end
++    return true
++end
++
++function logi.colReset()
++    local K = logi.col
++    for _, u in ipairs(K and K.units or {}) do
++        if u.carry > 0 then log(string.format("coleta manual: %.1f sucata em mãos descartada (reinício)", u.carry)) end
++        if u.m.col == u then u.m.col = nil end
++    end
++    logi.col = { units = {}, active = false, gathered = 0, delivered = 0, lost = 0, why = {}, trips = 0 }
++    return logi.col
++end
++
++-- Soldado ainda no esquadrao, vivo e nao em destruicao (revalidacao antes de tocar no pawn).
++function logi.colLive(m)
++    for _, o in ipairs(squad) do
++        if o == m then return alive(m) and not m.pawn.bActorIsBeingDestroyed end
++    end
++    return false
++end
++
++function logi.colCalm(m, t)
++    local C = CFG.COLETA
++    if suppression(m) >= 0.05 or t < (m.nextShot or -1e9) + C.fireQuiet then return false end
++    local here = loc(m)
++    for _, e in ipairs(enemies) do
++        if alive(e) and flatDist(here, loc(e)) <= C.danger then return false end
++    end
++    return true
++end
++
++function logi.colFree(m, t)
++    local C = CFG.COLETA
++    if m.role ~= "worker" or m.col or not logi.colLive(m) then return false end
++    if m.hold or m.target or m.pathJob or m.focus or m.area or m.retreat or m.medevac or m.queue then return false end
++    if os.clock() - (m.orderT or -1e9) < C.quiet then return false end
++    if (m.pawn.Health or 0) < (m.pawn.MaxHealth or 100) * C.minHp then return false end
++    return logi.colCalm(m, t)
++end
++
++function logi.colRelease(u, why, keep)
++    local K = logi.col
++    for i = #K.units, 1, -1 do if K.units[i] == u then table.remove(K.units, i) end end
++    if u.carry > 0 then
++        K.lost, K.why[why] = K.lost + u.carry, (K.why[why] or 0) + u.carry
++        log(string.format("coleta manual: trabalhador sai da coleta (%s), %.1f sucata perdida", why, u.carry))
++        u.carry = 0
++    else
++        log("coleta manual: trabalhador sai da coleta (" .. why .. ")")
++    end
++    local m = u.m
++    if m.col == u then
++        m.col = nil
++        if not keep and m.target == u.goal and logi.colLive(m) then  -- ainda e a nossa marcha: cancela e freia
++            m.target, m.path, m.pathJob, m.detour, m.stuckAt, m.lastMoveT = nil, nil, nil, nil, nil, nil
++            pcall(halt, m)
++        end
++    end
++end
++
++-- Onde nasce o trabalhador: deposito (com X/Y/Z e shirts) que paga a camisa. Isolado aqui: a base avancada troca esta funcao.
++function logi.workerDepot() return logi.base end
++
++-- Camisas do deposito dos trabalhadores que o recrutamento de combate nao pode gastar enquanto nao ha caminhao de recurso
++-- (senao base sem camisa + sem bmat = nenhum trabalhador = travado de novo). Vale so para o deposito de nascimento.
++function logi.workerReserve(dep)
++    if dep ~= logi.workerDepot() or not logi.colDown() then return 0 end
++    local n = 0
++    for _, m in ipairs(squad) do if m.role == "worker" and alive(m) then n = n + 1 end end
++    return math.max(0, CFG.COLETA.workers - n)
++end
++
++-- Interface comum de nascimento (so o local "base" e o trabalhador; ver CFG.SPAWN). PURA: nao muda estoque nem cria ator.
++-- Retorna site = {dep, kind, name, at = {X, Y, Z, exact = true}, need = {shirts, rifle}, explicit} ou nil + motivo.
++function logi.spawnSite(role, cursor, opts)
++    local R = CFG.SPAWN.roles[role]
++    if not R then return nil, "função sem receita" end
++    if not logi.on then return nil, "ramo legado" end
++    local allowed = false
++    for _, k in ipairs((opts and opts.sites) or R.sites or { "base" }) do if k == "base" then allowed = true end end
++    local dep = logi.workerDepot()
++    if not allowed or not dep then return nil, "nenhum local de nascimento permitido" end
++    local need = { shirts = R.shirts or 0, rifle = R.rifle or 0 }
++    local keep = role == "worker" and 0 or logi.workerReserve(dep)   -- soldados de combate nao gastam a reserva dos trabalhadores
++    if (dep.shirts or 0) < need.shirts + keep then
++        return nil, keep > 0 and "camisas reservadas aos trabalhadores da coleta" or "sem camisas em " .. (dep.name or "base")
++    end
++    if (dep.rifle or 0) < need.rifle then return nil, "sem fuzis em " .. (dep.name or "base") end
++    local a = ((logi.col and logi.col.made or 0) + 1) * 1.7   -- anel de saidas simples ao redor da base
++    return { dep = dep, kind = "base", name = dep.name or "base", explicit = false, need = need,
++        at = { X = dep.X + math.cos(a) * 250, Y = dep.Y + math.sin(a) * 250, Z = dep.Z, exact = true } }
++end
++
++-- Depois do ator confirmado: revalida e debita (unico ponto que mexe em dep.shirts/dep.rifle no codigo novo).
++function logi.spawnCommit(site, role)
++    local dep, need = site and site.dep, site and site.need
++    if not dep or not need then return false, "site inválido" end
++    if (dep.shirts or 0) < need.shirts or (dep.rifle or 0) < need.rifle then
++        log("spawnCommit recusado: estoque mudou (" .. tostring(role) .. ")")
++        return false, "estoque insuficiente"
++    end
++    dep.shirts, dep.rifle = (dep.shirts or 0) - need.shirts, (dep.rifle or 0) - need.rifle
++    return true
++end
++
++-- Mantem ate COLETA.workers trabalhadores vivos enquanto a coleta e necessaria (repoe os mortos). decidir -> criar -> commit.
++function logi.colMaintain(t)
++    local C, K = CFG.COLETA, logi.col
++    if t < (K.spawnT or 0) or not isLocalAuthority() then return end
++    K.spawnT = t + C.spawnEvery
++    local n = 0
++    for _, m in ipairs(squad) do if m.role == "worker" and alive(m) then n = n + 1 end end
++    if n >= C.workers then return end
++    local site, why = logi.spawnSite("worker", nil)
++    if not site or #squad >= CFG.SQUAD_MAX then
++        if t >= (K.noteT or 0) then
++            K.noteT = t + 30.0
++            notify(site and "esquadrão cheio: não há vaga para trabalhadores" or ("sem como criar trabalhadores para a coleta: " .. tostring(why)), 4.0)
++        end
++        return
++    end
++    local at = site.at
++    local m = spawnSoldier(at.X, at.Y, (groundZ(at.X, at.Y) or at.Z) + 90, slotFor(#squad + 1), CFG.FRIENDLY_TEAM, "worker")
++    if not m then return end  -- spawn falhou: nada debitado
++    local ok = logi.spawnCommit(site, "worker")
++    if not ok then  -- estoque mudou entre decidir e criar (nao deveria: game thread sincrono): desfaz o ator
++        pcall(anim.untrack, m)
++        pcall(function() m.pawn:K2_DestroyActor() end)
++        releaseController(m.hpc)
++        return
++    end
++    K.made = (K.made or 0) + 1
++    m.group, m.sel = (#squad % 2) + 1, false
++    squad[#squad + 1] = m
++    pcall(syncMarkers)
++    log(string.format("coleta manual: trabalhador nasceu em %s (-1 camisa, restam %d)", site.name, site.dep.shirts or 0))
++end
++
++-- Rota (A* do mod, routeTo) ate o ponto de espera do lugar, do lado de onde o soldado vem.
++function logi.colGo(u, site, t)
++    local m, C = u.m, CFG.COLETA
++    local here = loc(m)
++    local a = math.atan(here.Y - site.Y, here.X - site.X) + (u.k or 0) * 0.7
++    local goal = { X = site.X + math.cos(a) * C.stand, Y = site.Y + math.sin(a) * C.stand, Z = site.Z }
++    routeTo(m, goal)
++    u.goal, u.legT, u.retryT = goal, t, t + C.retry
++end
++
++function logi.colUnit(u, K, dt, t, need)
++    local C, m = CFG.COLETA, u.m
++    local F, R = logi.field, logi.refinery
++    local here = loc(m)
++    if t >= (u.calmT or 0) then u.calm, u.calmT = logi.colCalm(m, t), t + 0.5 end
++    if u.calm then
++        u.pausedFor = 0
++    else
++        u.pausedFor, u.legT = (u.pausedFor or 0) + dt, u.legT + dt
++        if u.pausedFor > C.pause then return logi.colRelease(u, "combate prolongado") end
++    end
++    if u.state ~= "gather" and t - u.legT > C.leg then return logi.colRelease(u, "preso no caminho") end
++    if not need and u.state ~= "toRef" then
++        if u.carry <= 0 then return logi.colRelease(u, "coleta encerrada") end
++        u.state = "toRef"
++        if u.calm then logi.colGo(u, R, t) end
++    end
++    local marching = m.target or m.pathJob
++    if u.state == "gather" then
++        if flatDist(here, F) > C.fieldR then
++            u.state, u.legT = "toField", t
++        elseif u.calm then
++            local take = math.min(C.rate * dt, C.cap - u.carry)
++            u.carry, K.gathered = u.carry + take, K.gathered + take
++            if u.carry >= C.cap - 1e-9 then
++                K.gathered, u.carry = K.gathered + (C.cap - u.carry), C.cap  -- carga cheia exata (sem 39.999999 por erro de ponto flutuante)
++                u.state = "toRef"; logi.colGo(u, R, t)
++            end
++        end
++    elseif u.state == "toField" then
++        if not marching and flatDist(here, F) <= C.fieldR then u.state = "gather"
++        elseif not marching and u.calm and t >= u.retryT then logi.colGo(u, F, t) end
++    elseif u.state == "toRef" then
++        if flatDist(here, R) <= C.refR then  -- chegada: unico ponto onde a sucata vira estoque da refinaria
++            logi.salvage, K.delivered, K.trips = logi.salvage + u.carry, K.delivered + u.carry, K.trips + 1
++            u.carry = 0
++            if not need then return logi.colRelease(u, "entregou") end
++            u.state = "toField"
++            logi.colGo(u, F, t)
++        elseif not marching and u.calm and t >= u.retryT then logi.colGo(u, R, t) end
++    end
++end
++
++function logi.colStep(dt, t)
++    local C, K = CFG.COLETA, logi.col or logi.colReset()
++    if not (logi.field and logi.refinery) then return end
++    local L = CFG.LOGI
++    local down = logi.colDown()
++    local need = down and (logi.bmat + logi.salvage / L.ratio < L.truckCost)  -- falta bmat para o caminhao: sem renda
++    if not K.active then
++        if down then
++            K.since = K.since or t
++            if t - K.since >= C.delay then
++                K.active = true
++                notify("COLETA MANUAL: sem caminhão de recurso; trabalhadores da base coletam sucata até a fábrica fazer o caminhão", 8.0)
++            end
++        else
++            K.since = nil
++        end
++    elseif not down then
++        K.active, K.since = false, nil
++        notify("caminhão de recurso pronto: coleta manual encerrada", 4.0)
++    end
++    for i = #K.units, 1, -1 do
++        local u = K.units[i]
++        local m = u.m
++        if not logi.colLive(m) then
++            logi.colRelease(u, "trabalhador morto")
++        elseif m.orderT ~= u.orderT or m.hold or m.focus or m.area or m.retreat or m.medevac or m.queue then
++            logi.colRelease(u, "ordem do jogador", true)  -- a ordem do jogador (alvo, fila) fica intacta
++        else
++            logi.colUnit(u, K, dt, t, need)
++        end
++    end
++    if K.active and need then logi.colMaintain(t) end
++    if K.active and need and t >= (K.scanT or 0) then
++        K.scanT = t + C.scan
++        if #K.units < C.workers then
++            local best, bs = nil, math.huge
++            for _, m in ipairs(squad) do
++                if logi.colFree(m, t) then
++                    local s = flatDist(loc(m), logi.field) + (m.sel and 1e6 or 0)  -- prefere quem o jogador nao selecionou
++                    if s < bs then best, bs = m, s end
++                end
++            end
++            if best then
++                local u = { m = best, state = "toField", carry = 0, orderT = best.orderT, k = #K.units + 1 }
++                best.col = u
++                K.units[#K.units + 1] = u
++                logi.colGo(u, logi.field, t)
++                log(string.format("coleta manual: trabalhador %d vai ao campo de sucata (%d coletores)", u.k, #K.units))
++            end
++        end
++    end
++end
++
++-- Uma linha para o painel da logistica; nil quando inativa (nao polui).
++function logi.colHud()
++    local K, L = logi.col, CFG.LOGI
++    if not K or not (K.active or #K.units > 0) then return nil end
++    local hand = 0
++    for _, u in ipairs(K.units) do hand = hand + u.carry end
++    local who = #K.units == 0 and "aguardando trabalhador"
++        or string.format("%d trabalhador%s", #K.units, #K.units == 1 and "" or "es")
++    return string.format("coleta manual: %s | %d/%d bmat para o caminhão | %.0f sucata em mãos", who,
++        math.floor(logi.bmat + logi.salvage / L.ratio), L.truckCost, hand)
++end
++
++-- Razao da coleta: colhido == entregue + perdido + em maos.
++function logi.colAudit()
++    local K, hand = logi.col, 0
++    for _, u in ipairs(K.units) do
++        hand = hand + u.carry
++        if u.carry < -1e-9 or u.carry > CFG.COLETA.cap + 1e-9 then return false, "carga fora de [0, cap]" end
++    end
++    if math.abs(K.gathered - K.delivered - K.lost - hand) > 1e-6 then return false, "razão da coleta não fecha" end
++    if #K.units > CFG.COLETA.workers then return false, "coletores demais" end
++    return true
++end
++
++-- Caminhao construido pela fabrica sem ator (partida manual: o de recurso nao e implantado): nasce no campo.
++-- Visual apenas; o custo ja foi debitado do bmat da fabrica. Falha silenciosa: segue como caminhao abstrato.
++function logi.spawnTruck(tr)
++    local home = tr.kind == "res" and logi.field or logi.factory
++    local cls = LoadAsset(CFG.DEPLOY.truck)
++    if not valid(cls) then return end
++    local x, y = home.X + 400, home.Y + 300
++    local z = groundZ(x, y) or home.Z
++    local a = world():SpawnActor(cls, { X = x, Y = y, Z = z + CFG.DEPLOY.off }, { Pitch = 0, Yaw = 0, Roll = 0 })
++    if not (valid(a) and not a.bActorIsBeingDestroyed and a.Health == CFG.LOGI.hp) then
++        if valid(a) and not a.bActorIsBeingDestroyed then pcall(function() a:K2_DestroyActor() end) end
++        return
++    end
++    a.TeamId = CFG.FRIENDLY_TEAM
++    pcall(function() a:SetActorEnableCollision(false) end)
++    tr.pawn, tr.off = a, CFG.DEPLOY.off
++    logi.place(tr, x, y)
++end
++
+ function logi.tick()
+     if not logi.on then return end
+     local t = now()
+@@ -2960,6 +3301,8 @@
+         logi.ambushStep(tr, dt, t)
+     end
+     pcall(logi.convoyTick, dt, t)
++    local okc, errc = pcall(logi.colStep, dt, t)
++    if not okc then logOnce("colStep", errc) end
+     for _, d in ipairs(logi.depots()) do
+         if d.dryT and t - d.dryT < 1.0 then
+             pcall(rts.alert, "seco", d, d == logi.base and "base sem munição" or ("ponto " .. d.name .. " sem munição"))
+@@ -3075,6 +3418,8 @@
+                 #(logi.foes or {}) > 0 and " | comboio na estrada" or "")
+         end
+     end
++    local colLine = logi.colHud and logi.colHud() or nil
++    if colLine then lines[#lines + 1] = colLine end
+     lines[#lines + 1] = "Ctrl+L: foco na cadeia | Q/E: frentes | Espaço: último alerta"
+     return table.concat(lines, "\n") .. (logi.extraHud and logi.extraHud() or "")
+ end
+@@ -5585,7 +5930,7 @@
+     for _, a in ipairs(FindAllOf("BPTruckW_C") or {}) do
+         if valid(a) and not a.bActorIsBeingDestroyed then occupied[#occupied + 1] = a:K2_GetActorLocation() end
+     end
+-    local need = math.max(0, CFG.LOGI.supply + 1 - #occupied)
++    local need = math.max(0, logi.trucksNeeded() - #occupied)
+     if need > paid then return nil, string.format("faltam %d caminhões e o save só pagou %d", need, paid) end
+     if need > 0 then
+         local ref = factoryAt or logi.site("BPFactory_C", base)

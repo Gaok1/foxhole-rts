@@ -1,0 +1,47 @@
+AMOSTRAS	360
+T	14.498816490173	colhido	0	entregue	0	perdido	0	bmat	40.0	truck	dead	pawn	false
+T	29.821252822876	colhido	11.913776397705	entregue	0	perdido	0	bmat	40.0	truck	dead	pawn	false
+W	1	16072.2265625	-54192.98828125	1092.1506347656	gather	5.6441106796265	resgates	nil	tentativas	nil
+W	2	15877.432617188	-54505.40234375	1092.1535644531	gather	3.6331787109375	resgates	nil	tentativas	nil
+W	3	16198.931640625	-54672.359375	1092.1505126953	gather	2.6364870071411	resgates	nil	tentativas	nil
+T	45.260780334473	colhido	35.0730676651	entregue	0	perdido	0	bmat	40.0	truck	dead	pawn	false
+W	1	16072.2265625	-54192.98828125	1092.1506347656	gather	13.363874435425	resgates	nil	tentativas	nil
+W	2	15877.432617188	-54505.40234375	1092.1535644531	gather	11.352942466736	resgates	nil	tentativas	nil
+W	3	16198.931640625	-54672.359375	1092.1505126953	gather	10.356250762939	resgates	nil	tentativas	nil
+T	60.615787506104	colhido	58.105578422546	entregue	0	perdido	0	bmat	40.0	truck	dead	pawn	false
+W	1	16072.2265625	-54192.98828125	1092.1506347656	gather	21.04137802124	resgates	nil	tentativas	nil
+W	2	15877.432617188	-54505.40234375	1092.1535644531	gather	19.030446052551	resgates	nil	tentativas	nil
+W	3	16198.931640625	-54672.359375	1092.1505126953	gather	18.033754348755	resgates	nil	tentativas	nil
+T	75.919654846191	colhido	81.061379432678	entregue	0	perdido	0	bmat	40.0	truck	dead	pawn	false
+W	1	16072.2265625	-54192.98828125	1092.1506347656	gather	28.693311691284	resgates	nil	tentativas	nil
+W	2	15877.432617188	-54505.40234375	1092.1535644531	gather	26.682379722595	resgates	nil	tentativas	nil
+W	3	16198.931640625	-54672.359375	1092.1505126953	gather	25.685688018799	resgates	nil	tentativas	nil
+T	91.338790893555	colhido	104.19008350372	entregue	0	perdido	0	bmat	40.0	truck	dead	pawn	false
+W	1	16072.2265625	-54192.98828125	1092.1506347656	gather	36.402879714966	resgates	nil	tentativas	nil
+W	2	15877.432617188	-54505.40234375	1092.1535644531	gather	34.391947746277	resgates	nil	tentativas	nil
+W	3	16198.931640625	-54672.359375	1092.1505126953	gather	33.39525604248	resgates	nil	tentativas	nil
+T	106.74798583984	colhido	120.0	entregue	0	perdido	0	bmat	40.0	truck	dead	pawn	false
+W	1	13198.80859375	-54483.078125	1029.2550048828	toRef	40	resgates	nil	tentativas	0
+W	2	15079.901367188	-53992.47265625	1092.1535644531	toRef	40	resgates	nil	tentativas	0
+W	3	16186.953125	-54676.21484375	1092.1505126953	toRef	40	resgates	nil	tentativas	0
+T	122.14720916748	colhido	120.0	entregue	0	perdido	0	bmat	40.0	truck	dead	pawn	false
+W	1	9809.9873046875	-48277.28125	704.05560302734	toRef	40	resgates	nil	tentativas	0
+W	2	11061.833007812	-49857.16015625	706.76892089844	toRef	40	resgates	nil	tentativas	0
+W	3	11558.93359375	-50704.40625	705.12261962891	toRef	40	resgates	nil	tentativas	0
+T	137.53945922852	colhido	120.0	entregue	120	perdido	0	bmat	67.831588745117	truck	dead	pawn	false
+T	153.30587768555	colhido	120.0	entregue	120	perdido	0	bmat	99.36442565918	truck	dead	pawn	false
+T	168.70323181152	colhido	120.0	entregue	120	perdido	0	bmat	6.8429565429688	truck	toField	pawn	false
+T	184.13150024414	colhido	120.0	entregue	120	perdido	0	bmat	37.699493408203	truck	toField	pawn	false
+T	199.5542755127	colhido	120.0	entregue	120	perdido	0	bmat	68.545043945312	truck	toRef	pawn	false
+T	214.98295593262	colhido	120.0	entregue	120	perdido	0	bmat	19.402404785156	truck	toRef	pawn	false
+T	230.40327453613	colhido	120.0	entregue	120	perdido	0	bmat	50.243041992188	truck	loading	pawn	false
+T	245.78520202637	colhido	120.0	entregue	120	perdido	0	bmat	1.0068969726562	truck	toField	pawn	false
+T	261.15451049805	colhido	120.0	entregue	120	perdido	0	bmat	31.745513916016	truck	toField	pawn	false
+T	276.9873046875	colhido	120.0	entregue	120	perdido	0	bmat	63.411102294922	truck	toField	pawn	false
+T	292.421875	colhido	120.0	entregue	120	perdido	0	bmat	14.280242919922	truck	toRef	pawn	false
+T	307.86019897461	colhido	120.0	entregue	120	perdido	0	bmat	45.156890869141	truck	toRef	pawn	false
+T	323.31112670898	colhido	120.0	entregue	120	perdido	0	bmat	76.058746337891	truck	loading	pawn	false
+T	338.83209228516	colhido	120.0	entregue	120	perdido	0	bmat	27.100677490234	truck	toField	pawn	false
+T	354.21252441406	colhido	120.0	entregue	120	perdido	0	bmat	57.861541748047	truck	toField	pawn	false
+T	369.69104003906	colhido	120.0	entregue	120	perdido	0	bmat	8.8185729980469	truck	toField	pawn	false
+AUDIT	true

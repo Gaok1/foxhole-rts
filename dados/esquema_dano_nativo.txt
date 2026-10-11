@@ -1,0 +1,29 @@
+FUNCTION	Function /Script/Engine.GameplayStatics:ApplyRadialDamage
+PARAM	ApplyRadialDamage	WorldContextObject	ObjectProperty
+PARAM	ApplyRadialDamage	BaseDamage	FloatProperty
+PARAM	ApplyRadialDamage	Origin	StructProperty
+PARAM	ApplyRadialDamage	DamageRadius	FloatProperty
+PARAM	ApplyRadialDamage	DamageTypeClass	ClassProperty
+PARAM	ApplyRadialDamage	IgnoreActors	ArrayProperty
+PARAM	ApplyRadialDamage	DamageCauser	ObjectProperty
+PARAM	ApplyRadialDamage	InstigatedByController	ObjectProperty
+PARAM	ApplyRadialDamage	bDoFullDamage	BoolProperty
+PARAM	ApplyRadialDamage	DamagePreventionChannel	ByteProperty
+PARAM	ApplyRadialDamage	ReturnValue	BoolProperty
+FUNCTION	Function /Script/Engine.GameplayStatics:ApplyPointDamage
+PARAM	ApplyPointDamage	DamagedActor	ObjectProperty
+PARAM	ApplyPointDamage	BaseDamage	FloatProperty
+PARAM	ApplyPointDamage	HitFromDirection	StructProperty
+PARAM	ApplyPointDamage	HitInfo	StructProperty
+PARAM	ApplyPointDamage	EventInstigator	ObjectProperty
+PARAM	ApplyPointDamage	DamageCauser	ObjectProperty
+PARAM	ApplyPointDamage	DamageTypeClass	ClassProperty
+PARAM	ApplyPointDamage	ReturnValue	FloatProperty
+FUNCTION	Function /Script/Engine.GameplayStatics:ApplyDamage
+PARAM	ApplyDamage	DamagedActor	ObjectProperty
+PARAM	ApplyDamage	BaseDamage	FloatProperty
+PARAM	ApplyDamage	EventInstigator	ObjectProperty
+PARAM	ApplyDamage	DamageCauser	ObjectProperty
+PARAM	ApplyDamage	DamageTypeClass	ClassProperty
+PARAM	ApplyDamage	ReturnValue	FloatProperty
+PARKING	1

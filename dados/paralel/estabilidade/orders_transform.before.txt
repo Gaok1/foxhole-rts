@@ -1,0 +1,4 @@
+    return object({path=path, CreateDynamicMaterialInstance=function() return fill end})
+
+        K2_SetActorRotation=function(self, rot) self.rot=rot end,
+        SetActorScale3D=function(self, s) self.scale=s end,

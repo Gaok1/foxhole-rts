@@ -1,0 +1,166 @@
+== COLETA_MANUAL: saida das suites (offline, lupa Lua 5.4 e 5.5; nao prova nada do jogo) ==
+== build_coleta.py
+candidato_v3/main.lua SHA256 (CRLF): 9b89b1136509d9e4416a8f80dd3aa6b3ed2a491df61bcb7c0afec35cb34d63e6
+candidato_v2 SHA256 antes/depois: a93c1531588ea4534a7791dbb2e9578654ad0fa4a87373be1cbed569cbc3eda6 (iguais)
+coleta_manual.patch: +359/-14 linhas
+== tools/check_globals.py (sem saida = limpo)
+rc=0
+
+== test_partida_manual.py
+PASS  [lua54] primeiro caminhao de recurso depois da coleta manual (X)  -> X (1o caminhao de recurso) = 165.5 s | colhido 120.0 entregue 120.0 em 3 viagens
+PASS  [lua54] progressao manual -> caminhao -> caixas na frente  -> caminhao em 165.5 s; primeira entrega de caixas 63.0 s depois
+PASS  [lua54] perder o caminhao volta a coleta (Y)  -> Y (recuperacao do caminhao com bmat=0 e sucata=0) = 243.2 s
+PASS  [lua54] nada de bmat sem coleta  -> falha de spawn / sem camisas / congelados / esquadrao cheio / comandado: nenhuma sucata, nenhum bmat
+PASS  [lua54] prioridade: recurso antes do suprimento  -> resFirst=true: recurso(1) antes do suprimento(2); mutacao resFirst=false inverte (2,1)
+PASS  [lua54] manualStart=false mantem o comportamento anterior
+PASS  [lua54] implantacao sem caminhao de recurso (orcamento 1000)  -> v3: 4 atores (2 estruturas + 2 caminhoes), 1000 gastos, saldo 0; v2: 5 atores, 1100
+PASS  [lua55] primeiro caminhao de recurso depois da coleta manual (X)  -> X (1o caminhao de recurso) = 165.5 s | colhido 120.0 entregue 120.0 em 3 viagens
+PASS  [lua55] progressao manual -> caminhao -> caixas na frente  -> caminhao em 165.5 s; primeira entrega de caixas 63.0 s depois
+PASS  [lua55] perder o caminhao volta a coleta (Y)  -> Y (recuperacao do caminhao com bmat=0 e sucata=0) = 243.2 s
+PASS  [lua55] nada de bmat sem coleta  -> falha de spawn / sem camisas / congelados / esquadrao cheio / comandado: nenhuma sucata, nenhum bmat
+PASS  [lua55] prioridade: recurso antes do suprimento  -> resFirst=true: recurso(1) antes do suprimento(2); mutacao resFirst=false inverte (2,1)
+PASS  [lua55] manualStart=false mantem o comportamento anterior
+PASS  [lua55] implantacao sem caminhao de recurso (orcamento 1000)  -> v3: 4 atores (2 estruturas + 2 caminhoes), 1000 gastos, saldo 0; v2: 5 atores, 1100
+test_partida_manual: 14 casos, 14 PASS, 0 FAIL
+PASS: test_partida_manual
+
+== test_coleta_nucleo.py
+PASS  [lua54] cadeia saudavel nunca ativa a coleta  -> 4 cenarios: consumo continuo, bmat suficiente, sucata em estoque, pos-caminhao: coleta nunca ativa
+PASS  [lua54] trabalhador morre com carga  -> perdeu 10.0 sucata registrada, nada creditado, trabalhador reposto por 1 camisa
+PASS  [lua54] ordem do jogador tira o trabalhador da coleta  -> marcha, segurar e fila tiram da coleta (carga descartada e registrada); selecionar nao tira; volta apos o silencio
+PASS  [lua54] combate: nao recruta, pausa e larga  -> perigo impede recrutar e pausa a colheita; combate prolongado larga (carga registrada)
+PASS  [lua54] revalidacao: nunca toca em pawn invalido  -> invalido / em destruicao / fora do esquadrao / reset: zero chamadas ao pawn, perda registrada
+PASS  [lua54] mais lenta que o caminhao  -> coleta (3 trabalhadores) 1.00 sucata/s x caminhao 6.33 sucata/s (caminhao 6.3x)
+PASS  [lua54] painel  -> coleta manual: 3 trabalhadores | 40/100 bmat para o caminhão | 25 sucata em mãos
+PASS  [lua54] camisas reservadas aos trabalhadores  -> recruit() respeita a reserva de camisas dos trabalhadores enquanto nao ha caminhao de recurso
+PASS  [lua55] cadeia saudavel nunca ativa a coleta  -> 4 cenarios: consumo continuo, bmat suficiente, sucata em estoque, pos-caminhao: coleta nunca ativa
+PASS  [lua55] trabalhador morre com carga  -> perdeu 10.0 sucata registrada, nada creditado, trabalhador reposto por 1 camisa
+PASS  [lua55] ordem do jogador tira o trabalhador da coleta  -> marcha, segurar e fila tiram da coleta (carga descartada e registrada); selecionar nao tira; volta apos o silencio
+PASS  [lua55] combate: nao recruta, pausa e larga  -> perigo impede recrutar e pausa a colheita; combate prolongado larga (carga registrada)
+PASS  [lua55] revalidacao: nunca toca em pawn invalido  -> invalido / em destruicao / fora do esquadrao / reset: zero chamadas ao pawn, perda registrada
+PASS  [lua55] mais lenta que o caminhao  -> coleta (3 trabalhadores) 1.00 sucata/s x caminhao 6.33 sucata/s (caminhao 6.3x)
+PASS  [lua55] painel  -> coleta manual: 3 trabalhadores | 40/100 bmat para o caminhão | 25 sucata em mãos
+PASS  [lua55] camisas reservadas aos trabalhadores  -> recruit() respeita a reserva de camisas dos trabalhadores enquanto nao ha caminhao de recurso
+PASS  [lua54] teste aleatorio (20 sementes)  -> 20 sementes x 600 s, razao e entrega conferidos a cada quadro (total colhido/entregue/perdido: 1447/480/809)
+PASS  [lua55] teste aleatorio (5 sementes)  -> 5 sementes x 600 s, razao e entrega conferidos a cada quadro (total colhido/entregue/perdido: 648/280/313)
+test_coleta_nucleo: 18 casos, 18 PASS, 0 FAIL
+PASS: test_coleta_nucleo
+
+== test_travamento.py
+PASS  [lua54] travamento antigo (recurso morto, bmat=0, sucata=0): v2 trava, v3 resolve  -> v2: caminhao nunca em 900 s | v3 (inicio legado, caminhao morre aos 60 s com bmat=0 e sucata=0): volta em X = 264.9 s
+PASS  [lua54] partida manual sob consumo continuo  -> partida manual sob consumo continuo: caminhao em 165.5 s
+PASS  [lua55] travamento antigo (recurso morto, bmat=0, sucata=0): v2 trava, v3 resolve  -> v2: caminhao nunca em 900 s | v3 (inicio legado, caminhao morre aos 60 s com bmat=0 e sucata=0): volta em X = 264.9 s
+PASS  [lua55] partida manual sob consumo continuo  -> partida manual sob consumo continuo: caminhao em 165.5 s
+test_travamento: 4 casos, 4 PASS, 0 FAIL
+PASS: test_travamento
+
+== test_persistencia_coleta.py
+PASS  [lua54] salvar durante a coleta; continuar  -> salvou com 29.2 sucata em maos: continuar devolveu bmat 40.00 e sucata 0.00 exatamente; 3 trabalhadores; coleta recomeca
+PASS  [lua54] 4 ciclos salvar+continuar nao criam nem destroem  -> 4 ciclos salvar+continuar: 40.0000|0.0000|27|3 (bmat|sucata|camisas|trabalhadores) identico
+PASS  [lua54] continuar na mesma sessao descarta a carga (registrado)  -> continuar na mesma sessao descarta 29.2 sucata em maos (log) sem creditar
+PASS  [lua54] save com implantacao v3 (2 caminhoes pagos)  -> v3 refaz 2 estruturas + 2 caminhoes (sem cobrar de novo); v2 recusa o save de v3 (papel worker desconhecido no esquadrao; sem trabalhadores: faltam 3 caminhoes e o save pagou 2)
+PASS  [lua54] save do v2 abre no v3  -> save do v2 abre no v3: caminhoes vivos, coleta inativa, nenhum trabalhador criado
+PASS  [lua55] salvar durante a coleta; continuar  -> salvou com 29.2 sucata em maos: continuar devolveu bmat 40.00 e sucata 0.00 exatamente; 3 trabalhadores; coleta recomeca
+PASS  [lua55] 4 ciclos salvar+continuar nao criam nem destroem  -> 4 ciclos salvar+continuar: 40.0000|0.0000|27|3 (bmat|sucata|camisas|trabalhadores) identico
+PASS  [lua55] continuar na mesma sessao descarta a carga (registrado)  -> continuar na mesma sessao descarta 29.2 sucata em maos (log) sem creditar
+PASS  [lua55] save com implantacao v3 (2 caminhoes pagos)  -> v3 refaz 2 estruturas + 2 caminhoes (sem cobrar de novo); v2 recusa o save de v3 (papel worker desconhecido no esquadrao; sem trabalhadores: faltam 3 caminhoes e o save pagou 2)
+PASS  [lua55] save do v2 abre no v3  -> save do v2 abre no v3: caminhoes vivos, coleta inativa, nenhum trabalhador criado
+test_persistencia_coleta: 10 casos, 10 PASS, 0 FAIL
+PASS: test_persistencia_coleta
+
+== test_spawn_interface.py
+PASS  [lua54] receita CFG.SPAWN e estoque inicial (startRifles=10)  -> manual: base com 10 fuzis e >= 3 camisas; legado: estoque do v2 intacto
+PASS  [lua54] spawnSite pura e recusas com razao  -> pura (5 chamadas, zero mudanca); recusas: ramo legado, sem receita, sem camisas, local nao permitido
+PASS  [lua54] spawnCommit debita so apos spawn confirmado  -> falha de spawn nao debita; confirmado debita 1; commit sem estoque recusa; commit com site nulo recusa
+PASS  [lua54] commit recusado desfaz o ator  -> commit recusado desfaz o ator: esquadrao e camisas intactos
+PASS  [lua55] receita CFG.SPAWN e estoque inicial (startRifles=10)  -> manual: base com 10 fuzis e >= 3 camisas; legado: estoque do v2 intacto
+PASS  [lua55] spawnSite pura e recusas com razao  -> pura (5 chamadas, zero mudanca); recusas: ramo legado, sem receita, sem camisas, local nao permitido
+PASS  [lua55] spawnCommit debita so apos spawn confirmado  -> falha de spawn nao debita; confirmado debita 1; commit sem estoque recusa; commit com site nulo recusa
+PASS  [lua55] commit recusado desfaz o ator  -> commit recusado desfaz o ator: esquadrao e camisas intactos
+PASS  debito de camisa so em spawnCommit (analise estatica)  -> unica atribuicao de .shirts no codigo novo esta em spawnCommit
+test_spawn_interface: 9 casos, 9 PASS, 0 FAIL
+PASS: test_spawn_interface
+
+== test_orders_v3.py
+adaptacao: start() deixa o caminhao de recurso por construir; o teste do fluxo da fabrica o torna vivo
+adaptacao: implantacao: 400+400+2x100 = 1000 e 2 vagas (antes 1100 e 3)
+adaptacao: um a menos que o custo (1000)
+adaptacao: carteira cheia agora vale 1000
+adaptacao: rollback preserva a carteira de 1000
+adaptacao: implantacao gasta 1000 e cria 4 atores
+adaptacao: so os 2 caminhoes de suprimento tem ator no inicio; o de recurso nasce quando a fabrica o constroi
+adaptacao: idempotencia com 4 atores / 1000
+PASS: syntax, lab map case matching, H gating, selected/all orders, repeated braking, resume, dead/invalid units, native death cleanup/cache/corpse TTL, authority guards, empty squad, click/box selection, attack order, hold, path planning (sync + async job + strict no-fallback terrain access), suppression, medic, victory, capture points (progress, contest, objective, defeat, domination), order queue, veterancy, retreat, mortar refusals, build refusals, recruit refusals, ammo, supply crates, trenches, enemy economy, save/continue, area fire, barbed wire, aid tent, assault mode, officer aura, enemy area fire, medevac, morale, difficulty, front alerts, groups 1-5, logistics (real hidden actors, refused startup preserves state, regional spawn), enemy convoy (no phantom spawn), no key clashes with the game
+
+== test_pilha_v3.py (22 etapas)
+PASS  00 integridade: build reproduz candidato_v3/main.lua (CRLF) e main.lua real intacto (0.0 s)  -> SHA256 main real 33d6c7e5920a...; etapas: ECONOMIA > IA_LOGISTICA v2 > reserva de bmat > INTERFACE v2 (painel rebaseado) > PERSISTENCIA v2 > COLETA MANUAL
+PASS  01 sintaxe (lupa Lua 5.4 = UE4SS e 5.5) + limite de 200 locais por chunk (0.2 s)  -> locais de topo (contagem do check_globals): main real 175 -> candidato 175; lua54: compila; folga real 22 locais (=> 178 ativos no fim do chunk); lua55: compila; folga real 22 locais (=> 178 ativos no fim do chunk)
+PASS  02 tools/check_globals.py contra o candidato (0.4 s)  -> rc=0, sem saida (main real: rc=0)
+PASS  03a tools/test_orders.py no main real (controle, sem mudanca) (0.0 s)
+PASS  03b tools/test_orders.py contra o candidato (bloco 'enemy convoy' da IA v2) (0.0 s)
+PASS  04 tools/test_costs.py e tools/test_inventory_probe.py (independentes do main.lua) (0.2 s)  -> ambos PASS; nao leem o main.lua (nada a apontar para o candidato)
+PASS  05 economia/test_integracao.py contra o candidato (0.0 s)
+PASS  06 ia_logistica/test_ia_logistica_v3.py contra o candidato (25x600 passos aleatorios + partidas) (0.3 s)
+PASS  06b acabamento/test_elogi.py contra o candidato v3 (politica unica do elogi; 5.4 e 5.5; sem modulo; numeros da implantacao manual) (1.2 s)
+PASS  06b-L acabamento/test_elogi.py contra o candidato v3 com manualStart=false (suite sem NENHUMA alteracao: caminho antigo intacto) (1.2 s)
+PASS  06c acabamento/test_bmat_caminhao.py (reserva de bmat; pilha completa = candidato v2) (1.3 s)
+PASS  07a interface/test_interface.py original (painel.lua da INTERFACE, mock proprio) (0.0 s)
+PASS  07b interface/test_interface.py com o logi.hudLine do CANDIDATO (mock proprio, sem extraHud/eHud) (0.0 s)
+PASS  07c painel no candidato completo: estados, fuzis/bandagens, returnCargo, linha INIMIGO da IA, so leitura (0.0 s)  -> hudLine integrado OK (12x222 linhas x largura)
+PASS  07d painel v2: reserva de bmat ('guarda N bmat ...') e linha INIMIGO com o piso gratis (free=5) (0.0 s)  -> Fábrica | guarda 100 bmat para reconstruir caminhão (bmat 130) || INIMIGO: frente equipa 10 (m2.0 c10) | retaguarda bmat 240, cx m0 c0 | comboios 0 na estrada, 0 perdidos | piso grátis 5/onda || INIMIGO: frente equipa 0 (m0.0 c0) | retaguarda bmat 240, cx m0 c0 | comboios 0 na estrada, 0 perdidos | piso grátis 5/onda
+PASS  08 persistencia_v2 contra o candidato v3 (Lua 5.4 e 5.5, 9 cenarios; numeros da implantacao manual) (2.5 s)
+PASS  08-L persistencia_v2 contra o candidato v3 com manualStart=false (suite sem NENHUMA alteracao: caminho antigo intacto) (2.5 s)
+PASS  09 contrato ESTRADAS: driver true so na chegada / routeStatus (jogador, returnCargo, comboio inimigo) (0.0 s)  -> 7 usos de logi.drive, todos condicionais; driver false (rota_ausente/bloqueado/regiao_invalida) nunca entrega
+PASS  10 conflitos e patches entregues: painel.patch x ECONOMIA reproduzido; sequencia dos .patch e pilha.diff aplicam limpo (0.4 s)  -> fim de linha dos .patch: economia_integrada.patch=CRLF, ia_logistica_v2.patch=CRLF, reserva_bmat.patch=LF, painel_rebase_v2.patch=LF, persistencia_v2_sobre_ia.patch=LF, painel.patch=CRLF; painel.patch original aplica no main atual (sozinho); conflito reproduzido (ECONOMIA depois de painel.patch): ancora 'table.concat(deps, " | "), foe)' ausente; economia_integrada>ia_logistica_v2>reserva_bmat>painel_rebase_v2>persistencia_v2_sobre_ia aplicam em sequencia e == candidato v2 (byte a byte, LF); coleta_manual_lf.patch aplica sobre o candidato v2 e == candidato v3 (LF); pilha_v2.diff -> candidato_v2 e coleta_manual.patch (CRLF) -> candidato_v3 reproduzem os arquivos byte a byte
+PASS  11 ordens alternativas produzem o MESMO texto (comutacao) (0.0 s)  -> 4 ordens alternativas dao texto identico (ECO > IA > INTERFACE > reserva > PERS; ECO > INTERFACE > IA > reserva > PERS; ECO > INTERFACE > reserva > IA > PERS; ECO > IA > reserva > PERS > INTERFACE)
+PASS  12 candidato nao toca o ESTRADAS e nao deixa residuos do contrato abstrato antigo (0.0 s)  -> v2: calibracao free=5 trip=20 want=4/20; rebuildReserve unica; sem cargo0/perWave/ECONVOY.cut; sem load(txt; sem ESTRADAS
+PASS  99 main.lua real intacto ao fim (SHA256 33d6c7e5920a...)
+RESUMO: 22 etapas, 22 PASS, 0 FAIL
+  [PASS] 00 integridade: build reproduz candidato_v3/main.lua (CRLF) e main.lua real intacto
+  [PASS] 01 sintaxe (lupa Lua 5.4 = UE4SS e 5.5) + limite de 200 locais por chunk
+  [PASS] 02 tools/check_globals.py contra o candidato
+  [PASS] 03a tools/test_orders.py no main real (controle, sem mudanca)
+  [PASS] 03b tools/test_orders.py contra o candidato (bloco 'enemy convoy' da IA v2)
+  [PASS] 04 tools/test_costs.py e tools/test_inventory_probe.py (independentes do main.lua)
+  [PASS] 05 economia/test_integracao.py contra o candidato
+  [PASS] 06 ia_logistica/test_ia_logistica_v3.py contra o candidato (25x600 passos aleatorios + partidas)
+  [PASS] 06b acabamento/test_elogi.py contra o candidato v3 (politica unica do elogi; 5.4 e 5.5; sem modulo; numeros da implantacao manual)
+  [PASS] 06b-L acabamento/test_elogi.py contra o candidato v3 com manualStart=false (suite sem NENHUMA alteracao: caminho antigo intacto)
+  [PASS] 06c acabamento/test_bmat_caminhao.py (reserva de bmat; pilha completa = candidato v2)
+  [PASS] 07a interface/test_interface.py original (painel.lua da INTERFACE, mock proprio)
+  [PASS] 07b interface/test_interface.py com o logi.hudLine do CANDIDATO (mock proprio, sem extraHud/eHud)
+  [PASS] 07c painel no candidato completo: estados, fuzis/bandagens, returnCargo, linha INIMIGO da IA, so leitura
+  [PASS] 07d painel v2: reserva de bmat ('guarda N bmat ...') e linha INIMIGO com o piso gratis (free=5)
+  [PASS] 08 persistencia_v2 contra o candidato v3 (Lua 5.4 e 5.5, 9 cenarios; numeros da implantacao manual)
+  [PASS] 08-L persistencia_v2 contra o candidato v3 com manualStart=false (suite sem NENHUMA alteracao: caminho antigo intacto)
+  [PASS] 09 contrato ESTRADAS: driver true so na chegada / routeStatus (jogador, returnCargo, comboio inimigo)
+  [PASS] 10 conflitos e patches entregues: painel.patch x ECONOMIA reproduzido; sequencia dos .patch e pilha.diff aplicam limpo
+  [PASS] 11 ordens alternativas produzem o MESMO texto (comutacao)
+  [PASS] 12 candidato nao toca o ESTRADAS e nao deixa residuos do contrato abstrato antigo
+  [PASS] 99 main.lua real intacto ao fim (SHA256 igual)
+
+== sensibilidade.py
+Tempo ate o primeiro caminhao de recurso (s), partida manual (bmat0=40, caminhao 100 bmat, razao 2 sucata : 1 bmat)
+distancia campo-refinaria em metros = (|fx| - 4000) / 100 (cm); rate 0,5 sucata/s por trabalhador parado no campo
+a) trabalhadores x distancia (cap 40, rate 0,5)
+   trab |   80 m |  260 m |  470 m
+      1 |    373 |    637 |    951
+      2 |    259 |    435 |    645
+      3 |    165 |    254 |    359
+      5 |    165 |    254 |    359
+b) capacidade de carga x distancia (3 trabalhadores, rate 0,5)
+   cap  |   80 m |  260 m |  470 m
+     20 |    187 |    363 |    573
+     40 |    165 |    254 |    359
+     80 |    245 |    334 |    439
+c) taxa de coleta x distancia (3 trabalhadores, cap 40)
+   rate |   80 m |  260 m |  470 m
+   0.25 |    245 |    334 |    439
+    0.5 |    165 |    254 |    359
+    1.0 |    125 |    214 |    319
+
+== SHA256
+candidato_v2/main.lua (antes) : a93c1531588ea4534a7791dbb2e9578654ad0fa4a87373be1cbed569cbc3eda6
+candidato_v2/main.lua (depois): a93c1531588ea4534a7791dbb2e9578654ad0fa4a87373be1cbed569cbc3eda6
+candidato_v3/main.lua (CRLF): 9b89b1136509d9e4416a8f80dd3aa6b3ed2a491df61bcb7c0afec35cb34d63e6
+rc_final=0

@@ -1,0 +1,31 @@
+CDO	BPLightKineticDamageType	BPLightKineticDamageType_C /Game/Blueprints/DamageTypes/BPLightKineticDamageType.Default__BPLightKineticDamageType_C
+TYPE	BPLightKineticDamageType	1	BYPASS_SPAWN	false	ARMOUR	false	PENETRATE	true
+CDO	BPHeavyKineticDamageType	BPHeavyKineticDamageType_C /Game/Blueprints/DamageTypes/BPHeavyKineticDamageType.Default__BPHeavyKineticDamageType_C
+TYPE	BPHeavyKineticDamageType	2	BYPASS_SPAWN	false	ARMOUR	false	PENETRATE	true
+CDO	BPExplosiveDamageType	BPExplosiveDamageType_C /Game/Blueprints/DamageTypes/BPExplosiveDamageType.Default__BPExplosiveDamageType_C
+TYPE	BPExplosiveDamageType	7	BYPASS_SPAWN	false	ARMOUR	false	PENETRATE	true
+CDO	BPAntiTankKineticDamageType	BPAntiTankKineticDamageType_C /Game/Blueprints/DamageTypes/BPAntiTankKineticDamageType.Default__BPAntiTankKineticDamageType_C
+TYPE	BPAntiTankKineticDamageType	3	BYPASS_SPAWN	false	ARMOUR	true	PENETRATE	false
+CDO	BPHighExplosiveDamageType	BPHighExplosiveDamageType_C /Game/Blueprints/DamageTypes/BPHighExplosiveDamageType.Default__BPHighExplosiveDamageType_C
+TYPE	BPHighExplosiveDamageType	8	BYPASS_SPAWN	false	ARMOUR	false	PENETRATE	true
+CDO	BPFireDamageType	BPFireDamageType_C /Game/Blueprints/DamageTypes/BPFireDamageType.Default__BPFireDamageType_C
+TYPE	BPFireDamageType	18	BYPASS_SPAWN	false	ARMOUR	false	PENETRATE	true
+VEHICLE_PARENT	BlueprintGeneratedClass /Game/Blueprints/Vehicles/Truck/BPTruckW.BPTruckW_C
+VEHICLE_PARENT	BlueprintGeneratedClass /Game/Blueprints/Vehicles/Truck/BPTruckBaseW.BPTruckBaseW_C
+VEHICLE_PARENT	BlueprintGeneratedClass /Game/Blueprints/Vehicles/Truck/BPTruckBase.BPTruckBase_C
+VEHICLE_PARENT	Class /Script/War.TransportTruck
+VEHICLE_PARENT	Class /Script/War.RWDSimVehicle
+VEHICLE_PARENT	Class /Script/War.SimVehicle
+VEHICLE_GUARD_PROPERTY	DepthCuttoffForSwimDamage	FloatProperty
+VEHICLE_GUARD_PROPERTY	MinorDamagePS	ObjectProperty
+VEHICLE_GUARD_PROPERTY	MajorDamagePS	ObjectProperty
+VEHICLE_PARENT	Class /Script/War.WarCharacter
+VEHICLE_PARENT	Class /Script/Engine.Character
+VEHICLE_PARENT	Class /Script/Engine.Pawn
+VEHICLE_PARENT	Class /Script/Engine.Actor
+VEHICLE_GUARD_PROPERTY	bCanBeDamaged	BoolProperty
+VEHICLE_GUARD_PROPERTY	OnTakeAnyDamage	MulticastSparseDelegateProperty
+VEHICLE_GUARD_PROPERTY	OnTakePointDamage	MulticastSparseDelegateProperty
+VEHICLE_GUARD_PROPERTY	OnTakeRadialDamage	MulticastSparseDelegateProperty
+VEHICLE_PARENT	Class /Script/CoreUObject.Object
+DONE	CDO somente leitura

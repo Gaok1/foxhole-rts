@@ -1,0 +1,7 @@
+DAMAGE_TYPE	BPLightKineticDamageType	TYPE	1	BYPASS_SPAWN	false	ARMOUR	false	PENETRATE	true
+DAMAGE_TYPE	BPHeavyKineticDamageType	TYPE	2	BYPASS_SPAWN	false	ARMOUR	false	PENETRATE	true
+DAMAGE_TYPE	BPExplosiveDamageType	TYPE	7	BYPASS_SPAWN	false	ARMOUR	false	PENETRATE	true
+DAMAGE_TYPE	BPAntiTankKineticDamageType	TYPE	3	BYPASS_SPAWN	false	ARMOUR	true	PENETRATE	false
+DAMAGE_TYPE	BPHighExplosiveDamageType	TYPE	8	BYPASS_SPAWN	false	ARMOUR	false	PENETRATE	true
+DAMAGE_TYPE	BPFireDamageType	TYPE	18	BYPASS_SPAWN	false	ARMOUR	false	PENETRATE	true
+LIMIT	CDO nao prova fluxo de disparo, impacto ou reducao de Health

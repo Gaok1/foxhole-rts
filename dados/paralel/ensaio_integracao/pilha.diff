@@ -1,0 +1,1831 @@
+--- a/mod/FoxholeRTS/Scripts/main.lua
++++ b/mod/FoxholeRTS/Scripts/main.lua
+@@ -1434,16 +1434,23 @@
+     end
+     at = at or deployPoint()
+     local dep = logi.on and (at and at.name and logi.depotOf(at) or logi.base) or nil
+-    if dep and (dep.shirts or 0) < 1 and dep ~= logi.base then
+-        notify(string.format("sem camisas no ponto %s: o recruta nasce na base", at.name), 3.0)
++    if dep and ((dep.shirts or 0) < 1 or (role == "rifle" and (dep.rifle or 0) < 1)) and dep ~= logi.base then
++        notify(string.format("sem suprimento de recrutamento no ponto %s: o recruta nasce na base", at.name), 3.0)
+         at, dep = nil, logi.base
+     end
+     if dep and (dep.shirts or 0) < 1 then
+         notify("sem camisas na base: a fábrica e os caminhões trazem (L manda um caminhão)", 3.0)
+         return false
+     end
++    if dep and role == "rifle" and (dep.rifle or 0) < 1 then
++        notify("sem fuzis na base: produza e entregue pela logística", 3.0); return false
++    end
++    -- Game thread síncrono: debitar só após spawn confirmado; falha não consome estoque.
+     if spawnSquad(1, role, at) < 1 then return false end
+-    if dep then dep.shirts = dep.shirts - 1 end
++    if dep then
++        dep.shirts = dep.shirts - 1
++        if role == "rifle" then dep.rifle = dep.rifle - 1 end
++    end
+     economy.manpower = economy.manpower - w.cost
+     notify(string.format("recrutado %s%s (-%d) | mao de obra %.0f", w.name, at and at.name and (" no ponto " .. at.name) or "",
+         w.cost, economy.manpower), 3.0)
+@@ -2018,11 +2025,17 @@
+     end
+     if not best then return end
+     if bestD <= CFG.MEDIC_RANGE then
++        local supply = nil
++        if logi.on and m.team ~= CFG.ENEMY_TEAM then
++            supply = logi.medicalDepot(m)
++            if not supply then return end
++        end
+         local p = best.pawn
+         pcall(function() if p.bIsBleeding then p.bIsBleeding = false; p:OnRep_IsBleeding() end end)
+         local before = p.Health
+         p.Health = math.min(p.MaxHealth or 100, p.Health + CFG.MEDIC_HEAL)
+         pcall(function() p:OnRep_Health() end)
++        if supply and p.Health > before then supply.medical = supply.medical - 1 end
+         m.healAnimUntil = os.clock() + 1.2
+         local tm = m.team or 0
+         S.healStats[tm] = (S.healStats[tm] or 0) + (p.Health - before)
+@@ -2400,7 +2413,7 @@
+                 local dug = CFG.ENEMY_DIG and not pt.dug and fort.place({ X = pt.X, Y = pt.Y })
+                 if dug then pt.dug = true end
+                 if CFG.ENEMY_WIRE and not pt.wired then pcall(fort.enemyWire, pt) end
+-                if pt.dep then pt.dep.ammo, pt.dep.shirts = 0, 0 end  -- o estoque do deposito cai junto
++                if pt.dep then for _, kind in ipairs(CFG.LOGI.products) do pt.dep[kind] = 0 end end  -- estoque perdido
+                 pcall(rts.alert, "perdido", pt, "o inimigo tomou o ponto " .. pt.name .. (dug and " e cavou uma trincheira" or ""))
+             else notify("ponto " .. pt.name .. " neutralizado", 3.0) end
+         end
+@@ -2440,8 +2453,11 @@
+     bmat0 = 240, ammo0 = 6, shirts0 = 30,                     -- inicio: bmat na fabrica; caixas e camisas na base
+     trip = 100, load = 4.0, speed = 1400.0, cap = 15,         -- sucata por viagem, s carregando, cm/s, caixas
+     reloads = 6,                                              -- carregamentos completos por caixa de municao
+-    want = { ammo = 6, shirts = 20 },                         -- alvo por deposito
+-    recipes = { ammo = { name = "munição", bmat = 80, time = 50 }, shirts = { name = "camisas", bmat = 80, time = 80, units = 10 } },
++    want = { ammo = 6, shirts = 20, rifle = 4, medical = 20 },
++    products = { "ammo", "shirts", "rifle", "medical" },                         -- alvo por deposito
++    recipes = { ammo = { name = "munição", bmat = 80, time = 50 }, shirts = { name = "camisas", bmat = 80, time = 80, units = 10 },
++        rifle = { name = "fuzis", bmat = 100, time = 70, units = 20 },
++        medical = { name = "bandagens", bmat = 80, time = 40, units = 50 } },
+     hp = 900, ambush = 1500.0, dps = 25.0, rebuild = 30.0, truckCost = 100, supply = 2,
+ }
+ logi.on, logi.prio = false, "auto"
+@@ -2456,10 +2472,10 @@
+         if tr.icon and valid(tr.icon) then pcall(function() tr.icon:K2_DestroyActor() end) end
+         if tr.pawn and valid(tr.pawn) then pcall(function() tr.pawn:K2_DestroyActor() end) end
+     end
+-    logi.foes, logi.convoyT = {}, nil
++    logi.foes, logi.convoyT, logi.en, combat.cargo = {}, nil, nil, 0
+     logi.on, logi.trucks, logi.job, logi.pin, logi.t = false, {}, nil, nil, nil
+     logi.salvage, logi.bmat, logi.made = 0, 0, 0
+-    logi.fac = { ammo = 0, shirts = 0 }
++    logi.fac = { ammo = 0, shirts = 0, rifle = 0, medical = 0 }
+ end
+ 
+ -- Ator ativo mais perto de ref; invisibilidade nao e ausencia.
+@@ -2520,9 +2536,16 @@
+               { active = "BPFactory_C", ruin = "BPDestroyedFactory_C", cost = 400, hp = 2000, code = "Factory",
+                 asset = "/Game/Blueprints/Structures/BPFactory.BPFactory_C" } } }
+ 
++-- Identidade desta CARGA do mundo (endereco muda a cada carga). Nunca vai para o save.
++function logi.walletId()
++    return world():GetFullName() .. ":" .. tostring(world():GetAddress())
++end
++
+ function logi.deployWallet()
+-    local id = world():GetFullName() .. ":" .. tostring(world():GetAddress())
+-    if not S.deploy or S.deploy.world ~= id then S.deploy = { world = id, bmat = CFG.DEPLOY.budget, spent = 0 } end
++    local id = logi.walletId()
++    if not S.deploy or S.deploy.world ~= id then
++        S.deploy = { world = id, budget = CFG.DEPLOY.budget, bmat = CFG.DEPLOY.budget, spent = 0, built = {} }
++    end
+     return S.deploy
+ end
+ 
+@@ -2611,12 +2634,11 @@
+     return plan
+ end
+ 
+-function logi.deploy()
+-    local ok, plan, why = pcall(logi.deployPlan)
+-    if not ok or not plan then notify("Implantação recusada: " .. tostring(ok and why or plan), 6); return false end
+-    if plan.cost == 0 then notify("Cadeia já implantada. Shift+F6 inicia a partida.", 4); return true end
+-    local created, touched = {}, {}
+-    ok, why = pcall(function()
++-- Aplica um plano de implantacao (logi.deployPlan ou sv.infraPlan) SEM tocar na carteira. Retorna registros
++-- puros do que nasceu (codigo/XYZ/yaw, nunca ator ou endereco) ou nil e o motivo, depois de desfazer tudo.
++function logi.applyPlan(plan)
++    local created, touched, built = {}, {}, {}
++    local ok, why = pcall(function()
+         for _, b in ipairs(plan.builds) do
+             assert(valid(b.ruin) and not b.ruin.bActorIsBeingDestroyed, "ruína deixou de existir")
+             touched[#touched+1] = b
+@@ -2630,6 +2652,7 @@
+             assert(flatDist(l, b.pos) < 100 and math.abs(l.Z-b.pos.Z) < 100, "estrutura deslocada")
+             assert(math.abs(a:K2_GetActorRotation().Yaw-b.rot.Yaw) < 1, "rotação da estrutura divergiu")
+             a.TeamId = CFG.FRIENDLY_TEAM
++            built[#built+1] = { kind="site", code=b.spec.code, x=b.pos.X+0, y=b.pos.Y+0, z=b.pos.Z+0, yaw=b.rot.Yaw+0 }
+         end
+         for _, p in ipairs(plan.parking) do
+             local a = world():SpawnActor(plan.truckClass, {X=p.X,Y=p.Y,Z=p.Z+CFG.DEPLOY.off}, {Pitch=0,Yaw=p.Yaw,Roll=0})
+@@ -2638,6 +2661,7 @@
+             local l = a:K2_GetActorLocation()
+             assert(flatDist(l,p) < 150 and math.abs(l.Z-p.Z-CFG.DEPLOY.off) < 100, "caminhão deslocado")
+             a.TeamId = CFG.FRIENDLY_TEAM
++            built[#built+1] = { kind="truck", x=p.X+0, y=p.Y+0, z=p.Z+0, yaw=p.Yaw+0 }
+         end
+         local setup, missing = logi.scan()
+         assert(setup, missing)
+@@ -2651,12 +2675,24 @@
+                 pcall(function() b.ruin:SetActorHiddenInGame(b.hidden); b.ruin:SetActorEnableCollision(b.collision) end)
+             end
+         end
+-        notify("Implantação desfeita, sem débito: " .. tostring(why), 8); return false
+-    end
++        return nil, why
++    end
++    -- O desocultador da camera nao deve reexibir a ruina substituida ao sair de foco.
++    for _, b in ipairs(touched) do S.occluders[b.ruin] = nil end
++    return built
++end
++
++function logi.deploy()
++    local ok, plan, why = pcall(logi.deployPlan)
++    if not ok or not plan then notify("Implantação recusada: " .. tostring(ok and why or plan), 6); return false end
++    if plan.cost == 0 then notify("Cadeia já implantada. Shift+F6 inicia a partida.", 4); return true end
++    local built, err = logi.applyPlan(plan)
++    if not built then notify("Implantação desfeita, sem débito: " .. tostring(err), 8); return false end
+     local wallet = logi.deployWallet()
+     wallet.bmat, wallet.spent = wallet.bmat-plan.cost, wallet.spent+plan.cost
+-    -- O desocultador da camera nao deve reexibir a ruina substituida ao sair de foco.
+-    for _, b in ipairs(touched) do S.occluders[b.ruin] = nil end
++    -- Registro do que foi pago (persistido pelo save; sv.infraPlan refaz sem cobrar de novo).
++    wallet.built = wallet.built or {}
++    for _, r in ipairs(built) do wallet.built[#wallet.built+1] = r end
+     notify(string.format("IMPLANTAÇÃO: -%d bmat do cenário; saldo %d. Shift+F6 inicia (transporte ainda em reta).", plan.cost, wallet.bmat), 10)
+     return true
+ end
+@@ -2675,10 +2711,11 @@
+     if not setup then return false end  -- nao apaga a partida anterior numa recusa
+     logi.reset()
+     local C, b = CFG.LOGI, rts.base()
+-    logi.base = { name = "base", X = b.X, Y = b.Y, Z = b.Z, ammo = C.ammo0, shirts = C.shirts0 }
++    logi.base = { name = "base", X = b.X, Y = b.Y, Z = b.Z, ammo = C.ammo0, shirts = C.shirts0, rifle = 0, medical = 0 }
+     logi.field, logi.refinery, logi.factory = setup.field, setup.refinery, setup.factory
+     logi.bmat = C.bmat0
+-    combat.cargo, combat.convoys, combat.convoysCut = CFG.ECONVOY.cargo0, 0, 0
++    combat.convoys, combat.convoysCut = 0, 0
++    logi.eReset()
+     logi.convoyT = now() + CFG.ECONVOY.first
+     local pool = setup.trucks
+     for i = 1, C.supply + 1 do
+@@ -2700,7 +2737,7 @@
+ 
+ -- Deposito de um ponto (criado na primeira vez, vazio).
+ function logi.depotOf(pt)
+-    pt.dep = pt.dep or { name = pt.name, X = pt.X, Y = pt.Y, Z = pt.Z, ammo = 0, shirts = 0, pt = pt }
++    pt.dep = pt.dep or { name = pt.name, X = pt.X, Y = pt.Y, Z = pt.Z, ammo = 0, shirts = 0, rifle = 0, medical = 0, pt = pt }
+     return pt.dep
+ end
+ 
+@@ -2713,29 +2750,55 @@
+ end
+ 
+ -- Falta de um deposito (caixas de municao, caixas de camisa), descontando o que ja vai a caminho.
++function logi.needs(dep)
++    local C, result = CFG.LOGI, {}
++    for _, kind in ipairs(C.products) do
++        local units = C.recipes[kind].units or 1
++        local missing = C.want[kind] - (dep[kind] or 0)
++        for _, tr in ipairs(logi.trucks) do
++            if tr.state ~= "dead" and tr.dest == dep and tr.cargo then missing = missing - (tr.cargo[kind] or 0) * units end
++        end
++        local rounding = (kind == "ammo" or kind == "shirts") and 0.5 or 0
++        result[kind] = math.max(0, math.ceil(missing / units - rounding))
++    end
++    return result
++end
+ function logi.need(dep)
++    local n = logi.needs(dep)
++    return n.ammo, n.shirts
++end
++function logi.nextKind()
+     local C = CFG.LOGI
+-    local a = C.want.ammo - (dep.ammo or 0)
+-    local sh = (C.want.shirts - (dep.shirts or 0)) / C.recipes.shirts.units
+-    for _, tr in ipairs(logi.trucks) do
+-        if tr.dest == dep and tr.cargo then a, sh = a - tr.cargo.ammo, sh - tr.cargo.shirts end
+-    end
+-    return math.max(0, math.ceil(a - 0.5)), math.max(0, math.ceil(sh - 0.5))
+-end
+-
+--- O que a fabrica faz a seguir: prioridade do jogador, ou o tipo com menos estoque total frente ao alvo.
+-function logi.nextKind()
+-    if logi.prio ~= "auto" then return logi.prio end
+-    local C = CFG.LOGI
+-    local have = { ammo = logi.fac.ammo, shirts = logi.fac.shirts * C.recipes.shirts.units }
+-    local deps = logi.depots()
+-    for _, d in ipairs(deps) do have.ammo, have.shirts = have.ammo + d.ammo, have.shirts + d.shirts end
+-    for _, tr in ipairs(logi.trucks) do
+-        if tr.cargo then have.ammo, have.shirts = have.ammo + tr.cargo.ammo, have.shirts + tr.cargo.shirts * C.recipes.shirts.units end
+-    end
+-    local ra, rs = have.ammo / (C.want.ammo * #deps), have.shirts / (C.want.shirts * #deps)
+-    if math.min(ra, rs) >= 2.0 then return nil end  -- tudo sobrando: a fabrica para e guarda o bmat
+-    return ra <= rs and "ammo" or "shirts"
++    if logi.prio ~= "auto" then return C.recipes[logi.prio] and logi.prio or nil end
++    local deps, best, ratio = logi.depots(), nil, 2.0
++    for _, kind in ipairs(C.products) do
++        local units = C.recipes[kind].units or 1
++        local have = (logi.fac[kind] or 0) * units
++        for _, d in ipairs(deps) do have = have + (d[kind] or 0) end
++        for _, tr in ipairs(logi.trucks) do
++            if tr.state ~= "dead" and tr.cargo then have = have + (tr.cargo[kind] or 0) * units end
++        end
++        if logi.job and logi.job.kind == kind then have = have + units end
++        local r = have / (C.want[kind] * #deps)
++        if r < ratio then best, ratio = kind, r end
++    end
++    return best
++end
++-- Comprimento de estoque/cargo centralizado: caixas -> caixas (retorno) ou unidades (depósito).
++function logi.moveCargo(cargo, dest, unpack)
++    for _, kind in ipairs(CFG.LOGI.products) do
++        local n = cargo[kind] or 0
++        dest[kind] = (dest[kind] or 0) + n * (unpack and (CFG.LOGI.recipes[kind].units or 1) or 1)
++    end
++end
++-- Regra própria: médico recebe uma bandagem de depósito aliado próximo a cada tratamento efetivo.
++function logi.medicalDepot(m)
++    local here, best, distance = loc(m), nil, CFG.POINT_RADIUS
++    for _, dep in ipairs(logi.depots()) do
++        local d = flatDist(here, dep)
++        if (dep.medical or 0) >= 1 and d <= distance then best, distance = dep, d end
++    end
++    return best
+ end
+ 
+ function logi.factoryStep(dt)
+@@ -2743,7 +2806,7 @@
+     if logi.job then
+         logi.job.left = logi.job.left - dt
+         if logi.job.left <= 0 then
+-            logi.fac[logi.job.kind] = logi.fac[logi.job.kind] + 1
++            logi.fac[logi.job.kind] = (logi.fac[logi.job.kind] or 0) + 1
+             logi.made = logi.made + 1
+             logi.job = nil
+         end
+@@ -2751,7 +2814,7 @@
+     end
+     local kind = logi.nextKind()
+     local rc = kind and C.recipes[kind]
+-    if not rc or logi.bmat < rc.bmat then return end
++    if not rc or type(rc.bmat) ~= "number" or rc.bmat <= 0 or type(rc.time) ~= "number" or rc.time <= 0 or logi.bmat < rc.bmat then return end
+     logi.bmat = logi.bmat - rc.bmat
+     logi.job = { kind = kind, left = rc.time * C.time, total = rc.time * C.time }
+ end
+@@ -2772,15 +2835,14 @@
+ -- Deposito para onde o proximo caminhao vai: o fixado pelo jogador (L), senao o mais carente.
+ function logi.pickDest()
+     if logi.pin then
+-        local ok = logi.pin == logi.base or (logi.pin.pt and logi.pin.pt.owner == CFG.FRIENDLY_TEAM)
+-        if ok then return logi.pin end
++        if logi.pin == logi.base or (logi.pin.pt and logi.pin.pt.owner == CFG.FRIENDLY_TEAM) then return logi.pin end
+         logi.pin = nil
+     end
+-    local best, bs = nil, 0
++    local best, score = nil, 0
+     for _, d in ipairs(logi.depots()) do
+-        local a, sh = logi.need(d)
+-        local score = a / CFG.LOGI.want.ammo + sh * CFG.LOGI.recipes.shirts.units / CFG.LOGI.want.shirts
+-        if score > bs then best, bs = d, score end
++        local needs, n = logi.needs(d), 0
++        for _, kind in ipairs(CFG.LOGI.products) do n = n + needs[kind] * (CFG.LOGI.recipes[kind].units or 1) / CFG.LOGI.want[kind] end
++        if n > score then best, score = d, n end
+     end
+     return best
+ end
+@@ -2815,29 +2877,41 @@
+     end
+     if tr.state == "idle" then
+         if not logi.drive(tr, logi.factory, dt) then return end
+-        if logi.fac.ammo + logi.fac.shirts < 1 then return end
++        local ready = 0
++        for _, kind in ipairs(C.products) do ready = ready + (logi.fac[kind] or 0) end
++        if ready < 1 then return end
+         local dest = logi.pickDest()
+         if not dest then return end
+-        local na, ns = logi.need(dest)
+-        if logi.pin == dest then na, ns = math.max(na, logi.fac.ammo), math.max(ns, logi.fac.shirts) end
+-        local a = math.min(logi.fac.ammo, na)
+-        local sh = math.min(logi.fac.shirts, ns, C.cap - a)
+-        if a + sh < 1 then return end
+-        logi.fac.ammo, logi.fac.shirts = logi.fac.ammo - a, logi.fac.shirts - sh
+-        tr.cargo, tr.dest, tr.state = { ammo = a, shirts = sh }, dest, "toDep"
++        local needs, cargo, remaining = logi.needs(dest), {}, C.cap
++        for _, kind in ipairs(C.products) do
++            local stock = logi.fac[kind] or 0
++            local wanted = logi.pin == dest and stock or needs[kind]
++            local n = math.min(stock, wanted, remaining)
++            cargo[kind], remaining = n, remaining - n
++        end
++        if remaining == C.cap then return end
++        for _, kind in ipairs(C.products) do logi.fac[kind] = (logi.fac[kind] or 0) - cargo[kind] end
++        tr.cargo, tr.dest, tr.state = cargo, dest, "toDep"
+         if logi.pin == dest then logi.pin = nil end
++    elseif tr.state == "returnCargo" then
++        if not tr.cargo then tr.dest, tr.state = nil, "idle"; return end
++        -- Crédito apenas após chegada confirmada; driver seguro de ESTRADAS é gate de integração.
++        if logi.drive(tr, logi.factory, dt) then
++            logi.moveCargo(tr.cargo, logi.fac, false)
++            tr.cargo, tr.dest, tr.state = nil, nil, "idle"
++        end
+     elseif tr.state == "toDep" then
+         local d = tr.dest
+         if d ~= logi.base and not (d.pt and d.pt.owner == CFG.FRIENDLY_TEAM) then  -- ponto perdido no caminho: volta
+-            logi.fac.ammo, logi.fac.shirts = logi.fac.ammo + tr.cargo.ammo, logi.fac.shirts + tr.cargo.shirts
+-            tr.cargo, tr.dest, tr.state = nil, nil, "idle"
++            tr.dest, tr.state = logi.factory, "returnCargo"
++            tr.route, tr.routeDest, tr.pathJob = nil, nil, nil
+             return
+         end
+         if logi.drive(tr, d, dt) then
+-            d.ammo = (d.ammo or 0) + tr.cargo.ammo
+-            d.shirts = (d.shirts or 0) + tr.cargo.shirts * C.recipes.shirts.units
+-            notify(string.format("caminhão entregou em %s: %d munição, %d camisas", d.name == "base" and "base" or ("ponto " .. d.name),
+-                tr.cargo.ammo, tr.cargo.shirts * C.recipes.shirts.units), 3.0)
++            logi.moveCargo(tr.cargo, d, true)
++            notify(string.format("caminhão entregou em %s: %d munição, %d camisas, %d fuzis, %d bandagens",
++                d.name, tr.cargo.ammo or 0, (tr.cargo.shirts or 0) * C.recipes.shirts.units,
++                (tr.cargo.rifle or 0) * C.recipes.rifle.units, (tr.cargo.medical or 0) * C.recipes.medical.units), 3.0)
+             logi.delivered = (logi.delivered or 0) + 1
+             tr.cargo, tr.dest, tr.state = nil, nil, "idle"
+         end
+@@ -2892,7 +2966,7 @@
+ 
+ -- Shift+L: prioridade da fabrica (automatico -> municao -> camisas).
+ function logi.cyclePrio()
+-    local order = { "auto", "ammo", "shirts" }
++    local order = { "auto", "ammo", "shirts", "rifle", "medical" }
+     local i = 1
+     for k, v in ipairs(order) do if v == logi.prio then i = k end end
+     logi.prio = order[i % #order + 1]
+@@ -2912,35 +2986,81 @@
+     notify(s[2], 2.0)
+ end
+ 
++function logi.extraHud()
++    local parts = { string.format("Fuzis: fábrica %d caixas | bandagens: fábrica %d caixas", logi.fac.rifle or 0, logi.fac.medical or 0) }
++    for _, dep in ipairs(logi.depots()) do parts[#parts+1] = string.format("%s: %d fuzis, %d bandagens", dep.name, dep.rifle or 0, dep.medical or 0) end
++    for i, tr in ipairs(logi.trucks) do
++        if tr.cargo then parts[#parts+1] = string.format("caminhão %d -> %s: %d caixas fuzis, %d caixas bandagens", i,
++            tr.dest and tr.dest.name or "—", tr.cargo.rifle or 0, tr.cargo.medical or 0) end
++    end
++    return "\n" .. table.concat(parts, " | ")
++end
++
+ function logi.hudLine()
++    if not logi.on then return "LOGÍSTICA INATIVA" end
+     local C = CFG.LOGI
+-    local fab = logi.job and string.format("%s %.0f s", C.recipes[logi.job.kind].name, logi.job.left)
+-        or (logi.nextKind() and "sem bmat" or "parada (estoque cheio)")
+-    if logi.prio ~= "auto" then fab = fab .. " [só " .. C.recipes[logi.prio].name .. "]" end
+-    local moving, dead = 0, 0
+-    for _, tr in ipairs(logi.trucks) do
+-        if tr.state == "dead" then dead = dead + 1 elseif tr.state == "toDep" then moving = moving + 1 end
+-    end
+-    local deps = {}
++    local function recipeName(kind)
++        return C.recipes[kind] and C.recipes[kind].name or tostring(kind)
++    end
++    local fab
++    if logi.job then
++        fab = string.format("%s: %.0f s restantes", recipeName(logi.job.kind), math.max(0, logi.job.left))
++        if logi.job.total then fab = fab .. string.format(" (total %.0f s)", logi.job.total) end
++    else
++        fab = logi.nextKind() and "aguarda bmat" or "parada: demanda atendida"
++    end
++    local lines = {
++        string.format("LOGÍSTICA | sucata %.0f | bmat %.0f | prioridade %s", logi.salvage, logi.bmat, logi.prio),
++        "Fábrica | " .. fab,
++        string.format("Pronto | munição %d caixas | camisas %d caixas (%d unidades)",
++            logi.fac.ammo, logi.fac.shirts, logi.fac.shirts * C.recipes.shirts.units),
++    }
+     for _, d in ipairs(logi.depots()) do
+-        deps[#deps + 1] = string.format("%s m%.0f c%d", d == logi.base and "base" or d.name, d.ammo or 0, d.shirts or 0)
+-    end
+-    local foe = ""
++        -- Estoque físico, não necessidade após descontar carga em trânsito.
++        local a, sh = d.ammo or 0, d.shirts or 0
++        local low = a < C.want.ammo or sh < C.want.shirts
++        lines[#lines + 1] = string.format("%s | munição %.0f | camisas %d%s", d.name, a, sh,
++            low and " | abaixo da meta" or "")
++    end
++    local states = { idle="retorno/aguarda fábrica", toField="ao campo", loading="carregando sucata",
++        toRef="à refinaria", toDep="ao depósito", returnCargo="retornando carga à fábrica", dead="destruído" }
++    for i, tr in ipairs(logi.trucks) do
++        local cargo = tr.cargo
++        local load = cargo and string.format("%d munição + %d camisas (caixas)", cargo.ammo or 0, cargo.shirts or 0)
++            .. ((cargo.rifle or 0) > 0 and string.format(" + %d fuzis", cargo.rifle) or "")
++            .. ((cargo.medical or 0) > 0 and string.format(" + %d bandagens", cargo.medical) or "")
++            or string.format("%.0f sucata", tr.salv or 0)
++        local dest = tr.dest and tr.dest.name or
++            (tr.state == "returnCargo" and "fábrica" or tr.state == "toField" and "campo" or tr.state == "toRef" and "refinaria" or
++                tr.state == "loading" and "campo" or
++                tr.state == "idle" and (tr.kind == "res" and "campo" or "fábrica") or "—")
++        -- Não apresentar carga/destino histórico como entrega pendente de veículo morto.
++        if tr.state == "dead" then load, dest = "perdida", "—" end
++        lines[#lines + 1] = string.format("Caminhão %d | %s | %s | destino %s", i,
++            (tr.state == "idle" and tr.kind == "res") and "iniciando coleta" or
++                states[tr.state] or tostring(tr.state), load, dest)
++    end
+     if combat.mode ~= "assault" then
+-        foe = string.format(" | INIMIGO: carga %d%s", combat.cargo or 0, #logi.foes > 0 and ", comboio na estrada" or "")
+-    end
+-    return string.format("LOGÍSTICA | sucata %.0f > bmat %.0f | fábrica: %s, pronto m%d c%d | entregando %d%s | %s%s",
+-        logi.salvage, logi.bmat, fab, logi.fac.ammo, logi.fac.shirts, moving, dead > 0 and string.format(", %d destruído", dead) or "",
+-        table.concat(deps, " | "), foe)
++        local chain = logi.eHud and logi.eHud() or nil  -- cadeia inimiga real (IA_LOGISTICA); eHud devolve " | INIMIGO: ..."
++        if chain then
++            chain = chain:gsub("^ | ", "")
++            if chain ~= "" then lines[#lines + 1] = chain end
++        else
++            lines[#lines + 1] = string.format("INIMIGO | carga %d%s", combat.cargo or 0,
++                #(logi.foes or {}) > 0 and " | comboio na estrada" or "")
++        end
++    end
++    lines[#lines + 1] = "Ctrl+L: foco na cadeia | Q/E: frentes | Espaço: último alerta"
++    return table.concat(lines, "\n") .. (logi.extraHud and logi.extraHud() or "")
+ end
+ 
+ -- Comboio inimigo (lote 13): com ondas automaticas (fora do assalto), a cada ECONVOY.every s um caminhao colonial
+ -- sai da retaguarda (ECONVOY.rear cm da base, do lado de onde veio a ultima onda) e vai ate a frente
+--- (ECONVOY.front). Chegando deixa 1 carga (combat.cargo); cada onda gasta ate perWave cargas e cada uma que
+--- falta tira cut soldados dela. Nossos soldados a LOGI.ambush do caminhao o danificam (com tiro visivel) e o
++-- (ECONVOY.front) levando caixas reais da retaguarda inimiga (CFG.ECHAIN, logi.e*); a onda so recebe, alem da
++-- guarnicao gratuita, os soldados que a frente equipa. Nossos soldados a LOGI.ambush do caminhao o danificam (com tiro visivel) e o
+ -- morteiro tambem (logi.blast); destruido rende bounty de mao de obra. A rota e uma reta: da para emboscar.
+ CFG.ECONVOY = { first = 20.0, every = 35.0, rear = { 20000.0, 16000.0, 12000.0, 9000.0 }, front = 4500.0, speed = 900.0,
+-                hp = 900, perWave = 2, cut = 2, cargo0 = 2, bounty = 25, off = 174.0, fx = 0.8,
++                hp = 900, bounty = 25, retry = 5.0, off = 174.0, fx = 0.8,
+                 sample = 1000.0, step = 400.0, climb = 1500.0,
+                 class = "/Game/Blueprints/Vehicles/Truck/BPTruckC.BPTruckC_C" }
+ 
+@@ -2978,23 +3098,6 @@
+     return nil
+ end
+ 
+-function logi.convoySpawn(t)
+-    local R, F = logi.convoyRoute()
+-    if not R then return end
+-    local E = CFG.ECONVOY
+-    local tr = { kind = "foe", team = CFG.ENEMY_TEAM, hp = E.hp, off = E.off, state = "toFront", from = R, to = F, n = #logi.foes + 1 }
+-    local ok, cls = pcall(LoadAsset, E.class)
+-    if not (ok and cls and cls:IsValid()) then return end
+-    local a = world():SpawnActor(cls, { X = R.X, Y = R.Y, Z = R.Z + E.off }, { Pitch = 0, Yaw = 0, Roll = 0 })
+-    if not valid(a) or a.bActorIsBeingDestroyed then return end  -- IsValid continua true ate o GC; sem ator ativo, sem comboio
+-    pcall(function() a:SetActorEnableCollision(false) end); tr.pawn = a
+-    logi.place(tr, R.X, R.Y)
+-    logi.foes[#logi.foes + 1] = tr
+-    combat.convoys = (combat.convoys or 0) + 1
+-    pcall(rts.alert, "comboio", { X = (R.X + F.X) / 2, Y = (R.Y + F.Y) / 2, Z = F.Z },
+-        "COMBOIO INIMIGO a caminho da frente: destrua para enfraquecer a próxima onda")
+-end
+-
+ -- Dano num caminhao (nosso ou inimigo); true se destruiu.
+ function logi.hit(tr, amount, t)
+     if tr.state == "dead" then return false end
+@@ -3006,8 +3109,9 @@
+         if tr.pawn and valid(tr.pawn) then pcall(function() tr.pawn:SetActorHiddenInGame(true) end) end
+         if tr.icon and valid(tr.icon) then pcall(function() tr.icon:SetActorHiddenInGame(true) end) end
+         combat.convoysCut = (combat.convoysCut or 0) + 1
++        local lost = logi.eLose(tr, "destruído")
+         earn(CFG.ECONVOY.bounty)
+-        pcall(rts.alert, "comboioX", tr, string.format("COMBOIO INIMIGO DESTRUÍDO (+%d): a próxima onda vem mais fraca", CFG.ECONVOY.bounty))
++        pcall(rts.alert, "comboioX", tr, string.format("COMBOIO INIMIGO DESTRUÍDO (+%d): %s", CFG.ECONVOY.bounty, lost))
+         return true
+     end
+     tr.state, tr.rebuildT, tr.cargo, tr.dest, tr.salv = "dead", t + CFG.LOGI.rebuild, nil, nil, nil
+@@ -3026,21 +3130,306 @@
+     end
+ end
+ 
++-- IA_LOGISTICA (proposta 2026-10-09, CLAUDE_IA_LOGISTICA): cadeia inimiga com contabilidade fechada.
++-- Inserido por build_patch.py no lugar de convoySpawn/convoyTick/waveCut; NAO cria locais de topo
++-- (tudo em CFG.ECHAIN e na tabela logi). Mesmas regras do jogador: sucata por viagem (LOGI.trip), refinaria
++-- LOGI.refine/s a LOGI.ratio:1, receitas de CFG.LOGI.recipes (custo/tempo da tabela do jogo x LOGI.time; debito
++-- ao iniciar, caixa ao concluir), caminhao de LOGI.cap caixas que custa LOGI.truckCost bmat para reconstruir
++-- (TruckC: Cloth100, 900 HP, carga 15 em dados/custos_do_jogo.txt). Producao fica na retaguarda fora do mapa;
++-- o trecho retaguarda -> frente e um caminhao real (BPTruckC) movido por logi.drive, o mesmo contrato de rota do
++-- jogador (ESTRADAS troca o driver; chegada so com drive == true). Unidades: caixas na retaguarda e na carga;
++-- unidades de produto na frente (municao: caixa; camisas: LOGI.recipes.shirts.units).
++-- Razao: inicial + produzido == retaguarda + em transito + pendente + frente + consumido + perdido (por produto);
++-- bmat0 + refinado/ratio == bmat + gasto; sucata colhida == sucata + refinada. logi.eAudit() confere.
++CFG.ECHAIN = {
++    kinds = { "ammo", "shirts" },             -- o que a frente inimiga consome (receitas reais em CFG.LOGI.recipes)
++    shirts = 1,                               -- camisas por soldado pago (= recrutamento do jogador)
++    free = 3,                                 -- BONUS ABSTRATO explicito: guarnicao minima gratuita por onda (era o minimo antigo)
++    trip = 25.0,                              -- s por viagem do caminhao de recurso da retaguarda (fora do mapa; calibrar no lab)
++    bmat0 = 240, front0 = { ammo = 2, shirts = 10 },  -- estoque de cenario (entra no razao como "inicial")
++    want = { ammo = 6, shirts = 30 },         -- alvo da frente em unidades (~30 soldados; a fabrica para em 2x)
++    trucks = 2,                               -- frota de comboio (= LOGI.supply do jogador)
++    minLoad = 3,                              -- caixas minimas por comboio (ou tudo que a frente pede, se menos)
++    stuck = 20.0,                             -- s com rota ausente/bloqueada (driver de ESTRADAS) antes de voltar carregado
++    keep = 40,                                -- eventos e registros de onda guardados
++    tol = 0.05,                               -- folga do razao lido do save (sv.ser grava numeros com 3 casas)
++}
++
++-- Unidades por caixa e consumo por soldado pago. Municao: um carregamento completo = 1/LOGI.reloads caixa.
++function logi.eUnits(k) return (CFG.LOGI.recipes[k] and CFG.LOGI.recipes[k].units) or 1 end
++function logi.eNeed(k)
++    if k == "ammo" then return 1 / CFG.LOGI.reloads end
++    return CFG.ECHAIN[k] or 0
++end
++
++function logi.eEvent(msg)
++    local en = logi.en
++    if not en then return end
++    en.events[#en.events + 1] = string.format("%.0f %s", now(), msg)
++    if #en.events > CFG.ECHAIN.keep then table.remove(en.events, 1) end
++    log("cadeia inimiga: " .. msg)
++end
++
++-- Estado novo da cadeia (logi.start). Receita sem custo/tempo positivo recusa a cadeia inteira (fail-closed):
++-- sem producao, a onda recebe so a guarnicao gratuita; nunca custo zero por erro de schema.
++function logi.eReset()
++    local E = CFG.ECHAIN
++    local en = { salvage = 0, bmat = E.bmat0, tripT = E.trip, job = nil, fac = {}, front = {}, pending = nil,
++        ready = E.trucks, rebuild = {}, seq = 0, events = {}, waves = {}, ghost = {}, delivered = 0,
++        led = { bmat0 = E.bmat0, salv = 0, refined = 0, spent = 0, init = {}, made = {}, used = {}, lost = {} } }
++    for _, k in ipairs(E.kinds) do
++        local rc = CFG.LOGI.recipes[k]
++        if type(rc) ~= "table" or type(rc.bmat) ~= "number" or rc.bmat <= 0 or type(rc.time) ~= "number" or rc.time <= 0
++            or (rc.units ~= nil and (type(rc.units) ~= "number" or rc.units < 1)) then
++            en.err = "receita inválida: " .. tostring(k)
++        end
++        en.fac[k], en.front[k], en.ghost[k] = 0, (E.front0[k] or 0), 0
++        en.led.init[k], en.led.made[k], en.led.used[k], en.led.lost[k] = en.front[k], 0, 0, 0
++    end
++    logi.en = en
++    combat.cargo = logi.eSoldiers()
++    if en.err then log("cadeia inimiga recusada: " .. en.err) end
++    return en
++end
++
++-- Ativa so numa partida com logistica e fora do assalto (assalto e partidas sem logistica seguem abstratos).
++function logi.eActive()
++    return logi.on == true and logi.en ~= nil and combat.mode ~= "assault"
++end
++
++-- Soldados que a frente consegue equipar (camisa + carregamento), e o produto que limita.
++function logi.eSoldiers(st)
++    local en = logi.en
++    st = st or (en and en.front)
++    if not st then return 0 end
++    local n, lim = math.huge, nil
++    for _, k in ipairs(CFG.ECHAIN.kinds) do
++        local q = logi.eNeed(k)
++        if q > 0 then
++            local m = math.floor((st[k] or 0) / q + 1e-6)
++            if m < n then n, lim = m, k end
++        end
++    end
++    if n == math.huge then return 0, nil end
++    return n, lim
++end
++
++-- Unidades em transito (comboios vivos + carga pendente de reenvio apos continuar o save).
++function logi.eTransit(k)
++    local n = 0
++    for _, tr in ipairs(logi.foes or {}) do
++        if tr.cargo then n = n + (tr.cargo[k] or 0) end
++    end
++    if logi.en and logi.en.pending then n = n + (logi.en.pending[k] or 0) end
++    return n * logi.eUnits(k)
++end
++
++function logi.eHave(k)
++    local en = logi.en
++    return en.fac[k] * logi.eUnits(k) + en.front[k] + logi.eTransit(k)
++end
++
++-- Fabrica inimiga: o produto com menos estoque total frente ao alvo; tudo >= 2x o alvo para (regra do jogador).
++function logi.eNextKind()
++    local en, E = logi.en, CFG.ECHAIN
++    local best, ratio = nil, 2.0
++    for _, k in ipairs(E.kinds) do
++        local have = logi.eHave(k) + ((en.job and en.job.kind == k) and logi.eUnits(k) or 0)
++        local r = have / E.want[k]
++        if r < ratio then best, ratio = k, r end
++    end
++    return best
++end
++
++-- Producao da retaguarda (pura: sem UE). dt ja limitado pelo chamador (logi.tick: <= 0,5 s).
++function logi.eTick(dt, t)
++    local en, C, E = logi.en, CFG.LOGI, CFG.ECHAIN
++    if not logi.eActive() or en.err or not (dt > 0) then return end
++    local L = en.led
++    en.tripT = en.tripT - dt
++    if en.tripT <= 0 then
++        en.tripT = en.tripT + E.trip
++        en.salvage, L.salv = en.salvage + C.trip, L.salv + C.trip
++    end
++    local r = math.min(en.salvage, C.refine * dt)
++    en.salvage, L.refined, en.bmat = en.salvage - r, L.refined + r, en.bmat + r / C.ratio
++    if en.job then
++        en.job.left = en.job.left - dt
++        if en.job.left <= 0 then
++            local k = en.job.kind
++            en.fac[k], L.made[k] = en.fac[k] + 1, L.made[k] + logi.eUnits(k)
++            en.job = nil
++        end
++    end
++    -- Reconstrucao antes da fabrica: sem caminhao livre, caixa nova nao anda; a fabrica guarda bmat para ele
++    -- (decisao da IA; sem isso a fabrica gastava cada 80 bmat e o caminhao de 100 nunca voltava).
++    local due = false
++    for i = #en.rebuild, 1, -1 do
++        if t >= en.rebuild[i] then
++            if en.bmat >= C.truckCost then
++                en.bmat, L.spent = en.bmat - C.truckCost, L.spent + C.truckCost
++                table.remove(en.rebuild, i)
++                en.ready = en.ready + 1
++                logi.eEvent(string.format("caminhão de comboio reconstruído (-%d bmat)", C.truckCost))
++            else
++                due = true
++            end
++        end
++    end
++    if not en.job and not (due and en.ready == 0) then
++        local k = logi.eNextKind()
++        local rc = k and C.recipes[k]
++        if rc and en.bmat >= rc.bmat then
++            en.bmat, L.spent = en.bmat - rc.bmat, L.spent + rc.bmat
++            en.job = { kind = k, left = rc.time * C.time, total = rc.time * C.time }
++        end
++    end
++end
++
++-- Carga do proximo comboio sem debitar: primeiro a pendente (save), senao o que falta na frente, ate LOGI.cap caixas.
++function logi.eLoad()
++    local en, E = logi.en, CFG.ECHAIN
++    local cargo, room, boxes, wanted = {}, CFG.LOGI.cap, 0, 0
++    local src = en.pending
++    for _, k in ipairs(E.kinds) do
++        local n
++        if src then
++            n = math.min(src[k] or 0, room)
++        else
++            local want = math.ceil(math.max(0, E.want[k] - en.front[k] - logi.eTransit(k)) / logi.eUnits(k) - 1e-9)
++            n = math.min(en.fac[k], want, room)
++            wanted = wanted + want
++        end
++        cargo[k], room, boxes = n, room - n, boxes + n
++    end
++    if boxes < 1 then return nil, false end
++    -- Decisao da IA: nao arriscar um caminhao (100 bmat) por uma caixa; sai com ECHAIN.minLoad caixas ou
++    -- com tudo o que a frente pede (o que for menor). Carga pendente do save sai sempre.
++    if not src and boxes < math.min(E.minLoad, math.min(wanted, CFG.LOGI.cap)) then return nil, false end
++    return cargo, src ~= nil
++end
++
++function logi.eFmt(c)
++    return string.format("%d cx munição, %d cx camisas", c.ammo or 0, c.shirts or 0)
++end
++
++-- Comboio: so sai com caminhao livre, carga real e ator ativo; a retaguarda so e debitada depois do spawn.
++function logi.convoySpawn(t)
++    local en, E = logi.en, CFG.ECONVOY
++    if not en or en.err or en.ready < 1 then return false end
++    local cargo, fromPending = logi.eLoad()
++    if not cargo then return false end  -- sem carga, sem comboio fantasma
++    local R, F = logi.convoyRoute()
++    if not R then return false end
++    local ok, cls = pcall(LoadAsset, E.class)
++    if not (ok and cls and cls:IsValid()) then return false end
++    local a = world():SpawnActor(cls, { X = R.X, Y = R.Y, Z = R.Z + E.off }, { Pitch = 0, Yaw = 0, Roll = 0 })
++    if not valid(a) or a.bActorIsBeingDestroyed then return false end  -- IsValid continua true ate o GC
++    local tr = { kind = "foe", team = CFG.ENEMY_TEAM, hp = E.hp, off = E.off, state = "toFront", from = R, to = F,
++        n = #logi.foes + 1, cargo = {} }
++    pcall(function() a:SetActorEnableCollision(false) end); tr.pawn = a
++    logi.place(tr, R.X, R.Y)
++    -- transacao: daqui em diante nada falha antes do debito
++    local src = fromPending and en.pending or en.fac
++    local left = 0
++    for _, k in ipairs(CFG.ECHAIN.kinds) do
++        tr.cargo[k] = cargo[k] or 0
++        src[k] = src[k] - tr.cargo[k]
++        left = left + (fromPending and src[k] or 0)
++    end
++    if fromPending and left == 0 then en.pending = nil end
++    en.ready, en.seq = en.ready - 1, en.seq + 1
++    tr.id = en.seq
++    logi.foes[#logi.foes + 1] = tr
++    combat.convoys = (combat.convoys or 0) + 1
++    logi.eEvent(string.format("comboio %d saiu: %s", tr.id, logi.eFmt(tr.cargo)))
++    pcall(rts.alert, "comboio", { X = (R.X + F.X) / 2, Y = (R.Y + F.Y) / 2, Z = F.Z },
++        string.format("COMBOIO INIMIGO a caminho da frente (%s): destrua para enfraquecer a próxima onda", logi.eFmt(tr.cargo)))
++    return true
++end
++
++-- Chegada confirmada a frente: caixas viram unidades uma unica vez.
++function logi.eDeliver(tr)
++    local en = logi.en
++    if not (en and tr.cargo) then return end
++    local add = {}
++    for _, k in ipairs(CFG.ECHAIN.kinds) do
++        add[k] = (tr.cargo[k] or 0) * logi.eUnits(k)
++        en.front[k] = en.front[k] + add[k]
++    end
++    tr.cargo = nil
++    en.delivered = en.delivered + 1
++    logi.eEvent(string.format("comboio %s entregou na frente: +%g munição, +%g camisas", tostring(tr.id), add.ammo or 0, add.shirts or 0))
++    notify(string.format("comboio inimigo chegou à frente: equipa %d soldados", (logi.eSoldiers())), 3.0)
++end
++
++-- Caminhao perdido (destruido, ator invalido ou removido): carga sai do razao como perda, uma unica vez;
++-- o caminhao entra na fila de reconstrucao (LOGI.rebuild s e LOGI.truckCost bmat, como o do jogador).
++function logi.eLose(tr, why)
++    local en = logi.en
++    if tr.lostDone then return "já registrado" end
++    tr.lostDone = true
++    if not en then tr.cargo = nil; return "sem cadeia" end
++    local units = {}
++    for _, k in ipairs(CFG.ECHAIN.kinds) do
++        local u = ((tr.cargo and tr.cargo[k]) or 0) * logi.eUnits(k)
++        en.led.lost[k] = en.led.lost[k] + u
++        en.ghost[k] = en.ghost[k] + u  -- carga que a frente teria (diagnostico de atribuicao, fora do razao)
++        units[k] = u
++    end
++    tr.cargo = nil
++    en.rebuild[#en.rebuild + 1] = now() + CFG.LOGI.rebuild
++    local msg = string.format("comboio %s perdido (%s): -%g munição, -%g camisas", tostring(tr.id), why or "?", units.ammo or 0, units.shirts or 0)
++    logi.eEvent(msg)
++    return string.format("a frente perde %g munição e %g camisas", units.ammo or 0, units.shirts or 0)
++end
++
++-- Caminhao de volta a retaguarda: devolve carga nao entregue (so na chegada fisica) e volta a frota.
++function logi.eHome(tr)
++    local en = logi.en
++    if not en then return end
++    if tr.cargo then
++        for _, k in ipairs(CFG.ECHAIN.kinds) do en.fac[k] = en.fac[k] + (tr.cargo[k] or 0) end
++        logi.eEvent(string.format("comboio %s voltou com a carga: %s", tostring(tr.id), logi.eFmt(tr.cargo)))
++        tr.cargo = nil
++    end
++    en.ready = en.ready + 1
++end
++
++-- Rota ausente/bloqueada por CFG.ECHAIN.stuck s (status escrito pelo driver de ESTRADAS em tr.routeStatus).
++function logi.eStuck(tr, dt)
++    local s = tr.routeStatus
++    if s == "rota_ausente" or s == "regiao_invalida" or s == "bloqueado" then tr.stuck = (tr.stuck or 0) + dt
++    else tr.stuck = 0 end
++    return tr.stuck >= CFG.ECHAIN.stuck
++end
++
+ function logi.convoyTick(dt, t)
+     local E = CFG.ECONVOY
++    logi.eTick(dt, t)
+     if combat.auto and combat.mode ~= "assault" and t >= (logi.convoyT or 0) then
+-        logi.convoyT = t + E.every
+-        logi.convoySpawn(t)
++        logi.convoyT = t + (logi.convoySpawn(t) and E.every or E.retry)
+     end
+     for i = #logi.foes, 1, -1 do
+         local tr = logi.foes[i]
+         local gone = tr.state == "dead"
++        if not gone and tr.pawn ~= nil and (not valid(tr.pawn) or tr.pawn.bActorIsBeingDestroyed) then
++            tr.state = "dead"
++            logi.eLose(tr, "ator do caminhão inválido")  -- perda explicita, nunca entrega fantasma
++            gone = true
++        end
+         if not gone then
+-            if tr.state == "toFront" and logi.drive(tr, tr.to, dt, E.speed) then
+-                combat.cargo = (combat.cargo or 0) + 1
+-                tr.state = "back"
+-                notify(string.format("comboio inimigo chegou à frente: carga %d (a próxima onda usa até %d)", combat.cargo, E.perWave), 3.0)
++            if tr.state == "toFront" then
++                if logi.drive(tr, tr.to, dt, E.speed) then
++                    logi.eDeliver(tr)
++                    tr.state = "back"
++                elseif logi.eStuck(tr, dt) then
++                    tr.state = "back"  -- volta carregado; credito so na chegada a retaguarda
++                    logi.eEvent(string.format("comboio %s sem rota: voltando com a carga", tostring(tr.id)))
++                end
+             elseif tr.state == "back" and logi.drive(tr, tr.from, dt, E.speed) then
++                logi.eHome(tr)
++                tr.home = true
+                 gone = true
+             end
+             -- nossos soldados perto atiram no caminhao
+@@ -3048,7 +3437,7 @@
+             for _, m in ipairs(squad) do
+                 if alive(m) and flatDist(loc(m), tr) <= CFG.LOGI.ambush then n, shooter = n + 1, m end
+             end
+-            if n > 0 then
++            if n > 0 and not tr.home then
+                 if t >= (tr.fxT or 0) and shooter then
+                     tr.fxT = t + E.fx
+                     local d, dx, dy = flatDist(loc(shooter), tr)
+@@ -3058,42 +3447,315 @@
+             end
+         end
+         if gone then
++            if not tr.home and not tr.lostDone then logi.eLose(tr, "removido") end  -- nunca some carga sem registro
+             if tr.icon and valid(tr.icon) then pcall(function() tr.icon:K2_DestroyActor() end) end
+             if tr.pawn and valid(tr.pawn) then pcall(function() tr.pawn:K2_DestroyActor() end) end
+             table.remove(logi.foes, i)
+         end
+     end
+-end
+-
+--- Onda: gasta ate perWave cargas; cada uma que falta tira cut soldados (minimo 3).
++    if logi.en then combat.cargo = logi.eSoldiers() end
++end
++
++-- Consumo real na frente: k soldados pagos levam camisa + carregamento. Retorna o que foi debitado.
++function logi.eConsume(k, why)
++    if not logi.eActive() or not (k and k > 0) then return 0 end
++    local en = logi.en
++    k = math.min(math.floor(k), (logi.eSoldiers()))
++    if k < 1 then return 0 end
++    for _, kind in ipairs(CFG.ECHAIN.kinds) do
++        local q = math.min(en.front[kind], k * logi.eNeed(kind))
++        en.front[kind], en.led.used[kind] = en.front[kind] - q, en.led.used[kind] + q
++    end
++    combat.cargo = logi.eSoldiers()
++    return k
++end
++
++-- Reforco pelos pontos (ai.tick): limita ao que a frente equipa; o debito vem depois do spawn (eConsume).
++function logi.eAfford(n)
++    if not logi.eActive() then return n end
++    return math.min(n, (logi.eSoldiers()))
++end
++
++-- Onda (waveTick): guarnicao gratuita + soldados pagos ate o que a frente equipa. So decide; o debito e
++-- logi.eCommit depois do spawn (soldado que nao nasceu nao consome). Registro da onda: pedido, enviado,
++-- produto limitante e quantos soldados a carga perdida em comboios desde a onda anterior teria equipado.
+ function logi.waveCut(n)
+-    if not logi.on or combat.mode == "assault" then return n end
+-    local E = CFG.ECONVOY
+-    local use = math.min(combat.cargo or 0, E.perWave)
+-    combat.cargo = (combat.cargo or 0) - use
+-    local miss = E.perWave - use
+-    if miss <= 0 then return n end
+-    local n2 = math.max(3, n - miss * E.cut)
+-    if n2 < n then notify(string.format("faltou suprimento ao inimigo: a onda vem com %d a menos", n - n2), 4.0) end
+-    return n2
++    if not logi.eActive() then return n end
++    local en, E = logi.en, CFG.ECHAIN
++    local free = math.min(n, E.free)
++    local can, lim = logi.eSoldiers()
++    local paid = math.min(n - free, can)
++    local short = n - free - paid
++    -- Atribuicao (contrafactual): com a carga perdida ainda nao "gasta" (ghost), quantos soldados a mais a frente
++    -- equiparia? Esses faltam por interdicao; o ghost e gasto como se tivessem saido. Diagnostico, fora do razao.
++    local with = {}
++    for _, k in ipairs(E.kinds) do with[k] = en.front[k] + en.ghost[k] end
++    local byCut = math.min(short, math.max(0, (logi.eSoldiers(with)) - can))
++    local rec = { wave = combat.wave + 1, asked = n, free = free, paid = paid, short = short, limit = short > 0 and lim or nil,
++        front = { ammo = en.front.ammo, shirts = en.front.shirts }, ghost = { ammo = en.ghost.ammo, shirts = en.ghost.shirts },
++        byCut = byCut }
++    for _, k in ipairs(E.kinds) do en.ghost[k] = math.max(0, en.ghost[k] - byCut * logi.eNeed(k)) end
++    en.waves[#en.waves + 1] = rec
++    if #en.waves > E.keep then table.remove(en.waves, 1) end
++    en.plan = { w0 = combat.wave, free = free, paid = paid, rec = rec }
++    if short > 0 then
++        notify(string.format("faltou suprimento ao inimigo: a onda vem com %d a menos (falta %s%s)", short,
++            lim == "ammo" and "munição" or "camisas", rec.byCut > 0 and string.format("; %d por comboios destruídos", rec.byCut) or ""), 4.0)
++    end
++    logi.eEvent(string.format("onda %d: pedido %d, grátis %d, pagos %d, faltaram %d (%s), atribuídos à interdição %d",
++        rec.wave, n, free, paid, short, tostring(rec.limit), rec.byCut))
++    return free + paid
++end
++
++-- Depois do spawn da onda: debita so os soldados pagos que nasceram (a guarnicao gratuita conta primeiro).
++function logi.eCommit(made)
++    local en = logi.en
++    local p = en and en.plan
++    if not p then return 0 end
++    en.plan = nil
++    if combat.wave == p.w0 then made = 0 end  -- spawn recusado antes de abrir a onda: nada nasceu
++    local k = logi.eConsume(math.max(0, math.min(p.paid, (made or 0) - p.free)), "onda")
++    p.rec.sent, p.rec.paidMade = made or 0, k
++    return k
++end
++
++-- Conservacao verificavel (canal/laboratorio: out(logi.eAudit())).
++function logi.eAudit()
++    local en = logi.en
++    if not en then return true, "sem cadeia" end
++    local L, bad = en.led, {}
++    for _, k in ipairs(CFG.ECHAIN.kinds) do
++        local diff = (L.init[k] + L.made[k]) - (logi.eHave(k) + L.used[k] + L.lost[k])
++        if math.abs(diff) > 1e-6 then bad[#bad + 1] = string.format("%s desvio %.6f", k, diff) end
++        if en.front[k] < -1e-9 or en.fac[k] < 0 then bad[#bad + 1] = k .. " negativo" end
++    end
++    local db = (L.bmat0 + L.refined / CFG.LOGI.ratio) - (en.bmat + L.spent)
++    if math.abs(db) > 1e-6 then bad[#bad + 1] = string.format("bmat desvio %.6f", db) end
++    local ds = L.salv - (en.salvage + L.refined)
++    if math.abs(ds) > 1e-6 then bad[#bad + 1] = string.format("sucata desvio %.6f", ds) end
++    if en.bmat < -1e-9 or en.ready < 0 then bad[#bad + 1] = "bmat/frota negativo" end
++    local road = 0  -- frota: livre + reconstruindo + na estrada == ECHAIN.trucks (nenhum caminhao criado do nada)
++    for _, tr in ipairs(logi.foes or {}) do if not tr.lostDone and not tr.home then road = road + 1 end end
++    if en.ready + #en.rebuild + road ~= CFG.ECHAIN.trucks then
++        bad[#bad + 1] = string.format("frota %d+%d+%d ~= %d", en.ready, #en.rebuild, road, CFG.ECHAIN.trucks)
++    end
++    return #bad == 0, #bad == 0 and "razão fechado" or table.concat(bad, "; ")
++end
++
++function logi.eHud()
++    local en = logi.en
++    if not en then return "" end
++    if en.err then return " | INIMIGO: cadeia recusada (" .. en.err .. ")" end
++    local moving = 0
++    for _, tr in ipairs(logi.foes) do if tr.state ~= "dead" and tr.cargo then moving = moving + 1 end end
++    return string.format(" | INIMIGO: frente equipa %d (m%.1f c%d) | retaguarda bmat %.0f, cx m%d c%d | comboios %d na estrada, %d perdidos",
++        (logi.eSoldiers()), en.front.ammo, en.front.shirts, en.bmat, en.fac.ammo, en.fac.shirts, moving, combat.convoysCut or 0)
++end
++
++-- Relatorio para o canal/laboratorio: estado, razao, ultimas ondas e eventos.
++function logi.eReport()
++    local en = logi.en
++    if not en then return "cadeia inimiga: inativa" end
++    local ok, why = logi.eAudit()
++    local L, out = en.led, {}
++    out[#out + 1] = string.format("cadeia inimiga ativa=%s err=%s | sucata %.1f bmat %.1f job=%s | frota livre %d, reconstruindo %d, na estrada %d | pendente %s",
++        tostring(logi.eActive()), tostring(en.err), en.salvage, en.bmat, en.job and (en.job.kind .. string.format(" %.1f s", en.job.left)) or "-",
++        en.ready, #en.rebuild, #logi.foes, en.pending and logi.eFmt(en.pending) or "-")
++    for _, k in ipairs(CFG.ECHAIN.kinds) do
++        out[#out + 1] = string.format("  %s: inicial %g + produzido %g = retaguarda %g + trânsito %g + frente %g + consumido %g + perdido %g",
++            k, L.init[k], L.made[k], en.fac[k] * logi.eUnits(k), logi.eTransit(k), en.front[k], L.used[k], L.lost[k])
++    end
++    out[#out + 1] = string.format("  razão: %s (%s) | bmat0 %g + refinado %g/%g = bmat %.3f + gasto %g", ok and "OK" or "FALHA", why,
++        L.bmat0, L.refined, CFG.LOGI.ratio, en.bmat, L.spent)
++    for i = math.max(1, #en.waves - 4), #en.waves do
++        local w = en.waves[i]
++        out[#out + 1] = string.format("  onda %d: pedido %d grátis %d pagos %d enviados %s faltaram %d (%s) interdição %d",
++            w.wave, w.asked, w.free, w.paid, tostring(w.sent), w.short, tostring(w.limit), w.byCut)
++    end
++    return table.concat(out, "\n")
++end
++
++-- Save: carga em transito vira "pendente" (o ator nao e recriado; reenviada da retaguarda pelo proximo comboio),
++-- caminhoes na estrada voltam a frota livre, reconstrucao guarda o tempo restante. Copias, sem userdata.
++function logi.eSnapshot()
++    local en = logi.en
++    if not en then return nil end
++    local t = now()
++    local function copy(s) local d = {}; for _, k in ipairs(CFG.ECHAIN.kinds) do d[k] = s[k] or 0 end; return d end
++    local pend, road = copy(en.pending or {}), 0
++    for _, tr in ipairs(logi.foes or {}) do
++        if tr.state ~= "dead" and not tr.lostDone then
++            road = road + 1
++            for _, k in ipairs(CFG.ECHAIN.kinds) do pend[k] = pend[k] + ((tr.cargo and tr.cargo[k]) or 0) end
++        end
++    end
++    local rb = {}
++    for i, r in ipairs(en.rebuild) do rb[i] = math.max(0, r - t) end
++    local L = en.led
++    return { v = 1, salvage = en.salvage, bmat = en.bmat, trip = en.tripT, ready = en.ready + road, rebuild = rb,
++        fac = copy(en.fac), front = copy(en.front), pending = pend, seq = en.seq, delivered = en.delivered,
++        job = en.job and { kind = en.job.kind, left = en.job.left, total = en.job.total } or nil,
++        led = { bmat0 = L.bmat0, salv = L.salv, refined = L.refined, spent = L.spent,
++            init = copy(L.init), made = copy(L.made), used = copy(L.used), lost = copy(L.lost) } }
++end
++
++-- Validacao completa antes de substituir (nunca soma): numeros finitos >= 0, frota coerente, receita do job
++-- conhecida e o proprio razao do save fechado. Invalido/ausente: mantem o estado novo de logi.start e avisa.
++function logi.eValid(d)
++    local E = CFG.ECHAIN
++    local function num(x) return type(x) == "number" and x == x and x >= 0 and x < math.huge end
++    local function int(x) return num(x) and x % 1 == 0 end
++    if type(d) ~= "table" or d.v ~= 1 then return false, "versão" end
++    for _, key in ipairs({ "salvage", "bmat", "trip" }) do if not num(d[key]) then return false, key end end
++    if not int(d.ready) or type(d.rebuild) ~= "table" or not int(d.seq or 0) or not int(d.delivered or 0) then return false, "frota" end
++    for _, r in ipairs(d.rebuild) do if not num(r) then return false, "reconstrução" end end
++    if d.ready + #d.rebuild > E.trucks then return false, "frota maior que a configurada" end
++    local L = d.led
++    if type(L) ~= "table" then return false, "razão" end
++    for _, key in ipairs({ "bmat0", "salv", "refined", "spent" }) do if not num(L[key]) then return false, "razão " .. key end end
++    for _, grp in ipairs({ "fac", "front", "pending" }) do if type(d[grp]) ~= "table" then return false, grp end end
++    for _, grp in ipairs({ "init", "made", "used", "lost" }) do if type(L[grp]) ~= "table" then return false, "razão " .. grp end end
++    for _, k in ipairs(E.kinds) do
++        if not int(d.fac[k]) or not int(d.pending[k]) or not num(d.front[k]) then return false, "estoque " .. k end
++        for _, grp in ipairs({ "init", "made", "used", "lost" }) do if not num(L[grp][k]) then return false, "razão " .. k end end
++        local u = logi.eUnits(k)
++        local diff = (L.init[k] + L.made[k]) - ((d.fac[k] + d.pending[k]) * u + d.front[k] + L.used[k] + L.lost[k])
++        if math.abs(diff) > E.tol then return false, "razão não fecha em " .. k end
++    end
++    if math.abs((L.bmat0 + L.refined / CFG.LOGI.ratio) - (d.bmat + L.spent)) > E.tol then return false, "razão bmat" end
++    if math.abs(L.salv - (d.salvage + L.refined)) > E.tol then return false, "razão sucata" end
++    if d.job ~= nil then
++        local j = d.job
++        if type(j) ~= "table" or not CFG.LOGI.recipes[j.kind] or not num(j.left) or not num(j.total) or j.left > j.total then return false, "job" end
++    end
++    return true
++end
++
++function logi.eRestore(d)
++    if not (logi.on and logi.en) then return false end
++    if d == nil then logi.eEvent("save sem cadeia inimiga: começa do estoque de cenário"); return false end
++    local ok, why = logi.eValid(d)
++    if not ok then
++        logi.eEvent("save da cadeia inimiga recusado (" .. tostring(why) .. "): começa do estoque de cenário")
++        notify("cadeia inimiga do save inválida: recomeça do estoque inicial", 4.0)
++        return false
++    end
++    local t, en = now(), logi.en
++    local function copy(s) local r = {}; for _, k in ipairs(CFG.ECHAIN.kinds) do r[k] = s[k] or 0 end; return r end
++    en.salvage, en.bmat, en.tripT, en.ready, en.seq, en.delivered = d.salvage, d.bmat, d.trip, d.ready, d.seq or 0, d.delivered or 0
++    en.fac, en.front = copy(d.fac), copy(d.front)
++    local pend = copy(d.pending)
++    local any = false
++    for _, k in ipairs(CFG.ECHAIN.kinds) do if pend[k] > 0 then any = true end end
++    en.pending = any and pend or nil
++    en.rebuild = {}
++    for i, r in ipairs(d.rebuild) do en.rebuild[i] = t + r end
++    en.job = d.job and { kind = d.job.kind, left = d.job.left, total = d.job.total } or nil
++    en.led = { bmat0 = d.led.bmat0, salv = d.led.salv, refined = d.led.refined, spent = d.led.spent,
++        init = copy(d.led.init), made = copy(d.led.made), used = copy(d.led.used), lost = copy(d.led.lost) }
++    -- sv.ser arredonda a 3 casas: a sobra (<= ECHAIN.tol, ja validada) e absorvida nos termos de origem
++    -- (inicial/bmat0/colhido) para o razao em memoria fechar exato; nunca vira estoque.
++    local Ld = en.led
++    for _, k in ipairs(CFG.ECHAIN.kinds) do Ld.init[k] = logi.eHave(k) + Ld.used[k] + Ld.lost[k] - Ld.made[k] end
++    Ld.bmat0 = en.bmat + Ld.spent - Ld.refined / CFG.LOGI.ratio
++    Ld.salv = en.salvage + Ld.refined
++    en.plan = nil
++    combat.cargo = logi.eSoldiers()
++    logi.eEvent("cadeia inimiga restaurada do save" .. (en.pending and (" (reenviar " .. logi.eFmt(en.pending) .. ")") or ""))
++    return true
+ end
+ 
+ function logi.snapshot()
+     if not logi.on then return nil end
+-    local d = { salvage = logi.salvage, bmat = logi.bmat, fa = logi.fac.ammo, fs = logi.fac.shirts,
+-        ba = logi.base.ammo, bs = logi.base.shirts, prio = logi.prio, pts = {} }
+-    for i, pt in ipairs(points) do d.pts[i] = pt.dep and { a = pt.dep.ammo, s = pt.dep.shirts } or false end
++    local d = { version=2, salvage=logi.salvage, bmat=logi.bmat, fa=logi.fac.ammo, fs=logi.fac.shirts,
++        fr=logi.fac.rifle or 0, fm=logi.fac.medical or 0, ba=logi.base.ammo, bs=logi.base.shirts,
++        br=logi.base.rifle or 0, bm=logi.base.medical or 0, prio=logi.prio, pts={}, trucks={} }
++    for i, pt in ipairs(points) do d.pts[i] = pt.dep and { a=pt.dep.ammo, s=pt.dep.shirts, r=pt.dep.rifle or 0, m=pt.dep.medical or 0 } or false end
++    if logi.job then d.job={kind=logi.job.kind,left=logi.job.left,total=logi.job.total} end
++    for i, tr in ipairs(logi.trucks) do
++        local q={state=tr.state,hp=tr.hp,salv=tr.salv or 0,wait=math.max(0,(tr.waitT or now())-now()),
++            rebuild=math.max(0,(tr.rebuildT or now())-now())}
++        if tr.cargo then
++            q.cargo={}
++            for _, kind in ipairs(CFG.LOGI.products) do q.cargo[kind]=tr.cargo[kind] or 0 end
++            q.dest=tr.state=="returnCargo" and -1 or 0
++            if tr.state~="returnCargo" and tr.dest ~= logi.base then
++                for k, pt in ipairs(points) do if pt.dep == tr.dest then q.dest=k end end
++            end
++        end
++        d.trucks[i]=q
++    end
+     return d
+ end
+-
++-- Pré-validação completa antes de start/reset; save legado sem novos campos continua aceito.
++function logi.validateSave(d)
++    local function number(n) return type(n)=="number" and n==n and n>=0 and n<math.huge end
++    local function integer(n) return number(n) and n%1==0 end
++    if type(d)~="table" or (d.version and d.version~=2) then return false end
++    for _, key in ipairs({"salvage","bmat","ba"}) do if not number(d[key] or 0) then return false end end
++    for _, key in ipairs({"fa","fs","fr","fm","bs","br","bm"}) do if not integer(d[key] or 0) then return false end end
++    if d.prio and d.prio~="auto" and not CFG.LOGI.recipes[d.prio] then return false end
++    if d.job then
++        local j=d.job
++        if type(j)~="table" or not CFG.LOGI.recipes[j.kind] or not number(j.left) or not number(j.total) or j.left>j.total then return false end
++    end
++    if d.pts and type(d.pts)~="table" then return false end
++    for i,q in pairs(d.pts or {}) do
++        if not integer(i) or i<1 or not points[i] then return false end
++        if q then
++            if type(q)~="table" or not number(q.a or 0) then return false end
++            for _, key in ipairs({"s","r","m"}) do if not integer(q[key] or 0) then return false end end
++        end
++    end
++    if d.trucks and type(d.trucks)~="table" then return false end
++    local states={idle=true,toField=true,loading=true,toRef=true,toDep=true,returnCargo=true,dead=true}
++    for i,q in pairs(d.trucks or {}) do
++        if not integer(i) or i<1 or i>CFG.LOGI.supply+1 or type(q)~="table" or not states[q.state]
++            or not number(q.hp) or not integer(q.salv or 0) or not number(q.wait or 0) or not number(q.rebuild or 0) then return false end
++        if (i==1 and (q.state=="toDep" or q.state=="returnCargo")) or (i>1 and (q.state=="toField" or q.state=="toRef" or q.state=="loading")) then return false end
++        if q.state=="dead" and (q.cargo or (q.salv or 0)>0) then return false end
++        if (q.state=="toDep" or q.state=="returnCargo") and not q.cargo then return false end
++        if q.cargo then
++            if i==1 or (q.state~="toDep" and q.state~="returnCargo") or type(q.cargo)~="table" then return false end
++            if q.state=="returnCargo" then
++                if q.dest~=-1 then return false end
++            elseif not integer(q.dest) or (q.dest>0 and not points[q.dest]) then return false end
++            local n=0
++            for key,value in pairs(q.cargo) do if not CFG.LOGI.recipes[key] or not integer(value) then return false end;n=n+value end
++            if n<1 or n>CFG.LOGI.cap then return false end
++        end
++    end
++    return true
++end
+ function logi.restore(d)
+-    if not logi.start() or type(d) ~= "table" then return end
+-    logi.salvage, logi.bmat, logi.prio = d.salvage or 0, d.bmat or 0, d.prio or "auto"
+-    logi.fac.ammo, logi.fac.shirts = d.fa or 0, d.fs or 0
+-    logi.base.ammo, logi.base.shirts = d.ba or 0, d.bs or 0
+-    for i, q in ipairs(d.pts or {}) do
+-        if q and points[i] then local dep = logi.depotOf(points[i]); dep.ammo, dep.shirts = q.a or 0, q.s or 0 end
+-    end
++    if not logi.validateSave(d) then return false end
++    -- ready é só preflight; nenhuma estrutura do save é restaurada ou construída aqui.
++    local setup=logi.ready()
++    if not setup then return false end
++    if not logi.start(setup) then return false end
++    logi.salvage,logi.bmat,logi.prio=d.salvage or 0,d.bmat or 0,d.prio or "auto"
++    logi.fac={ammo=d.fa or 0,shirts=d.fs or 0,rifle=d.fr or 0,medical=d.fm or 0}
++    logi.base.ammo,logi.base.shirts,logi.base.rifle,logi.base.medical=d.ba or 0,d.bs or 0,d.br or 0,d.bm or 0
++    for i,q in pairs(d.pts or {}) do
++        if q then local dep=logi.depotOf(points[i]);dep.ammo,dep.shirts,dep.rifle,dep.medical=q.a or 0,q.s or 0,q.r or 0,q.m or 0 end
++    end
++    if d.job then logi.job={kind=d.job.kind,left=d.job.left,total=d.job.total} end
++    for i,q in pairs(d.trucks or {}) do
++        local tr=logi.trucks[i]
++        tr.state,tr.hp,tr.salv=q.state,q.hp,(q.salv or 0)>0 and q.salv or nil
++        tr.waitT,tr.rebuildT=now()+(q.wait or 0),now()+(q.rebuild or 0)
++        if q.cargo then
++            tr.cargo={};for _, kind in ipairs(CFG.LOGI.products) do tr.cargo[kind]=q.cargo[kind] or 0 end
++            tr.dest=q.state=="returnCargo" and logi.factory or q.dest==0 and logi.base or logi.depotOf(points[q.dest])
++            if q.state~="returnCargo" and tr.dest~=logi.base and tr.dest.pt.owner~=CFG.FRIENDLY_TEAM then
++                tr.dest,tr.state=logi.factory,"returnCargo"
++            end
++            -- Coordenadas/trajeto antigo não são prova de rota regional segura: replanejar.
++            tr.route,tr.routeDest,tr.pathJob=nil,nil,nil
++        end
++        if tr.state=="dead" and tr.pawn and valid(tr.pawn) then tr.pawn:SetActorHiddenInGame(true) end
++    end
++    return true
+ end
+ 
+ -- Objetivo do inimigo fora de combate: ponto mais proximo que ele ainda nao domina por completo.
+@@ -4126,6 +4788,7 @@
+     ai.mp = math.min(CFG.AI.cap, ai.mp + held * CFG.AI.rate * dt)
+     if #enemies == 0 or held == 0 or ai.sent >= CFG.AI.max or t < ai.nextT then return end
+     local n = math.min(math.random(2, 3), CFG.AI.max - ai.sent, math.floor(ai.mp / CFG.AI.cost))
++    n = logi.eAfford(n)  -- reforco tambem precisa de camisa + carregamento na frente
+     if n < 1 then return end
+     local pt, c = ai.source()
+     if not pt then return end
+@@ -4138,6 +4801,7 @@
+     local made = #enemies - before
+     ai.nextT = t + CFG.AI.every
+     if made > 0 then
++        logi.eConsume(made, "reforço")
+         ai.mp = ai.mp - made * CFG.AI.cost
+         ai.sent = ai.sent + made
+         combat.reinforced = (combat.reinforced or 0) + made
+@@ -4214,6 +4878,7 @@
+         else
+             spawnEnemies(p, n)
+         end
++        logi.eCommit(combat.waveSize or 0)
+     end
+ end
+ 
+@@ -4370,9 +5035,10 @@
+ end
+ 
+ -- Salvar e continuar (Ctrl+F6). Com ondas automaticas, a partida e gravada a cada SAVE_EVERY s em SAVE_FILE
+--- (Lua "return {...}", lido com load num ambiente vazio): onda, placar, mao de obra, dificuldade, pontos e
+--- donos, barreiras, trincheiras e cada soldado vivo dos dois lados (classe, posicao, vida, abates, municao).
+--- Vitoria ou derrota apagam o save. Caixas, morteiros e alvos nao sao gravados (duram segundos).
++-- (texto "return {...}" lido por sv.decode, parser de literais; nunca load/dofile): onda, placar, mao de obra,
++-- dificuldade, pontos e donos, barreiras, trincheiras, postos, arames, cada soldado vivo dos dois lados,
++-- logistica (schema da ECONOMIA), carteira/infraestrutura implantada e estoque do comboio inimigo (schema v2).
++-- Vitoria ou derrota apagam o save. Caixas, morteiros, alvos, rotas e comboios em transito nao sao gravados.
+ CFG.SAVE_FILE = "ue4ss/Mods/FoxholeRTS/save.txt"
+ CFG.SAVE_EVERY = 30.0
+ 
+@@ -4394,14 +5060,6 @@
+     return "nil"
+ end
+ 
+-function sv.parse(txt)
+-    local chunk = load(txt or "", "save", "t", {})
+-    if not chunk then return nil end
+-    local ok, d = pcall(chunk)
+-    if ok and type(d) == "table" and d.v == 1 then return d end
+-    return nil
+-end
+-
+ function sv.map()
+     local ok, n = pcall(function() return world():GetFullName() end)
+     return ok and n and (tostring(n):match("([%w_]+)$") or tostring(n)) or nil
+@@ -4417,11 +5075,11 @@
+ 
+ function sv.collect()
+     local t = now()
+-    local d = { v = 1, map = sv.map(), diff = S.difficulty, wave = combat.wave, kills = combat.kills,
++    local d = { v = 2, map = sv.map(), world = sv.worldPath(), diff = S.difficulty, wave = combat.wave, kills = combat.kills,
+         losses = combat.losses, elapsed = t - (combat.startT or t), mp = economy.manpower, aimp = ai.mp,
+         shots = combat.shots and combat.shots[1] or 0, hits = combat.hits and combat.hits[1] or 0,
+         nextIn = combat.nextWaveAt and math.max(0, combat.nextWaveAt - t) or nil, mode = combat.mode,
+-        points = {}, squad = {}, enemies = {}, walls = {}, trenches = {}, tents = {}, wires = {}, logi = logi.snapshot() }
++        points = {}, squad = {}, enemies = {}, walls = {}, trenches = {}, tents = {}, wires = {}, logi = logi.snapshot(), elogi = logi.eSnapshot() }
+     -- dono: 1 nosso, 0 inimigo, -1 neutro
+     for _, pt in ipairs(points) do d.points[#d.points + 1] = { x = pt.X, y = pt.Y, owner = pt.owner or -1, prog = pt.prog or 0 } end
+     for _, m in ipairs(squad) do if alive(m) then d.squad[#d.squad + 1] = unitData(m) end end
+@@ -4439,27 +5097,559 @@
+         local q = d.points[i]
+         q.dug, q.wired = pt.dug or nil, pt.wired or nil
+     end
++    d.infra, d.enemy = sv.infraSnapshot(), sv.enemySnapshot()
+     return d
++end
++
++-- Persistencia v2 (proposta CLAUDE_PERSISTENCIA, 2026-10-09). Tudo em `sv`/`CFG`/`S`: nenhum local novo no chunk.
++-- Formato: o mesmo texto "return {...}" do v1, mas LIDO POR UM PARSER DE LITERAIS (sem load/dofile: o arquivo
++-- nunca executa codigo). Schema v2 = v1 + world (caminho do mundo) + infra (carteira de implantacao e o que foi
++-- pago, por codigo/XYZ) + enemy (estoque do comboio inimigo, reservado a IA_LOGISTICA). O bloco `logi` e o
++-- schema version=2 da ECONOMIA, validado pela propria logi.validateSave. Nada guarda ator, userdata ou endereco;
++-- rotas de ESTRADAS nao sao salvas (epoch inclui a sessao): o caminhao replaneja ao continuar.
++-- Gravacao: temporario verificado -> anterior vira .bak (ou .corrupt se invalido) -> temporario vira o save.
++-- Continuar: preflight completo sem mutacao (schema, mundo, superficie, ruinas/ativos, carteira, logistica);
++-- so depois refaz a infraestrutura paga (de graca, ja debitada no save) e limpa a partida atual.
++CFG.PERSIST = { version = 2, infraVersion = 1, enemyVersion = 1, tol = 200.0, maxBytes = 4194304, maxDepth = 12,
++                maxItems = 50000, maxCoord = 5.0e6, maxUnits = 300, maxList = 400, maxBuilt = 16 }
++
++-- Caminho do mundo sem o prefixo de classe ("World /Game/Maps/Master/X.X" -> "/Game/Maps/Master/X.X").
++function sv.worldPath()
++    local ok, n = pcall(function() return world():GetFullName() end)
++    if not ok or n == nil then return nil end
++    n = tostring(n)
++    return (n:gsub("^%S+%s+", ""))
++end
++
++-- Parser de literais: aceita exatamente o que sv.ser escreve (tabelas [chave]=valor, numeros, strings %q,
++-- booleanos). Recusa identificadores, chamadas, operadores, nil, chaves repetidas, profundidade/tamanho excessivos.
++function sv.decode(txt)
++    local P = CFG.PERSIST
++    if type(txt) ~= "string" then return nil, "conteúdo ausente" end
++    if #txt > P.maxBytes then return nil, "arquivo grande demais" end
++    local pos, n, items = 1, #txt, 0
++    local esc = { n = "\n", r = "\r", t = "\t", a = "\a", b = "\b", f = "\f", v = "\v", ["\\"] = "\\", ['"'] = '"', ["'"] = "'" }
++    local function ws() pos = txt:find("[^ \t\r\n]", pos) or (n + 1) end
++    local function fail(why) error({ why = why .. " (byte " .. pos .. ")" }, 0) end
++    local value
++    local function str()
++        local out = {}
++        pos = pos + 1
++        while true do
++            local c = txt:sub(pos, pos)
++            if c == "" then fail("string sem fim") end
++            if c == '"' then pos = pos + 1; return table.concat(out) end
++            if c == "\n" or c == "\r" then fail("quebra de linha sem escape") end
++            if c == "\\" then
++                local e = txt:sub(pos + 1, pos + 1)
++                if e == "\n" then out[#out + 1] = "\n"; pos = pos + 2
++                    if txt:sub(pos, pos) == "\r" then pos = pos + 1 end
++                elseif e == "\r" then out[#out + 1] = "\n"; pos = pos + 2
++                    if txt:sub(pos, pos) == "\n" then pos = pos + 1 end
++                elseif esc[e] then out[#out + 1] = esc[e]; pos = pos + 2
++                elseif e:match("%d") then
++                    local d = txt:match("^%d%d?%d?", pos + 1)
++                    local v = tonumber(d)
++                    if v > 255 then fail("escape decimal") end
++                    out[#out + 1] = string.char(v); pos = pos + 1 + #d
++                else fail("escape desconhecido") end
++            else
++                local s, e = txt:find('^[^"\\\r\n]+', pos)
++                out[#out + 1] = txt:sub(s, e); pos = e + 1
++            end
++        end
++    end
++    local function num()
++        local s = txt:match("^%-?%d+%.?%d*", pos)
++        if not s then fail("número") end
++        local ex = txt:match("^[eE][%+%-]?%d+", pos + #s)
++        if ex then s = s .. ex end
++        pos = pos + #s
++        local v = tonumber(s)
++        if not v or v ~= v or v == math.huge or v == -math.huge then fail("número inválido") end
++        return v
++    end
++    local function tbl(depth)
++        if depth > P.maxDepth then fail("profundidade") end
++        pos = pos + 1
++        local t = {}
++        ws()
++        if txt:sub(pos, pos) == "}" then pos = pos + 1; return t end
++        while true do
++            ws()
++            if txt:sub(pos, pos) ~= "[" then fail("esperava [chave]") end
++            pos = pos + 1; ws()
++            local c, k = txt:sub(pos, pos), nil
++            if c == '"' then k = str() elseif c == "-" or c:match("%d") then k = num() else fail("chave") end
++            if type(k) == "number" and k % 1 ~= 0 then fail("chave numérica fracionária") end
++            ws()
++            if txt:sub(pos, pos) ~= "]" then fail("esperava ]") end
++            pos = pos + 1; ws()
++            if txt:sub(pos, pos) ~= "=" then fail("esperava =") end
++            pos = pos + 1; ws()
++            if t[k] ~= nil then fail("chave repetida") end
++            items = items + 1
++            if items > P.maxItems then fail("itens demais") end
++            t[k] = value(depth + 1)
++            ws()
++            local sep = txt:sub(pos, pos)
++            if sep == "}" then pos = pos + 1; return t end
++            if sep ~= "," and sep ~= ";" then fail("esperava , ou }") end
++            pos = pos + 1; ws()
++            if txt:sub(pos, pos) == "}" then pos = pos + 1; return t end
++        end
++    end
++    value = function(depth)
++        ws()
++        local c = txt:sub(pos, pos)
++        if c == "{" then return tbl(depth) end
++        if c == '"' then return str() end
++        if c == "-" or c:match("%d") then return num() end
++        if txt:sub(pos, pos + 3) == "true" and not txt:sub(pos + 4, pos + 4):match("[%w_]") then pos = pos + 4; return true end
++        if txt:sub(pos, pos + 4) == "false" and not txt:sub(pos + 5, pos + 5):match("[%w_]") then pos = pos + 5; return false end
++        fail("valor não permitido")
++    end
++    local ok, res = pcall(function()
++        ws()
++        if txt:sub(pos, pos + 5) == "return" and not txt:sub(pos + 6, pos + 6):match("[%w_]") then pos = pos + 6 end
++        ws()
++        if txt:sub(pos, pos) ~= "{" then fail("esperava tabela") end
++        local d = tbl(1)
++        ws()
++        if pos <= n then fail("conteúdo depois da tabela") end
++        return d
++    end)
++    if ok then return res end
++    return nil, type(res) == "table" and res.why or tostring(res)
++end
++
++-- Sem userdata/funcao/thread em nenhum nivel: um ator dentro do save vira erro, nao "nil" silencioso.
++function sv.pure(v, depth)
++    local t = type(v)
++    if t == "number" then return v == v and v ~= math.huge and v ~= -math.huge end
++    if t == "string" or t == "boolean" or t == "nil" then return true end
++    if t ~= "table" or (depth or 0) > CFG.PERSIST.maxDepth then return false end
++    for k, x in pairs(v) do
++        if (type(k) ~= "string" and type(k) ~= "number") or not sv.pure(x, (depth or 0) + 1) then return false end
++    end
++    return true
++end
++
++function sv.siteSpec(code)
++    for _, spec in ipairs(CFG.DEPLOY.sites) do if spec.code == code then return spec end end
++    return nil
++end
++
++-- Validacao completa do schema (v1 legado ou v2). Retorna true ou nil, motivo. Nao toca o mundo.
++function sv.validate(d)
++    local P = CFG.PERSIST
++    local function fin(x) return type(x) == "number" and x == x and x ~= math.huge and x ~= -math.huge end
++    local function nonneg(x) return fin(x) and x >= 0 end
++    local function int(x) return nonneg(x) and x % 1 == 0 end
++    local function coord(x) return fin(x) and math.abs(x) <= P.maxCoord end
++    local function opt(x, f) return x == nil or f(x) end
++    local function list(t, max)
++        if type(t) ~= "table" then return false end
++        local c = 0
++        for k in pairs(t) do
++            if type(k) ~= "number" or k % 1 ~= 0 or k < 1 or k > #t then return false end
++            c = c + 1
++        end
++        return c == #t and c <= max
++    end
++    if type(d) ~= "table" or not sv.pure(d) then return nil, "não é tabela de dados" end
++    if d.v ~= 1 and d.v ~= 2 then
++        if type(d.v) == "number" and d.v > P.version then return nil, "versão futura v" .. tostring(d.v) .. " (atualize o mod)" end
++        return nil, "versão desconhecida"
++    end
++    local known = { v=1, map=1, world=1, diff=1, wave=1, kills=1, losses=1, elapsed=1, mp=1, aimp=1, shots=1, hits=1,
++        nextIn=1, mode=1, points=1, squad=1, enemies=1, walls=1, trenches=1, tents=1, wires=1, logi=1, infra=1, enemy=1,
++        elogi=1 }
++    for k in pairs(d) do if not known[k] then return nil, "campo desconhecido: " .. tostring(k) end end
++    if d.v == 1 and (d.infra ~= nil or d.enemy ~= nil or d.world ~= nil) then return nil, "v1 com campos de v2" end
++    if d.v == 2 and (type(d.world) ~= "string" or #d.world == 0 or #d.world > 256) then return nil, "v2 sem mundo" end
++    if not opt(d.map, function(x) return type(x) == "string" and #x <= 128 end) then return nil, "map" end
++    if not opt(d.diff, function(x) return int(x) and x >= 1 and x <= #CFG.DIFFICULTIES end) then return nil, "dificuldade" end
++    for _, k in ipairs({ "wave", "kills", "losses" }) do if not opt(d[k], int) then return nil, k end end
++    for _, k in ipairs({ "elapsed", "shots", "hits", "nextIn" }) do if not opt(d[k], nonneg) then return nil, k end end
++    for _, k in ipairs({ "mp", "aimp" }) do
++        if not opt(d[k], function(x) return fin(x) and math.abs(x) < 1e6 end) then return nil, k end
++    end
++    if d.mode ~= nil and d.mode ~= "assault" then return nil, "modo" end
++    local pts = d.points or {}
++    if not list(pts, CFG.POINT_MAX) then return nil, "pontos" end
++    for i, q in ipairs(pts) do
++        if type(q) ~= "table" or not coord(q.x) or not coord(q.y) then return nil, "ponto " .. i end
++        if q.owner ~= -1 and q.owner ~= CFG.ENEMY_TEAM and q.owner ~= CFG.FRIENDLY_TEAM then return nil, "dono do ponto " .. i end
++        if not fin(q.prog or 0) or math.abs(q.prog or 0) > 1.001 then return nil, "progresso do ponto " .. i end
++        if (q.dug ~= nil and type(q.dug) ~= "boolean") or (q.wired ~= nil and type(q.wired) ~= "boolean") then return nil, "ponto " .. i end
++    end
++    for _, side in ipairs({ "squad", "enemies" }) do
++        local us = d[side] or {}
++        if not list(us, P.maxUnits) then return nil, side end
++        for i, u in ipairs(us) do
++            if type(u) ~= "table" or type(u.role) ~= "string" or not CFG.WEAPONS[u.role] or not coord(u.x) or not coord(u.y)
++                or not opt(u.z, coord) or not opt(u.hp, nonneg) or not opt(u.kills, int) or not opt(u.ammo, nonneg)
++                or not opt(u.group, function(x) return int(x) and x <= 9 end)
++                or not opt(u.post, function(x) return int(x) and x >= 1 and x <= #pts end) then
++                return nil, side .. " " .. i
++            end
++        end
++    end
++    for _, k in ipairs({ "walls", "trenches", "tents", "wires" }) do
++        local l = d[k] or {}
++        if not list(l, P.maxList) then return nil, k end
++        for i, w in ipairs(l) do
++            if type(w) ~= "table" or not coord(w.x) or not coord(w.y) or not opt(w.yaw, fin) then return nil, k .. " " .. i end
++        end
++    end
++    if d.logi ~= nil then
++        if type(d.logi) ~= "table" then return nil, "logística" end
++        -- A logistica guarda depositos por indice de ponto: validar contra os pontos DO SAVE, nao os vivos.
++        local proxy = {}
++        for i, q in ipairs(pts) do proxy[i] = { X = q.x, Y = q.y, owner = q.owner ~= -1 and q.owner or nil } end
++        local live = points
++        points = proxy
++        local ok, res = pcall(logi.validateSave, d.logi)
++        points = live
++        if not ok or not res then return nil, "logística inválida" end
++    end
++    local I = d.infra
++    if I ~= nil then
++        if type(I) ~= "table" then return nil, "infra" end
++        if I.version ~= P.infraVersion then
++            return nil, (type(I.version) == "number" and I.version > P.infraVersion) and "infra de versão futura" or "infra versão"
++        end
++        for k in pairs(I) do
++            if k ~= "version" and k ~= "budget" and k ~= "bmat" and k ~= "spent" and k ~= "built" then return nil, "infra campo " .. tostring(k) end
++        end
++        if not int(I.budget) or not int(I.bmat) or not int(I.spent) or I.bmat + I.spent ~= I.budget then return nil, "carteira incoerente" end
++        if not list(I.built or {}, P.maxBuilt) then return nil, "infra built" end
++        local cost, codes = 0, {}
++        for i, r in ipairs(I.built or {}) do
++            if type(r) ~= "table" or not coord(r.x) or not coord(r.y) or not coord(r.z) or not fin(r.yaw) then return nil, "infra " .. i end
++            for key in pairs(r) do
++                if key ~= "kind" and key ~= "code" and key ~= "x" and key ~= "y" and key ~= "z" and key ~= "yaw" then return nil, "infra " .. i end
++            end
++            if r.kind == "truck" then
++                if r.code ~= nil then return nil, "infra " .. i end
++                cost = cost + CFG.DEPLOY.truckCost
++            elseif r.kind == "site" then
++                local spec = sv.siteSpec(r.code)
++                if not spec or codes[r.code] then return nil, "instalação " .. tostring(r.code) end
++                codes[r.code], cost = true, cost + spec.cost
++            else return nil, "infra tipo" end
++        end
++        if cost ~= I.spent then return nil, "gasto da carteira não confere com o que foi implantado" end
++    end
++    -- Cadeia inimiga da IA_LOGISTICA (chave `elogi`, schema e versao dela): so com o modulo integrado e valida
++    -- pela propria logi.eValid. Sem o modulo, um save que a tenha e de outra versao do mod: recusa, nao descarta.
++    if d.elogi ~= nil then
++        if not logi.eValid then return nil, "campo desconhecido: elogi (cadeia inimiga de outra versão do mod)" end
++        if d.logi == nil then return nil, "cadeia inimiga sem logística" end
++        local ok, res, why = pcall(logi.eValid, d.elogi)
++        if not ok or not res then return nil, "cadeia inimiga inválida (" .. tostring(ok and why or res) .. ")" end
++    end
++    local E = d.enemy
++    if E ~= nil then
++        if type(E) ~= "table" or d.logi == nil then return nil, "inimigo" end
++        if E.version ~= P.enemyVersion then
++            return nil, (type(E.version) == "number" and E.version > P.enemyVersion) and "inimigo de versão futura" or "inimigo versão"
++        end
++        for k in pairs(E) do
++            if k ~= "version" and k ~= "cargo" and k ~= "convoys" and k ~= "cut" then return nil, "inimigo campo " .. tostring(k) end
++        end
++        if not int(E.cargo) or E.cargo > 1000 or not int(E.convoys) or not int(E.cut) then return nil, "inimigo valores" end
++    end
++    return true
++end
++
++-- sv.parse mantem o contrato antigo de "texto -> tabela" (testes da suite e da IA_LOGISTICA o usam para
++-- sub-tabelas), agora sem executar nada: so o parser de literais. O save inteiro passa por sv.parseSave.
++function sv.parse(txt) return sv.decode(txt) end
++
++-- Texto -> save validado (ou nil, motivo). Nunca executa o conteudo.
++function sv.parseSave(txt)
++    local d, why = sv.decode(txt)
++    if not d then return nil, why end
++    local ok, why2 = sv.validate(d)
++    if not ok then return nil, why2 end
++    return d
++end
++
++function sv.infraSnapshot()
++    local ok, w = pcall(logi.deployWallet)
++    if not ok or type(w) ~= "table" then return nil end
++    local out = { version = CFG.PERSIST.infraVersion, budget = w.budget or CFG.DEPLOY.budget, bmat = w.bmat, spent = w.spent, built = {} }
++    for i, r in ipairs(w.built or {}) do out.built[i] = { kind = r.kind, code = r.code, x = r.x, y = r.y, z = r.z, yaw = r.yaw } end
++    return out
++end
++
++-- Estoque abstrato do comboio do main atual (combat.cargo). Com a IA_LOGISTICA integrada (logi.eSnapshot), o
++-- estado inimigo vai na chave `elogi` dela e este bloco nao e gravado. Comboio em transito nao e salvo.
++function sv.enemySnapshot()
++    if not logi.on or logi.eSnapshot then return nil end
++    return { version = CFG.PERSIST.enemyVersion, cargo = combat.cargo or 0, convoys = combat.convoys or 0, cut = combat.convoysCut or 0 }
++end
++
++function sv.readFile(path)
++    local f = io.open(path, "rb")
++    if not f then return nil end
++    local size = f:seek("end")
++    if size and size > CFG.PERSIST.maxBytes then f:close(); return false end
++    f:seek("set")
++    local txt = f:read("*a")
++    f:close()
++    return txt
++end
++
++-- Grava sem janela de perda: temporario conferido; o save anterior vai para .bak (ou .corrupt, se invalido);
++-- Windows nao renomeia por cima, por isso remove o destino antes. Falha devolve o anterior ao lugar.
++function sv.writeAtomic(path, txt)
++    local tmp, bak = path .. ".tmp", path .. ".bak"
++    local f = io.open(tmp, "wb")
++    if not f then return false, "não abriu o temporário" end
++    local okw = f:write(txt)
++    local okf = okw and f:flush()
++    f:close()
++    if not okw or not okf or sv.readFile(tmp) ~= txt then os.remove(tmp); return false, "temporário não confere" end
++    local old = sv.readFile(path)
++    local moved = nil
++    if old ~= nil then
++        -- O que esta sessao mesma gravou ja foi validado: so reparsear conteudo de origem desconhecida.
++        moved = (old and (old == sv.lastWritten or sv.parseSave(old))) and bak or (path .. ".corrupt")
++        os.remove(moved)
++        if not os.rename(path, moved) then os.remove(tmp); return false, "não moveu o save anterior" end
++    end
++    if not os.rename(tmp, path) then
++        if moved then os.rename(moved, path) end
++        return false, "não renomeou o temporário"
++    end
++    sv.lastWritten = txt
++    return true
++end
++
++-- Primeiro valido entre o save, o temporario (queda entre os dois renames) e o .bak. Nada e apagado aqui.
++function sv.read()
++    local why = nil
++    for _, suffix in ipairs({ "", ".tmp", ".bak" }) do
++        local txt = sv.readFile(CFG.SAVE_FILE .. suffix)
++        if txt == false then why = why or "arquivo grande demais"
++        elseif txt then
++            local d, err = sv.parseSave(txt)
++            if d then return d, nil, suffix end
++            why = why or err
++        end
++    end
++    if why then return nil, "save inválido ou incompatível (" .. why .. "); arquivo preservado" end
++    return nil, "nenhuma partida salva"
++end
++
++function sv.clear()
++    for _, suffix in ipairs({ "", ".tmp", ".bak", ".corrupt" }) do os.remove(CFG.SAVE_FILE .. suffix) end
+ end
+ 
+ function sv.save()
+     if not combat.auto or combat.won or #squad == 0 then return false end
+-    local f = io.open(CFG.SAVE_FILE, "w")
+-    if not f then return false end
+-    f:write("return " .. sv.ser(sv.collect()) .. "\n")
+-    f:close()
++    -- Restauracao incompleta: nao sobrescrever o save bom com uma partida que perdeu algo ao carregar.
++    if sv.degraded and sv.degraded.start == combat.startT then
++        if not sv.degraded.told then
++            sv.degraded.told = true
++            notify("autosave suspenso: continuação incompleta (" .. sv.degraded.why .. "). Ctrl+F6 tenta de novo; Shift+F6 começa outra", 10.0)
++        end
++        return false
++    end
++    local d = sv.collect()
++    local ok, why = sv.validate(d)
++    local txt = ok and ("return " .. sv.ser(d) .. "\n")
++    if ok then ok, why = sv.parseSave(txt) end
++    if not ok then log("save recusado (arquivo anterior preservado): " .. tostring(why)); return false end
++    local done, err = sv.writeAtomic(CFG.SAVE_FILE, txt)
++    if not done then log("save não gravado (arquivo anterior preservado): " .. tostring(err)) end
++    return done
++end
++
++function sv.sameBuilt(a, b)
++    local function sites(l)
++        local s, trucks = {}, 0
++        for _, r in ipairs(l or {}) do if r.kind == "truck" then trucks = trucks + 1 else s[r.code] = r end end
++        return s, trucks
++    end
++    local sa, ta = sites(a)
++    local sb, tb = sites(b)
++    if ta ~= tb then return false end
++    for code, r in pairs(sa) do
++        local q = sb[code]
++        if not q or flatDist({ X = r.x, Y = r.y }, { X = q.x, Y = q.y }) > CFG.PERSIST.tol then return false end
++    end
++    for code in pairs(sb) do if not sa[code] then return false end end
+     return true
+ end
+ 
+-function sv.read()
+-    local f = io.open(CFG.SAVE_FILE, "r")
+-    if not f then return nil end
+-    local txt = f:read("*a")
+-    f:close()
+-    return sv.parse(txt)
+-end
+-
+-function sv.clear() os.remove(CFG.SAVE_FILE) end
++-- Preflight da infraestrutura paga, sem mutacao. Mesma carga do mundo com a mesma implantacao: nada a fazer.
++-- Carga nova: cada instalacao salva precisa de ativo ou ruina correspondente na posicao salva (tolerancia
++-- PERSIST.tol); caminhoes faltantes so ate o numero pago. Nunca inventa campo/instalacao, nunca cobra de novo.
++function sv.infraPlan(I)
++    local tol = CFG.PERSIST.tol
++    -- Leitura sem criar a carteira desta carga (preflight nao muda estado).
++    local W = (S.deploy and S.deploy.world == logi.walletId()) and S.deploy or { spent = 0, built = {} }
++    local wallet = { budget = I.budget, bmat = I.bmat, spent = I.spent, built = {} }
++    for i, r in ipairs(I.built or {}) do wallet.built[i] = { kind = r.kind, code = r.code, x = r.x, y = r.y, z = r.z, yaw = r.yaw } end
++    if (W.spent or 0) > 0 or #(W.built or {}) > 0 then
++        if not sv.sameBuilt(W.built, I.built) then
++            return nil, "esta carga do mundo já tem uma implantação diferente da salva (reinicie o mapa para continuar)"
++        end
++        return { wallet = wallet }
++    end
++    local base = rts.base()
++    if not base then return nil, "sem base" end
++    local plan, paid, factoryAt = { builds = {}, parking = {}, cost = 0 }, 0, nil
++    for _, r in ipairs(I.built or {}) do
++        if r.kind == "truck" then paid = paid + 1
++        else
++            local spec, at = sv.siteSpec(r.code), { X = r.x, Y = r.y, Z = r.z }
++            local a = logi.nearest(spec.active, at)
++            if not (a and flatDist(at, a:K2_GetActorLocation()) <= tol) then
++                local ruin = logi.nearest(spec.ruin, at)
++                if not ruin or flatDist(at, ruin:K2_GetActorLocation()) > tol then
++                    return nil, "sem " .. spec.active .. " nem ruína na posição salva"
++                end
++                local rot = ruin:K2_GetActorRotation()
++                local dy = math.abs((rot.Yaw - r.yaw) % 360)
++                if math.min(dy, 360 - dy) > 1 then return nil, "ruína de " .. r.code .. " com rotação diferente da salva" end
++                local cls = LoadAsset(spec.asset)
++                if not valid(cls) then return nil, "classe não carregou: " .. spec.active end
++                local hidden, collision = ruin.bHidden, ruin:GetActorEnableCollision()
++                if type(hidden) ~= "boolean" or type(collision) ~= "boolean" then return nil, "não leu estado da ruína" end
++                plan.builds[#plan.builds + 1] = { spec = spec, ruin = ruin, cls = cls, hidden = hidden, collision = collision,
++                    pos = ruin:K2_GetActorLocation(), rot = rot }
++            end
++            if r.code == "Factory" then factoryAt = at end
++        end
++    end
++    if not logi.site("BPSalvageField_C", base) then return nil, "sem campo de sucata ativo carregado" end
++    local occupied = {}
++    for _, a in ipairs(FindAllOf("BPTruckW_C") or {}) do
++        if valid(a) and not a.bActorIsBeingDestroyed then occupied[#occupied + 1] = a:K2_GetActorLocation() end
++    end
++    local need = math.max(0, CFG.LOGI.supply + 1 - #occupied)
++    if need > paid then return nil, string.format("faltam %d caminhões e o save só pagou %d", need, paid) end
++    if need > 0 then
++        local ref = factoryAt or logi.site("BPFactory_C", base)
++        if not ref then return nil, "sem fábrica para estacionar caminhões" end
++        plan.parking = logi.parking(ref, need, occupied)
++        if not plan.parking then return nil, "sem vagas de terreno com folga para caminhões" end
++        plan.truckClass = LoadAsset(CFG.DEPLOY.truck)
++        if not valid(plan.truckClass) then return nil, "classe TruckW não carregou" end
++    end
++    if #plan.builds == 0 and need == 0 then return { wallet = wallet } end
++    return { apply = plan, wallet = wallet }
++end
++
++-- Tudo que pode ser conferido antes de destruir a partida atual. Retorna plano ou nil, motivo.
++function sv.preflight(d)
++    local here = sv.worldPath()
++    if d.world then
++        if not here or d.world:lower() ~= here:lower() then return nil, "save de outro mundo (" .. d.world .. ")" end
++    else
++        local m = sv.map()
++        if d.map and m and d.map:lower() ~= m:lower() then return nil, "save de outro mapa (" .. d.map .. ")" end
++    end
++    for i, q in ipairs(d.points or {}) do
++        -- addPoint recusaria: sem isto a lista sairia fora de ordem e os depositos por indice trocariam de dono.
++        for j = 1, i - 1 do
++            local o = d.points[j]
++            if (o.x - q.x) ^ 2 + (o.y - q.y) ^ 2 < (2 * CFG.POINT_RADIUS) ^ 2 then return nil, "pontos salvos sobrepostos" end
++        end
++        if not surfaceZ(q.x, q.y) then return nil, "sem superfície no ponto salvo " .. i .. " (região não carregada?)" end
++    end
++    for _, k in ipairs({ "walls", "trenches", "tents" }) do
++        for i, w in ipairs(d[k] or {}) do
++            if not groundZ(w.x, w.y) then return nil, "sem chão para " .. k .. " " .. i end
++        end
++    end
++    local plan = {}
++    if d.infra then
++        local p, why = sv.infraPlan(d.infra)
++        if not p then return nil, why end
++        plan = p
++    end
++    -- logi.ready = scan + aviso nativo do mod ("Alt+L tenta implantação"); nao muda estado.
++    if d.logi and not plan.apply and not logi.ready() then return nil, "cadeia logística sem atores ativos carregados" end
++    return plan
++end
++
++-- Depois de sv.restore: o que voltou confere com o save? Pontos fora de ordem invalidam depositos por indice.
++function sv.verify(d)
++    local problems, pointsOk = {}, #points == #(d.points or {})
++    for i, q in ipairs(d.points or {}) do
++        local pt = points[i]
++        if not pt or math.abs(pt.X - q.x) > 1 or math.abs(pt.Y - q.y) > 1 then pointsOk = false end
++    end
++    if not pointsOk then problems[#problems + 1] = string.format("pontos %d/%d", #points, #(d.points or {})) end
++    local function cmp(name, have, want)
++        if have ~= want then problems[#problems + 1] = string.format("%s %d/%d", name, have, want) end
++    end
++    cmp("soldados", #squad, #(d.squad or {}))
++    cmp("inimigos", #enemies, #(d.enemies or {}))
++    cmp("barreiras", #structures, #(d.walls or {}))
++    cmp("trincheiras", #S.trenches, #(d.trenches or {}))
++    cmp("postos", #S.tents, #(d.tents or {}))
++    cmp("arames", #S.wires, #(d.wires or {}))
++    return problems, pointsOk
++end
++
++function sv.load()
++    if not isLocalAuthority() then return false end
++    local d, why, src = sv.read()
++    if not d then notify(why or "nenhuma partida salva", 6.0); return false end
++    src = src or ""
++    local ok, plan, why2 = pcall(sv.preflight, d)
++    if not ok or not plan then
++        local msg = tostring(ok and why2 or plan)
++        log("continuar recusado: " .. msg)
++        notify("Continuar recusado (partida atual e save preservados): " .. msg, 8.0)
++        return false
++    end
++    if plan.apply then
++        local built, err = logi.applyPlan(plan.apply)
++        if not built then
++            log("continuar recusado: infraestrutura " .. tostring(err))
++            notify("Continuar recusado: infraestrutura salva não foi refeita (" .. tostring(err) .. "); nada mudou", 8.0)
++            return false
++        end
++    end
++    if plan.wallet then
++        local W = logi.deployWallet()
++        W.budget, W.bmat, W.spent, W.built = plan.wallet.budget, plan.wallet.bmat, plan.wallet.spent, plan.wallet.built
++    end
++    if d.logi and not logi.ready() then return false end
++    local n = sv.restore(d)
++    local problems, pointsOk = sv.verify(d)
++    if d.logi then
++        local okL, res = false, false
++        if pointsOk then okL, res = pcall(logi.restore, d.logi) end
++        if not (okL and res ~= false) then
++            problems[#problems + 1] = "logística não restaurada"
++            pcall(logi.reset)  -- sem estoque inicial fictício no lugar do salvo
++        elseif logi.eRestore then
++            pcall(logi.eRestore, d.elogi)  -- contrato da IA_LOGISTICA (nil = estoque de cenario, avisado por ela)
++        elseif d.enemy then
++            combat.cargo, combat.convoys, combat.convoysCut = d.enemy.cargo, d.enemy.convoys, d.enemy.cut
++        end
++    end
++    sv.degraded = #problems > 0 and { why = table.concat(problems, ", "), start = combat.startT } or nil
++    local where = combat.mode == "assault" and string.format("assalto, pontos inimigos %d/%d", pointsOwned(CFG.ENEMY_TEAM), #points)
++        or string.format("onda %d/%d", combat.wave, CFG.WAVES_TO_WIN)
++    notify(string.format("PARTIDA CONTINUADA (%s): %s, %d soldados, %d inimigos, mão de obra %.0f%s%s",
++        CFG.DIFFICULTIES[S.difficulty].name, where, n, #enemies, economy.manpower,
++        src ~= "" and (" [lido de save" .. src .. "]") or "",
++        sv.degraded and (" | INCOMPLETA: " .. sv.degraded.why .. "; autosave suspenso") or ""), 10.0)
++    log(string.format("save carregado%s: onda %d, %d soldados, %d inimigos, %d pontos, %d barreiras, %d trincheiras, %d postos, %d arames%s",
++        src, combat.wave, n, #enemies, #points, #structures, #S.trenches, #S.tents, #S.wires,
++        sv.degraded and (" | incompleto: " .. sv.degraded.why) or ""))
++    return true
++end
+ 
+ -- Recria a partida de d (tabela de sv.collect) sobre um campo limpo.
+ function sv.restore(d)
+@@ -4509,24 +5699,6 @@
+     combat.nextWaveAt = d.nextIn and (t + math.max(d.nextIn, 10.0)) or nil
+     sv.nextT = t + CFG.SAVE_EVERY
+     return #squad
+-end
+-
+-function sv.load()
+-    if not isLocalAuthority() then return false end
+-    local d = sv.read()
+-    if not d then notify("nenhuma partida salva", 3.0); return false end
+-    local here = sv.map()
+-    if d.map and here and d.map ~= here then notify("a partida salva é de outro mapa (" .. d.map .. ")", 4.0); return false end
+-    if d.logi and not logi.ready() then return false end
+-    local n = sv.restore(d)
+-    if d.logi then pcall(logi.restore, d.logi) end
+-    local where = combat.mode == "assault" and string.format("assalto, pontos inimigos %d/%d", pointsOwned(CFG.ENEMY_TEAM), #points)
+-        or string.format("onda %d/%d", combat.wave, CFG.WAVES_TO_WIN)
+-    notify(string.format("PARTIDA CONTINUADA (%s): %s, %d soldados, %d inimigos, mão de obra %.0f",
+-        CFG.DIFFICULTIES[S.difficulty].name, where, n, #enemies, economy.manpower), 8.0)
+-    log(string.format("save carregado: onda %d, %d soldados, %d inimigos, %d pontos, %d barreiras, %d trincheiras, %d postos, %d arames",
+-        combat.wave, n, #enemies, #points, #structures, #S.trenches, #S.tents, #S.wires))
+-    return true
+ end
+ 
+ -- Por quadro: grava a cada SAVE_EVERY s durante a partida; sem partida, avisa uma vez que ha save.

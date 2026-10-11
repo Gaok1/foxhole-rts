@@ -1,0 +1,411 @@
+--- a/mod/FoxholeRTS/Scripts/main.lua
++++ b/mod/FoxholeRTS/Scripts/main.lua
+@@ -1434,16 +1434,23 @@
+     end
+     at = at or deployPoint()
+     local dep = logi.on and (at and at.name and logi.depotOf(at) or logi.base) or nil
+-    if dep and (dep.shirts or 0) < 1 and dep ~= logi.base then
+-        notify(string.format("sem camisas no ponto %s: o recruta nasce na base", at.name), 3.0)
++    if dep and ((dep.shirts or 0) < 1 or (role == "rifle" and (dep.rifle or 0) < 1)) and dep ~= logi.base then
++        notify(string.format("sem suprimento de recrutamento no ponto %s: o recruta nasce na base", at.name), 3.0)
+         at, dep = nil, logi.base
+     end
+     if dep and (dep.shirts or 0) < 1 then
+         notify("sem camisas na base: a fábrica e os caminhões trazem (L manda um caminhão)", 3.0)
+         return false
+     end
++    if dep and role == "rifle" and (dep.rifle or 0) < 1 then
++        notify("sem fuzis na base: produza e entregue pela logística", 3.0); return false
++    end
++    -- Game thread síncrono: debitar só após spawn confirmado; falha não consome estoque.
+     if spawnSquad(1, role, at) < 1 then return false end
+-    if dep then dep.shirts = dep.shirts - 1 end
++    if dep then
++        dep.shirts = dep.shirts - 1
++        if role == "rifle" then dep.rifle = dep.rifle - 1 end
++    end
+     economy.manpower = economy.manpower - w.cost
+     notify(string.format("recrutado %s%s (-%d) | mao de obra %.0f", w.name, at and at.name and (" no ponto " .. at.name) or "",
+         w.cost, economy.manpower), 3.0)
+@@ -2018,11 +2025,17 @@
+     end
+     if not best then return end
+     if bestD <= CFG.MEDIC_RANGE then
++        local supply = nil
++        if logi.on and m.team ~= CFG.ENEMY_TEAM then
++            supply = logi.medicalDepot(m)
++            if not supply then return end
++        end
+         local p = best.pawn
+         pcall(function() if p.bIsBleeding then p.bIsBleeding = false; p:OnRep_IsBleeding() end end)
+         local before = p.Health
+         p.Health = math.min(p.MaxHealth or 100, p.Health + CFG.MEDIC_HEAL)
+         pcall(function() p:OnRep_Health() end)
++        if supply and p.Health > before then supply.medical = supply.medical - 1 end
+         m.healAnimUntil = os.clock() + 1.2
+         local tm = m.team or 0
+         S.healStats[tm] = (S.healStats[tm] or 0) + (p.Health - before)
+@@ -2400,7 +2413,7 @@
+                 local dug = CFG.ENEMY_DIG and not pt.dug and fort.place({ X = pt.X, Y = pt.Y })
+                 if dug then pt.dug = true end
+                 if CFG.ENEMY_WIRE and not pt.wired then pcall(fort.enemyWire, pt) end
+-                if pt.dep then pt.dep.ammo, pt.dep.shirts = 0, 0 end  -- o estoque do deposito cai junto
++                if pt.dep then for _, kind in ipairs(CFG.LOGI.products) do pt.dep[kind] = 0 end end  -- estoque perdido
+                 pcall(rts.alert, "perdido", pt, "o inimigo tomou o ponto " .. pt.name .. (dug and " e cavou uma trincheira" or ""))
+             else notify("ponto " .. pt.name .. " neutralizado", 3.0) end
+         end
+@@ -2440,8 +2453,11 @@
+     bmat0 = 240, ammo0 = 6, shirts0 = 30,                     -- inicio: bmat na fabrica; caixas e camisas na base
+     trip = 100, load = 4.0, speed = 1400.0, cap = 15,         -- sucata por viagem, s carregando, cm/s, caixas
+     reloads = 6,                                              -- carregamentos completos por caixa de municao
+-    want = { ammo = 6, shirts = 20 },                         -- alvo por deposito
+-    recipes = { ammo = { name = "munição", bmat = 80, time = 50 }, shirts = { name = "camisas", bmat = 80, time = 80, units = 10 } },
++    want = { ammo = 6, shirts = 20, rifle = 4, medical = 20 },
++    products = { "ammo", "shirts", "rifle", "medical" },                         -- alvo por deposito
++    recipes = { ammo = { name = "munição", bmat = 80, time = 50 }, shirts = { name = "camisas", bmat = 80, time = 80, units = 10 },
++        rifle = { name = "fuzis", bmat = 100, time = 70, units = 20 },
++        medical = { name = "bandagens", bmat = 80, time = 40, units = 50 } },
+     hp = 900, ambush = 1500.0, dps = 25.0, rebuild = 30.0, truckCost = 100, supply = 2,
+ }
+ logi.on, logi.prio = false, "auto"
+@@ -2459,7 +2475,7 @@
+     logi.foes, logi.convoyT = {}, nil
+     logi.on, logi.trucks, logi.job, logi.pin, logi.t = false, {}, nil, nil, nil
+     logi.salvage, logi.bmat, logi.made = 0, 0, 0
+-    logi.fac = { ammo = 0, shirts = 0 }
++    logi.fac = { ammo = 0, shirts = 0, rifle = 0, medical = 0 }
+ end
+ 
+ -- Ator ativo mais perto de ref; invisibilidade nao e ausencia.
+@@ -2675,7 +2691,7 @@
+     if not setup then return false end  -- nao apaga a partida anterior numa recusa
+     logi.reset()
+     local C, b = CFG.LOGI, rts.base()
+-    logi.base = { name = "base", X = b.X, Y = b.Y, Z = b.Z, ammo = C.ammo0, shirts = C.shirts0 }
++    logi.base = { name = "base", X = b.X, Y = b.Y, Z = b.Z, ammo = C.ammo0, shirts = C.shirts0, rifle = 0, medical = 0 }
+     logi.field, logi.refinery, logi.factory = setup.field, setup.refinery, setup.factory
+     logi.bmat = C.bmat0
+     combat.cargo, combat.convoys, combat.convoysCut = CFG.ECONVOY.cargo0, 0, 0
+@@ -2700,7 +2716,7 @@
+ 
+ -- Deposito de um ponto (criado na primeira vez, vazio).
+ function logi.depotOf(pt)
+-    pt.dep = pt.dep or { name = pt.name, X = pt.X, Y = pt.Y, Z = pt.Z, ammo = 0, shirts = 0, pt = pt }
++    pt.dep = pt.dep or { name = pt.name, X = pt.X, Y = pt.Y, Z = pt.Z, ammo = 0, shirts = 0, rifle = 0, medical = 0, pt = pt }
+     return pt.dep
+ end
+ 
+@@ -2713,29 +2729,55 @@
+ end
+ 
+ -- Falta de um deposito (caixas de municao, caixas de camisa), descontando o que ja vai a caminho.
++function logi.needs(dep)
++    local C, result = CFG.LOGI, {}
++    for _, kind in ipairs(C.products) do
++        local units = C.recipes[kind].units or 1
++        local missing = C.want[kind] - (dep[kind] or 0)
++        for _, tr in ipairs(logi.trucks) do
++            if tr.state ~= "dead" and tr.dest == dep and tr.cargo then missing = missing - (tr.cargo[kind] or 0) * units end
++        end
++        local rounding = (kind == "ammo" or kind == "shirts") and 0.5 or 0
++        result[kind] = math.max(0, math.ceil(missing / units - rounding))
++    end
++    return result
++end
+ function logi.need(dep)
++    local n = logi.needs(dep)
++    return n.ammo, n.shirts
++end
++function logi.nextKind()
+     local C = CFG.LOGI
+-    local a = C.want.ammo - (dep.ammo or 0)
+-    local sh = (C.want.shirts - (dep.shirts or 0)) / C.recipes.shirts.units
+-    for _, tr in ipairs(logi.trucks) do
+-        if tr.dest == dep and tr.cargo then a, sh = a - tr.cargo.ammo, sh - tr.cargo.shirts end
+-    end
+-    return math.max(0, math.ceil(a - 0.5)), math.max(0, math.ceil(sh - 0.5))
+-end
+-
+--- O que a fabrica faz a seguir: prioridade do jogador, ou o tipo com menos estoque total frente ao alvo.
+-function logi.nextKind()
+-    if logi.prio ~= "auto" then return logi.prio end
+-    local C = CFG.LOGI
+-    local have = { ammo = logi.fac.ammo, shirts = logi.fac.shirts * C.recipes.shirts.units }
+-    local deps = logi.depots()
+-    for _, d in ipairs(deps) do have.ammo, have.shirts = have.ammo + d.ammo, have.shirts + d.shirts end
+-    for _, tr in ipairs(logi.trucks) do
+-        if tr.cargo then have.ammo, have.shirts = have.ammo + tr.cargo.ammo, have.shirts + tr.cargo.shirts * C.recipes.shirts.units end
+-    end
+-    local ra, rs = have.ammo / (C.want.ammo * #deps), have.shirts / (C.want.shirts * #deps)
+-    if math.min(ra, rs) >= 2.0 then return nil end  -- tudo sobrando: a fabrica para e guarda o bmat
+-    return ra <= rs and "ammo" or "shirts"
++    if logi.prio ~= "auto" then return C.recipes[logi.prio] and logi.prio or nil end
++    local deps, best, ratio = logi.depots(), nil, 2.0
++    for _, kind in ipairs(C.products) do
++        local units = C.recipes[kind].units or 1
++        local have = (logi.fac[kind] or 0) * units
++        for _, d in ipairs(deps) do have = have + (d[kind] or 0) end
++        for _, tr in ipairs(logi.trucks) do
++            if tr.state ~= "dead" and tr.cargo then have = have + (tr.cargo[kind] or 0) * units end
++        end
++        if logi.job and logi.job.kind == kind then have = have + units end
++        local r = have / (C.want[kind] * #deps)
++        if r < ratio then best, ratio = kind, r end
++    end
++    return best
++end
++-- Comprimento de estoque/cargo centralizado: caixas -> caixas (retorno) ou unidades (depósito).
++function logi.moveCargo(cargo, dest, unpack)
++    for _, kind in ipairs(CFG.LOGI.products) do
++        local n = cargo[kind] or 0
++        dest[kind] = (dest[kind] or 0) + n * (unpack and (CFG.LOGI.recipes[kind].units or 1) or 1)
++    end
++end
++-- Regra própria: médico recebe uma bandagem de depósito aliado próximo a cada tratamento efetivo.
++function logi.medicalDepot(m)
++    local here, best, distance = loc(m), nil, CFG.POINT_RADIUS
++    for _, dep in ipairs(logi.depots()) do
++        local d = flatDist(here, dep)
++        if (dep.medical or 0) >= 1 and d <= distance then best, distance = dep, d end
++    end
++    return best
+ end
+ 
+ function logi.factoryStep(dt)
+@@ -2743,7 +2785,7 @@
+     if logi.job then
+         logi.job.left = logi.job.left - dt
+         if logi.job.left <= 0 then
+-            logi.fac[logi.job.kind] = logi.fac[logi.job.kind] + 1
++            logi.fac[logi.job.kind] = (logi.fac[logi.job.kind] or 0) + 1
+             logi.made = logi.made + 1
+             logi.job = nil
+         end
+@@ -2751,7 +2793,7 @@
+     end
+     local kind = logi.nextKind()
+     local rc = kind and C.recipes[kind]
+-    if not rc or logi.bmat < rc.bmat then return end
++    if not rc or type(rc.bmat) ~= "number" or rc.bmat <= 0 or type(rc.time) ~= "number" or rc.time <= 0 or logi.bmat < rc.bmat then return end
+     logi.bmat = logi.bmat - rc.bmat
+     logi.job = { kind = kind, left = rc.time * C.time, total = rc.time * C.time }
+ end
+@@ -2772,15 +2814,14 @@
+ -- Deposito para onde o proximo caminhao vai: o fixado pelo jogador (L), senao o mais carente.
+ function logi.pickDest()
+     if logi.pin then
+-        local ok = logi.pin == logi.base or (logi.pin.pt and logi.pin.pt.owner == CFG.FRIENDLY_TEAM)
+-        if ok then return logi.pin end
++        if logi.pin == logi.base or (logi.pin.pt and logi.pin.pt.owner == CFG.FRIENDLY_TEAM) then return logi.pin end
+         logi.pin = nil
+     end
+-    local best, bs = nil, 0
++    local best, score = nil, 0
+     for _, d in ipairs(logi.depots()) do
+-        local a, sh = logi.need(d)
+-        local score = a / CFG.LOGI.want.ammo + sh * CFG.LOGI.recipes.shirts.units / CFG.LOGI.want.shirts
+-        if score > bs then best, bs = d, score end
++        local needs, n = logi.needs(d), 0
++        for _, kind in ipairs(CFG.LOGI.products) do n = n + needs[kind] * (CFG.LOGI.recipes[kind].units or 1) / CFG.LOGI.want[kind] end
++        if n > score then best, score = d, n end
+     end
+     return best
+ end
+@@ -2815,29 +2856,41 @@
+     end
+     if tr.state == "idle" then
+         if not logi.drive(tr, logi.factory, dt) then return end
+-        if logi.fac.ammo + logi.fac.shirts < 1 then return end
++        local ready = 0
++        for _, kind in ipairs(C.products) do ready = ready + (logi.fac[kind] or 0) end
++        if ready < 1 then return end
+         local dest = logi.pickDest()
+         if not dest then return end
+-        local na, ns = logi.need(dest)
+-        if logi.pin == dest then na, ns = math.max(na, logi.fac.ammo), math.max(ns, logi.fac.shirts) end
+-        local a = math.min(logi.fac.ammo, na)
+-        local sh = math.min(logi.fac.shirts, ns, C.cap - a)
+-        if a + sh < 1 then return end
+-        logi.fac.ammo, logi.fac.shirts = logi.fac.ammo - a, logi.fac.shirts - sh
+-        tr.cargo, tr.dest, tr.state = { ammo = a, shirts = sh }, dest, "toDep"
++        local needs, cargo, remaining = logi.needs(dest), {}, C.cap
++        for _, kind in ipairs(C.products) do
++            local stock = logi.fac[kind] or 0
++            local wanted = logi.pin == dest and stock or needs[kind]
++            local n = math.min(stock, wanted, remaining)
++            cargo[kind], remaining = n, remaining - n
++        end
++        if remaining == C.cap then return end
++        for _, kind in ipairs(C.products) do logi.fac[kind] = (logi.fac[kind] or 0) - cargo[kind] end
++        tr.cargo, tr.dest, tr.state = cargo, dest, "toDep"
+         if logi.pin == dest then logi.pin = nil end
++    elseif tr.state == "returnCargo" then
++        if not tr.cargo then tr.dest, tr.state = nil, "idle"; return end
++        -- Crédito apenas após chegada confirmada; driver seguro de ESTRADAS é gate de integração.
++        if logi.drive(tr, logi.factory, dt) then
++            logi.moveCargo(tr.cargo, logi.fac, false)
++            tr.cargo, tr.dest, tr.state = nil, nil, "idle"
++        end
+     elseif tr.state == "toDep" then
+         local d = tr.dest
+         if d ~= logi.base and not (d.pt and d.pt.owner == CFG.FRIENDLY_TEAM) then  -- ponto perdido no caminho: volta
+-            logi.fac.ammo, logi.fac.shirts = logi.fac.ammo + tr.cargo.ammo, logi.fac.shirts + tr.cargo.shirts
+-            tr.cargo, tr.dest, tr.state = nil, nil, "idle"
++            tr.dest, tr.state = logi.factory, "returnCargo"
++            tr.route, tr.routeDest, tr.pathJob = nil, nil, nil
+             return
+         end
+         if logi.drive(tr, d, dt) then
+-            d.ammo = (d.ammo or 0) + tr.cargo.ammo
+-            d.shirts = (d.shirts or 0) + tr.cargo.shirts * C.recipes.shirts.units
+-            notify(string.format("caminhão entregou em %s: %d munição, %d camisas", d.name == "base" and "base" or ("ponto " .. d.name),
+-                tr.cargo.ammo, tr.cargo.shirts * C.recipes.shirts.units), 3.0)
++            logi.moveCargo(tr.cargo, d, true)
++            notify(string.format("caminhão entregou em %s: %d munição, %d camisas, %d fuzis, %d bandagens",
++                d.name, tr.cargo.ammo or 0, (tr.cargo.shirts or 0) * C.recipes.shirts.units,
++                (tr.cargo.rifle or 0) * C.recipes.rifle.units, (tr.cargo.medical or 0) * C.recipes.medical.units), 3.0)
+             logi.delivered = (logi.delivered or 0) + 1
+             tr.cargo, tr.dest, tr.state = nil, nil, "idle"
+         end
+@@ -2892,7 +2945,7 @@
+ 
+ -- Shift+L: prioridade da fabrica (automatico -> municao -> camisas).
+ function logi.cyclePrio()
+-    local order = { "auto", "ammo", "shirts" }
++    local order = { "auto", "ammo", "shirts", "rifle", "medical" }
+     local i = 1
+     for k, v in ipairs(order) do if v == logi.prio then i = k end end
+     logi.prio = order[i % #order + 1]
+@@ -2910,6 +2963,16 @@
+     local s = stops[logi.viewI]
+     focusOn(s[1].X, s[1].Y, s[1].Z)
+     notify(s[2], 2.0)
++end
++
++function logi.extraHud()
++    local parts = { string.format("Fuzis: fábrica %d caixas | bandagens: fábrica %d caixas", logi.fac.rifle or 0, logi.fac.medical or 0) }
++    for _, dep in ipairs(logi.depots()) do parts[#parts+1] = string.format("%s: %d fuzis, %d bandagens", dep.name, dep.rifle or 0, dep.medical or 0) end
++    for i, tr in ipairs(logi.trucks) do
++        if tr.cargo then parts[#parts+1] = string.format("caminhão %d -> %s: %d caixas fuzis, %d caixas bandagens", i,
++            tr.dest and tr.dest.name or "—", tr.cargo.rifle or 0, tr.cargo.medical or 0) end
++    end
++    return "\n" .. table.concat(parts, " | ")
+ end
+ 
+ function logi.hudLine()
+@@ -2931,7 +2994,7 @@
+     end
+     return string.format("LOGÍSTICA | sucata %.0f > bmat %.0f | fábrica: %s, pronto m%d c%d | entregando %d%s | %s%s",
+         logi.salvage, logi.bmat, fab, logi.fac.ammo, logi.fac.shirts, moving, dead > 0 and string.format(", %d destruído", dead) or "",
+-        table.concat(deps, " | "), foe)
++        table.concat(deps, " | "), foe) .. logi.extraHud()
+ end
+ 
+ -- Comboio inimigo (lote 13): com ondas automaticas (fora do assalto), a cada ECONVOY.every s um caminhao colonial
+@@ -3080,20 +3143,95 @@
+ 
+ function logi.snapshot()
+     if not logi.on then return nil end
+-    local d = { salvage = logi.salvage, bmat = logi.bmat, fa = logi.fac.ammo, fs = logi.fac.shirts,
+-        ba = logi.base.ammo, bs = logi.base.shirts, prio = logi.prio, pts = {} }
+-    for i, pt in ipairs(points) do d.pts[i] = pt.dep and { a = pt.dep.ammo, s = pt.dep.shirts } or false end
++    local d = { version=2, salvage=logi.salvage, bmat=logi.bmat, fa=logi.fac.ammo, fs=logi.fac.shirts,
++        fr=logi.fac.rifle or 0, fm=logi.fac.medical or 0, ba=logi.base.ammo, bs=logi.base.shirts,
++        br=logi.base.rifle or 0, bm=logi.base.medical or 0, prio=logi.prio, pts={}, trucks={} }
++    for i, pt in ipairs(points) do d.pts[i] = pt.dep and { a=pt.dep.ammo, s=pt.dep.shirts, r=pt.dep.rifle or 0, m=pt.dep.medical or 0 } or false end
++    if logi.job then d.job={kind=logi.job.kind,left=logi.job.left,total=logi.job.total} end
++    for i, tr in ipairs(logi.trucks) do
++        local q={state=tr.state,hp=tr.hp,salv=tr.salv or 0,wait=math.max(0,(tr.waitT or now())-now()),
++            rebuild=math.max(0,(tr.rebuildT or now())-now())}
++        if tr.cargo then
++            q.cargo={}
++            for _, kind in ipairs(CFG.LOGI.products) do q.cargo[kind]=tr.cargo[kind] or 0 end
++            q.dest=tr.state=="returnCargo" and -1 or 0
++            if tr.state~="returnCargo" and tr.dest ~= logi.base then
++                for k, pt in ipairs(points) do if pt.dep == tr.dest then q.dest=k end end
++            end
++        end
++        d.trucks[i]=q
++    end
+     return d
+ end
+-
++-- Pré-validação completa antes de start/reset; save legado sem novos campos continua aceito.
++function logi.validateSave(d)
++    local function number(n) return type(n)=="number" and n==n and n>=0 and n<math.huge end
++    local function integer(n) return number(n) and n%1==0 end
++    if type(d)~="table" or (d.version and d.version~=2) then return false end
++    for _, key in ipairs({"salvage","bmat","ba"}) do if not number(d[key] or 0) then return false end end
++    for _, key in ipairs({"fa","fs","fr","fm","bs","br","bm"}) do if not integer(d[key] or 0) then return false end end
++    if d.prio and d.prio~="auto" and not CFG.LOGI.recipes[d.prio] then return false end
++    if d.job then
++        local j=d.job
++        if type(j)~="table" or not CFG.LOGI.recipes[j.kind] or not number(j.left) or not number(j.total) or j.left>j.total then return false end
++    end
++    if d.pts and type(d.pts)~="table" then return false end
++    for i,q in pairs(d.pts or {}) do
++        if not integer(i) or i<1 or not points[i] then return false end
++        if q then
++            if type(q)~="table" or not number(q.a or 0) then return false end
++            for _, key in ipairs({"s","r","m"}) do if not integer(q[key] or 0) then return false end end
++        end
++    end
++    if d.trucks and type(d.trucks)~="table" then return false end
++    local states={idle=true,toField=true,loading=true,toRef=true,toDep=true,returnCargo=true,dead=true}
++    for i,q in pairs(d.trucks or {}) do
++        if not integer(i) or i<1 or i>CFG.LOGI.supply+1 or type(q)~="table" or not states[q.state]
++            or not number(q.hp) or not integer(q.salv or 0) or not number(q.wait or 0) or not number(q.rebuild or 0) then return false end
++        if (i==1 and (q.state=="toDep" or q.state=="returnCargo")) or (i>1 and (q.state=="toField" or q.state=="toRef" or q.state=="loading")) then return false end
++        if q.state=="dead" and (q.cargo or (q.salv or 0)>0) then return false end
++        if (q.state=="toDep" or q.state=="returnCargo") and not q.cargo then return false end
++        if q.cargo then
++            if i==1 or (q.state~="toDep" and q.state~="returnCargo") or type(q.cargo)~="table" then return false end
++            if q.state=="returnCargo" then
++                if q.dest~=-1 then return false end
++            elseif not integer(q.dest) or (q.dest>0 and not points[q.dest]) then return false end
++            local n=0
++            for key,value in pairs(q.cargo) do if not CFG.LOGI.recipes[key] or not integer(value) then return false end;n=n+value end
++            if n<1 or n>CFG.LOGI.cap then return false end
++        end
++    end
++    return true
++end
+ function logi.restore(d)
+-    if not logi.start() or type(d) ~= "table" then return end
+-    logi.salvage, logi.bmat, logi.prio = d.salvage or 0, d.bmat or 0, d.prio or "auto"
+-    logi.fac.ammo, logi.fac.shirts = d.fa or 0, d.fs or 0
+-    logi.base.ammo, logi.base.shirts = d.ba or 0, d.bs or 0
+-    for i, q in ipairs(d.pts or {}) do
+-        if q and points[i] then local dep = logi.depotOf(points[i]); dep.ammo, dep.shirts = q.a or 0, q.s or 0 end
+-    end
++    if not logi.validateSave(d) then return false end
++    -- ready é só preflight; nenhuma estrutura do save é restaurada ou construída aqui.
++    local setup=logi.ready()
++    if not setup then return false end
++    if not logi.start(setup) then return false end
++    logi.salvage,logi.bmat,logi.prio=d.salvage or 0,d.bmat or 0,d.prio or "auto"
++    logi.fac={ammo=d.fa or 0,shirts=d.fs or 0,rifle=d.fr or 0,medical=d.fm or 0}
++    logi.base.ammo,logi.base.shirts,logi.base.rifle,logi.base.medical=d.ba or 0,d.bs or 0,d.br or 0,d.bm or 0
++    for i,q in pairs(d.pts or {}) do
++        if q then local dep=logi.depotOf(points[i]);dep.ammo,dep.shirts,dep.rifle,dep.medical=q.a or 0,q.s or 0,q.r or 0,q.m or 0 end
++    end
++    if d.job then logi.job={kind=d.job.kind,left=d.job.left,total=d.job.total} end
++    for i,q in pairs(d.trucks or {}) do
++        local tr=logi.trucks[i]
++        tr.state,tr.hp,tr.salv=q.state,q.hp,(q.salv or 0)>0 and q.salv or nil
++        tr.waitT,tr.rebuildT=now()+(q.wait or 0),now()+(q.rebuild or 0)
++        if q.cargo then
++            tr.cargo={};for _, kind in ipairs(CFG.LOGI.products) do tr.cargo[kind]=q.cargo[kind] or 0 end
++            tr.dest=q.state=="returnCargo" and logi.factory or q.dest==0 and logi.base or logi.depotOf(points[q.dest])
++            if q.state~="returnCargo" and tr.dest~=logi.base and tr.dest.pt.owner~=CFG.FRIENDLY_TEAM then
++                tr.dest,tr.state=logi.factory,"returnCargo"
++            end
++            -- Coordenadas/trajeto antigo não são prova de rota regional segura: replanejar.
++            tr.route,tr.routeDest,tr.pathJob=nil,nil,nil
++        end
++        if tr.state=="dead" and tr.pawn and valid(tr.pawn) then tr.pawn:SetActorHiddenInGame(true) end
++    end
++    return true
+ end
+ 
+ -- Objetivo do inimigo fora de combate: ponto mais proximo que ele ainda nao domina por completo.

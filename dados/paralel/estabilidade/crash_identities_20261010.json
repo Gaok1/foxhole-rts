@@ -1,0 +1,26 @@
+[
+  {
+    "crash": "UE4CC-Windows-DF9A9ED248FF82E86E822596EC1F98D7_0000",
+    "module": "D:\\FoxholeLab\\Foxhole\\War\\Binaries\\Win64\\ue4ss\\UE4SS.dll",
+    "image_size": 20684800,
+    "timestamp": "0x6ac43103",
+    "pdb_guid": "21ad178d-4639-470e-971e-f115b4924854",
+    "pdb_age": 20
+  },
+  {
+    "crash": "UE4CC-Windows-97D8D5564F7CAD5682866B9E2B52CBFA_0000",
+    "module": "D:\\FoxholeLab\\Foxhole\\War\\Binaries\\Win64\\ue4ss\\UE4SS.dll",
+    "image_size": 20684800,
+    "timestamp": "0x6ac43103",
+    "pdb_guid": "21ad178d-4639-470e-971e-f115b4924854",
+    "pdb_age": 20
+  },
+  {
+    "crash": "UE4CC-Windows-18BCE18343C03805B228B794C306C125_0000",
+    "module": "D:\\FoxholeLab\\Foxhole\\War\\Binaries\\Win64\\ue4ss\\UE4SS.dll",
+    "image_size": 20684800,
+    "timestamp": "0x6ac43103",
+    "pdb_guid": "21ad178d-4639-470e-971e-f115b4924854",
+    "pdb_age": 20
+  }
+]

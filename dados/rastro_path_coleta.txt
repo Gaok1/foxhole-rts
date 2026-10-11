@@ -1,0 +1,65 @@
+## actual-worker-path-result.txt
+REAL	1	toField	done	true	failed	nil	nos	0	open	nil	fromZ	1000.0004882812	toZ	1000.0004882812	validCells	0	blockedCells	0	zmin	inf	zmax	-inf	rota	1
+REAL	2	toField	done	true	failed	nil	nos	0	open	nil	fromZ	1000.0004882812	toZ	1000.0004882812	validCells	0	blockedCells	0	zmin	inf	zmax	-inf	rota	1
+REAL	3	toField	done	true	failed	nil	nos	0	open	nil	fromZ	1000.0004882812	toZ	1000.0004882812	validCells	0	blockedCells	0	zmin	inf	zmax	-inf	rota	1
+REAL	1	toRef	done	true	failed	true	nos	1045	open	0	fromZ	1000.0007324219	toZ	1352.322265625	validCells	1150	blockedCells	99	zmin	600.0009765625	zmax	1393.9567871094	rota	1
+REAL	2	toRef	done	true	failed	true	nos	2500	open	83	fromZ	1000.0002441406	toZ	844.625	validCells	2869	blockedCells	234	zmin	600.00030517578	zmax	1394.150390625	rota	1
+REAL	3	toRef	done	true	failed	true	nos	1869	open	0	fromZ	1000.0004882812	toZ	600.00048828125	validCells	2125	blockedCells	653	zmin	600.00073242188	zmax	1396.71484375	rota	1
+COLETA	120.0	0	0
+## path-oracle-result.txt
+STATUS	done	4
+PERFIL	padrao	nos	1033	falhou	true	abertos	0	ms	1422.0	segundos	13.761	rota	1
+VIA	padrao	1	9560.6475311155	-46338.60268487	1352.322265625
+PERFIL	estrito400	nos	1021	falhou	true	abertos	0	ms	2324.0	segundos	14.503	rota	0
+PERFIL	estrito1200	nos	2500	falhou	true	abertos	207	ms	6206.0000000002	segundos	37.757	rota	0
+## path-oracle-expanded-result.txt
+STATUS	done	3
+PERFIL	fino1200_10000	nos	4399	falhou	true	abertos	0	ms	10128.0	segundos	41.511	rota	0
+PERFIL	grosso1200	nos	1583	falhou	true	abertos	0	ms	3557.0000000002	segundos	16.683	rota	0
+## path-goal-variants-result.txt
+STATUS	done	4
+PERFIL	destino_real_1	nos	3471	falhou	true	abertos	0	ms	7131.0000000007	segundos	21.017	rota	0
+PERFIL	destino_real_2	nos	3544	falhou	true	abertos	0	ms	6986.9999999994	segundos	20.78	rota	0
+PERFIL	destino_real_3	nos	3566	falhou	true	abertos	0	ms	7197.9999999995	segundos	21.583	rota	0
+## worker-walk-limits.txt
+SCHEMA	MaxStepHeight	FloatProperty
+SCHEMA	WalkableFloorAngle	FloatProperty
+SCHEMA	WalkableFloorZ	FloatProperty
+LIMITE	rifle	WalkableFloorAngle	44.765083312988
+LIMITE	rifle	MaxStepHeight	45.0
+LIMITE	rifle	WalkableFloorZ	0.70999997854233
+## path-native-slope-result.txt
+STATUS	done	3
+PERFIL	pe_slope44	nos	8000	falhou	true	abertos	346	ms	16034.999999999	segundos	43.102	rota	0
+PERFIL	campo_slope44	nos	8000	falhou	true	abertos	445	ms	16718.999999999	segundos	44.016	rota	0
+## wall-bounds.txt
+PARAM	bOnlyCollidingComponents	BoolProperty
+PARAM	Origin	StructProperty
+PARAM	BoxExtent	StructProperty
+WALL	StaticMeshActor /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.IndustrialWall03Snow31	POS	13147.15625	-50371.21875	600.0	ROT	0.0	-21.034843444824	0.0	SCALE	1.0	1.0	1.0
+ORIGIN_OUT	Z	705.74560546875
+ORIGIN_OUT	X	13150.095703125
+ORIGIN_OUT	Y	-50376.19921875
+EXTENT_OUT	Z	326.98974609375
+EXTENT_OUT	X	205.83984375
+EXTENT_OUT	Y	456.0
+## wall-ground-layers.txt
+CAMADA	13235	-50350	20000	true	600.00012207031	Landscape /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.Landscape_1
+CAMADA	13235	-50350	900	true	600.00006103516	Landscape /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.Landscape_1
+CAMADA	13235	-51000	20000	true	600.00048828125	Landscape /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.Landscape_1
+CAMADA	13235	-51000	900	true	600.00048828125	Landscape /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.Landscape_1
+CAMADA	13235	-49700	20000	true	731.85284423828	CoalPile02BP_C /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.CoalPile02BP5_17
+CAMADA	13235	-49700	900	true	731.85205078125	CoalPile02BP_C /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.CoalPile02BP5_17
+CAMADA	12800	-51000	20000	true	600.00048828125	Landscape /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.Landscape_1
+CAMADA	12800	-51000	900	true	600.00048828125	Landscape /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.Landscape_1
+CAMADA	13700	-51000	20000	true	1345.4798583984	StaticMeshActor /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.RockShorlineCliffSnow1150
+CAMADA	13700	-51000	900	true	900.0	StaticMeshActor /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.RockShorlineCliffSnow1150
+CAMADA	12800	-49700	20000	true	829.830078125	StaticMeshActor /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.IndustrialWall62_494
+CAMADA	12800	-49700	900	true	829.82958984375	StaticMeshActor /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.IndustrialWall62_494
+CAMADA	13700	-49700	20000	true	938.57769775391	StaticMeshActor /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.RockShorlineXLargeSnow677
+CAMADA	13700	-49700	900	true	900.0	StaticMeshActor /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.RockShorlineXLargeSnow677
+## col-refusal-live-result.txt
+STATUS	injected
+RESULTADO	done	true	failed	true	noFallback	true	rota	0	target	false	blocked	true	velocidade	0.0	carga	0
+HUD	coleta manual: 3 trabalhadores (1 sem rota) | 40/100 bmat para o caminhão | 26 sucata em mãos
+COLETA_AUDIT	true

@@ -1,0 +1,26 @@
+-- Experimento isolado: false preserva ponte atual; true usa fila no loop persistente.
+CFG.KEYBIND_QUEUE = false
+function rts.drainGameQueue()
+    local pending = S.gameQueue
+    S.gameQueue = nil
+    for _, f in ipairs(pending or {}) do
+        local ok, err = pcall(f)
+        if not ok then log("erro: " .. tostring(err)) end
+    end
+end
+local function onGame(f) return function()
+    if CFG.KEYBIND_QUEUE then
+        S.gameQueue = S.gameQueue or {}
+        S.gameQueue[#S.gameQueue + 1] = f
+    else
+        ExecuteInGameThread(function()
+            local ok, err = pcall(f)
+            if not ok then log("erro: " .. tostring(err)) end
+        end)
+    end
+end end
+
+local function frameBody()
+    -- F9/F10 precisam executar tambem no menu/antes da autoridade local.
+    rts.drainGameQueue()
+    if not isLocalAuthority() then return end

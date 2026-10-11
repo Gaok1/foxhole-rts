@@ -1,0 +1,56 @@
+--- a/main.lua
++++ b/main.lua
+@@ -4583,15 +4583,18 @@
+ end
+ 
+ local function squadCenter()
+-    local sx, sy, sz, n = 0, 0, 0, 0
+-    for _, m in ipairs(squad) do
+-        if alive(m) then
+-            local l = loc(m)
+-            sx, sy, sz, n = sx + l.X, sy + l.Y, sz + l.Z, n + 1
+-        end
+-    end
+-    if n == 0 then return nil end
+-    return { X = sx / n, Y = sy / n, Z = sz / n }
++    -- v4.1: trabalhadores da coleta nao puxam ondas/reforco/pontos para o campo de sucata; so sem combatente vivo o centro e o de todos
++    for pass = 1, 2 do
++        local sx, sy, sz, n = 0, 0, 0, 0
++        for _, m in ipairs(squad) do
++            if alive(m) and (pass == 2 or m.role ~= "worker") then
++                local l = loc(m)
++                sx, sy, sz, n = sx + l.X, sy + l.Y, sz + l.Z, n + 1
++            end
++        end
++        if n > 0 then return { X = sx / n, Y = sy / n, Z = sz / n } end
++    end
++    return nil
+ end
+ 
+ -- Tres pontos ao redor do esquadrao (frente e flancos, +X = cima na tela) em chao na altura dele e livre:
+@@ -5049,7 +5052,7 @@
+ -- Derrota por falta de tropa: ramo logistico = nenhum soldado de combate e nenhum jeito de reforcar; legado/Assalto = mao de obra.
+ function logi.noReinforce()
+     if logi.on and combat.mode ~= "assault" then return rts.combatCount() == 0 and not logi.canReinforce() end
+-    return #squad == 0 and economy.manpower < CFG.WEAPONS.rifle.cost
++    return rts.combatCount() == 0 and economy.manpower < CFG.WEAPONS.rifle.cost   -- v4.1: trabalhadores nao seguram a partida
+ end
+ 
+ -- Interface comum de nascimento (ESPECIFICACAO 4.3). PURA: nao muda estoque, nem rodizio de saidas, nem cria ator.
+@@ -5888,14 +5891,14 @@
+         local delay = CFG.WAVE_DELAY + (combat.broken and CFG.MORALE.regroup or 0)
+         combat.nextWaveAt = t + delay
+         notify(string.format("proxima onda em %.0f s%s (esquadrao %d, mao de obra %.0f)", delay,
+-            combat.broken and " (o inimigo se reagrupa)" or "", #squad, economy.manpower))
++            combat.broken and " (o inimigo se reagrupa)" or "", rts.combatCount(), economy.manpower))
+     elseif t >= combat.nextWaveAt then
+         combat.nextWaveAt = nil
+         ai.sent = 0
+         local p = waveSpawnPoint()
+         if not p then log("sem ponto livre para a onda; tentando de novo"); return end
+         local n = math.min(CFG.WAVE_MAX, CFG.ENEMY_SQUAD_SIZE + math.floor(combat.wave * CFG.WAVE_GROWTH)
+-            + math.floor(#squad * CFG.WAVE_SQUAD_SCALE))
++            + math.floor(rts.combatCount() * CFG.WAVE_SQUAD_SCALE))   -- v4.1: trabalhadores da coleta nao escalam a onda
+         n = logi.waveCut(n)
+         -- a partir da onda FLANK_WAVE, metade das vezes a onda chega em pinca (dois grupos, angulos diferentes)
+         local q = (combat.wave + 1 >= CFG.FLANK_WAVE and n >= CFG.FLANK_MIN and math.random() < CFG.FLANK_CHANCE) and flankPoint(p) or nil

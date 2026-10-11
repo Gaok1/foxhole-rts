@@ -1,0 +1,49 @@
+--- ../ia_logistica.lua	2026-10-09 18:36:21.832943600 -0300
++++ ia_logistica_v2.lua	2026-10-09 20:53:38.298635200 -0300
+@@ -12,10 +12,10 @@
+ CFG.ECHAIN = {
+     kinds = { "ammo", "shirts" },             -- o que a frente inimiga consome (receitas reais em CFG.LOGI.recipes)
+     shirts = 1,                               -- camisas por soldado pago (= recrutamento do jogador)
+-    free = 3,                                 -- BONUS ABSTRATO explicito: guarnicao minima gratuita por onda (era o minimo antigo)
+-    trip = 25.0,                              -- s por viagem do caminhao de recurso da retaguarda (fora do mapa; calibrar no lab)
++    free = 5,                                 -- BONUS ABSTRATO explicito: guarnicao minima gratuita por onda = piso com a cadeia cortada (v1: 3; calibrado em acabamento/RELATORIO.md)
++    trip = 20.0,                              -- s por viagem do caminhao de recurso da retaguarda (v1: 25; > 25 ja enfraquece a onda SEM corte: a refinaria satura em 25 s)
+     bmat0 = 240, front0 = { ammo = 2, shirts = 10 },  -- estoque de cenario (entra no razao como "inicial")
+-    want = { ammo = 6, shirts = 30 },         -- alvo da frente em unidades (~30 soldados; a fabrica para em 2x)
++    want = { ammo = 4, shirts = 20 },         -- alvo da frente em unidades (~20 soldados; a fabrica para em 2x; v1: 6/30)
+     trucks = 2,                               -- frota de comboio (= LOGI.supply do jogador)
+     minLoad = 3,                              -- caixas minimas por comboio (ou tudo que a frente pede, se menos)
+     stuck = 20.0,                             -- s com rota ausente/bloqueada (driver de ESTRADAS) antes de voltar carregado
+@@ -473,7 +473,8 @@
+     local E = CFG.ECHAIN
+     local function num(x) return type(x) == "number" and x == x and x >= 0 and x < math.huge end
+     local function int(x) return num(x) and x % 1 == 0 end
+-    if type(d) ~= "table" or d.v ~= 1 then return false, "versão" end
++    if type(d) ~= "table" then return false, "formato" end
++    if d.v ~= 1 then return false, (type(d.v) == "number" and d.v > 1) and ("versão futura v" .. d.v) or "versão desconhecida" end
+     for _, key in ipairs({ "salvage", "bmat", "trip" }) do if not num(d[key]) then return false, key end end
+     if not int(d.ready) or type(d.rebuild) ~= "table" or not int(d.seq or 0) or not int(d.delivered or 0) then return false, "frota" end
+     for _, r in ipairs(d.rebuild) do if not num(r) then return false, "reconstrução" end end
+@@ -499,9 +500,20 @@
+     return true
+ end
+ 
+-function logi.eRestore(d)
++-- `dropped` (v2, PERSISTENCIA): motivo pelo qual a secao `elogi` do save foi descartada na leitura (invalida, versao
++-- futura, sem logistica...). Politica unica: so esta secao e descartada; a cadeia inimiga recomeca do estoque de
++-- cenario (logi.start ja fez eReset: razao 'inicial'), com aviso explicito, sem tocar na logistica do jogador.
++function logi.eRestore(d, dropped)
+     if not (logi.on and logi.en) then return false end
+-    if d == nil then logi.eEvent("save sem cadeia inimiga: começa do estoque de cenário"); return false end
++    if d == nil then
++        if dropped then
++            logi.eEvent("save da cadeia inimiga descartado (" .. tostring(dropped) .. "): recomeça do estoque de cenário")
++            notify("cadeia inimiga do save descartada (" .. tostring(dropped) .. "): recomeça do estoque inicial; o resto da partida foi restaurado", 6.0)
++        else
++            logi.eEvent("save sem cadeia inimiga: começa do estoque de cenário")
++        end
++        return false
++    end
+     local ok, why = logi.eValid(d)
+     if not ok then
+         logi.eEvent("save da cadeia inimiga recusado (" .. tostring(why) .. "): começa do estoque de cenário")

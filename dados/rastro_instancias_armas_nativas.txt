@@ -1,0 +1,5 @@
+GET_OWNER	Function /Script/Engine.ActorComponent:GetOwner
+PARAM	ReturnValue	ObjectProperty
+COUNT	HitScanWeaponComponent	0
+COUNT	ProjectileItemComponent	0
+COUNT	HeavyMachineGunItemComponent	0

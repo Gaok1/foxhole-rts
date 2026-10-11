@@ -1,0 +1,57 @@
+Foxhole — contorno selecionado / preenchimento encoberto (2026-10-09, lote 17)
+Contexto: HomeRegionW offline; usuário faz entrada real, agente somente canal de comandos/captura.
+
+Material nativo: /Game/Materials/PostProcess/M_OccludedOutline.M_OccludedOutline
+Domain4 (PostProcess), BlendableLocation1, Alpha0.66, MaxZ16777215.
+Função OccludedOutlineColor: Player/Friendly/Neutral alpha0; Enemy alpha1 por padrão.
+Ativação medida: MID ancorado imediatamente em PostProcessVolume.AddOrUpdateBlendable,
+bUnbound=true, Priority100, BlendWeight1; r.CustomDepth3. Sem alteração de exposição.
+O resultado visível é preenchimento de partes encobertas, NÃO borda em todas as partes visíveis.
+MID só em userdata Lua não é raiz de GC: a sonda não ancorada caiu depois de minutos
+(PID15468,12:45:33). Causa GC é hipótese, não trace conclusivo. Versão ancorada sobreviveu.
+
+Corpo e equipamento são separados: CharacterMesh0, WeaponMesh, AccessoryMesh, Head, Hands,
+Legs, Back, Helmet, GasMaskMesh, BackItemMesh. CustomDepth nativo reativado em cada um;
+limpar somente Pawn.Mesh deixava mãos/arma de NÃO selecionados destacadas.
+O comandante invisível também conserva componentes de equipamento: limpar CustomDepth do olho
+evita vulto amarelo no soldado não selecionado que ele acompanha.
+Selecionado usa stencil1 e cor Player amarela; demais cores alpha0, demais malhas sem CustomDepth.
+
+Contorno: oito SkeletalMeshActor sem IA/colisão/sombra, material CalloutRed/Color amarelo emissivo.
+SetMasterPoseComponent(source,true) compartilha animação; NÃO ler propriedade MasterPoseComponent.
+AttachToComponent KeepWorld mantém translacão entre ticks; atualização no fim do quadro acompanha pose.
+Limpar todos os clones e referências de componentes ANTES de OnRep_Health/destruir o pawn.
+
+Erros reproduzidos e corrigidos:
+1. Cópias de sonda paradas viraram vulto separado quando usuário moveu a unidade.
+2. Deslocar pelo forward fixo + escala aproximada só alinhava no centro da tela.
+Correção de perspectiva: C=posição real da câmera, P=pivô da malha, q=1+50/|P-C|.
+P'=C+q*(P-C), escala'=q*escalaWorld da fonte. Cada vértice conserva a projeção perspectiva.
+Adicionar oito pequenos offsets no plano da câmera deixa somente a borda exposta pela profundidade.
+Raio=profundidade*q/500, não o zoom nominal. K2_GetComponentScale existe; GetComponentScale não refletido.
+
+Amostrador antes da correção de perspectiva: 52 amostras/6s, movimento725.19cm,
+erro máximo0.0007813cm vs fórmula então usada. Isso comprovou seguimento, NÃO alinhamento projetado.
+Correção de perspectiva verificada na captura outline-perspective_small.png, com três selecionados
+em posições diferentes da tela. tools/test_orders.py verifica raio câmera-unidade após mover unidade/câmera,
+seleção/desseleção/RTS/morte, máscara de equipamento, ancoragem antes de configurar MID e rollback parcial.
+
+Extensão pedida pelo usuário: CharacterMesh0 é SoldierJacketMC, somente casaco. Contorno final inclui
+WeaponMesh, Head, Hands, Legs, Back, Helmet: quatro cópias por peça visível, 28 atores no soldado atual.
+Peças sem SkeletalMesh/ocultas não criam cópias. Transformação/pose de cada peça, não o pivô do casaco.
+Captura outline-full-clean_small.png + aprovação do usuário "agora ficou bao" validam aparência,
+NÃO estabilidade. Amostrador final de perspectiva antes da extensão: 52 amostras/6s, movimento724.40591cm,
+erro máximo0.00098419cm. Teste offline cobre duas peças e mudanças de posição da câmera/unidade.
+
+PENDÊNCIA CRÍTICA DE ESTABILIDADE (sessão encerrada a pedido):
+13:22:45/PID7088, crash UE4SS/read0xffffffff durante sonda de extensão; pasta
+UE4CC-Windows-DF9A9ED248FF82E86E822596EC1F98D7_0000.
+13:26:51/PID9600, novamente depois de renderizar 28 peças/cópias numa carga limpa; pasta
+UE4CC-Windows-97D8D5564F7CAD5682866B9E2B52CBFA_0000.
+Última sessão PID2268 também registrou Lua::Registry::get_function_ref: Ref was not function.
+Causa não isolada. Não culpar GC/MasterPose/hotpatch sem trace. pcall não evita falha nativa.
+Próxima sessão autorizada deve isolar componente/callback/lifetime e repetir após GC, deseleção,
+recriação e morte. Não chamar versão de estável; fonte experimental permanece habilitada.
+Shader de borda cooked é caminho se custo/fragilidade das cópias impedir solução segura.
+Fonte/laboratório SHA25686DBED189308C449BED9DB3BCB12FD800D2C6F5430E6FCCC297BED8D00A40FFE.
+Laboratório fechado no final, Steam preservado. Sem discos/bolinhas e sem input injetado.

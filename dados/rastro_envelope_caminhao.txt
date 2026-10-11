@@ -1,0 +1,4 @@
+SCAN_RESULT	true	nil	1167	466	BPTruckW_C /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.BPTruckW_C_2147479585
+HULL_HITS	VehicleCollision	281	PENETRATING	281	MIN	-400.0	-162.0	-140.0	MAX	400.0	162.0	140.0
+HULL_HITS	CharacterMesh0	185	PENETRATING	185	MIN	-420.73413085938	-141.6640625	-206.21875	MAX	427.7041015625	141.6640625	201.69958496094
+LIMIT	amostra50cm nao prova envelope integral; sem autorizacao de arestas

@@ -1,0 +1,21 @@
+Tempo ate o primeiro caminhao de recurso (s), partida manual (bmat0=40, caminhao 100 bmat, razao 2 sucata : 1 bmat)
+distancia campo-refinaria em metros = (|fx| - 4000) / 100 (cm); rate 0,5 sucata/s por trabalhador parado no campo
+
+a) trabalhadores x distancia (cap 40, rate 0,5)
+   trab |   80 m |  260 m |  470 m
+      1 |    373 |    637 |    951
+      2 |    259 |    435 |    645
+      3 |    165 |    254 |    359
+      5 |    165 |    254 |    359
+
+b) capacidade de carga x distancia (3 trabalhadores, rate 0,5)
+   cap  |   80 m |  260 m |  470 m
+     20 |    187 |    363 |    573
+     40 |    165 |    254 |    359
+     80 |    245 |    334 |    439
+
+c) taxa de coleta x distancia (3 trabalhadores, cap 40)
+   rate |   80 m |  260 m |  470 m
+   0.25 |    245 |    334 |    439
+    0.5 |    165 |    254 |    359
+    1.0 |    125 |    214 |    319

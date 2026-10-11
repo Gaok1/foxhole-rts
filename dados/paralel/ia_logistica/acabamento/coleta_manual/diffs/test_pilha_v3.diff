@@ -1,0 +1,252 @@
+--- dados/paralel/ensaio_integracao/test_pilha.py	2026-10-09 21:16:19.424070100 -0300
++++ dados/paralel/ia_logistica/acabamento/coleta_manual/test_pilha_v3.py	2026-10-09 22:19:26.252466100 -0300
+@@ -1,9 +1,10 @@
+-"""ENSAIO_INTEGRACAO: testes offline da pilha ECONOMIA -> IA_LOGISTICA -> INTERFACE (rebaseada) -> PERSISTENCIA (v1)
+-e da pilha v2 ECONOMIA -> IA_LOGISTICA v2 -> reserva de bmat -> INTERFACE v2 -> PERSISTENCIA v2 (argumento `v2`).
++"""COLETA_MANUAL: COPIA ADAPTADA de ensaio_integracao/test_pilha.py (variante v2) apontando ao candidato_v3 =
++candidato_v2 (ECONOMIA > IA v2 > reserva_bmat > INTERFACE v2 > PERSISTENCIA v2) + coleta manual (build_coleta.apply).
++Todas as etapas do original sao mantidas; cada mudanca de expectativa/caminho esta marcada com `V3:` (diff em diffs/test_pilha_v3.diff).
++Original (v2) abaixo:
+ 
+ Uso (raiz do repo, bash):
+-  PYTHONPATH=D:/tools/pylibs PYTHONDONTWRITEBYTECODE=1 python dados/paralel/ensaio_integracao/test_pilha.py        # v1
+-  PYTHONPATH=D:/tools/pylibs PYTHONDONTWRITEBYTECODE=1 python dados/paralel/ensaio_integracao/test_pilha.py v2     # v2
++  PYTHONPATH=D:/tools/pylibs PYTHONDONTWRITEBYTECODE=1 python dados/paralel/ia_logistica/acabamento/coleta_manual/test_pilha_v3.py
+ 
+ O main.lua real so e lido. Os testes das outras pastas NAO sao editados: cada um e executado em memoria por
+ exec() de uma COPIA do codigo-fonte com a(s) linha(s) de obtencao do candidato trocadas (tecnica ja usada por
+@@ -28,8 +29,11 @@
+ from lupa import LuaRuntime  # noqa: E402
+ 
+ HERE = Path(__file__).resolve().parent
++ENSAIO = HERE.parents[2] / "ensaio_integracao"   # V3: build_pilha.py vive no ensaio (somente leitura)
+ sys.path.insert(0, str(HERE))
++sys.path.insert(0, str(ENSAIO))
+ import build_pilha as bp  # noqa: E402
++import build_coleta  # noqa: E402
+ 
+ ROOT = bp.ROOT
+ PAR = bp.PAR
+@@ -65,13 +69,18 @@
+ 
+ 
+ # ------------------------------------------------------------------------------------------------ candidato
+-VARIANT = "v2" if "v2" in sys.argv[1:] else "v1"
+-V2 = VARIANT == "v2"
+-SFX = "_v2" if V2 else ""
++VARIANT = "v3"                  # V3: pilha v2 + coleta manual
++V2 = True                       # V3: toda a logica de "v2" do original vale (calibracao, reserva, elogi...)
++SFX = "_v3"
+ ACAB = bp.ACAB                  # entregas v2 (somente leitura)
+-SOURCE, SHA_BEFORE, STAGES = bp.build_candidate(VARIANT)
+-CAND = STAGES[-1][1]            # texto LF do candidato
+-CAND_FILE = HERE / ("candidato" + SFX) / "main.lua"
++SOURCE, SHA_BEFORE, STAGES = bp.build_candidate("v2")
++STAGES = STAGES + [("COLETA MANUAL", build_coleta.apply(STAGES[-1][1]))]   # V3: ultima etapa
++CAND = STAGES[-1][1]            # texto LF do candidato v3
++CAND_V2 = STAGES[-2][1]         # V3: candidato v2 (base da coleta)
++CAND_LEGACY = CAND.replace("manualStart = true,", "manualStart = false,", 1)   # V3: mesma pilha com o inicio antigo (3 caminhoes, 1100)
++assert CAND_LEGACY != CAND
++CAND_FILE = HERE / "candidato_v3" / "main.lua"
++CAND_V2_FILE = ENSAIO / "candidato_v2" / "main.lua"
+ MAIN_FILE = bp.MAIN
+ 
+ 
+@@ -140,7 +149,8 @@
+ @step("00 integridade: build reproduz candidato%s/main.lua (CRLF) e main.lua real intacto" % SFX)
+ def t_integridade():
+     disk = CAND_FILE.read_bytes()
+-    assert disk == bp.to_crlf_bytes(CAND), "candidato%s/main.lua em disco diferente do build atual: rode build_pilha.py %s" % (SFX, VARIANT)
++    assert disk == bp.to_crlf_bytes(CAND), "candidato_v3/main.lua em disco diferente do build atual: rode build_coleta.py"
++    assert CAND_V2_FILE.read_bytes() == bp.to_crlf_bytes(CAND_V2), "V3: candidato_v2 em disco diferente do build (rode build_pilha.py v2)"
+     assert disk.count(b"\r\n") == disk.count(b"\n") == disk.count(b"\r"), "candidato nao e CRLF consistente"
+     assert bp.sha256(MAIN_FILE) == SHA_BEFORE, "main.lua real mudou durante os testes"
+     names = [n for n, _ in STAGES]
+@@ -189,7 +199,9 @@
+ 
+ @step("03b tools/test_orders.py contra o candidato (bloco 'enemy convoy' da IA%s)" % (" v2" if V2 else ""))
+ def t_orders_candidato():
+-    run_test_orders(CAND, swap=True)
++    # V3: a suite roda com as ADAPTACOES documentadas em test_orders_v3.py (implantacao sem caminhao de recurso)
++    import test_orders_v3
++    test_orders_v3.main(CAND)
+ 
+ 
+ @step("04 tools/test_costs.py e tools/test_inventory_probe.py (independentes do main.lua)")
+@@ -222,7 +234,30 @@
+     exec_src(t, "ia_logistica/test_ia_logistica%s.py[candidato]" % SFX, {"__name__": "__main__", "__file__": str(p), "__CANDIDATE": CAND})
+ 
+ 
+-def persist_v2_source():
++# V3: expectativas da suite de persistencia que dependem do tamanho da implantacao (antes 2 estruturas + 3 caminhoes = 1100, 5 atores;
++# agora 2 estruturas + 2 caminhoes = 1000, 4 atores). A suite tambem roda a pilha SEM a coleta (main + ECONOMIA + PERSISTENCIA_v2),
++# que continua com 1100/5: por isso cada troca e CONDICIONAL a pilha candidata (_v3() == CANDIDATE e o candidato v3). Valem para todas
++# as ocorrencias; o resto da suite fica intacto.
++V3_PERSIST_ADAPT = [
++    ('H.spawned") == 5', 'H.spawned") == (4 if _v3() else 5)', "atores criados pela implantacao: 5 -> 4"),
++    ('"carteira=0/1100/5" in ledger', '("carteira=0/1000/4" if _v3() else "carteira=0/1100/5") in ledger',
++     "carteira esperada apos a implantacao: 0/1100/5 -> 0/1000/4"),
++    ("H.live('BPTruckW_C')\") == 3", "H.live('BPTruckW_C')\") == (2 if _v3() else 3)", "caminhoes vivos apos refazer a implantacao: 3 -> 2"),
++    ('b.eval("api.S.deploy.bmat") == 300', 'b.eval("api.S.deploy.bmat") == (200 if _v3() else 300)', "saldo da carteira (1000 - 800): 300 -> 200"),
++    ("RESULTS = []\n", "RESULTS = []\n\n\ndef _v3():\n    return CANDIDATE is __CANDIDATE\n\n\n", "helper _v3() (pilha candidata v3?)"),
++]
++
++# V3: test_elogi.py t_no_module: um save da pilha v3 (implantacao de 2 caminhoes pagos) lido por um mod SEM a coleta (que exige 3
++# caminhoes) e recusado por desenho (ja ocorre entre v3 e v2: faltam 3 e o save so pagou 2). Para continuar testando o que o caso testa
++# (so o elogi e descartado), o mundo de carga ganha 1 caminhao nativo (faltam 2 = pagos 2).
++V3_ELOGI_ADAPT = [
++    ('    tp.CANDIDATE = STACKS[NO_IA]\n    b = tp.new_load(v, files)\n    b.execute("H.newWorld()")\n',
++     '    tp.CANDIDATE = STACKS[NO_IA]\n    b = tp.new_load(v, files)\n    b.execute("H.newWorld({trucks = 1})")  # ADAPTACAO v3: 1 caminhao nativo (mod sem coleta exige 3; o save pagou 2)\n',
++     "t_no_module: mundo de carga com 1 caminhao nativo (o mod sem a coleta exige 3 caminhoes; o save v3 pagou 2)"),
++]
++
++
++def persist_v2_source(legacy=False):
+     """Texto de acabamento/test_persistencia_v2.py com as 3 pilhas dele trocadas por: main+ECONOMIA+PERSISTENCIA_v2 (cenario
+     'mod sem IA', que o test_elogi usa) e o CANDIDATO v2 completo (com INTERFACE)."""
+     p = ACAB / "test_persistencia_v2.py"
+@@ -230,21 +265,31 @@
+     t = swap_once(t, '    STACKS["main+ECONOMIA+IA_v2+PERSISTENCIA_v2"] = build_patch.build_with_ia(SOURCE)\n'
+                      '    STACKS["pilha completa (ECONOMIA+IA_v2+reserva bmat+PERSISTENCIA_v2)"] = build_patch.build_full(SOURCE)\n',
+                   '    STACKS["pilha v2 completa (ECO+IA_v2+reserva+INTERFACE+PERS_v2)"] = __CANDIDATE\n', "persistencia_v2 STACKS")
++    if not legacy:   # V3: numeros da implantacao manual; legacy=True roda a suite SEM nenhuma alteracao numerica (inicio antigo)
++        for old, new, why in V3_PERSIST_ADAPT:
++            assert t.count(old) >= 1, "adaptacao sem alvo: " + why
++            t = t.replace(old, new)
++            print("adaptacao persistencia:", why)
+     return p, t
+ 
+ 
+-@step("06b acabamento/test_elogi.py contra o candidato v2 (politica unica do elogi; 5.4 e 5.5; sem modulo)")
+-def t_elogi():
+-    p, t = persist_v2_source()
++def _elogi(cand, legacy):
++    p, t = persist_v2_source(legacy)
++    et = (ACAB / "test_elogi.py").read_text(encoding="utf-8")
++    if not legacy:
++        for old, new, why in V3_ELOGI_ADAPT:
++            assert et.count(old) == 1, "adaptacao sem alvo unico: " + why
++            et = et.replace(old, new)
++            print("adaptacao elogi:", why)
+     mod = types.ModuleType("test_persistencia_v2")
+-    mod.__dict__.update({"__name__": "test_persistencia_v2", "__file__": str(p), "__CANDIDATE": CAND})
++    mod.__dict__.update({"__name__": "test_persistencia_v2", "__file__": str(p), "__CANDIDATE": cand})
+     exec_src(t, "acabamento/test_persistencia_v2.py[candidato, modulo]", mod.__dict__)
+     assert len(mod.STACKS) == 2 and "pilha v2 completa (ECO+IA_v2+reserva+INTERFACE+PERS_v2)" in mod.STACKS, list(mod.STACKS)
+     saved = sys.modules.get("test_persistencia_v2")
+     sys.modules["test_persistencia_v2"] = mod
+     try:
+         e = ACAB / "test_elogi.py"
+-        exec_src(e.read_text(encoding="utf-8"), "acabamento/test_elogi.py[candidato]", {"__name__": "__main__", "__file__": str(e)})
++        exec_src(et, "acabamento/test_elogi.py[candidato]", {"__name__": "__main__", "__file__": str(e)})
+     finally:
+         if saved is None:
+             sys.modules.pop("test_persistencia_v2", None)
+@@ -252,6 +297,16 @@
+             sys.modules["test_persistencia_v2"] = saved
+ 
+ 
++@step("06b acabamento/test_elogi.py contra o candidato v3 (politica unica do elogi; 5.4 e 5.5; sem modulo; numeros da implantacao manual)")
++def t_elogi():
++    _elogi(CAND, False)
++
++
++@step("06b-L acabamento/test_elogi.py contra o candidato v3 com manualStart=false (suite sem NENHUMA alteracao: caminho antigo intacto)")
++def t_elogi_legacy():
++    _elogi(CAND_LEGACY, True)
++
++
+ @step("06c acabamento/test_bmat_caminhao.py (reserva de bmat; pilha completa = candidato v2)")
+ def t_bmat():
+     p = ACAB / "test_bmat_caminhao.py"
+@@ -531,7 +586,13 @@
+     return res.replace("\n", " || ")
+ 
+ 
+-@step("08 persistencia/test_persistencia%s.py contra o candidato (Lua 5.4 e 5.5, 9 cenarios)" % SFX)
++@step("08-L persistencia_v2 contra o candidato v3 com manualStart=false (suite sem NENHUMA alteracao: caminho antigo intacto)")
++def t_persistencia_legacy():
++    p, t = persist_v2_source(True)
++    exec_src(t, "acabamento/test_persistencia_v2.py[candidato, legado]", {"__name__": "__main__", "__file__": str(p), "__CANDIDATE": CAND_LEGACY})
++
++
++@step("08 persistencia_v2 contra o candidato v3 (Lua 5.4 e 5.5, 9 cenarios; numeros da implantacao manual)")
+ def t_persistencia():
+     if V2:
+         p, t = persist_v2_source()
+@@ -582,7 +643,7 @@
+         seq = [("economia_integrada.patch", PAR / "economia/economia_integrada.patch"),
+                ("ia_logistica_v2.patch", ACAB / "ia_logistica_v2.patch"),
+                ("reserva_bmat.patch", ACAB / "reserva_bmat.patch"),
+-               ("painel_rebase_v2.patch", HERE / "painel_rebase_v2.patch"),
++               ("painel_rebase_v2.patch", ENSAIO / "painel_rebase_v2.patch"),
+                ("persistencia_v2_sobre_ia.patch", ACAB / "persistencia_v2_sobre_ia.patch")]
+     else:
+         seq = [("economia_integrada.patch", PAR / "economia/economia_integrada.patch"),
+@@ -622,17 +683,31 @@
+             rc, out = git_apply(d, lf_patch(p))
+             assert rc == 0, "%s NAO aplica na sequencia: %s" % (name, out)
+         final = f.read_text(encoding="utf-8")
+-        assert final == CAND, "sequencia dos %d .patch diverge do candidato do build_pilha (%d x %d chars)" % (len(seq), len(final), len(CAND))
+-        notes.append("%s aplicam em sequencia e == candidato (byte a byte, LF)" % ">".join(n.replace(".patch", "") for n, _ in seq))
+-        # pilha.diff (CRLF) aplica direto no main.lua real (CRLF)
++        assert final == CAND_V2, "sequencia dos %d .patch diverge do candidato v2 do build_pilha (%d x %d chars)" % (len(seq), len(final), len(CAND_V2))
++        notes.append("%s aplicam em sequencia e == candidato v2 (byte a byte, LF)" % ">".join(n.replace(".patch", "") for n, _ in seq))
++        # V3: coleta_manual_lf.patch (a/main.lua b/main.lua) sobre o candidato v2 == candidato v3
++        h = d / "coleta"
++        h.mkdir()
++        (h / "main.lua").write_bytes(CAND_V2.encode("utf-8"))
++        rc, out = git_apply(h, HERE / "coleta_manual_lf.patch")
++        assert rc == 0, "coleta_manual_lf.patch NAO aplica no candidato v2: " + out
++        assert (h / "main.lua").read_text(encoding="utf-8") == CAND, "candidato v2 + coleta_manual_lf.patch != candidato v3"
++        notes.append("coleta_manual_lf.patch aplica sobre o candidato v2 e == candidato v3 (LF)")
++        # pilha_v2.diff (CRLF) aplica direto no main.lua real (CRLF) e reproduz candidato_v2; coleta_manual.patch (CRLF) leva a v3
+         g = d / "real"
+         gf = g / bp.HEADER
+         gf.parent.mkdir(parents=True)
+         gf.write_bytes(bp.MAIN.read_bytes())
+-        rc, out = git_apply(g, HERE / ("pilha%s.diff" % SFX))
+-        assert rc == 0, "pilha%s.diff nao aplica no main real (CRLF): " % SFX + out
+-        assert gf.read_bytes() == CAND_FILE.read_bytes(), "pilha%s.diff aplicado != candidato%s/main.lua" % (SFX, SFX)
+-        notes.append("pilha%s.diff (CRLF) aplica direto no main.lua real e reproduz candidato%s/main.lua byte a byte" % (SFX, SFX))
++        rc, out = git_apply(g, ENSAIO / "pilha_v2.diff")
++        assert rc == 0, "pilha_v2.diff nao aplica no main real (CRLF): " + out
++        assert gf.read_bytes() == CAND_V2_FILE.read_bytes(), "pilha_v2.diff aplicado != candidato_v2/main.lua"
++        k = d / "crlf"
++        k.mkdir()
++        (k / "main.lua").write_bytes(CAND_V2_FILE.read_bytes())
++        rc, out = git_apply(k, HERE / "coleta_manual.patch")
++        assert rc == 0, "coleta_manual.patch (CRLF) nao aplica em candidato_v2/main.lua: " + out
++        assert (k / "main.lua").read_bytes() == CAND_FILE.read_bytes(), "candidato_v2 + coleta_manual.patch != candidato_v3/main.lua (bytes)"
++        notes.append("pilha_v2.diff -> candidato_v2 e coleta_manual.patch (CRLF) -> candidato_v3 reproduzem os arquivos byte a byte")
+     return "; ".join(notes)
+ 
+ 
+@@ -641,7 +716,7 @@
+     if V2:
+         alts = bp.alt_orders_v2(SOURCE)
+         for k, v in alts.items():
+-            assert v == CAND, "ordem alternativa diverge do candidato v2: " + k
++            assert build_coleta.apply(v) == CAND, "ordem alternativa + coleta diverge do candidato v3: " + k  # V3
+         return "%d ordens alternativas dao texto identico (%s)" % (len(alts), "; ".join(alts))
+     alt = bp.alt_order_interface_before_ia(SOURCE)
+     assert alt == CAND, "ordem alternativa diverge do candidato"
+@@ -665,9 +740,9 @@
+ 
+ 
+ STEPS = [t_integridade, t_sintaxe, t_check_globals, t_orders_controle, t_orders_candidato, t_tools_independentes,
+-         t_economia, t_ia] + ([t_elogi, t_bmat] if V2 else []) + [
++         t_economia, t_ia] + ([t_elogi, t_elogi_legacy, t_bmat] if V2 else []) + [
+          t_interface_original, t_interface_candidato, t_interface_integrada] + ([t_interface_v2] if V2 else []) + [
+-         t_persistencia, t_contrato_estradas, t_ordem_patches, t_ordem_alternativa, t_residuos]
++         t_persistencia, t_persistencia_legacy, t_contrato_estradas, t_ordem_patches, t_ordem_alternativa, t_residuos]
+ 
+ if __name__ == "__main__":
+     print("variante %s | candidato: %s (%d linhas, %d bytes CRLF); main real SHA256 %s" % (VARIANT, CAND_FILE, CAND.count("\n"), CAND_FILE.stat().st_size, SHA_BEFORE))
+@@ -682,5 +757,5 @@
+     print("\nRESUMO: %d etapas, %d PASS, %d FAIL" % (len(SUMMARY), len(SUMMARY) - len(bad), len(bad)))
+     for n, ok, dt, note in SUMMARY:
+         print("  [%s] %s" % ("PASS" if ok else "FAIL", n))
+-    print("(saida detalhada: dados/paralel/ensaio_integracao/saida_testes%s.txt; offline: nao prova nada do jogo)" % SFX)
++    print("(saida detalhada: dados/paralel/ia_logistica/acabamento/coleta_manual/saida_testes%s.txt; offline: nao prova nada do jogo)" % SFX)
+     sys.exit(1 if bad else 0)

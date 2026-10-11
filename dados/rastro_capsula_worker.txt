@@ -1,0 +1,1 @@
+CAPSULE	CapsuleComponent /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.Character_C_2147479421.CollisionCylinder	50.0	90.0	LOCATION	13235.490234375	-50351.046875	694.62420654297	SCALE	1.0

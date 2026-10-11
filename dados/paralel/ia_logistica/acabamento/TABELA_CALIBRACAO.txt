@@ -1,0 +1,54 @@
+=== cadencia: luta de 45 s por onda (~60 s por onda) ===
+-- v1 (original: free 3, trip 25, want 6/30)
+   controle (sem corte)                     1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:10/10 8:11/11 9:12/12 10:13/13
+   corte total desde 0 s                    1:6/6 2:6/6 3:7/7 4:3/8[i5] 5:3/9[i6] 6:3/10[i7] 7:3/10[i7] 8:3/11[i5] 9:3/12[i9] 10:3/13[i1]
+   corte total desde a onda 5               1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:5/10[i5] 8:3/11[i8] 9:3/12[i9] 10:3/13[i6]
+   corte ate a 1a falta, depois livre       1:6/6 2:6/6 3:7/7 4:3/8[i5] 5:3/9[i6] 6:3/10[i7] 7:10/10 8:6/11[i2] 9:12/12 10:4/13
+   escassez (retaguarda sem bmat/sucata)    1:6/6 2:6/6 3:7/7 4:3/8 5:3/9 6:3/10 7:3/10 8:3/11 9:3/12 10:3/13
+   parcial p=0.25 (20 sementes): faltaram 20.7 soldados no total (40% do corte total); carga perdida no razao = 29% da despachada
+   parcial p=0.50 (20 sementes): faltaram 32.0 soldados no total (62% do corte total); carga perdida no razao = 53% da despachada
+   parcial p=0.75 (20 sementes): faltaram 46.5 soldados no total (89% do corte total); carga perdida no razao = 85% da despachada
+   semente 1, p=0.50: 1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:10/10 8:8/11[i3] 9:3/12[i9] 10:13/13
+   semente 2, p=0.50: 1:6/6 2:6/6 3:7/7 4:8/8 5:8/9[i1] 6:3/10[i7] 7:3/10[i7] 8:3/11[i5] 9:12/12 10:4/13
+   semente 3, p=0.50: 1:6/6 2:6/6 3:7/7 4:8/8 5:8/9[i1] 6:3/10[i7] 7:3/10[i7] 8:3/11[i5] 9:12/12 10:4/13
+   CRITERIOS: sem corte: alguma onda saiu menor que a atual; corte total desde o inicio: falta ja na onda 4 (<5); corte total: media das ondas 5-10 = 0.28 fora de [0.40, 0.65]; corte total: piso 0.23 < 0.33 do pedido; rastreabilidade byCut 0.77/0.73 < 0.75 do que faltou
+-- v2 (calibrado: free 5, trip 20, want 4/20)
+   controle (sem corte)                     1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:10/10 8:11/11 9:12/12 10:13/13
+   corte total desde 0 s                    1:6/6 2:6/6 3:7/7 4:8/8 5:8/9[i1] 6:5/10[i5] 7:5/10[i5] 8:5/11[i6] 9:5/12[i7] 10:5/13[i8]
+   corte total desde a onda 5               1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:10/10 8:11/11 9:8/12[i4] 10:5/13[i8]
+   corte ate a 1a falta, depois livre       1:6/6 2:6/6 3:7/7 4:8/8 5:8/9[i1] 6:5/10[i5] 7:10/10 8:10/11[i1] 9:12/12 10:8/13[i5]
+   escassez (retaguarda sem bmat/sucata)    1:6/6 2:6/6 3:7/7 4:8/8 5:8/9 6:5/10 7:5/10 8:5/11 9:5/12 10:5/13
+   parcial p=0.25 (20 sementes): faltaram 5.1 soldados no total (16% do corte total); carga perdida no razao = 22% da despachada
+   parcial p=0.50 (20 sementes): faltaram 16.1 soldados no total (50% do corte total); carga perdida no razao = 62% da despachada
+   parcial p=0.75 (20 sementes): faltaram 22.3 soldados no total (70% do corte total); carga perdida no razao = 77% da despachada
+   semente 1, p=0.50: 1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:10/10 8:11/11 9:8/12[i4] 10:5/13[i8]
+   semente 2, p=0.50: 1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:9/10[i1] 8:5/11[i6] 9:5/12[i7] 10:5/13[i8]
+   semente 3, p=0.50: 1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:10/10 8:11/11 9:8/12[i4] 10:5/13[i8]
+   CRITERIOS: todos atendidos
+=== cadencia: luta de 90 s por onda (~105 s por onda) ===
+-- v1 (original: free 3, trip 25, want 6/30)
+   controle (sem corte)                     1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:10/10 8:11/11 9:12/12 10:13/13
+   corte total desde 0 s                    1:6/6 2:6/6 3:7/7 4:3/8[i5] 5:3/9[i6] 6:3/10[i7] 7:3/10[i7] 8:3/11[i8] 9:3/12[i9] 10:3/13[i10]
+   corte total desde a onda 5               1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:10/10 8:11/11 9:10/12[i2] 10:3/13[i10]
+   corte ate a 1a falta, depois livre       1:6/6 2:6/6 3:7/7 4:3/8[i5] 5:3/9[i6] 6:10/10 7:10/10 8:11/11 9:11/12[i1] 10:13/13
+   escassez (retaguarda sem bmat/sucata)    1:6/6 2:6/6 3:7/7 4:3/8 5:3/9 6:3/10 7:3/10 8:3/11 9:3/12 10:3/13
+   parcial p=0.25 (20 sementes): faltaram 2.9 soldados no total (6% do corte total); carga perdida no razao = 24% da despachada
+   parcial p=0.50 (20 sementes): faltaram 14.2 soldados no total (27% do corte total); carga perdida no razao = 48% da despachada
+   parcial p=0.75 (20 sementes): faltaram 39.3 soldados no total (76% do corte total); carga perdida no razao = 78% da despachada
+   semente 1, p=0.50: 1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:10/10 8:11/11 9:12/12 10:5/13[i8]
+   semente 2, p=0.50: 1:6/6 2:6/6 3:7/7 4:8/8 5:8/9[i1] 6:10/10 7:10/10 8:11/11 9:12/12 10:6/13[i7]
+   semente 3, p=0.50: 1:6/6 2:6/6 3:7/7 4:8/8 5:8/9[i1] 6:10/10 7:6/10[i4] 8:3/11[i8] 9:3/12[i9] 10:13/13
+   CRITERIOS: sem corte: alguma onda saiu menor que a atual; corte total desde o inicio: falta ja na onda 4 (<5); corte total: media das ondas 5-10 = 0.28 fora de [0.40, 0.65]; corte total: piso 0.23 < 0.33 do pedido
+-- v2 (calibrado: free 5, trip 20, want 4/20)
+   controle (sem corte)                     1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:10/10 8:11/11 9:12/12 10:13/13
+   corte total desde 0 s                    1:6/6 2:6/6 3:7/7 4:8/8 5:8/9[i1] 6:5/10[i5] 7:5/10[i5] 8:5/11[i6] 9:5/12[i7] 10:5/13[i8]
+   corte total desde a onda 5               1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:10/10 8:11/11 9:8/12[i4] 10:5/13[i8]
+   corte ate a 1a falta, depois livre       1:6/6 2:6/6 3:7/7 4:8/8 5:8/9[i1] 6:10/10 7:10/10 8:11/11 9:12/12 10:13/13
+   escassez (retaguarda sem bmat/sucata)    1:6/6 2:6/6 3:7/7 4:8/8 5:8/9 6:5/10 7:5/10 8:5/11 9:5/12 10:5/13
+   parcial p=0.25 (20 sementes): faltaram 0.0 soldados no total (0% do corte total); carga perdida no razao = 21% da despachada
+   parcial p=0.50 (20 sementes): faltaram 3.6 soldados no total (11% do corte total); carga perdida no razao = 50% da despachada
+   parcial p=0.75 (20 sementes): faltaram 17.6 soldados no total (55% do corte total); carga perdida no razao = 77% da despachada
+   semente 1, p=0.50: 1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:10/10 8:11/11 9:8/12[i4] 10:13/13
+   semente 2, p=0.50: 1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:9/10[i1] 8:11/11 9:12/12 10:12/13[i1]
+   semente 3, p=0.50: 1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:10/10 8:11/11 9:12/12 10:13/13
+   CRITERIOS: todos atendidos

@@ -1,0 +1,290 @@
+[
+  {
+    "rva": "0x2c33b3",
+    "runtime_ranges": [
+      [
+        "0x2c2be0",
+        "0x2c3f71"
+      ]
+    ],
+    "export_at_exact_function_start": []
+  },
+  {
+    "rva": "0x2c3a0d",
+    "runtime_ranges": [
+      [
+        "0x2c2be0",
+        "0x2c3f71"
+      ]
+    ],
+    "export_at_exact_function_start": []
+  },
+  {
+    "rva": "0x2c5b57",
+    "runtime_ranges": [
+      [
+        "0x2c5970",
+        "0x2c5e35"
+      ]
+    ],
+    "export_at_exact_function_start": []
+  },
+  {
+    "rva": "0x2c5beb",
+    "runtime_ranges": [
+      [
+        "0x2c5970",
+        "0x2c5e35"
+      ]
+    ],
+    "export_at_exact_function_start": []
+  },
+  {
+    "rva": "0x2c60b4",
+    "runtime_ranges": [
+      [
+        "0x2c5e40",
+        "0x2c611c"
+      ]
+    ],
+    "export_at_exact_function_start": []
+  },
+  {
+    "rva": "0x2c60bc",
+    "runtime_ranges": [
+      [
+        "0x2c5e40",
+        "0x2c611c"
+      ]
+    ],
+    "export_at_exact_function_start": []
+  },
+  {
+    "rva": "0x2c6b92",
+    "runtime_ranges": [
+      [
+        "0x2c6120",
+        "0x2c6f3a"
+      ]
+    ],
+    "export_at_exact_function_start": [
+      "?push_structproperty@LuaType@RC@@YAXAEBUPusherParams@12@@Z"
+    ]
+  },
+  {
+    "rva": "0x2c6d99",
+    "runtime_ranges": [
+      [
+        "0x2c6120",
+        "0x2c6f3a"
+      ]
+    ],
+    "export_at_exact_function_start": [
+      "?push_structproperty@LuaType@RC@@YAXAEBUPusherParams@12@@Z"
+    ]
+  },
+  {
+    "rva": "0x2fb1c5",
+    "runtime_ranges": [
+      [
+        "0x2fae10",
+        "0x2fb546"
+      ]
+    ],
+    "export_at_exact_function_start": []
+  },
+  {
+    "rva": "0x312c9b",
+    "runtime_ranges": [
+      [
+        "0x312c70",
+        "0x312ca4"
+      ]
+    ],
+    "export_at_exact_function_start": []
+  },
+  {
+    "rva": "0x4589aa",
+    "runtime_ranges": [
+      [
+        "0x458810",
+        "0x458a4d"
+      ]
+    ],
+    "export_at_exact_function_start": []
+  },
+  {
+    "rva": "0x46219a",
+    "runtime_ranges": [
+      [
+        "0x462140",
+        "0x4621ec"
+      ]
+    ],
+    "export_at_exact_function_start": []
+  },
+  {
+    "rva": "0xb985c4",
+    "runtime_ranges": [
+      [
+        "0xb98580",
+        "0xb9860c"
+      ]
+    ],
+    "export_at_exact_function_start": []
+  },
+  {
+    "rva": "0xb99c75",
+    "runtime_ranges": [
+      [
+        "0xb99c00",
+        "0xb99d65"
+      ]
+    ],
+    "export_at_exact_function_start": [
+      "?call_function@Lua@LuaMadeSimple@RC@@QEBAXHH@Z"
+    ]
+  },
+  {
+    "rva": "0xb9d34c",
+    "runtime_ranges": [
+      [
+        "0xb9cf40",
+        "0xb9d373"
+      ]
+    ],
+    "export_at_exact_function_start": [
+      "?process_lua_function@LuaMadeSimple@RC@@YAHPEAUlua_State@@@Z"
+    ]
+  },
+  {
+    "rva": "0xc62ea9",
+    "runtime_ranges": [
+      [
+        "0xc62e70",
+        "0xc62eea"
+      ]
+    ],
+    "export_at_exact_function_start": []
+  },
+  {
+    "rva": "0xc640ac",
+    "runtime_ranges": [
+      [
+        "0xc63fa0",
+        "0xc640d8"
+      ]
+    ],
+    "export_at_exact_function_start": []
+  },
+  {
+    "rva": "0xc6b993",
+    "runtime_ranges": [
+      [
+        "0xc6b8f0",
+        "0xc6b9e2"
+      ]
+    ],
+    "export_at_exact_function_start": []
+  },
+  {
+    "rva": "0xc6b9a9",
+    "runtime_ranges": [
+      [
+        "0xc6b8f0",
+        "0xc6b9e2"
+      ]
+    ],
+    "export_at_exact_function_start": []
+  },
+  {
+    "rva": "0xc6bff4",
+    "runtime_ranges": [
+      [
+        "0xc6bfc0",
+        "0xc6c091"
+      ]
+    ],
+    "export_at_exact_function_start": []
+  },
+  {
+    "rva": "0xc6c1ca",
+    "runtime_ranges": [
+      [
+        "0xc6c1bb",
+        "0xc6c1eb"
+      ]
+    ],
+    "export_at_exact_function_start": []
+  },
+  {
+    "rva": "0xc6c1e0",
+    "runtime_ranges": [
+      [
+        "0xc6c1bb",
+        "0xc6c1eb"
+      ]
+    ],
+    "export_at_exact_function_start": []
+  },
+  {
+    "rva": "0xc6c733",
+    "runtime_ranges": [
+      [
+        "0xc6c6c0",
+        "0xc6c766"
+      ]
+    ],
+    "export_at_exact_function_start": []
+  },
+  {
+    "rva": "0xc6cfde",
+    "runtime_ranges": [
+      [
+        "0xc6cf64",
+        "0xc6d03d"
+      ]
+    ],
+    "export_at_exact_function_start": []
+  },
+  {
+    "rva": "0xc7591f",
+    "runtime_ranges": [
+      [
+        "0xc74a00",
+        "0xc78750"
+      ]
+    ],
+    "export_at_exact_function_start": []
+  },
+  {
+    "rva": "0xc77cab",
+    "runtime_ranges": [
+      [
+        "0xc74a00",
+        "0xc78750"
+      ]
+    ],
+    "export_at_exact_function_start": []
+  },
+  {
+    "rva": "0xc793e5",
+    "runtime_ranges": [
+      [
+        "0xc79380",
+        "0xc79416"
+      ]
+    ],
+    "export_at_exact_function_start": []
+  },
+  {
+    "rva": "0xc7c9a1",
+    "runtime_ranges": [
+      [
+        "0xc7c940",
+        "0xc7c9d2"
+      ]
+    ],
+    "export_at_exact_function_start": []
+  }
+]

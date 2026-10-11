@@ -1,0 +1,1125 @@
+## BPItemDynamicData
+RelicRifle | custo=Clothx150 qtd=5 tempo=60
+Radio | custo=Clothx75 qtd=5 tempo=50
+RadioBackpack | custo=Clothx150 qtd=5 tempo=75
+Mortar | custo=Clothx100+Woodx25 qtd=5 tempo=50
+MGAmmo | custo=Clothx100 qtd=20 tempo=70
+LightArtilleryAmmo | custo=Clothx120+HeavyExplosivex10 qtd=5 tempo=55
+Sulfur | custo=Sulfurx105 qtd=100 tempo=200
+Components | custo=Componentsx70 qtd=100 tempo=200
+UpgradePart | custo=RFuelx20 qtd=1 tempo=300
+Metal | custo=Metalx45 qtd=100 tempo=100
+GrenadeW | custo=Clothx100+Explosivex40 qtd=20 tempo=100
+GasMask | custo=Clothx160 qtd=20 tempo=100
+MaintenanceSupplies | custo=Clothx250 qtd=100 tempo=125
+FirstAidKit | custo=Clothx60 qtd=10 tempo=35
+FieldMGAmmo | custo=Clothx100 qtd=20 tempo=100
+GreenAsh | custo=Clothx140 qtd=5 tempo=100
+SatchelChargeW | custo=Clothx100+Explosivex80 qtd=5 tempo=100
+Totem | custo=Clothx100 qtd=10 tempo=60
+BunkerSupplies | custo=Clothx75 qtd=150 tempo=190
+Tripod | custo=Clothx100 qtd=5 tempo=60
+Cloth | custo=Clothx100 qtd=100 tempo=500
+Diesel | custo= qtd=1 tempo=5
+Explosive | custo=Explosivex200 qtd=40 tempo=750
+HeavyExplosive | custo=HeavyExplosivex400 qtd=30 tempo=1000
+TechPart | custo= qtd=20 tempo=50
+Petrol | custo= qtd=1 tempo=15
+Wood | custo=Woodx400 qtd=20 tempo=1000
+SniperRifleAmmo | custo=Clothx150 qtd=10 tempo=100
+ShotgunAmmo | custo=Clothx80 qtd=40 tempo=50
+RpgW | custo=Clothx100+Woodx35 qtd=5 tempo=50
+RpgAmmo | custo=Clothx60+Explosivex90 qtd=15 tempo=100
+RifleAmmo | custo=Clothx80 qtd=40 tempo=50
+Revolver | custo=Clothx60 qtd=30 tempo=50
+RevolverAmmo | custo=Clothx40 qtd=40 tempo=40
+ResearchPart | custo= qtd=20 tempo=50
+PistolAmmo | custo=Clothx40 qtd=40 tempo=20
+MortarAmmoSH | custo=Clothx60+Explosivex20 qtd=15 tempo=100
+MortarAmmo | custo=Clothx60+Explosivex70 qtd=15 tempo=100
+MortarAmmoFL | custo=Clothx60+Explosivex15 qtd=15 tempo=100
+MortarTankAmmo | custo=Clothx120+HeavyExplosivex100 qtd=5 tempo=150
+MiniTankAmmo | custo=Clothx80+Explosivex40 qtd=20 tempo=100
+MGC | custo=Woodx25 qtd=5 tempo=100
+Lore | custo= qtd=20 tempo=600
+LRArtilleryAmmo | custo=Clothx135+HeavyExplosivex45 qtd=1 tempo=125
+StaticArtilleryAmmo | custo=Clothx80+HeavyExplosivex20 qtd=20 tempo=200
+AssaultRifleW | custo=Woodx15 qtd=20 tempo=80
+Crate | custo= qtd=20 tempo=600
+Iron | custo= qtd=100 tempo=100
+Aluminum | custo= qtd=100 tempo=100
+Copper | custo= qtd=100 tempo=100
+ISGTC | custo=Clothx100+Woodx5 qtd=5 tempo=125
+HEGrenade | custo=Clothx100+Explosivex20 qtd=20 tempo=80
+Concrete | custo=StrongMaterialsx20 qtd=1 tempo=200
+GasMaskFilter | custo=Clothx100 qtd=20 tempo=50
+CriticalSoldier | custo=Clothx50 qtd=50 tempo=125
+RifleLightW | custo=Clothx140 qtd=20 tempo=80
+CarbineAmmo | custo=Clothx80 qtd=40 tempo=50
+BloodPlasma | custo=Clothx80 qtd=50 tempo=40
+Bayonet | custo=Clothx40 qtd=20 tempo=30
+ATRifleW | custo=Clothx150 qtd=3 tempo=38
+ATRifleAmmo | custo=Clothx100 qtd=10 tempo=100
+AssaultRifleC | custo=Woodx15 qtd=20 tempo=80
+AssaultRifleAmmo | custo=Clothx120 qtd=30 tempo=60
+Binoculars | custo=Clothx75 qtd=5 tempo=50
+Bandages | custo=Clothx80 qtd=50 tempo=40
+ArtilleryAmmoHE | custo=Clothx200+HeavyExplosivex200 qtd=20 tempo=200
+ArtilleryAmmoAP | custo=Clothx200+Woodx200 qtd=20 tempo=200
+SledgeHammer | custo=Clothx200 qtd=10 tempo=100
+ArtilleryAmmo | custo=Clothx200+HeavyExplosivex100 qtd=20 tempo=200
+TraumaKit | custo=Clothx80 qtd=10 tempo=50
+PistolC | custo=Clothx60 qtd=20 tempo=50
+TankMine | custo=Clothx100+Explosivex20 qtd=10 tempo=100
+RifleW | custo=Clothx100 qtd=20 tempo=70
+WorkHammer | custo=Clothx20 qtd=20 tempo=50
+WorkWrench | custo=Clothx75 qtd=5 tempo=50
+Shovel | custo=Clothx200 qtd=10 tempo=100
+SmokeGrenade | custo=Clothx80 qtd=15 tempo=75
+SniperRifleW | custo=Clothx250+Woodx25 qtd=3 tempo=250
+SoldierSupplies | custo=Clothx80 qtd=10 tempo=80
+StaticArtilleryAmmoGA | custo=Clothx120+Explosivex80 qtd=20 tempo=200
+StaticArtilleryAmmoSMK | custo=Clothx120+Explosivex40 qtd=20 tempo=200
+StickyBomb | custo=Clothx50+Explosivex100 qtd=10 tempo=75
+SMGAmmo | custo=Clothx80 qtd=40 tempo=50
+SMGW | custo=Clothx120 qtd=20 tempo=80
+UnexplodedOrdnance | custo=Clothx100+HeavyExplosivex60 qtd=5 tempo=100
+Lore5 | custo= qtd=20 tempo=600
+Lore12 | custo= qtd=1 tempo=30
+Lore4 | custo= qtd=1 tempo=30
+Lore9 | custo= qtd=20 tempo=600
+Lore6 | custo= qtd=20 tempo=600
+Lore13 | custo= qtd=1 tempo=30
+Lore1 | custo= qtd=20 tempo=600
+Lore3 | custo= qtd=20 tempo=600
+Lore2 | custo= qtd=20 tempo=600
+Lore7 | custo= qtd=20 tempo=600
+Lore8 | custo= qtd=20 tempo=600
+BattleTankAmmoAP | custo=Clothx200+Woodx200+Explosivex400 qtd=20 tempo=200
+BattleTankAmmoHE | custo=Clothx200+HeavyExplosivex400 qtd=20 tempo=200
+BattleTankAmmoSH | custo=Clothx200+Woodx80 qtd=20 tempo=200
+LightTankAmmoAP | custo=Clothx160+Woodx60+Explosivex120 qtd=20 tempo=200
+LightTankAmmoHE | custo=Clothx160+HeavyExplosivex140 qtd=20 tempo=200
+LightTankAmmo | custo=Clothx160+Explosivex240 qtd=20 tempo=200
+LightTankAmmoSH | custo=Clothx160+Woodx40 qtd=20 tempo=200
+FestivalFlag | custo= qtd=10 tempo=5
+PrototypeKit | custo= qtd=0 tempo=0
+ATAmmo | custo=Clothx120+Explosivex240 qtd=20 tempo=200
+IronA | custo=IronAx20 qtd=20 tempo=1000
+CopperA | custo=CopperAx20 qtd=20 tempo=1000
+AluminumA | custo=AluminumAx20 qtd=20 tempo=1000
+ATMortar | custo=Clothx100+Woodx25 qtd=5 tempo=50
+SoulstoneT3 | custo=Clothx300+HeavyExplosivex50 qtd=3 tempo=100
+WoundedCarriedPlayer | custo= qtd=0 tempo=0
+RelicMaterials | custo=RelicMaterialsx100 qtd=20 tempo=200
+SniperRifleC | custo=Clothx250+Woodx30 qtd=5 tempo=250
+GrenadeC | custo=Clothx100+Explosivex40 qtd=25 tempo=100
+SMGC | custo=Clothx80 qtd=20 tempo=80
+ATRPGW | custo=Clothx100+Woodx25 qtd=5 tempo=50
+ATRPGAmmo | custo=Clothx60+Explosivex150 qtd=15 tempo=100
+ATRPGLightC | custo=Clothx85+Explosivex70 qtd=10 tempo=75
+ATRPGC | custo=Clothx100+Woodx15 qtd=5 tempo=50
+ATRPGHeavyC | custo=Clothx150+Woodx40 qtd=5 tempo=125
+RifleC | custo=Clothx100 qtd=20 tempo=70
+RifleLightC | custo=Clothx140 qtd=20 tempo=80
+MGW | custo=Woodx25 qtd=5 tempo=100
+HeavyArtilleryAmmo | custo=Clothx120+HeavyExplosivex60 qtd=5 tempo=65
+ATRPGTW | custo=Clothx100+Woodx5 qtd=5 tempo=250
+ATRPGIndirectAmmo | custo=Clothx60+Explosivex150 qtd=15 tempo=100
+PistolLightW | custo=Clothx60 qtd=40 tempo=30
+ExplosiveLightC | custo=Clothx100+Explosivex80 qtd=5 tempo=100
+SMGHeavyW | custo=Clothx120 qtd=20 tempo=80
+SMGHeavyC | custo=Clothx120 qtd=20 tempo=80
+AssaultRifleHeavyW | custo=Woodx15 qtd=20 tempo=80
+ATGrenadeW | custo=Clothx100+Explosivex80 qtd=10 tempo=75
+AssaultRifleHeavyC | custo=Woodx15 qtd=20 tempo=80
+MGHeavyTW | custo=Clothx150+Woodx5 qtd=5 tempo=125
+RifleHeavyC | custo=Clothx100 qtd=15 tempo=90
+RifleHeavyW | custo=Clothx125 qtd=20 tempo=80
+RifleLongC | custo=Clothx155 qtd=15 tempo=90
+RifleLongW | custo=Clothx130 qtd=15 tempo=90
+RifleAutomaticW | custo=Clothx125 qtd=20 tempo=70
+HeavyATAmmo | custo=Clothx120+Explosivex120 qtd=20 tempo=200
+MGTW | custo=Clothx100+Woodx5 qtd=5 tempo=125
+MGTC | custo=Clothx100+Woodx5 qtd=5 tempo=125
+Wreckage | custo= qtd=0 tempo=0
+AmmoUniformW | custo=Clothx100 qtd=15 tempo=90
+ArmourUniformC | custo=Clothx200 qtd=10 tempo=90
+ArmourUniformW | custo=Clothx150 qtd=5 tempo=90
+ChemicalUniformW | custo=Clothx100 qtd=15 tempo=90
+EngineerUniformC | custo=Clothx100 qtd=15 tempo=90
+EngineerUniformW | custo=Clothx100 qtd=15 tempo=90
+GrenadeUniformC | custo=Clothx100 qtd=15 tempo=90
+MedicUniformC | custo=Clothx100 qtd=15 tempo=90
+MedicUniformW | custo=Clothx100 qtd=15 tempo=90
+OfficerUniformC | custo=Clothx100 qtd=3 tempo=90
+OfficerUniformW | custo=Clothx100 qtd=3 tempo=90
+RainUniformC | custo=Clothx100 qtd=15 tempo=90
+ScoutUniformC | custo=Clothx100 qtd=15 tempo=90
+ScoutUniformW | custo=Clothx100 qtd=15 tempo=90
+SnowUniformC | custo=Clothx100 qtd=15 tempo=90
+SnowUniformW | custo=Clothx100 qtd=15 tempo=90
+SoldierUniformC | custo=Clothx100 qtd=15 tempo=90
+SoldierUniformW | custo=Clothx100 qtd=15 tempo=90
+TankUniformC | custo=Clothx100 qtd=15 tempo=90
+TankUniformW | custo=Clothx100 qtd=15 tempo=90
+ListeningKit | custo=Clothx150 qtd=5 tempo=60
+SandbagMaterials | custo=Clothx15 qtd=5 tempo=15
+BarbedWireMaterials | custo=Clothx15 qtd=5 tempo=15
+MetalBeamMaterials | custo=Clothx25 qtd=5 tempo=20
+PistolW | custo=Clothx60 qtd=20 tempo=50
+ATRifleTC | custo=Clothx100+Woodx5 qtd=5 tempo=125
+RPGTW | custo=Clothx100+Woodx5 qtd=5 tempo=250
+GrenadeLauncherC | custo=Clothx100+Woodx35 qtd=5 tempo=50
+GrenadeAdapter | custo=Clothx85+Woodx10 qtd=20 tempo=100
+HELaunchedGrenade | custo=Clothx75+Explosivex100 qtd=20 tempo=80
+GroundMaterials | custo=Coalx100 qtd=20 tempo=500
+ATLargeAmmo | custo=Clothx200+HeavyExplosivex20 qtd=1 tempo=125
+BattleTankAmmo | custo=Clothx200+HeavyExplosivex20 qtd=1 tempo=125
+FireRocketAmmo | custo=Clothx60+Explosivex15 qtd=1 tempo=55
+HERocketAmmo | custo=Clothx60+Explosivex15 qtd=1 tempo=55
+Oil | custo=Oilx2 qtd=1 tempo=15
+PipeMaterials | custo=Clothx50 qtd=2 tempo=15
+Water | custo=Waterx2 qtd=1 tempo=15
+Coal | custo=Coalx100 qtd=100 tempo=15
+WaterBucket | custo=Clothx80 qtd=50 tempo=40
+WaterBucketfull | custo= qtd=1 tempo=15
+FlameAmmo | custo=Clothx60+Explosivex45 qtd=1 tempo=125
+WaterStreamAmmo | custo= qtd=1 tempo=1
+FacilityMaterials1 | custo=Clothx50 qtd=20 tempo=15
+FacilityMaterials2 | custo=Clothx50 qtd=1 tempo=15
+FacilityMaterials3 | custo=Clothx50 qtd=1 tempo=15
+FacilityMaterials4 | custo=Clothx50 qtd=1 tempo=15
+FacilityMaterials5 | custo=Clothx50 qtd=1 tempo=15
+RareMaterials | custo= qtd=1 tempo=15
+FacilityOil1 | custo=Clothx50 qtd=1 tempo=15
+FacilityOil2 | custo=Clothx50 qtd=1 tempo=15
+FacilityCoal1 | custo=Clothx1 qtd=1 tempo=15
+FacilityMaterials6 | custo=Clothx50 qtd=1 tempo=15
+FacilityMaterials7 | custo=Clothx50 qtd=1 tempo=15
+FacilityMaterials8 | custo=Clothx50 qtd=1 tempo=15
+FacilityMaterials9 | custo=Clothx50 qtd=1 tempo=15
+FacilityMaterials10 | custo=Clothx50 qtd=1 tempo=15
+FacilityMaterials11 | custo=Clothx50 qtd=1 tempo=15
+FlameBackpackAmmo | custo= qtd=0 tempo=0
+FlameBackpackC | custo=Clothx160+HeavyExplosivex20 qtd=10 tempo=100
+FlameBackpackW | custo=Clothx135+HeavyExplosivex20 qtd=10 tempo=100
+FlameTorchC | custo=Clothx185+Woodx25 qtd=10 tempo=50
+FlameTorchW | custo=Clothx165+Woodx30 qtd=10 tempo=50
+FacilityComponents1 | custo=Componentsx70 qtd=100 tempo=200
+In01KItem | custo= qtd=1 tempo=30
+In02KItem | custo= qtd=1 tempo=30
+In03KItem | custo= qtd=1 tempo=30
+In04KItem | custo= qtd=1 tempo=30
+In05KItem | custo= qtd=1 tempo=30
+In06KItem | custo= qtd=1 tempo=30
+In07KItem | custo= qtd=1 tempo=30
+In08KItem | custo= qtd=1 tempo=30
+GrenadeLauncherTC | custo=Clothx100+Woodx5 qtd=5 tempo=125
+Excavation | custo=Clothx200 qtd=10 tempo=100
+ExplosiveTripod | custo=Clothx75+HeavyExplosivex40 qtd=5 tempo=60
+SatchelChargeT | custo=Clothx75+HeavyExplosivex20 qtd=5 tempo=60
+RifleAutomaticC | custo=Clothx120 qtd=15 tempo=90
+RifleShortW | custo=Clothx70 qtd=15 tempo=60
+DepthChargeAmmo | custo=Clothx100 qtd=1 tempo=0
+RareMetal | custo=Componentsx100 qtd=2 tempo=100
+WaterMine | custo=Woodx40 qtd=1 tempo=0
+TorpedoAmmo | custo=Clothx100 qtd=1 tempo=80
+WindsockT | custo=Clothx150 qtd=5 tempo=60
+SwordC | custo=Clothx200 qtd=10 tempo=100
+MaceW | custo=Clothx200 qtd=10 tempo=100
+MortarAmmoFlame | custo=Clothx60+Explosivex70 qtd=15 tempo=100
+ATRifleAssaultW | custo=Clothx150 qtd=5 tempo=38
+ATRifleSniperC | custo=Clothx150 qtd=3 tempo=38
+ATRifleAutomaticW | custo=Clothx150 qtd=3 tempo=38
+ATRifleLightC | custo=Clothx150 qtd=3 tempo=38
+ShotgunC | custo=Clothx130 qtd=15 tempo=150
+ShotgunW | custo=Clothx80 qtd=15 tempo=100
+ATLaunchedGrenadeW | custo=Clothx95+Explosivex125 qtd=20 tempo=80
+InfantryMine | custo=Clothx100+Explosivex20 qtd=10 tempo=100
+ATRPGHeavyW | custo=Clothx125+Woodx15 qtd=5 tempo=75
+LoreSkull | custo= qtd=0 tempo=0
+BannerTC | custo=Clothx150 qtd=5 tempo=60
+BannerTW | custo=Clothx150 qtd=5 tempo=60
+ReservePower | custo=Clothx200 qtd=10 tempo=100
+MortarTankAmmoBR | custo=Clothx250+HeavyExplosivex200 qtd=5 tempo=250
+DemolitionRocketAmmo | custo=Clothx250+HeavyExplosivex250 qtd=5 tempo=250
+NavalUniformW | custo=Clothx100 qtd=15 tempo=90
+NavalUniformC | custo=Clothx100 qtd=15 tempo=90
+RadioAircraft | custo=Clothx75 qtd=5 tempo=50
+SurfaceWaterMine | custo=Clothx125+Explosivex35 qtd=5 tempo=125
+BomberAmmo | custo=Clothx200 qtd=5 tempo=65
+PilotUniformC | custo=Clothx150 qtd=1 tempo=90
+PilotUniformW | custo=Clothx150 qtd=1 tempo=90
+DiveBomberAmmo | custo=Clothx120 qtd=5 tempo=65
+AAAmmo | custo=Clothx100+HeavyExplosivex15 qtd=5 tempo=65
+ParatrooperBackpack | custo=Clothx100 qtd=10 tempo=100
+ParatrooperUniformC | custo=Clothx150 qtd=15 tempo=90
+ParatrooperUniformW | custo=Clothx150 qtd=15 tempo=90
+MiniTorpedoAmmo | custo=Clothx125+Explosivex75 qtd=5 tempo=125
+AircraftPartSmallEngineW | custo=Clothx100 qtd=1 tempo=80
+AircraftPartSmallEngineC | custo=Clothx100 qtd=1 tempo=80
+AircraftPartSmallMechanicalW | custo=Clothx100 qtd=1 tempo=80
+AircraftPartSmallMechanicalC | custo=Clothx100 qtd=1 tempo=80
+AircraftPartSmallEngineWreckedW | custo=Clothx100 qtd=1 tempo=80
+AircraftPartSmallEngineWreckedC | custo=Clothx100 qtd=1 tempo=80
+AircraftPartSmallMechanicalWreckedW | custo=Clothx100 qtd=1 tempo=80
+AircraftPartSmallMechanicalWreckedC | custo=Clothx100 qtd=1 tempo=80
+AircraftPartLargeEngineC | custo=Clothx100 qtd=1 tempo=80
+AircraftPartLargeEngineW | custo=Clothx100 qtd=1 tempo=80
+AircraftPartLargeMechanicalC | custo=Clothx100 qtd=1 tempo=80
+AircraftPartLargeMechanicalW | custo=Clothx100 qtd=1 tempo=80
+AircraftPartLargeEngineWreckedC | custo=Clothx100 qtd=1 tempo=80
+AircraftPartLargeEngineWreckedW | custo=Clothx100 qtd=1 tempo=80
+AircraftPartLargeMechanicalWreckedC | custo=Clothx100 qtd=1 tempo=80
+AircraftPartLargeMechanicalWreckedW | custo=Clothx100 qtd=1 tempo=80
+AircraftAmmo | custo=Clothx120 qtd=5 tempo=55
+FacilityMaterials12 | custo=Clothx50 qtd=1 tempo=15
+LightAAAmmo | custo=Clothx150+Explosivex160 qtd=5 tempo=55
+AircraftTorpedoAmmo | custo=Clothx100 qtd=1 tempo=80
+AirSirenT | custo=Clothx150 qtd=5 tempo=75
+WaterWallMaterials | custo=Clothx150 qtd=5 tempo=125
+PilotMask | custo=Clothx150 qtd=5 tempo=75
+## BPStructureDynamicData
+AmmoFactory | vida=2000 custo=Clothx400 alt= reparo=400 estoque=25
+ArtilleryAIT3 | vida=3450 custo=Concretex20 alt= reparo=120 estoque=4
+ATGunAIT2 | vida=1600 custo=Clothx200 alt= reparo=75 estoque=4
+ATGunAIT3 | vida=3450 custo=Concretex20 alt= reparo=120 estoque=4
+BarbedWireBuildSite | vida=100 custo= alt= reparo=0 estoque=0
+BPRelicApcStructure | vida=20 custo=Woodx200 alt= reparo=200 estoque=0
+TrenchBuildSite | vida=400 custo= alt= reparo=0 estoque=0
+Campsite | vida=400 custo=Clothx50 alt= reparo=50 estoque=0
+CampsiteBuildSite | vida=0 custo= alt= reparo=0 estoque=0
+ComponentMine | vida=1000 custo=Clothx200 alt= reparo=200 estoque=15
+ComponentMineBuildSite | vida=0 custo= alt= reparo=0 estoque=0
+ComponentsField | vida=2147483647 custo= alt= reparo=0 estoque=0
+ConcreteBridge | vida=3250 custo=Clothx300 alt= reparo=300 estoque=0
+ConcreteBridgeBuildSite | vida=500 custo= alt= reparo=0 estoque=0
+ConcreteMixer | vida=1200 custo=Woodx75 alt=FacilityMaterials1x5 reparo=75 estoque=9
+Construction | vida=20 custo=Clothx100 alt= reparo=100 estoque=0
+ConstructionYard | vida=2000 custo=Clothx400 alt= reparo=400 estoque=15
+ConstructionYardBuildSite | vida=2500 custo= alt= reparo=0 estoque=0
+Crane | vida=20 custo=Clothx125 alt= reparo=125 estoque=0
+DeployedISG | vida=1200 custo=Clothx40 alt= reparo=40 estoque=1
+DeployedTripod | vida=1200 custo=Clothx20 alt= reparo=20 estoque=0
+DestroyedAmmoFactory | vida=100000000 custo= alt= reparo=0 estoque=0
+DestroyedBarn | vida=100000000 custo= alt= reparo=0 estoque=0
+DestroyedBarn2 | vida=100000000 custo= alt= reparo=0 estoque=0
+DestroyedComponentMine | vida=100000000 custo= alt= reparo=0 estoque=0
+DestroyedConcreteBridge | vida=100000000 custo= alt= reparo=0 estoque=0
+DestroyedConstructionYard | vida=100000000 custo= alt= reparo=0 estoque=0
+DestroyedDrawbridge | vida=100000000 custo= alt= reparo=0 estoque=0
+DestroyedDrawbridgeWood | vida=100000000 custo= alt= reparo=0 estoque=0
+DestroyedEngineeringCenter | vida=100000000 custo= alt= reparo=0 estoque=0
+DestroyedFactory | vida=100000000 custo= alt= reparo=0 estoque=0
+DestroyedFortForwardBaseT1 | vida=4000 custo= alt= reparo=0 estoque=15
+DestroyedFortForwardBaseT2 | vida=20000 custo= alt= reparo=0 estoque=15
+DestroyedFortForwardBaseT3 | vida=40000 custo= alt= reparo=0 estoque=15
+DestroyedForwardBase1 | vida=4000 custo= alt= reparo=0 estoque=15
+DestroyedGarage | vida=100000000 custo= alt= reparo=0 estoque=0
+DestroyedGarrisonFishHut | vida=100000000 custo= alt= reparo=0 estoque=0
+DestroyedGarrisonFishHut2 | vida=100000000 custo= alt= reparo=0 estoque=0
+DestroyedGarrisonOutHouse | vida=100000000 custo= alt= reparo=0 estoque=0
+DestroyedHospital | vida=100000000 custo= alt= reparo=0 estoque=0
+DestroyedKeep | vida=100000000 custo= alt= reparo=0 estoque=0
+DestroyedMassProduction | vida=100000000 custo= alt= reparo=0 estoque=0
+DestroyedObservationTower | vida=100000000 custo= alt= reparo=0 estoque=0
+DestroyedOilWell | vida=100000000 custo= alt= reparo=0 estoque=0
+DestroyedRefinery | vida=100000000 custo= alt= reparo=0 estoque=0
+DestroyedRelicBase1 | vida=100000000 custo= alt= reparo=0 estoque=15
+DestroyedRelicBase2 | vida=100000000 custo= alt= reparo=0 estoque=15
+DestroyedRelicBase3 | vida=100000000 custo= alt= reparo=0 estoque=15
+DestroyedRocket | vida=100000000 custo= alt= reparo=0 estoque=0
+DestroyedRVWallT1 | vida=20 custo= alt= reparo=0 estoque=0
+DestroyedRVWallT2 | vida=20 custo= alt= reparo=0 estoque=0
+DestroyedRVWallT3 | vida=20 custo= alt= reparo=0 estoque=0
+DestroyedSafeHouse | vida=100000000 custo= alt= reparo=0 estoque=0
+DestroyedScrapMine | vida=100000000 custo= alt= reparo=0 estoque=0
+DestroyedShipyard | vida=100000000 custo= alt= reparo=0 estoque=0
+DestroyedStaticBase1 | vida=100000000 custo= alt= reparo=0 estoque=15
+DestroyedStaticBase2 | vida=100000000 custo= alt= reparo=0 estoque=15
+DestroyedStaticBase3 | vida=100000000 custo= alt= reparo=0 estoque=15
+DestroyedStaticCrane | vida=100000000 custo= alt= reparo=0 estoque=0
+DestroyedSeaport | vida=100000000 custo= alt= reparo=0 estoque=0
+DestroyedStorageFacility | vida=100000000 custo= alt= reparo=0 estoque=0
+DestroyedSulfurMine | vida=100000000 custo= alt= reparo=0 estoque=0
+DestroyedVehicleFactory | vida=100000000 custo= alt= reparo=0 estoque=0
+DestroyedWoodBridge | vida=100000000 custo= alt= reparo=0 estoque=0
+DestructableRock | vida=1000 custo= alt= reparo=0 estoque=0
+Drawbridge | vida=3250 custo=Clothx250 alt= reparo=300 estoque=0
+DrawbridgeBuildSite | vida=0 custo= alt= reparo=0 estoque=0
+DrawbridgeWood | vida=1200 custo=Clothx150 alt= reparo=150 estoque=0
+DrawbridgeWoodBuildSite | vida=0 custo= alt= reparo=0 estoque=0
+DroppedItemStash | vida=800000 custo= alt= reparo=0 estoque=16
+EngineeringCenter | vida=2000 custo=Clothx400 alt= reparo=400 estoque=15
+EngineRoomT3 | vida=3750 custo=Concretex15 alt= reparo=120 estoque=5
+Factory | vida=2000 custo=Clothx400 alt= reparo=400 estoque=40
+FactoryBuildSite | vida=0 custo= alt= reparo=0 estoque=0
+FestivalFlagHolder | vida=10000 custo=Clothx5 alt= reparo=5 estoque=0
+FestivalPortal | vida=10000 custo=Clothx5 alt= reparo=5 estoque=0
+FieldHospital | vida=500 custo=Clothx200 alt= reparo=200 estoque=6
+FortBaseT1 | vida=1500 custo=Clothx300 alt= reparo=100 estoque=15
+FortBaseT2 | vida=2500 custo=Clothx100 alt= reparo=150 estoque=15
+FortBaseT3 | vida=3500 custo=Concretex25 alt= reparo=200 estoque=15
+FortBuildSite | vida=400 custo= alt= reparo=0 estoque=4
+FortCornerT3 | vida=3750 custo=Concretex15 alt= reparo=120 estoque=3
+FortDestroyedT1 | vida=750 custo=Excavationx40 alt= reparo=40 estoque=0
+FortDestroyedT2 | vida=2000 custo=Clothx75 alt= reparo=75 estoque=0
+FortDestroyedT3 | vida=3750 custo=Concretex15 alt= reparo=120 estoque=0
+FortMachineGunAIBase | vida=1700 custo=Clothx50 alt= reparo=50 estoque=0
+FortRampT1 | vida=750 custo=Clothx50 alt= reparo=50 estoque=3
+FortRampT2 | vida=2000 custo=Clothx50 alt= reparo=75 estoque=3
+FortRampT3 | vida=3750 custo=Concretex10 alt= reparo=120 estoque=3
+FortT1 | vida=750 custo=Excavationx75 alt= reparo=50 estoque=4
+FortT2 | vida=2000 custo=Clothx75 alt= reparo=75 estoque=4
+FortT3 | vida=3750 custo=Concretex15 alt= reparo=120 estoque=4
+ForwardBase1 | vida=1725 custo=Clothx300 alt= reparo=300 estoque=15
+ForwardBase1BuildSite | vida=2000 custo= alt= reparo=0 estoque=15
+Foxhole | vida=500 custo=Excavationx20 alt= reparo=20 estoque=0
+FrontierBase | vida=1250 custo=Clothx50 alt= reparo=50 estoque=15
+FrontierBaseBuildSite | vida=2000 custo= alt= reparo=0 estoque=0
+Garage | vida=2000 custo=Clothx400 alt= reparo=400 estoque=15
+GarrisonBarn1 | vida=1200 custo=Clothx120 alt= reparo=120 estoque=0
+GarrisonBarn2 | vida=1200 custo=Clothx120 alt= reparo=120 estoque=0
+GarrisonFishHut1 | vida=800 custo=Clothx120 alt= reparo=120 estoque=0
+GarrisonFishHut2 | vida=800 custo=Clothx120 alt= reparo=120 estoque=0
+GarrisonStation | vida=2000 custo=Clothx250 alt= reparo=250 estoque=15
+GarrisonStation1 | vida=2000 custo=Clothx250 alt= reparo=250 estoque=15
+GateT1 | vida=500 custo=Clothx25 alt= reparo=25 estoque=0
+GateT2 | vida=1000 custo=Clothx50 alt= reparo=50 estoque=0
+GateT3 | vida=3000 custo=Concretex25 alt= reparo=125 estoque=0
+GunNest | vida=1000 custo=Clothx100 alt= reparo=100 estoque=0
+HomeRegionBase | vida=100000000 custo= alt= reparo=0 estoque=15
+Hospital | vida=2000 custo=Clothx400 alt= reparo=400 estoque=15
+ItemStash | vida=800000 custo= alt= reparo=0 estoque=16
+Keep | vida=3500 custo=Clothx300 alt= reparo=300 estoque=15
+KeepBuildSite | vida=2000 custo= alt= reparo=0 estoque=0
+LRArtillery | vida=2550 custo=Concretex200 alt= reparo=1200 estoque=1
+MagicBox | vida=400 custo=Clothx5 alt= reparo=5 estoque=15
+MassProduction | vida=6500 custo=Clothx400 alt= reparo=400 estoque=40
+MGAIT1 | vida=900 custo=Clothx75 alt= reparo=50 estoque=4
+MGAIT2 | vida=2250 custo=Clothx100 alt= reparo=75 estoque=4
+MGAIT3 | vida=4050 custo=Concretex15 alt= reparo=120 estoque=4
+Motorboat | vida=20 custo=Clothx60 alt= reparo=60 estoque=0
+ObservationTower | vida=2000 custo=Clothx200 alt= reparo=200 estoque=0
+OilWell | vida=1000 custo=Clothx200 alt= reparo=200 estoque=15
+OilWellBuildSite | vida=0 custo= alt= reparo=0 estoque=0
+Refinery | vida=2700 custo=Clothx400 alt= reparo=400 estoque=15
+RefineryBuildSite | vida=0 custo= alt= reparo=0 estoque=0
+RelicAPCHusk | vida=10000 custo= alt= reparo=0 estoque=0
+RelicBase1 | vida=4450 custo=Clothx200 alt= reparo=200 estoque=15
+RelicBase1BuildSite | vida=500 custo= alt= reparo=0 estoque=0
+RelicBase2 | vida=5150 custo=Clothx250 alt= reparo=250 estoque=15
+RelicBase2BuildSite | vida=500 custo= alt= reparo=0 estoque=0
+RelicBase3 | vida=5850 custo=Clothx300 alt= reparo=300 estoque=15
+RelicBase3BuildSite | vida=500 custo= alt= reparo=0 estoque=0
+RelicBaseBase | vida=1250 custo=Clothx300 alt= reparo=300 estoque=15
+ResourceBox | vida=400 custo=Clothx5 alt= reparo=5 estoque=18
+ResourceContainer | vida=600 custo=Clothx50 alt= reparo=50 estoque=15
+RifleAIT1 | vida=750 custo=Clothx50 alt= reparo=50 estoque=4
+RifleAIT2 | vida=2000 custo=Clothx75 alt= reparo=75 estoque=4
+RifleAIT3 | vida=3750 custo=Concretex15 alt= reparo=120 estoque=4
+Rocket | vida=5000 custo= alt= reparo=200 estoque=0
+RocketSite | vida=5000 custo=FacilityMaterials9x100 alt= reparo=500 estoque=15
+RVT1Room | vida=100000000 custo= alt= reparo=0 estoque=0
+RVT2Room | vida=100000000 custo= alt= reparo=0 estoque=0
+RVWallT1 | vida=27500 custo= alt= reparo=0 estoque=0
+RVWallT2 | vida=3000 custo= alt= reparo=0 estoque=0
+RVWallT3 | vida=2000 custo= alt= reparo=0 estoque=0
+SalvageField | vida=2147483647 custo= alt= reparo=0 estoque=0
+ScrapMine | vida=1000 custo=Clothx200 alt= reparo=200 estoque=15
+ScrapMineBuildSite | vida=0 custo= alt= reparo=0 estoque=0
+Seaport | vida=2000 custo=Clothx400 alt= reparo=400 estoque=15
+Shippable | vida=100 custo=Clothx100 alt= reparo=100 estoque=0
+SeaportBuildSite | vida=0 custo= alt= reparo=0 estoque=0
+ShippingContainer | vida=1000 custo=Clothx100 alt= reparo=100 estoque=15
+Shipyard | vida=2000 custo=Clothx400 alt= reparo=400 estoque=9
+ShipyardBuildSite | vida=0 custo= alt= reparo=0 estoque=0
+SignPost | vida=1000 custo=Clothx25 alt= reparo=25 estoque=0
+SignPostBuildSite | vida=1000 custo= alt= reparo=0 estoque=0
+StaticArtillery | vida=300 custo=Clothx150 alt= reparo=150 estoque=1
+StaticBase1 | vida=2000 custo=Clothx300 alt= reparo=300 estoque=15
+StaticBase1BuildSite | vida=500 custo= alt= reparo=0 estoque=15
+StaticBase2 | vida=6000 custo=Clothx200 alt= reparo=200 estoque=15
+StaticBase2BuildSite | vida=500 custo= alt= reparo=0 estoque=15
+StaticBase3 | vida=7500 custo=Clothx200 alt= reparo=200 estoque=15
+StaticBase3BuildSite | vida=500 custo= alt= reparo=0 estoque=15
+StaticCrane | vida=1000 custo=Clothx100 alt= reparo=100 estoque=0
+StorageBox | vida=400 custo=Clothx25 alt= reparo=25 estoque=15
+StorageBoxBuildSite | vida=400 custo= alt= reparo=0 estoque=0
+StorageFacility | vida=2000 custo=Clothx400 alt= reparo=400 estoque=15
+StorageFacilityBuildSite | vida=2000 custo= alt= reparo=0 estoque=0
+StructureItemStash | vida=800000 custo= alt= reparo=0 estoque=15
+SulfurField | vida=2147483647 custo= alt= reparo=0 estoque=0
+SulfurMine | vida=1000 custo=Clothx200 alt= reparo=200 estoque=25
+SulfurMineBuildSite | vida=0 custo= alt= reparo=0 estoque=0
+TankStop | vida=2000 custo=MetalBeamMaterialsx3 alt= reparo=25 estoque=0
+TownWExtraSmallG1 | vida=800 custo=Clothx150 alt= reparo=150 estoque=0
+TownWExtraSmallG1Destroyed | vida=100000000 custo= alt= reparo=0 estoque=0
+TownWLargeG1BuildSite | vida=0 custo= alt= reparo=0 estoque=15
+TownWLargeG1Destroyed | vida=100000000 custo= alt= reparo=0 estoque=0
+TownWLargeG2 | vida=1200 custo=Clothx150 alt= reparo=150 estoque=0
+TownWLargeG2Destroyed | vida=100000000 custo= alt= reparo=0 estoque=0
+TownWLargeGS1BuildSite | vida=0 custo= alt= reparo=0 estoque=15
+TownWLargeGS1Destroyed | vida=100000000 custo= alt= reparo=0 estoque=0
+TownWMedAttachedG1 | vida=1000 custo=Clothx150 alt= reparo=150 estoque=0
+TownWMedAttachedG1Destroyed | vida=100000000 custo= alt= reparo=0 estoque=0
+TownWMedAttachedG2 | vida=1000 custo=Clothx150 alt= reparo=150 estoque=0
+TownWMedAttachedG2Destroyed | vida=100000000 custo= alt= reparo=0 estoque=0
+TownWMedG1 | vida=1000 custo=Clothx150 alt= reparo=150 estoque=0
+TownWMedG1Destroyed | vida=100000000 custo= alt= reparo=0 estoque=0
+TownWSmall1 | vida=800 custo=Clothx200 alt= reparo=200 estoque=4
+TownWSmall1Destroyed | vida=100000000 custo= alt= reparo=0 estoque=0
+TrenchConnectorBuildSite | vida=1500 custo= alt= reparo=0 estoque=0
+TrenchConnectorDestroyedT1 | vida=1500 custo=Excavationx115 alt= reparo=115 estoque=0
+TrenchConnectorDestroyedT2 | vida=1750 custo=Clothx75 alt= reparo=75 estoque=0
+TrenchConnectorDestroyedT3 | vida=3500 custo=Concretex15 alt= reparo=120 estoque=0
+TrenchConnectorT1 | vida=1500 custo=Excavationx90 alt= reparo=90 estoque=0
+TrenchConnectorT2 | vida=1850 custo=Clothx60 alt= reparo=60 estoque=0
+TrenchConnectorT3 | vida=3500 custo=Concretex15 alt= reparo=120 estoque=0
+TrenchDestroyedT1 | vida=1500 custo=Excavationx50 alt= reparo=50 estoque=0
+TrenchDestroyedT2 | vida=1750 custo=Excavationx50 alt= reparo=50 estoque=0
+TrenchDestroyedT3 | vida=3500 custo=Excavationx50 alt= reparo=50 estoque=0
+TrenchT1 | vida=1500 custo=Excavationx75 alt= reparo=75 estoque=0
+TrenchT2 | vida=1850 custo=Clothx50 alt= reparo=50 estoque=0
+TrenchT3 | vida=3500 custo=Concretex10 alt= reparo=80 estoque=0
+TroopShipBase | vida=5000 custo=Clothx100 alt= reparo=100 estoque=12
+Tunnel | vida=1200 custo=Clothx250 alt= reparo=250 estoque=0
+UniqueWBellTowerG1 | vida=800 custo=Clothx150 alt= reparo=150 estoque=0
+UniqueWBellTowerG1Destroyed | vida=100000000 custo= alt= reparo=0 estoque=0
+UniqueWChurchG1 | vida=1200 custo=Clothx150 alt= reparo=150 estoque=0
+UniqueWChurchG1Destroyed | vida=100000000 custo= alt= reparo=0 estoque=0
+UniqueWCoalPlantG1 | vida=1200 custo=Clothx150 alt= reparo=150 estoque=0
+UniqueWCoalPlantG1Destroyed | vida=100000000 custo= alt= reparo=0 estoque=0
+UniqueWPubG1 | vida=1200 custo=Clothx150 alt= reparo=150 estoque=0
+UniqueWPubG1Destroyed | vida=100000000 custo= alt= reparo=0 estoque=0
+UniqueWTrainStationG1 | vida=1000 custo=Clothx150 alt= reparo=150 estoque=0
+UniqueWTrainStationG1Destroyed | vida=100000000 custo= alt= reparo=0 estoque=0
+UniqueWWarehouseG1 | vida=1000 custo=Clothx150 alt= reparo=150 estoque=0
+UniqueWWarehouseG1Destroyed | vida=100000000 custo= alt= reparo=0 estoque=0
+GarrisonStation2 | vida=2000 custo=Clothx250 alt= reparo=250 estoque=15
+UniqueWWarehouseG2Destroyed | vida=100000000 custo= alt= reparo=0 estoque=0
+UniqueWWarehouseG4 | vida=1000 custo=Clothx150 alt= reparo=150 estoque=0
+UniqueWWarehouseG4Destroyed | vida=100000000 custo= alt= reparo=0 estoque=0
+UniqueWWaterMillG1 | vida=1200 custo=Clothx150 alt= reparo=150 estoque=0
+UniqueWWaterMillG1Destroyed | vida=100000000 custo= alt= reparo=0 estoque=0
+UniqueWWindMillG1 | vida=1000 custo=Clothx150 alt= reparo=150 estoque=0
+UniqueWWindMillG1Destroyed | vida=100000000 custo= alt= reparo=0 estoque=0
+VehicleCrate | vida=800 custo=Clothx50 alt= reparo=50 estoque=0
+VehicleFactory | vida=2000 custo=Clothx400 alt= reparo=400 estoque=15
+VehicleFactoryBuildSite | vida=0 custo= alt= reparo=0 estoque=0
+VehicleItemStash | vida=800000 custo= alt= reparo=0 estoque=15
+VillageWLargeG1 | vida=1200 custo=Clothx150 alt= reparo=150 estoque=0
+VillageWLargeG1Destroyed | vida=100000000 custo= alt= reparo=0 estoque=0
+VillageWLargeG2 | vida=1200 custo=Clothx150 alt= reparo=150 estoque=0
+VillageWLargeG2Destroyed | vida=100000000 custo= alt= reparo=0 estoque=0
+VillageWMedAttachedG1 | vida=1000 custo=Clothx150 alt= reparo=150 estoque=0
+VillageWMedAttachedG1Destroyed | vida=100000000 custo= alt= reparo=0 estoque=0
+VillageWMedAttachedG2 | vida=1000 custo=Clothx150 alt= reparo=150 estoque=0
+VillageWMedAttachedG2Destroyed | vida=100000000 custo= alt= reparo=0 estoque=0
+VillageWSmallG1 | vida=800 custo=Clothx150 alt= reparo=150 estoque=0
+VillageWSmallG1Destroyed | vida=100000000 custo= alt= reparo=0 estoque=0
+WallT1 | vida=500 custo=Clothx15 alt= reparo=15 estoque=0
+WallT2 | vida=1000 custo=Clothx30 alt= reparo=30 estoque=0
+WallT3 | vida=3000 custo=Concretex15 alt= reparo=75 estoque=0
+WatchTower | vida=350 custo=Clothx60 alt= reparo=60 estoque=0
+WaterStorageFacility | vida=2000 custo=Clothx400 alt= reparo=400 estoque=15
+WeaponRack | vida=400 custo=Clothx25 alt= reparo=25 estoque=50
+WoodBridge | vida=1200 custo=Clothx150 alt= reparo=150 estoque=0
+WoodBridgeBuildSite | vida=500 custo= alt= reparo=0 estoque=0
+WorldSignPost | vida=1000 custo=Clothx25 alt= reparo=25 estoque=0
+TrenchEmpT1 | vida=1500 custo=Excavationx75 alt= reparo=75 estoque=0
+TrenchEmpT2 | vida=1850 custo=Clothx50 alt= reparo=50 estoque=0
+TrenchEmpT3 | vida=3500 custo=Concretex10 alt= reparo=80 estoque=0
+TrenchEmpBuildSite | vida=400 custo= alt= reparo=0 estoque=0
+TrenchEmpDestroyedT1 | vida=1500 custo=Excavationx50 alt= reparo=50 estoque=0
+TrenchEmpDestroyedT2 | vida=1750 custo=Excavationx50 alt= reparo=50 estoque=0
+TrenchEmpDestroyedT3 | vida=3500 custo=Excavationx50 alt= reparo=50 estoque=0
+EmplacedInfantryW | vida=1500 custo=Clothx75 alt= reparo=100 estoque=1
+EmplacedATW | vida=1500 custo=Clothx150 alt= reparo=100 estoque=1
+UniqueWWarehouseG2BuildSite | vida=0 custo= alt= reparo=0 estoque=15
+CoastalGun | vida=2000 custo=Clothx200 alt= reparo=200 estoque=0
+TunnelNodeProxy | vida=0 custo= alt= reparo=0 estoque=0
+StructureCrate | vida=800 custo=Clothx50 alt= reparo=50 estoque=0
+DestroyedCoastalGun | vida=100000000 custo= alt= reparo=0 estoque=0
+FortForwardBaseBuildSite | vida=1000 custo= alt= reparo=0 estoque=15
+FortCornerT2 | vida=2000 custo=Clothx75 alt= reparo=75 estoque=3
+FortCornerT1 | vida=750 custo=Excavationx75 alt= reparo=50 estoque=3
+FortCornerBuildSite | vida=400 custo= alt= reparo=0 estoque=3
+FortCornerDestroyedT1 | vida=750 custo=Excavationx40 alt= reparo=40 estoque=0
+FortCornerDestroyedT2 | vida=2000 custo=Clothx75 alt= reparo=75 estoque=0
+FortCornerDestroyedT3 | vida=3750 custo=Concretex15 alt= reparo=120 estoque=0
+SoulFactory | vida=2000 custo=Clothx400 alt= reparo=400 estoque=15
+DestroyedSoulFactory | vida=100000000 custo= alt= reparo=0 estoque=0
+SoulFactoryBuildSite | vida=0 custo= alt= reparo=0 estoque=0
+DestroyedBorderBase | vida=100000000 custo= alt= reparo=0 estoque=15
+BorderBase | vida=2500 custo=Clothx100 alt= reparo=100 estoque=15
+DrawbridgeA | vida=5600 custo=Clothx300 alt= reparo=300 estoque=0
+DrawbridgeB | vida=4200 custo=Clothx250 alt= reparo=250 estoque=0
+DrawbridgeC | vida=7000 custo=Clothx350 alt= reparo=350 estoque=0
+DestroyedDrawbridgeA | vida=100000000 custo= alt= reparo=0 estoque=0
+DestroyedDrawbridgeB | vida=100000000 custo= alt= reparo=0 estoque=0
+DestroyedDrawbridgeC | vida=100000000 custo= alt= reparo=0 estoque=0
+DrawbridgeABuildSite | vida=0 custo= alt= reparo=0 estoque=0
+DrawbridgeBBuildSite | vida=0 custo= alt= reparo=0 estoque=0
+DrawbridgeCBuildSite | vida=0 custo= alt= reparo=0 estoque=0
+EmplacedLightArtilleryW | vida=750 custo=Woodx35 alt= reparo=100 estoque=1
+AmmoRoomT3 | vida=3750 custo=Concretex10 alt= reparo=120 estoque=1
+FirePitT1 | vida=400 custo=Clothx35 alt= reparo=35 estoque=0
+FirePitBuildSite | vida=400 custo= alt= reparo=0 estoque=0
+EmplacedHeavyArtilleryW | vida=1250 custo=Woodx175 alt= reparo=100 estoque=1
+CraterMedium | vida=1000 custo= alt= reparo=0 estoque=0
+EmplacedHeavyArtilleryC | vida=1000 custo=Woodx195 alt= reparo=100 estoque=1
+DeployedATRPGTW | vida=1200 custo=Clothx40 alt= reparo=40 estoque=1
+TownBase1 | vida=7000 custo=Clothx200 alt= reparo=200 estoque=15
+TownBase2 | vida=5000 custo=Clothx200 alt= reparo=200 estoque=15
+TownBase3 | vida=4000 custo=Clothx200 alt= reparo=200 estoque=15
+TownBaseBuildSite | vida=500 custo= alt= reparo=0 estoque=15
+DestroyedTownBase1 | vida=100000000 custo= alt= reparo=0 estoque=15
+DestroyedTownBase2 | vida=100000000 custo= alt= reparo=0 estoque=15
+DestroyedTownBase3 | vida=100000000 custo= alt= reparo=0 estoque=15
+TownCMedGarrisonG1 | vida=1000 custo=Clothx150 alt= reparo=150 estoque=0
+TownCMedGarrisonG1Destroyed | vida=100000000 custo= alt= reparo=0 estoque=0
+TownCMedGarrisonG2 | vida=1000 custo=Clothx150 alt= reparo=150 estoque=0
+TownCMedGarrisonG2Destroyed | vida=100000000 custo= alt= reparo=0 estoque=0
+TownCLargeGarrisonGS1 | vida=2000 custo=Clothx250 alt= reparo=250 estoque=15
+TownCLargeGarrisonGS1BuildSite | vida=0 custo= alt= reparo=0 estoque=15
+TownCLargeGarrisonGS1Destroyed | vida=100000000 custo= alt= reparo=0 estoque=0
+RockLarge | vida=100000000 custo=Clothx5 alt= reparo=5 estoque=0
+TownCSmallG1 | vida=800 custo=Clothx150 alt= reparo=150 estoque=0
+TownCSmallG1Destroyed | vida=100000000 custo= alt= reparo=0 estoque=0
+TownCSmallG2 | vida=800 custo=Clothx150 alt= reparo=150 estoque=0
+TownCSmallG2Destroyed | vida=100000000 custo= alt= reparo=0 estoque=0
+DeployedMGTW | vida=1200 custo=Clothx40 alt= reparo=40 estoque=1
+DeployedMGTC | vida=1200 custo=Clothx40 alt= reparo=40 estoque=1
+IntelCenter | vida=2550 custo=Concretex125 alt= reparo=1200 estoque=1
+OilPipelineSegment | vida=1500 custo=Clothx100 alt= reparo=100 estoque=0
+SandbagHalfSpline | vida=700 custo=SandbagMaterialsx3 alt= reparo=10 estoque=0
+BarbedWireSpline | vida=600 custo=BarbedWireMaterialsx3 alt= reparo=20 estoque=0
+SandbagFullSpline | vida=1600 custo=SandbagMaterialsx3 alt= reparo=30 estoque=0
+EngineRoomT2 | vida=2000 custo=Clothx100 alt= reparo=75 estoque=5
+DeployedListeningKit | vida=1200 custo= alt= reparo=20 estoque=0
+TrenchFill | vida=1500 custo=Excavationx75 alt= reparo=75 estoque=0
+TrenchConnectorFill | vida=1500 custo=Excavationx90 alt= reparo=90 estoque=0
+TrenchEmpFill | vida=1500 custo=Excavationx75 alt= reparo=75 estoque=0
+FortFill | vida=750 custo=Excavationx75 alt= reparo=75 estoque=0
+FortCornerFill | vida=750 custo=Excavationx75 alt= reparo=75 estoque=0
+ObservationBunkerT2 | vida=1600 custo=Clothx125 alt= reparo=75 estoque=4
+ObservationBunkerT3 | vida=3450 custo=Concretex10 alt= reparo=120 estoque=4
+RiflePillbox | vida=400 custo=Clothx60 alt= reparo=60 estoque=0
+MGPillbox | vida=650 custo=Clothx75 alt= reparo=75 estoque=0
+ATPillbox | vida=800 custo=Clothx75 alt= reparo=75 estoque=0
+BarbedWireWallSpline | vida=10000 custo=BarbedWireMaterialsx3 alt= reparo=20 estoque=0
+FoxholeFill | vida=500 custo=Excavationx20 alt= reparo=20 estoque=0
+FieldBridge | vida=1500 custo=MetalBeamMaterialsx5 alt= reparo=100 estoque=0
+CraterLarge | vida=1000 custo= alt= reparo=0 estoque=0
+CraterMediumFill | vida=500 custo=Excavationx200 alt= reparo=0 estoque=0
+CraterLargeFill | vida=500 custo=Excavationx250 alt= reparo=0 estoque=0
+DeployedATRifleTC | vida=1200 custo=Clothx40 alt= reparo=40 estoque=1
+DeployedRPGTW | vida=1200 custo=Clothx40 alt= reparo=40 estoque=1
+WallSplineT1 | vida=500 custo=Clothx15 alt= reparo=15 estoque=0
+WallSplineT2 | vida=1000 custo=Clothx30 alt= reparo=30 estoque=0
+WallSplineT3 | vida=3000 custo=Concretex15 alt= reparo=75 estoque=0
+TrainBridgeA | vida=3250 custo=Clothx200 alt= reparo=250 estoque=0
+TrainBridgeC | vida=4060 custo=Clothx300 alt= reparo=300 estoque=0
+TrainBridgeB | vida=3250 custo=Clothx300 alt= reparo=300 estoque=0
+LargeCrane | vida=1000 custo=FacilityMaterials2x250 alt= reparo=100 estoque=0
+MaintenanceTunnel | vida=3000 custo=Clothx50 alt= reparo=100 estoque=1
+EmplacedInfantryC | vida=1650 custo=Clothx100 alt= reparo=100 estoque=1
+EmplacedATLargeW | vida=2650 custo= alt=FacilityMaterials2x135+FacilityMaterials4x10+FacilityMaterials7x15 reparo=300 estoque=1
+EmplacedCannonLargeC | vida=2650 custo= alt=FacilityMaterials2x135+FacilityMaterials4x10+FacilityMaterials7x15 reparo=300 estoque=1
+EmplacedIndirectC | vida=1500 custo=Clothx125 alt= reparo=115 estoque=1
+FacilityPipe | vida=350 custo=PipeMaterialsx1 alt= reparo=15 estoque=0
+FacilitySiloOil | vida=900 custo=PipeMaterialsx5 alt= reparo=100 estoque=0
+FacilityPipeUnderground | vida=350 custo=PipeMaterialsx6 alt= reparo=15 estoque=0
+RailTrackSpline | vida=500 custo=FacilityMaterials2x5 alt= reparo=50 estoque=0
+Foundation01T3 | vida=4000 custo=Concretex5 alt= reparo=100 estoque=0
+Foundation02T3 | vida=4000 custo=Concretex5 alt= reparo=100 estoque=0
+FoundationRamp01T3 | vida=4000 custo=Concretex5 alt= reparo=100 estoque=0
+FoundationRamp02T3 | vida=4000 custo=Concretex5 alt= reparo=100 estoque=0
+PowerPole | vida=250 custo=Clothx20 alt= reparo=5 estoque=0
+PowerLine | vida=0 custo= alt= reparo=0 estoque=0
+OilField | vida=2147483647 custo= alt= reparo=0 estoque=0
+Foundation011x2T3 | vida=4000 custo=Concretex10 alt= reparo=100 estoque=0
+Foundation012x2T3 | vida=4000 custo=Concretex15 alt= reparo=100 estoque=0
+FoundationRamp011x2T3 | vida=4000 custo=Concretex10 alt= reparo=100 estoque=0
+FoundationRamp012x2T3 | vida=4000 custo=Concretex15 alt= reparo=100 estoque=0
+MaterialPlatform | vida=1000 custo=Clothx25 alt=Clothx25 reparo=50 estoque=5
+FacilityRefinery1 | vida=3000 custo=Clothx200 alt= reparo=150 estoque=15
+EmplacedMultiC | vida=750 custo=Woodx35 alt=FacilityMaterials2x20+FacilityMaterials5x15+FacilityMaterials7x3 reparo=100 estoque=1
+FacilityRefineryOil | vida=3000 custo=FacilityMaterials1x50 alt= reparo=150 estoque=15
+FacilityRefineryCoal | vida=3000 custo=FacilityMaterials1x50 alt= reparo=150 estoque=15
+FacilityRefinery2 | vida=3000 custo=FacilityMaterials1x125 alt= reparo=150 estoque=15
+FacilityVehicleFactory1 | vida=3600 custo=FacilityMaterials1x75 alt= reparo=150 estoque=15
+FacilityVehicleFactory2 | vida=2700 custo=FacilityMaterials2x250 alt= reparo=150 estoque=15
+FacilityMineResource1 | vida=1850 custo=FacilityMaterials1x150 alt= reparo=100 estoque=15
+FacilityMineResource2 | vida=1850 custo=FacilityMaterials2x45 alt= reparo=100 estoque=15
+FacilityMineResource3 | vida=1850 custo=FacilityMaterials2x45 alt= reparo=100 estoque=15
+FacilityMineResource4 | vida=1850 custo=FacilityMaterials1x175 alt= reparo=100 estoque=15
+FacilityMineOil | vida=1850 custo=FacilityMaterials1x35 alt= reparo=100 estoque=15
+FacilityMineWater | vida=850 custo=FacilityMaterials1x35 alt= reparo=100 estoque=15
+FacilityPowerDiesel | vida=1500 custo=Clothx150 alt= reparo=100 estoque=15
+FacilityPowerOil | vida=2400 custo=FacilityMaterials2x25 alt= reparo=100 estoque=15
+FacilityFactoryAmmo | vida=3000 custo=FacilityMaterials2x25 alt= reparo=100 estoque=15
+FacilityTransferResource | vida=2200 custo=FacilityMaterials1x35 alt= reparo=100 estoque=15
+FacilityTransferMaterial | vida=2200 custo=FacilityMaterials1x35 alt= reparo=100 estoque=15
+CoalField | vida=2147483647 custo= alt= reparo=0 estoque=0
+FacilityModificationCenter | vida=2000 custo=FacilityMaterials2x150 alt= reparo=100 estoque=15
+Foundation01T1 | vida=2000 custo=GroundMaterialsx75 alt= reparo=100 estoque=0
+Foundation02T1 | vida=2000 custo=GroundMaterialsx75 alt= reparo=100 estoque=0
+FoundationRamp01T1 | vida=2000 custo=GroundMaterialsx75 alt= reparo=100 estoque=0
+FoundationRamp02T1 | vida=2000 custo=GroundMaterialsx75 alt= reparo=100 estoque=0
+Foundation011x2T1 | vida=2000 custo=GroundMaterialsx115 alt= reparo=100 estoque=0
+Foundation012x2T1 | vida=2000 custo=GroundMaterialsx150 alt= reparo=100 estoque=0
+FoundationRamp011x2T1 | vida=2000 custo=GroundMaterialsx115 alt= reparo=100 estoque=0
+FoundationRamp012x2T1 | vida=2000 custo=GroundMaterialsx150 alt= reparo=100 estoque=0
+FacilityRoad | vida=750 custo=GroundMaterialsx150 alt= reparo=50 estoque=0
+SmallRailTrackSpline | vida=500 custo=FacilityMaterials1x25 alt= reparo=50 estoque=0
+RailTrackSplineBiarc | vida=500 custo=FacilityMaterials2x5 alt= reparo=50 estoque=0
+SmallRailTrackSplineBiarc | vida=500 custo=FacilityMaterials1x25 alt= reparo=50 estoque=0
+FacilityCrane | vida=1000 custo=FacilityMaterials2x10 alt= reparo=100 estoque=0
+CraneRailTrackSpline | vida=750 custo=FacilityMaterials2x25 alt= reparo=50 estoque=0
+NoVisRailTrackSpline | vida=750 custo=FacilityMaterials2x5 alt= reparo=50 estoque=0
+FacilityPipeOverhead | vida=350 custo=PipeMaterialsx2 alt= reparo=15 estoque=0
+FacilityTransferLiquid | vida=2200 custo=FacilityMaterials1x35 alt= reparo=100 estoque=15
+LiquidContainer | vida=1000 custo=Clothx100 alt= reparo=100 estoque=2
+FacilityPipeValve | vida=350 custo=PipeMaterialsx2 alt= reparo=15 estoque=0
+FacilityCatwalkBridge | vida=150 custo=FacilityMaterials2x10 alt= reparo=100 estoque=0
+RailTrackSplineFoundation | vida=500 custo=FacilityMaterials2x5 alt= reparo=50 estoque=0
+FacilityCatwalkStairs | vida=150 custo=FacilityMaterials2x10 alt= reparo=100 estoque=0
+FacilityCatwalkPlatform | vida=150 custo=FacilityMaterials2x10 alt= reparo=100 estoque=0
+SmallRailTrackSplineFoundation | vida=500 custo=FacilityMaterials1x25 alt= reparo=50 estoque=0
+DestroyedTrainBridgeA | vida=100000000 custo= alt= reparo=0 estoque=0
+DestroyedTrainBridgeC | vida=100000000 custo= alt= reparo=0 estoque=0
+TrainBridgeABuildSite | vida=0 custo= alt= reparo=0 estoque=0
+TrainBridgeCBuildSite | vida=0 custo= alt= reparo=0 estoque=0
+PowerBox | vida=500 custo=FacilityMaterials1x25 alt= reparo=5 estoque=0
+DeployedGrenadeLauncherTC | vida=1200 custo=Clothx40 alt= reparo=40 estoque=1
+TankStopSplineT3 | vida=3000 custo=Concretex10 alt= reparo=150 estoque=0
+AmmoRoomT2 | vida=2000 custo=Clothx35 alt= reparo=75 estoque=1
+PreplacedRailTrackSplineBiarc | vida=750 custo=FacilityMaterials2x5 alt= reparo=50 estoque=0
+PreplacedRailTrackSplineFoundation | vida=750 custo=FacilityMaterials2x5 alt= reparo=50 estoque=0
+TrenchT2Fill | vida=1500 custo=Clothx50 alt= reparo=50 estoque=0
+TrenchEmpT2Fill | vida=1500 custo=Clothx50 alt= reparo=50 estoque=0
+FortT2Fill | vida=1500 custo=Clothx75 alt= reparo=75 estoque=0
+FortCornerT2Fill | vida=1500 custo=Clothx75 alt= reparo=75 estoque=0
+TrenchConnectorT2Fill | vida=1500 custo=Clothx60 alt= reparo=60 estoque=0
+DeployedExplosiveTripod | vida=1 custo=Clothx20 alt= reparo=20 estoque=0
+DeployedSatchelChargeT | vida=1 custo=Clothx20 alt= reparo=20 estoque=0
+RocketPartBottom | vida=1000 custo= alt=FacilityMaterials3x20+FacilityMaterials11x75+FacilityMaterials5x55+FacilityMaterials9x150+FacilityMaterials8x25 reparo=100 estoque=0
+RocketPartCenter | vida=1000 custo= alt=FacilityMaterials3x20+FacilityMaterials11x75+FacilityMaterials4x65+FacilityMaterials8x25+FacilityMaterials9x125 reparo=100 estoque=0
+RocketPartTop | vida=1000 custo= alt=FacilityMaterials9x75+FacilityMaterials10x165+FacilityMaterials6x45 reparo=100 estoque=0
+RocketTarget | vida=1000 custo= alt= reparo=100 estoque=0
+RocketGroundZero | vida=1000 custo= alt= reparo=100 estoque=0
+FacilityVehicleFactory3 | vida=4650 custo=FacilityMaterials9x35 alt= reparo=150 estoque=15
+FieldPier | vida=1500 custo=MetalBeamMaterialsx50 alt= reparo=100 estoque=0
+FacilityMineOilRig | vida=1850 custo=FacilityMaterials1x100 alt= reparo=100 estoque=15
+DestroyedFacilityMineOilRig | vida=100000000 custo= alt= reparo=0 estoque=0
+ShipPart1 | vida=1000 custo=Clothx100 alt=FacilityMaterials2x60+FacilityMaterials4x2+FacilityMaterials5x2+FacilityMaterials7x10+FacilityMaterials9x4+FacilityMaterials11x4 reparo=100 estoque=0
+ShipPart2 | vida=1000 custo=FacilityMaterials1x2 alt=FacilityMaterials1x2+FacilityMaterials11x1 reparo=100 estoque=0
+ShipPart3 | vida=1000 custo= alt=FacilityMaterials8x20+FacilityMaterials9x20 reparo=100 estoque=0
+FacilityRefinery1Destroyed | vida=3000 custo=Clothx200 alt= reparo=150 estoque=15
+FacilityRefinery2Destroyed | vida=6000 custo=FacilityMaterials1x125 alt= reparo=150 estoque=15
+FacilityRefineryCoalDestroyed | vida=4500 custo=FacilityMaterials1x50 alt= reparo=150 estoque=15
+FacilityRefineryOilDestroyed | vida=4500 custo=FacilityMaterials1x50 alt= reparo=150 estoque=15
+FacilityTransferResourceDestroyed | vida=4400 custo=FacilityMaterials1x35 alt= reparo=100 estoque=15
+FacilityTransferMaterialDestroyed | vida=4400 custo=FacilityMaterials1x35 alt= reparo=100 estoque=15
+FacilityTransferLiquidDestroyed | vida=4400 custo=FacilityMaterials1x35 alt= reparo=100 estoque=15
+FacilityVehicleFactory1Destroyed | vida=5400 custo=FacilityMaterials1x75 alt= reparo=150 estoque=15
+FacilityVehicleFactory2Destroyed | vida=4050 custo=FacilityMaterials2x250 alt= reparo=150 estoque=15
+FacilityVehicleFactory3Destroyed | vida=6375 custo=FacilityMaterials9x35 alt= reparo=150 estoque=15
+FacilityModificationCenterDestroyed | vida=4000 custo=FacilityMaterials2x150 alt= reparo=100 estoque=15
+FacilityPowerDieselDestroyed | vida=1500 custo=Clothx150 alt= reparo=100 estoque=15
+FacilityPowerOilDestroyed | vida=6000 custo=FacilityMaterials2x25 alt= reparo=100 estoque=15
+FacilityFactoryAmmoDestroyed | vida=6000 custo=FacilityMaterials2x25 alt= reparo=100 estoque=15
+FacilitySiloOilDestroyed | vida=1200 custo=FacilityMaterials1x15 alt= reparo=100 estoque=0
+FacilityMineResourceDestroyed | vida=3700 custo=FacilityMaterials1x150 alt= reparo=100 estoque=15
+FacilityMineOilDestroyed | vida=3700 custo=FacilityMaterials1x35 alt= reparo=100 estoque=15
+FacilityMineWaterDestroyed | vida=850 custo=FacilityMaterials1x35 alt= reparo=100 estoque=15
+FacilityMineResource1Destroyed | vida=3700 custo=FacilityMaterials1x150 alt= reparo=100 estoque=15
+FacilityMineResource2Destroyed | vida=3700 custo=FacilityMaterials1x150 alt= reparo=100 estoque=15
+FacilityMineResource3Destroyed | vida=3700 custo=FacilityMaterials1x150 alt= reparo=100 estoque=15
+FacilityMineResource4Destroyed | vida=3700 custo=FacilityMaterials1x150 alt= reparo=100 estoque=15
+RocketSiteDestroyed | vida=5400 custo=FacilityMaterials9x100 alt= reparo=200 estoque=15
+TrenchEmpFirePitT1 | vida=1500 custo=Clothx25 alt= reparo=75 estoque=0
+TrenchEmpFirePitT2 | vida=1850 custo=Clothx25 alt= reparo=50 estoque=0
+TrenchEmpFirePitT3 | vida=3500 custo=Clothx25 alt= reparo=80 estoque=0
+FortFirePitT1 | vida=750 custo=Clothx35 alt= reparo=50 estoque=0
+FortFirePitT2 | vida=2000 custo=Clothx40 alt= reparo=75 estoque=0
+FortFirePitT3 | vida=3750 custo=Concretex15 alt= reparo=120 estoque=0
+FirePitT2 | vida=1000 custo=MetalBeamMaterialsx3 alt= reparo=25 estoque=0
+WeatherStation | vida=2550 custo=Concretex125 alt= reparo=1200 estoque=1
+DeployedWindsockT | vida=1200 custo= alt= reparo=20 estoque=0
+FirePitLore | vida=400 custo=Clothx35 alt= reparo=35 estoque=0
+FacilityFactorySmallArms | vida=3000 custo=FacilityMaterials1x250 alt= reparo=150 estoque=15
+FacilityFactorySmallArmsDestroyed | vida=4500 custo=FacilityMaterials1x250 alt= reparo=150 estoque=15
+MedicalRoomT2 | vida=2000 custo=Clothx75 alt= reparo=75 estoque=1
+MedicalRoomT3 | vida=3750 custo=Concretex10 alt= reparo=120 estoque=1
+MedicalRoomT1 | vida=750 custo=Clothx75 alt= reparo=50 estoque=1
+FacilityTransferCrate | vida=2200 custo=FacilityMaterials1x35 alt= reparo=100 estoque=15
+FacilityTransferCrateDestroyed | vida=4400 custo=FacilityMaterials1x35 alt= reparo=100 estoque=15
+MGAIT1Destroyed | vida=900 custo=Excavationx40 alt= reparo=40 estoque=0
+MGAIT2Destroyed | vida=2250 custo=Clothx75 alt= reparo=75 estoque=0
+MGAIT3Destroyed | vida=4050 custo=Concretex15 alt= reparo=120 estoque=0
+RifleAIT1Destroyed | vida=750 custo=Excavationx40 alt= reparo=40 estoque=0
+RifleAIT2Destroyed | vida=2000 custo=Clothx75 alt= reparo=75 estoque=0
+RifleAIT3Destroyed | vida=3750 custo=Concretex15 alt= reparo=120 estoque=0
+ATGunAIT2Destroyed | vida=1600 custo=Clothx75 alt= reparo=75 estoque=0
+ATGunAIT3Destroyed | vida=3450 custo=Concretex15 alt= reparo=120 estoque=0
+ArtilleryAIT3Destroyed | vida=3450 custo=Concretex15 alt= reparo=120 estoque=0
+ObservationBunkerT2Destroyed | vida=1600 custo=Clothx75 alt= reparo=75 estoque=0
+ObservationBunkerT3Destroyed | vida=2750 custo=Concretex15 alt= reparo=120 estoque=0
+TankMineSpline | vida=1000 custo=TankMinex10 alt= reparo=40 estoque=0
+InfantryMineSpline | vida=1000 custo=InfantryMinex10 alt= reparo=40 estoque=0
+MineSpline | vida=150 custo=Excavationx75 alt= reparo=40 estoque=0
+TankMineProxy | vida=0 custo= alt= reparo=0 estoque=0
+InfantryMineProxy | vida=0 custo= alt= reparo=0 estoque=0
+UniqueCChurchG1 | vida=1200 custo=Clothx150 alt= reparo=150 estoque=0
+UniqueCChurchG1Destroyed | vida=100000000 custo= alt= reparo=0 estoque=0
+DeployedBannerTC | vida=1200 custo= alt= reparo=20 estoque=0
+DeployedBannerTW | vida=1200 custo= alt= reparo=20 estoque=0
+TrenchIntT1 | vida=1500 custo=Excavationx75 alt= reparo=75 estoque=0
+ATGunAIT1 | vida=650 custo=Clothx125 alt= reparo=50 estoque=4
+TrenchIntBuildSite | vida=400 custo= alt= reparo=0 estoque=0
+ArtilleryAIT1 | vida=650 custo=Clothx120 alt= reparo=50 estoque=4
+ArtilleryAIT2 | vida=1600 custo=Clothx200 alt= reparo=75 estoque=4
+ATGunAIT1Destroyed | vida=650 custo=Clothx75 alt= reparo=40 estoque=0
+ArtilleryAIT2Destroyed | vida=1600 custo=Clothx75 alt= reparo=75 estoque=0
+ArtilleryAIT1Destroyed | vida=650 custo=Clothx75 alt= reparo=40 estoque=0
+ATGunAIT1Breached | vida=650 custo=Clothx75 alt= reparo=40 estoque=0
+ATGunAIT2Breached | vida=1600 custo=Clothx75 alt= reparo=75 estoque=0
+ATGunAIT3Breached | vida=3450 custo=Concretex15 alt= reparo=120 estoque=0
+RifleAIT1Breached | vida=750 custo=Excavationx40 alt= reparo=40 estoque=0
+RifleAIT2Breached | vida=2000 custo=Clothx75 alt= reparo=75 estoque=0
+RifleAIT3Breached | vida=3750 custo=Concretex15 alt= reparo=120 estoque=0
+MGAIT1Breached | vida=900 custo=Excavationx40 alt= reparo=40 estoque=0
+MGAIT2Breached | vida=2250 custo=Clothx75 alt= reparo=75 estoque=0
+MGAIT3Breached | vida=4050 custo=Concretex15 alt= reparo=120 estoque=0
+ArtilleryAIT1Breached | vida=650 custo=Excavationx40 alt= reparo=40 estoque=0
+ArtilleryAIT2Breached | vida=1600 custo=Clothx75 alt= reparo=75 estoque=0
+ArtilleryAIT3Breached | vida=3450 custo=Concretex15 alt= reparo=120 estoque=0
+ObservationBunkerT2Breached | vida=1600 custo=Clothx75 alt= reparo=75 estoque=0
+ObservationBunkerT3Breached | vida=2750 custo=Concretex15 alt= reparo=120 estoque=0
+ConstructionEquipment | vida=1200 custo=Woodx50 alt= reparo=75 estoque=9
+FortBreachedT1 | vida=750 custo=Excavationx40 alt= reparo=40 estoque=0
+FortBreachedT2 | vida=1500 custo=Clothx75 alt= reparo=75 estoque=0
+FortBreachedT3 | vida=3750 custo=Concretex15 alt= reparo=120 estoque=0
+FortCornerBreachedT1 | vida=750 custo=Excavationx40 alt= reparo=40 estoque=0
+FortCornerBreachedT2 | vida=2000 custo=Clothx75 alt= reparo=75 estoque=0
+FortCornerBreachedT3 | vida=3750 custo=Concretex15 alt= reparo=120 estoque=0
+FortArtilleryShelterT1 | vida=750 custo=Clothx75 alt= reparo=50 estoque=4
+FortArtilleryShelterT2 | vida=2000 custo=Clothx150 alt= reparo=75 estoque=4
+FortArtilleryShelterT3 | vida=3750 custo=Concretex25 alt= reparo=120 estoque=4
+ObservationBunkerT1 | vida=750 custo=Clothx75 alt= reparo=50 estoque=4
+ObservationBunkerT1Destroyed | vida=1600 custo=Clothx75 alt= reparo=75 estoque=0
+ObservationBunkerT1Breached | vida=1600 custo=Clothx75 alt= reparo=75 estoque=0
+FortFlameT1 | vida=750 custo=Excavationx75 alt= reparo=50 estoque=0
+FortFlameT2 | vida=2000 custo=Clothx75 alt= reparo=75 estoque=0
+FortFlameT3 | vida=3750 custo=Concretex15 alt= reparo=120 estoque=0
+FacilityWeaponAssembly | vida=3000 custo=FacilityMaterials1x250 alt= reparo=150 estoque=15
+TrenchIntT2 | vida=1850 custo=Clothx50 alt= reparo=50 estoque=0
+TrenchIntDestroyedT1 | vida=1500 custo=Excavationx50 alt= reparo=50 estoque=0
+TrenchIntT3 | vida=3500 custo=Concretex10 alt= reparo=80 estoque=0
+TrenchIntDestroyedT2 | vida=1750 custo=Excavationx50 alt= reparo=50 estoque=0
+TrenchIntDestroyedT3 | vida=3500 custo=Excavationx50 alt= reparo=50 estoque=0
+TrenchIntFill | vida=1500 custo=Excavationx75 alt= reparo=75 estoque=0
+TrenchIntT2Fill | vida=1500 custo=Clothx50 alt= reparo=50 estoque=0
+FortEmpT3 | vida=2550 custo=Concretex125 alt= reparo=750 estoque=1
+FortGarrisonStation | vida=10000 custo=Concretex125 alt= reparo=200 estoque=15
+FortLRArtilleryPart | vida=1000 custo=Clothx100 alt=FacilityMaterials2x300+FacilityMaterials9x20+FacilityMaterials11x45 reparo=100 estoque=0
+FortIntelCenterPart | vida=1000 custo=Clothx100 alt=FacilityMaterials2x50+FacilityMaterials9x3+FacilityMaterials11x15 reparo=100 estoque=0
+FortWeatherStationPart | vida=1000 custo=Clothx100 alt=FacilityMaterials2x150+FacilityMaterials4x150+FacilityMaterials5x150 reparo=100 estoque=0
+FortConstructionPart | vida=1000 custo=Clothx100 alt=FacilityMaterials2x250+FacilityMaterials4x225+FacilityMaterials5x225 reparo=100 estoque=0
+FortStructurePart | vida=1000 custo=Clothx100 alt=FacilityMaterials2x50+FacilityMaterials7x40+FacilityMaterials11x15 reparo=100 estoque=0
+FortGarrisonStationPart | vida=1000 custo=Clothx100 alt=FacilityMaterials2x200+FacilityMaterials9x5+FacilityMaterials11x35 reparo=100 estoque=0
+LRArtilleryDestroyed | vida=4250 custo=Concretex15 alt= reparo=250 estoque=0
+AircraftCrate | vida=800 custo=Clothx50 alt= reparo=50 estoque=0
+ISGPillbox | vida=950 custo=Clothx85 alt= reparo=85 estoque=0
+AircraftFactory | vida=2000 custo=Clothx400 alt= reparo=400 estoque=15
+AircraftDepot | vida=2000 custo=Clothx400 alt= reparo=400 estoque=15
+FortLargeRadar | vida=2550 custo=Concretex125 alt= reparo=1200 estoque=1
+FortLargeRadarPart | vida=1000 custo=Clothx100 alt=FacilityMaterials2x50+FacilityMaterials9x3+FacilityMaterials11x15 reparo=100 estoque=0
+WaterMineSpline | vida=3000 custo=WaterMinex10 alt= reparo=40 estoque=0
+SurfaceWaterMineSpline | vida=2000 custo=SurfaceWaterMinex10 alt= reparo=40 estoque=0
+FacilityFactoryAircraft | vida=3000 custo=FacilityMaterials2x250 alt= reparo=150 estoque=15
+AircraftDepotDestroyed | vida=100000000 custo= alt= reparo=0 estoque=15
+AircraftRunwayT1 | vida=2000 custo=Clothx400 alt= reparo=400 estoque=15
+AircraftRunwayT2 | vida=20000 custo=Concretex125 alt= reparo=400 estoque=15
+AircraftRunwayDestroyed | vida=100000000 custo=Clothx400 alt= reparo=400 estoque=15
+AircraftFactoryDestroyed | vida=100000000 custo=Clothx400 alt= reparo=400 estoque=15
+FacilityFactoryAircraftDestroyed | vida=6000 custo=FacilityMaterials2x25 alt= reparo=100 estoque=15
+EmplacedAAW | vida=1250 custo=Woodx175 alt=FacilityMaterials2x30+FacilityMaterials4x10+FacilityMaterials7x20 reparo=100 estoque=1
+EmplacedAAC | vida=1250 custo=Woodx175 alt=FacilityMaterials2x30+FacilityMaterials4x10+FacilityMaterials7x20 reparo=100 estoque=1
+ConcreteBridgeNoBlocker | vida=3250 custo=Clothx300 alt= reparo=300 estoque=0
+ConcreteBridgeBuildSiteNoBlocker | vida=500 custo= alt= reparo=0 estoque=0
+DestroyedConcreteBridgeNoBlocker | vida=100000000 custo= alt= reparo=0 estoque=0
+FortLargeRadarDestroyed | vida=4250 custo=Concretex15 alt= reparo=250 estoque=0
+WaterWallSplineT1 | vida=1000 custo=WaterWallMaterialsx5 alt= reparo=15 estoque=0
+AAGunAI | vida=2000 custo=Clothx200 alt= reparo=200 estoque=0
+DeployedAirSirenT | vida=1200 custo= alt= reparo=20 estoque=0
+CoastalGunS | vida=2000 custo=Clothx200 alt= reparo=200 estoque=0
+DestroyedCoastalGunS | vida=100000000 custo= alt= reparo=0 estoque=0
+AAGunAIDestroyed | vida=100000000 custo= alt= reparo=0 estoque=0
+AAGunAIS | vida=2000 custo=Clothx200 alt= reparo=200 estoque=0
+AAGunAISDestroyed | vida=100000000 custo= alt= reparo=0 estoque=0
+FortRadarT3 | vida=3450 custo=Concretex10 alt= reparo=120 estoque=4
+FortRadarT3Destroyed | vida=2750 custo=Concretex15 alt= reparo=120 estoque=0
+FortRadarT3Breached | vida=2750 custo=Concretex15 alt= reparo=120 estoque=0
+FortRadarT2 | vida=1600 custo=Clothx125 alt= reparo=75 estoque=4
+FortRadarT2Destroyed | vida=1600 custo=Clothx75 alt= reparo=75 estoque=0
+FortRadarT2Breached | vida=1600 custo=Clothx75 alt= reparo=75 estoque=0
+FortRadarT1 | vida=750 custo=Clothx75 alt= reparo=50 estoque=4
+FortRadarT1Destroyed | vida=1600 custo=Clothx75 alt= reparo=75 estoque=0
+FortRadarT1Breached | vida=1600 custo=Clothx75 alt= reparo=75 estoque=0
+FacilityPipeTransfer | vida=350 custo=PipeMaterialsx2 alt= reparo=15 estoque=0
+RailTrackSplineTown | vida=500 custo=FacilityMaterials2x5 alt= reparo=50 estoque=0
+## BPVehicleDynamicData
+AmbulanceC | vida=750 custo=Clothx150 comb=100 consumo=0.025 carga=9 forca=16000 blind=0
+AmbulanceW | vida=750 custo=Clothx150 comb=100 consumo=0.025 carga=9 forca=16000 blind=0
+ArmoredCarC | vida=1250 custo=Woodx25 comb=150 consumo=0.050 carga=1 forca=8500 blind=2100
+TanketteC | vida=1150 custo=Woodx35 comb=150 consumo=0.100 carga=4 forca=8500 blind=7200
+ArmoredCarW | vida=1150 custo=Woodx25 comb=150 consumo=0.050 carga=1 forca=9500 blind=2700
+ArmoredCarMobilityW | vida=1250 custo=Woodx40 comb=150 consumo=0.075 carga=1 forca=9500 blind=2700
+Barge | vida=950 custo=Clothx150 comb=200 consumo=0.050 carga=15 forca=0 blind=0
+BattleTankC | vida=6250 custo=Woodx175 comb=600 consumo=0.500 carga=2 forca=18500 blind=15650
+BattleTankW | vida=5100 custo=Woodx200 comb=600 consumo=0.500 carga=2 forca=22000 blind=15650
+BusC | vida=600 custo=Clothx100 comb=100 consumo=0.025 carga=1 forca=15000 blind=0
+BusW | vida=600 custo=Clothx100 comb=100 consumo=0.025 carga=1 forca=15000 blind=0
+Construction | vida=1000 custo=Clothx100 comb=100 consumo=0.050 carga=12 forca=7600 blind=0
+Crane | vida=1500 custo=Clothx125 comb=100 consumo=0.050 carga=5 forca=10000 blind=0
+FieldMGC | vida=1850 custo=Woodx20 comb=100 consumo=0.000 carga=1 forca=3500 blind=0
+FieldMGW | vida=1850 custo=Woodx20 comb=100 consumo=0.000 carga=1 forca=3500 blind=0
+FlatbedTruck | vida=1125 custo=Woodx30 comb=150 consumo=0.050 carga=1 forca=15500 blind=0
+Freighter | vida=2600 custo=Clothx100 comb=300 consumo=0.050 carga=10 forca=0 blind=0
+HalfTrackC | vida=1350 custo=Woodx55 comb=150 consumo=0.075 carga=2 forca=13750 blind=3200
+HalfTrackDefensiveC | vida=1500 custo=Woodx70 comb=150 consumo=0.075 carga=3 forca=11550 blind=4600
+HalfTrackArtilleryC | vida=1350 custo=Woodx70 comb=150 consumo=0.075 carga=4 forca=13750 blind=3200
+HalfTrackW | vida=1500 custo=Woodx60 comb=150 consumo=0.100 carga=2 forca=12650 blind=4600
+HalfTrackOffensiveW | vida=1500 custo=Woodx85 comb=150 consumo=0.125 carga=1 forca=11000 blind=4600
+Harvester | vida=1250 custo=Woodx120 comb=200 consumo=0.150 carga=15 forca=30000 blind=0
+LandingCraftC | vida=1000 custo=Woodx20 comb=150 consumo=0.075 carga=6 forca=13500 blind=5450
+LandingCraftOffensiveC | vida=1000 custo=Woodx45 comb=150 consumo=0.075 carga=6 forca=13500 blind=5450
+LandingCraftW | vida=1000 custo=Woodx20 comb=150 consumo=0.075 carga=6 forca=13500 blind=5450
+LightTankC | vida=1950 custo=Woodx115 comb=325 consumo=0.150 carga=1 forca=26000 blind=9100
+LightTankW | vida=1950 custo=Woodx120 comb=300 consumo=0.188 carga=1 forca=26000 blind=10000
+Mech | vida=9850 custo=Woodx230 comb=250 consumo=0.750 carga=3 forca=15500 blind=9000
+MechW | vida=6850 custo=Woodx185 comb=250 consumo=0.750 carga=3 forca=23500 blind=4750
+MortarTankC | vida=3300 custo=Woodx155 comb=300 consumo=0.225 carga=1 forca=17000 blind=11500
+Motorboat | vida=200 custo=Clothx60 comb=100 consumo=0.075 carga=2 forca=0 blind=0
+MotorcycleC | vida=300 custo=Clothx85 comb=100 consumo=0.050 carga=2 forca=6500 blind=0
+MotorcycleW | vida=300 custo=Clothx85 comb=100 consumo=0.075 carga=2 forca=6500 blind=0
+MotorcycleOffensiveC | vida=300 custo=Clothx110 comb=100 consumo=0.050 carga=1 forca=6000 blind=0
+TruckLiquidC | vida=1125 custo=Clothx100 comb=100 consumo=0.050 carga=1 forca=22500 blind=0
+TruckLiquidW | vida=1125 custo=Clothx100 comb=100 consumo=0.050 carga=1 forca=22500 blind=0
+PartyBus | vida=600 custo=Clothx100 comb=100 consumo=0.050 carga=1 forca=15000 blind=0
+RelicAPC | vida=40000 custo=RelicMaterialsx-29860 comb=250 consumo=0.375 carga=15 forca=0 blind=0
+RelicArmouredCar | vida=1500 custo=RelicMaterialsx80 comb=200 consumo=0.250 carga=3 forca=7850 blind=3700
+RelicLightTank | vida=2500 custo=RelicMaterialsx120 comb=300 consumo=0.262 carga=3 forca=20500 blind=6800
+RelicScoutVehicle | vida=900 custo=RelicMaterialsx60 comb=175 consumo=0.062 carga=9 forca=8500 blind=0
+RelicTruck | vida=800 custo=RelicMaterialsx60 comb=150 consumo=0.050 carga=18 forca=20500 blind=0
+ScoutVehicleOffensiveC | vida=1300 custo=Woodx25 comb=100 consumo=0.050 carga=3 forca=8500 blind=0
+ScoutVehicleMobilityC | vida=900 custo=Woodx10 comb=100 consumo=0.050 carga=6 forca=9000 blind=0
+ScoutVehicleW | vida=1150 custo=Woodx10 comb=100 consumo=0.050 carga=9 forca=8500 blind=0
+ScoutVehicleOffensiveW | vida=1150 custo=Woodx15 comb=100 consumo=0.050 carga=3 forca=8500 blind=0
+TroopShip | vida=4000 custo=Woodx100 comb=200 consumo=0.050 carga=12 forca=0 blind=0
+Bicycle | vida=200 custo=Clothx10 comb=100 consumo=0.000 carga=1 forca=0 blind=0
+TruckC | vida=900 custo=Clothx100 comb=100 consumo=0.025 carga=15 forca=25500 blind=0
+TruckMobilityC | vida=900 custo=Clothx100 comb=100 consumo=0.050 carga=14 forca=25500 blind=0
+TruckOffensiveC | vida=900 custo=Clothx145 comb=100 consumo=0.025 carga=15 forca=25500 blind=0
+TruckResourceC | vida=1000 custo=Clothx120 comb=120 consumo=0.038 carga=20 forca=25500 blind=0
+TruckW | vida=900 custo=Clothx100 comb=100 consumo=0.025 carga=15 forca=25500 blind=0
+TruckMobilityW | vida=900 custo=Clothx120 comb=100 consumo=0.038 carga=14 forca=22500 blind=0
+TruckDefensiveW | vida=1250 custo=Clothx145 comb=100 consumo=0.025 carga=14 forca=25500 blind=0
+TruckResourceW | vida=1000 custo=Clothx120 comb=120 consumo=0.038 carga=20 forca=25500 blind=0
+LightTankDefensiveW | vida=1950 custo=Woodx150 comb=300 consumo=0.225 carga=1 forca=23900 blind=14000
+LightTankMobilityC | vida=2250 custo=Woodx160 comb=300 consumo=0.225 carga=1 forca=23900 blind=9100
+FieldATW | vida=2850 custo=Woodx20 comb=100 consumo=0.000 carga=1 forca=3500 blind=0
+FieldATC | vida=2850 custo=Woodx20 comb=100 consumo=0.000 carga=1 forca=3500 blind=0
+BattleTankDefensiveW | vida=5100 custo=Woodx200 comb=600 consumo=0.550 carga=2 forca=19000 blind=16250
+MediumTankW | vida=3100 custo=Woodx160 comb=325 consumo=0.225 carga=3 forca=24000 blind=17000
+ArmoredCar2LargeW | vida=1500 custo=Woodx60 comb=150 consumo=0.100 carga=1 forca=8250 blind=2100
+ArmoredCarOffensiveC | vida=1250 custo=Woodx40 comb=150 consumo=0.050 carga=1 forca=8250 blind=2100
+LightTankOffensiveC | vida=1750 custo=Woodx145 comb=325 consumo=0.150 carga=1 forca=25550 blind=7250
+RelicMediumTank | vida=4850 custo=RelicMaterialsx600 comb=450 consumo=0.300 carga=6 forca=22500 blind=8400
+FieldMortarW | vida=2850 custo=Woodx35 comb=100 consumo=0.000 carga=1 forca=3500 blind=0
+FieldCannonW | vida=2850 custo=Woodx20 comb=100 consumo=0.000 carga=1 forca=3500 blind=0
+ScoutVehicleUtilityC | vida=1250 custo=Woodx10 comb=100 consumo=0.050 carga=7 forca=8500 blind=0
+ScoutVehicleUtilityW | vida=900 custo=Woodx10 comb=100 consumo=0.100 carga=7 forca=7450 blind=0
+MediumTankC | vida=3650 custo=Woodx135 comb=325 consumo=0.225 carga=3 forca=23500 blind=12725
+ScoutTankW | vida=1350 custo=Woodx70 comb=350 consumo=0.150 carga=2 forca=22000 blind=8000
+LightTankArtilleryW | vida=1950 custo=Woodx150 comb=300 consumo=0.262 carga=4 forca=26000 blind=10000
+MediumTankOffensiveC | vida=3650 custo=Woodx165 comb=325 consumo=0.225 carga=3 forca=23500 blind=10500
+DestroyerTankW | vida=2200 custo=Woodx160 comb=325 consumo=0.262 carga=1 forca=24000 blind=17650
+TanketteOffensiveC | vida=1350 custo=Woodx60 comb=150 consumo=0.100 carga=2 forca=8500 blind=7200
+ScoutTankOffensiveW | vida=1350 custo=Woodx90 comb=350 consumo=0.262 carga=1 forca=19500 blind=8500
+FieldCannonDamageC | vida=4000 custo=Woodx40 comb=100 consumo=0.000 carga=1 forca=2850 blind=0
+FieldATDamageW | vida=4000 custo=Woodx40 comb=100 consumo=0.000 carga=1 forca=3000 blind=0
+MediumTankSiegeW | vida=3100 custo=Woodx185 comb=325 consumo=0.225 carga=2 forca=24000 blind=15000
+LightTank2InfantryC | vida=3300 custo=Woodx100 comb=300 consumo=0.225 carga=8 forca=16000 blind=9800
+MediumTank2C | vida=4000 custo=Woodx165 comb=375 consumo=0.262 carga=2 forca=19500 blind=15650
+MediumTank2RangeW | vida=2950 custo=Woodx150 comb=300 consumo=0.150 carga=2 forca=20000 blind=11000
+ArmoredCarTwinC | vida=1250 custo=Woodx45 comb=150 consumo=0.050 carga=1 forca=8500 blind=2350
+ArmoredCarATW | vida=1250 custo=Woodx45 comb=150 consumo=0.050 carga=1 forca=9500 blind=2450
+MediumTank2TwinC | vida=4000 custo=Woodx185 comb=375 consumo=0.262 carga=2 forca=19500 blind=15650
+MediumTank2MultiW | vida=2950 custo=Woodx150 comb=300 consumo=0.150 carga=3 forca=20000 blind=11000
+SuperTankC | vida=9250 custo=Woodx200 comb=600 consumo=0.500 carga=3 forca=32000 blind=15650
+MediumTankLargeC | vida=4000 custo=Woodx165 comb=325 consumo=0.375 carga=2 forca=24000 blind=13550
+TruckMultiC | vida=900 custo=Clothx100 comb=100 consumo=0.025 carga=1 forca=25500 blind=0
+HalfTrackMultiW | vida=1500 custo=Woodx60 comb=150 consumo=0.100 carga=1 forca=12650 blind=4600
+MediumTank2IndirectW | vida=2650 custo=Woodx150 comb=300 consumo=0.150 carga=2 forca=20000 blind=11000
+TrainEngine | vida=3250 custo=Clothx5 comb=100 consumo=30.000 carga=3 forca=25000 blind=0
+TrainCoal | vida=1500 custo=Clothx5 comb=100 consumo=0.050 carga=15 forca=0 blind=0
+TrainFlatbed | vida=1500 custo=Clothx5 comb=100 consumo=0.050 carga=1 forca=0 blind=0
+TrainInfantry | vida=3250 custo=Clothx5 comb=100 consumo=0.050 carga=16 forca=0 blind=0
+SuperTankW | vida=12000 custo=Woodx200 comb=600 consumo=0.500 carga=6 forca=22000 blind=17650
+DestroyerTankFlameW | vida=2200 custo=Woodx160 comb=325 consumo=0.262 carga=1 forca=24000 blind=17650
+TrainLRArtillery | vida=4000 custo=Clothx5 comb=100 consumo=0.050 carga=1 forca=25000 blind=100000
+TrainCombatCarC | vida=4000 custo=Clothx5 comb=100 consumo=0.050 carga=3 forca=0 blind=100000
+TrainCombatCarW | vida=3250 custo=Clothx5 comb=100 consumo=0.050 carga=2 forca=0 blind=100000
+LightTankFlameC | vida=1950 custo=Woodx135 comb=325 consumo=0.225 carga=1 forca=24500 blind=9100
+ArmoredCarFlameW | vida=1250 custo=Woodx40 comb=150 consumo=0.075 carga=1 forca=9500 blind=2700
+TanketteFlameC | vida=1350 custo=Woodx60 comb=150 consumo=0.150 carga=2 forca=8500 blind=7200
+LightTankWaterC | vida=1950 custo=Woodx135 comb=225 consumo=0.200 carga=1 forca=26000 blind=9100
+SmallTrainEngine | vida=1650 custo=Clothx200 comb=100 consumo=10.000 carga=1 forca=25000 blind=0
+SmallTrainResource | vida=900 custo=Clothx200 comb=100 consumo=0.050 carga=25 forca=0 blind=0
+SmallTrainMaterial | vida=900 custo=Clothx200 comb=100 consumo=0.050 carga=1 forca=0 blind=0
+LargeCrane | vida=2600 custo=FacilityMaterials2x250 comb=300 consumo=0.450 carga=5 forca=25000 blind=0
+AmbulanceFlameC | vida=750 custo=Clothx150 comb=100 consumo=0.025 carga=1 forca=18500 blind=0
+AmbulanceFlameW | vida=750 custo=Clothx150 comb=100 consumo=0.025 carga=1 forca=18500 blind=0
+ArmoredCar2TwinW | vida=1500 custo=Woodx40 comb=150 consumo=0.100 carga=5 forca=8250 blind=2100
+TrainCaboose | vida=1500 custo=Clothx5 comb=100 consumo=0.050 carga=1 forca=0 blind=0
+BattleTankATC | vida=6250 custo=Woodx200 comb=750 consumo=0.500 carga=1 forca=14000 blind=15650
+ConstructionUtility | vida=1000 custo=Clothx100 comb=100 consumo=0.050 carga=12 forca=7600 blind=0
+SmallTrainLiquid | vida=900 custo=Clothx200 comb=100 consumo=0.050 carga=1 forca=0 blind=0
+MediumTankATW | vida=3100 custo=Woodx155 comb=375 consumo=0.225 carga=1 forca=24000 blind=14500
+ScoutTankMultiW | vida=1350 custo=Woodx90 comb=350 consumo=0.225 carga=1 forca=20000 blind=6500
+TanketteMultiC | vida=1350 custo=Woodx60 comb=150 consumo=0.150 carga=1 forca=8500 blind=7200
+BattleTankHeavyArtilleryW | vida=4800 custo=Woodx200 comb=600 consumo=0.500 carga=1 forca=22000 blind=12000
+BattleTankHeavyArtilleryC | vida=6250 custo=Woodx175 comb=600 consumo=0.500 carga=1 forca=18500 blind=12000
+FieldAT2C | vida=1600 custo=Woodx20 comb=100 consumo=0.000 carga=1 forca=3500 blind=0
+FieldAT2W | vida=1600 custo=Woodx20 comb=100 consumo=0.000 carga=1 forca=3500 blind=0
+TrailerResource | vida=900 custo=Clothx100 comb=100 consumo=0.000 carga=7 forca=0 blind=0
+TrailerMaterial | vida=900 custo=Clothx100 comb=100 consumo=0.000 carga=1 forca=0 blind=0
+TrailerLiquid | vida=900 custo=Clothx100 comb=100 consumo=0.000 carga=1 forca=0 blind=0
+HalftrackTwinW | vida=1500 custo=Woodx60 comb=150 consumo=0.075 carga=4 forca=11550 blind=4600
+LargeShipDestroyerC | vida=46200 custo=Clothx150 comb=1500 consumo=0.280 carga=15 forca=0 blind=38500
+LargeShipStorageShip | vida=72190 custo=Clothx150 comb=3500 consumo=0.700 carga=15 forca=0 blind=57750
+LargeShipBaseShip | vida=49500 custo=Clothx150 comb=1500 consumo=0.230 carga=15 forca=0 blind=49500
+LandingShipC | vida=2250 custo=Clothx10 comb=10 consumo=0.055 carga=6 forca=0 blind=5450
+LandingShipW | vida=2250 custo=Clothx10 comb=10 consumo=0.055 carga=6 forca=0 blind=5450
+HeavyTruckC | vida=1150 custo=Woodx30 comb=150 consumo=0.050 carga=15 forca=26500 blind=3000
+LargeFieldATC | vida=5000 custo=Woodx40 comb=100 consumo=0.000 carga=1 forca=2000 blind=0
+LargeFieldLightArtilleryC | vida=1000 custo=Woodx25 comb=100 consumo=0.000 carga=1 forca=2750 blind=0
+LargeFieldCannonW | vida=5000 custo=Woodx40 comb=100 consumo=0.000 carga=1 forca=2500 blind=0
+LargeFieldMultiW | vida=1000 custo=Woodx30 comb=100 consumo=0.000 carga=1 forca=3200 blind=0
+GunboatW | vida=1650 custo=Woodx140 comb=200 consumo=0.050 carga=6 forca=0 blind=9500
+GunboatC | vida=1850 custo=Woodx140 comb=200 consumo=0.050 carga=6 forca=0 blind=9100
+PlayerImposter | vida=1000 custo=Clothx10 comb=100 consumo=0.000 carga=0 forca=1000 blind=0
+LargeShipSubmarineW | vida=21275 custo=Clothx150 comb=1000 consumo=0.330 carga=15 forca=0 blind=21275
+LargeShipBattleshipC | vida=85960 custo=Clothx150 comb=3000 consumo=0.700 carga=15 forca=0 blind=66000
+LargeShipBattleshipW | vida=85960 custo=Clothx150 comb=3500 consumo=0.900 carga=15 forca=0 blind=74750
+HeavyTruckW | vida=1150 custo=Woodx30 comb=150 consumo=0.050 carga=15 forca=25000 blind=3000
+LargeShipDestroyerW | vida=41400 custo=Clothx150 comb=1000 consumo=0.280 carga=15 forca=0 blind=34500
+LargeShipSubmarineC | vida=28500 custo=Clothx150 comb=1200 consumo=0.330 carga=15 forca=0 blind=28500
+LargeShipResourceShip | vida=55000 custo=Clothx150 comb=1500 consumo=0.250 carga=15 forca=0 blind=55000
+SmallTrainShipping | vida=900 custo=Clothx200 comb=100 consumo=0.050 carga=15 forca=0 blind=0
+MediumTank2W | vida=2950 custo=Woodx150 comb=300 consumo=0.150 carga=2 forca=20000 blind=11000
+MediumTank3C | vida=3650 custo=Woodx150 comb=300 consumo=0.188 carga=2 forca=9000 blind=10500
+TrainHospital | vida=4250 custo=Clothx5 comb=100 consumo=0.050 carga=20 forca=0 blind=100000
+FieldMortarC | vida=2450 custo=Woodx35 comb=100 consumo=0.000 carga=1 forca=3000 blind=0
+LargeFieldMortarC | vida=3750 custo=Woodx35 comb=100 consumo=0.000 carga=1 forca=2000 blind=0
+ArmoredCar2MultiW | vida=1500 custo=Woodx60 comb=150 consumo=0.100 carga=1 forca=8250 blind=2100
+Gunboat2C | vida=1800 custo=Woodx100 comb=200 consumo=0.050 carga=1 forca=0 blind=9100
+MineBoat | vida=950 custo=Clothx150 comb=200 consumo=0.050 carga=3 forca=0 blind=0
+AircraftBomberC | vida=10000 custo= comb=350 consumo=0.858 carga=1 forca=25000 blind=0
+AircraftFighterW | vida=6000 custo=Woodx250 comb=100 consumo=0.239 carga=2 forca=25000 blind=0
+AirToGroundTarget | vida=900 custo=Clothx100 comb=100 consumo=0.025 carga=15 forca=25500 blind=0
+LargeShipBattleshipAircraftW | vida=74750 custo=Clothx150 comb=3500 consumo=0.900 carga=15 forca=0 blind=74750
+AircraftWaterW | vida=5750 custo=Woodx100 comb=100 consumo=0.272 carga=1 forca=25000 blind=0
+AircraftScoutW | vida=300 custo=Woodx100 comb=100 consumo=0.217 carga=1 forca=25000 blind=0
+AircraftDiveC | vida=5500 custo=Woodx250 comb=100 consumo=0.239 carga=1 forca=25000 blind=0
+AircraftScoutC | vida=300 custo=Woodx100 comb=150 consumo=0.266 carga=1 forca=25000 blind=0
+AircraftTorpedoW | vida=7000 custo=Clothx200 comb=200 consumo=0.478 carga=1 forca=25000 blind=0
+LightBoatInfantryW | vida=1750 custo=Clothx125 comb=200 consumo=0.075 carga=2 forca=0 blind=7500
+MediumBoatC | vida=2300 custo=Clothx100 comb=250 consumo=0.075 carga=4 forca=0 blind=8500
+Gunboat2W | vida=2000 custo=Woodx100 comb=200 consumo=0.050 carga=1 forca=0 blind=9500
+LargeShipAircraftC | vida=78050 custo=Clothx150 comb=3000 consumo=0.700 carga=15 forca=0 blind=78050
+MediumBoatW | vida=2050 custo=Clothx90 comb=250 consumo=0.050 carga=3 forca=0 blind=9100
+AircraftParatrooperC | vida=7000 custo= comb=425 consumo=1.040 carga=1 forca=25000 blind=0
+AircraftFighterC | vida=5500 custo=Woodx250 comb=100 consumo=0.239 carga=1 forca=25000 blind=0
+AircraftBomberW | vida=10000 custo= comb=300 consumo=0.736 carga=1 forca=25000 blind=0
+LightBoatInfantryC | vida=1500 custo=Clothx100 comb=100 consumo=0.050 carga=2 forca=0 blind=7000
+FreighterLight | vida=1500 custo=Clothx100 comb=200 consumo=0.050 carga=2 forca=0 blind=0
+AircraftParatrooperW | vida=7000 custo= comb=250 consumo=0.558 carga=1 forca=25000 blind=0
+AircraftScout2W | vida=300 custo=Woodx100 comb=150 consumo=0.266 carga=1 forca=25000 blind=0
+AircraftScout2C | vida=300 custo=Woodx100 comb=100 consumo=0.217 carga=1 forca=25000 blind=0
+LightTank2C | vida=1950 custo=Woodx115 comb=325 consumo=0.150 carga=1 forca=26000 blind=9100
+LightTank3C | vida=1950 custo=Woodx125 comb=325 consumo=0.150 carga=1 forca=26000 blind=9100
+LightTank3W | vida=1950 custo=Woodx125 comb=325 consumo=0.150 carga=1 forca=26000 blind=9100
+AircraftFighter2C | vida=6500 custo=Woodx250 comb=100 consumo=0.192 carga=2 forca=25000 blind=0
+LargeShipLiquidShip | vida=55000 custo=Clothx150 comb=1500 consumo=0.250 carga=15 forca=0 blind=55000
+## BPAmmoDynamicData
+BattleTankAmmo | dano=1750 supr=85.0 raio=500
+LightTankAmmo | dano=600 supr=85.0 raio=200
+LRArtilleryAmmo | dano=3000 supr=200.0 raio=1500
+MortarAmmo | dano=300 supr=45.0 raio=500
+MortarAmmoFL | dano=0 supr=0.0 raio=0
+MortarAmmoSH | dano=125 supr=150.0 raio=750
+MortarTankAmmo | dano=800 supr=0.9 raio=500
+TankMine | dano=850 supr=0.0 raio=400
+SatchelChargeW | dano=550 supr=45.0 raio=200
+UnexplodedOrdnance | dano=1200 supr=0.0 raio=700
+StickyBomb | dano=450 supr=0.0 raio=200
+GrenadeW | dano=200 supr=20.0 raio=550
+HEGrenade | dano=240 supr=8.0 raio=175
+GreenAsh | dano=0 supr=0.0 raio=0
+SmokeGrenade | dano=0 supr=0.0 raio=0
+RpgAmmo | dano=550 supr=20.0 raio=175
+LightArtilleryAmmo | dano=400 supr=200.0 raio=1125
+MiniTankAmmo | dano=400 supr=0.0 raio=200
+ATAmmo | dano=600 supr=85.0 raio=150
+ATMortar | dano=10 supr=0.0 raio=350
+RifleAmmo | dano=45 supr=17.0 raio=0
+MGAmmo | dano=55 supr=18.0 raio=0
+AssaultRifleAmmo | dano=35 supr=10.0 raio=0
+AssaultRifleSingleShotAmmo | dano=42 supr=15.0 raio=0
+ATRifleAmmo | dano=150 supr=20.0 raio=0
+PistolAmmo | dano=30 supr=5.0 raio=0
+RevolverAmmo | dano=60 supr=6.0 raio=0
+ShotgunAmmo | dano=70 supr=6.0 raio=0
+SniperRifleAmmo | dano=100 supr=35.0 raio=0
+SMGAmmo | dano=27 supr=9.0 raio=0
+FieldMGAmmo | dano=65 supr=18.0 raio=0
+GrenadeC | dano=125 supr=20.0 raio=650
+ATRPGAmmo | dano=550 supr=20.0 raio=200
+ATRPGLightCAmmo | dano=375 supr=20.0 raio=200
+HeavyArtilleryAmmo | dano=900 supr=200.0 raio=1125
+ATRPGIndirectAmmo | dano=675 supr=20.0 raio=200
+ExplosiveLightC | dano=550 supr=100.0 raio=200
+ATGrenadeW | dano=300 supr=0.0 raio=125
+RifleAutomaticWSingleShotAmmo | dano=45 supr=17.0 raio=0
+HELaunchedGrenade | dano=400 supr=8.0 raio=275
+ATLargeAmmo | dano=1750 supr=85.0 raio=150
+FireRocketAmmo | dano=145 supr=20.0 raio=550
+HERocketAmmo | dano=700 supr=20.0 raio=550
+FlameAmmo | dano=25 supr=18.0 raio=300
+WaterBucketfull | dano=125 supr=0.0 raio=350
+FlameBackpackAmmo | dano=15 supr=18.0 raio=200
+Water | dano=30 supr=0.0 raio=200
+SatchelChargeT | dano=1950 supr=45.0 raio=700
+DepthChargeAmmo | dano=900 supr=0.0 raio=750
+WaterMine | dano=1350 supr=0.0 raio=750
+TorpedoAmmo | dano=3550 supr=0.0 raio=750
+MortarAmmoFlame | dano=55 supr=45.0 raio=550
+ATLaunchedGrenadeW | dano=425 supr=0.0 raio=275
+InfantryMine | dano=250 supr=0.0 raio=300
+MortarTankAmmoBR | dano=800 supr=0.9 raio=500
+DemolitionRocketAmmo | dano=250 supr=20.0 raio=550
+SurfaceWaterMine | dano=650 supr=0.0 raio=750
+BomberAmmo | dano=1200 supr=200.0 raio=1125
+DiveBomberAmmo | dano=950 supr=85.0 raio=600
+AAAmmo | dano=1200 supr=200.0 raio=1150
+MiniTorpedoAmmo | dano=500 supr=0.0 raio=750
+AircraftAmmo | dano=65 supr=35.0 raio=0
+LightAAAmmo | dano=600 supr=200.0 raio=600
+AircraftTorpedoAmmo | dano=1500 supr=0.0 raio=750

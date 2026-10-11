@@ -1,0 +1,184 @@
+==================================================================================================== 
+PASS 00 integridade: build reproduz candidato_v2/main.lua (CRLF) e main.lua real intacto 
+
+locais de topo (check_globals) apos main real                     : 175
+locais de topo (check_globals) apos ECONOMIA                      : 175
+locais de topo (check_globals) apos IA_LOGISTICA v2               : 175
+locais de topo (check_globals) apos reserva de bmat               : 175
+locais de topo (check_globals) apos INTERFACE v2 (painel rebaseado): 175
+locais de topo (check_globals) apos PERSISTENCIA v2               : 175
+==================================================================================================== 
+PASS 01 sintaxe (lupa Lua 5.4 = UE4SS e 5.5) + limite de 200 locais por chunk 
+
+==================================================================================================== 
+PASS 02 tools/check_globals.py contra o candidato 
+--- main real: rc=0
+
+--- candidato: rc=0
+
+
+==================================================================================================== 
+PASS 03a tools/test_orders.py no main real (controle, sem mudanca) 
+PASS: syntax, lab map case matching, H gating, selected/all orders, repeated braking, resume, dead/invalid units, native death cleanup/cache/corpse TTL, authority guards, empty squad, click/box selection, attack order, hold, path planning (sync + async job + strict no-fallback terrain access), suppression, medic, victory, capture points (progress, contest, objective, defeat, domination), order queue, veterancy, retreat, mortar refusals, build refusals, recruit refusals, ammo, supply crates, trenches, enemy economy, save/continue, area fire, barbed wire, aid tent, assault mode, officer aura, enemy area fire, medevac, morale, difficulty, front alerts, groups 1-5, logistics (real hidden actors, refused startup preserves state, regional spawn), enemy convoy (no phantom spawn), no key clashes with the game
+
+==================================================================================================== 
+PASS 03b tools/test_orders.py contra o candidato (bloco 'enemy convoy' da IA v2) 
+PASS: syntax, lab map case matching, H gating, selected/all orders, repeated braking, resume, dead/invalid units, native death cleanup/cache/corpse TTL, authority guards, empty squad, click/box selection, attack order, hold, path planning (sync + async job + strict no-fallback terrain access), suppression, medic, victory, capture points (progress, contest, objective, defeat, domination), order queue, veterancy, retreat, mortar refusals, build refusals, recruit refusals, ammo, supply crates, trenches, enemy economy, save/continue, area fire, barbed wire, aid tent, assault mode, officer aura, enemy area fire, medevac, morale, difficulty, front alerts, groups 1-5, logistics (real hidden actors, refused startup preserves state, regional spawn), enemy convoy (no phantom spawn), no key clashes with the game
+
+==================================================================================================== 
+PASS 04 tools/test_costs.py e tools/test_inventory_probe.py (independentes do main.lua) 
+test_costs.py rc= 0 PASS: ProductionResource e CodeNameSmallQuantity distintos; custos primario/secundario e zero real
+ 
+test_inventory_probe.py rc= 0 PASS: probe reads both arrays, tolerates missing fields/invalid pawns, rejects non-local contexts
+ 
+
+==================================================================================================== 
+PASS 05 economia/test_integracao.py contra o candidato 
+PASS: complete main.lua candidate executed in memory; production/trucks/recruit/medic/save/memento
+
+==================================================================================================== 
+PASS 06 ia_logistica/test_ia_logistica_v2.py contra o candidato (25x600 passos aleatorios + partidas) 
+== pilha completa: PASS (custos do jogo, cenario, fail-closed, producao, comboio sem fantasma, entrega unica, perda unica + reconstrucao, ator invalido, rota ausente, onda/commit, reforco, assalto/sem logistica, save/continue, 25x600 passos aleatorios com razao fechado, partida completa)
+controle                                 venceu=true lost(m=0,c=0) convoys=9 cut=0 | ondas enviados/pedidos: 1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:10/10 8:11/11 9:12/12 10:13/13
+interdicao total                         venceu=true lost(m=8,c=40) convoys=4 cut=4 | ondas enviados/pedidos: 1:6/6 2:6/6 3:7/7 4:8/8 5:8/9[i1] 6:5/10[i5] 7:5/10[i5] 8:5/11[i6] 9:5/12[i7] 10:5/13[i8]
+interdicao 0-420 s, depois livre         venceu=true lost(m=6,c=30) convoys=4 cut=3 | ondas enviados/pedidos: 1:6/6 2:6/6 3:7/7 4:8/8 5:8/9[i1] 6:5/10[i5] 7:5/10[i5] 8:5/11[i6] 9:5/12[i7] 10:13/13
+escassez (retaguarda sem bmat/sucata)    venceu=true lost(m=0,c=0) convoys=0 cut=0 | ondas enviados/pedidos: 1:6/6 2:6/6 3:7/7 4:8/8 5:8/9 6:5/10 7:5/10 8:5/11 9:5/12 10:5/13
+PASS: test_ia_logistica (pilha completa)
+
+==================================================================================================== 
+PASS 06b acabamento/test_elogi.py contra o candidato v2 (politica unica do elogi; 5.4 e 5.5; sem modulo) 
+PASS pilha v2 completa (ECO+IA_v2+reserva+INTERFACE+PERS_v2) / lua54: elogi valido: restaura igual, 3x sem duplicar
+PASS pilha v2 completa (ECO+IA_v2+reserva+INTERFACE+PERS_v2) / lua54: elogi invalido/futuro/estranho: descarta so a secao, jogador intacto, sem duplicar
+PASS pilha v2 completa (ECO+IA_v2+reserva+INTERFACE+PERS_v2) / lua54: elogi ausente / save legado: mesmo aviso e cenario
+PASS pilha v2 completa (ECO+IA_v2+reserva+INTERFACE+PERS_v2) / lua54: estado inimigo proprio invalido ao gravar: grava sem a secao
+PASS pilha v2 completa (ECO+IA_v2+reserva+INTERFACE+PERS_v2) / lua54: outros campos invalidos continuam recusando tudo
+PASS main+ECONOMIA+PERSISTENCIA_v2 lendo save da IA / lua54: modulo ausente descarta so o elogi, jogador intacto
+PASS pilha v2 completa (ECO+IA_v2+reserva+INTERFACE+PERS_v2) / lua55: elogi valido: restaura igual, 3x sem duplicar
+PASS pilha v2 completa (ECO+IA_v2+reserva+INTERFACE+PERS_v2) / lua55: elogi invalido/futuro/estranho: descarta so a secao, jogador intacto, sem duplicar
+PASS pilha v2 completa (ECO+IA_v2+reserva+INTERFACE+PERS_v2) / lua55: elogi ausente / save legado: mesmo aviso e cenario
+PASS pilha v2 completa (ECO+IA_v2+reserva+INTERFACE+PERS_v2) / lua55: estado inimigo proprio invalido ao gravar: grava sem a secao
+PASS pilha v2 completa (ECO+IA_v2+reserva+INTERFACE+PERS_v2) / lua55: outros campos invalidos continuam recusando tudo
+PASS main+ECONOMIA+PERSISTENCIA_v2 lendo save da IA / lua55: modulo ausente descarta so o elogi, jogador intacto
+PASS: test_elogi (12 casos)
+
+==================================================================================================== 
+PASS 06c acabamento/test_bmat_caminhao.py (reserva de bmat; pilha completa = candidato v2) 
+main+ECONOMIA+IA (original) | continuo, sup 2 morre em 60 s
+    antes : reconstruido=None jobs=22 bmat=27 (maior bmat enquanto esperava: 79.0) estados=loading/dead/idle
+    depois: reconstruido=36.5 jobs=21 bmat=7 estados=loading/idle/idle avisos=1
+main+ECONOMIA+IA (original) | continuo, sup 2 morre em 60 s, fabrica DEPOIS dos caminhoes
+    antes : reconstruido=None jobs=22 bmat=27 (maior bmat enquanto esperava: 79.0) estados=loading/dead/idle
+    depois: reconstruido=36.5 jobs=21 bmat=7 estados=loading/idle/idle avisos=1
+main+ECONOMIA+IA (original) | continuo, recurso morre em 60 s
+    antes : reconstruido=None jobs=5 bmat=0 (maior bmat enquanto esperava: 79.0) estados=dead/idle/idle
+    depois: reconstruido=36.5 jobs=21 bmat=7 estados=toRef/idle/idle avisos=1
+main+ECONOMIA+IA (original) | folgado (fabrica parada), sup 2 morre em 60 s
+    antes : reconstruido=30.0 jobs=0 bmat=1987 (maior bmat enquanto esperava: 466.0) estados=loading/idle/idle
+    depois: reconstruido=30.0 jobs=0 bmat=1987 estados=loading/idle/idle avisos=0
+main+ECONOMIA+IA_v2 | continuo, sup 2 morre em 60 s
+    antes : reconstruido=None jobs=22 bmat=27 (maior bmat enquanto esperava: 79.0) estados=loading/dead/idle
+    depois: reconstruido=36.5 jobs=21 bmat=7 estados=loading/idle/idle avisos=1
+main+ECONOMIA+IA_v2 | continuo, sup 2 morre em 60 s, fabrica DEPOIS dos caminhoes
+    antes : reconstruido=None jobs=22 bmat=27 (maior bmat enquanto esperava: 79.0) estados=loading/dead/idle
+    depois: reconstruido=36.5 jobs=21 bmat=7 estados=loading/idle/idle avisos=1
+main+ECONOMIA+IA_v2 | continuo, recurso morre em 60 s
+    antes : reconstruido=None jobs=5 bmat=0 (maior bmat enquanto esperava: 79.0) estados=dead/idle/idle
+    depois: reconstruido=36.5 jobs=21 bmat=7 estados=toRef/idle/idle avisos=1
+main+ECONOMIA+IA_v2 | folgado (fabrica parada), sup 2 morre em 60 s
+    antes : reconstruido=30.0 jobs=0 bmat=1987 (maior bmat enquanto esperava: 466.0) estados=loading/idle/idle
+    depois: reconstruido=30.0 jobs=0 bmat=1987 estados=loading/idle/idle avisos=0
+pilha completa, continuo, sup 2 morre em 60 s: reconstruido=36.5 jobs=21
+limite conhecido (recurso destruido com bmat=0 e sucata=0): permanece destruido? {'sem patch': True, 'com patch': True}
+varredura do instante da destruicao (30..120 s), caminhao de suprimento, consumo continuo: reconstruido em 600 s: antes 0/31, depois 31/31 (pior caso depois: 49.5 s)
+varredura do instante da destruicao (30..120 s), caminhao de recurso, consumo continuo: reconstruido em 600 s: antes 0/31, depois 31/31 (pior caso depois: 49.5 s)
+PASS: test_bmat_caminhao (hipotese confirmada sem a correcao; com patch_reserva_bmat o caminhao volta; controle sem regressao)
+
+==================================================================================================== 
+PASS 07a interface/test_interface.py original (painel.lua da INTERFACE, mock proprio) 
+PASS: painel Lua; unidades, produção, trânsito, morte, metas, inativo; sem mutação
+
+==================================================================================================== 
+PASS 07b interface/test_interface.py com o logi.hudLine do CANDIDATO (mock proprio, sem extraHud/eHud) 
+PASS: painel Lua; unidades, produção, trânsito, morte, metas, inativo; sem mutação
+
+==================================================================================================== 
+PASS 07c painel no candidato completo: estados, fuzis/bandagens, returnCargo, linha INIMIGO da IA, so leitura 
+amostra do painel (1a renderizacao do teste):
+LOGÍSTICA | sucata 12 | bmat 100 | prioridade auto
+Fábrica | fuzis: 4 s restantes (total 70 s)
+Pronto | munição 1 caixas | camisas 2 caixas (20 unidades)
+base | munição 6 | camisas 30
+A | munição 1 | camisas 0 | abaixo da meta
+Caminhão 1 | retornando carga à fábrica | 1 munição + 2 camisas (caixas) + 1 fuzis + 1 bandagens | destino fábrica
+Caminhão 2 | ao depósito | 0 munição + 0 camisas (caixas) + 2 fuzis + 1 bandagens | destino A
+Caminhão 3 | iniciando coleta | 0 sucata | destino campo
+Caminhão 4 | destruído | perdida | destino —
+INIMIGO: frente equipa 10 (m2.0 c10) | retaguarda bmat 240, cx m0 c0 | comboios 0 na estrada, 0 perdidos | piso grátis 5/onda
+Ctrl+L: foco na cadeia | Q/E: frentes | Espaço: último alerta
+Fuzis: fábrica 3 caixas | bandagens: fábrica 4 caixas | base: 2 fuzis, 5 bandagens | A: 0 fuzis, 0 bandagens | caminhão 1 -> fábrica: 1 caixas fuzis, 1 caixas bandagens | caminhão 2 -> A: 2 caixas fuzis, 1 caixas bandagens
+
+==================================================================================================== 
+PASS 07d painel v2: reserva de bmat ('guarda N bmat ...') e linha INIMIGO com o piso gratis (free=5) 
+linhas do painel v2:
+Fábrica | guarda 100 bmat para reconstruir caminhão (bmat 130)
+INIMIGO: frente equipa 10 (m2.0 c10) | retaguarda bmat 240, cx m0 c0 | comboios 0 na estrada, 0 perdidos | piso grátis 5/onda
+INIMIGO: frente equipa 0 (m0.0 c0) | retaguarda bmat 240, cx m0 c0 | comboios 0 na estrada, 0 perdidos | piso grátis 5/onda
+
+==================================================================================================== 
+PASS 08 persistencia/test_persistencia_v2.py contra o candidato (Lua 5.4 e 5.5, 9 cenarios) 
+PASS main+ECONOMIA+PERSISTENCIA_v2 / lua54: parser de literais (sem load, sem userdata)
+PASS main+ECONOMIA+PERSISTENCIA_v2 / lua54: schema/versões/migração v1
+PASS main+ECONOMIA+PERSISTENCIA_v2 / lua54: ida e volta em carga nova + regravação
+PASS main+ECONOMIA+PERSISTENCIA_v2 / lua54: restauração repetida e Alt+L antes (sem duplicar)
+PASS main+ECONOMIA+PERSISTENCIA_v2 / lua54: recusas preservam sessão e arquivo
+PASS main+ECONOMIA+PERSISTENCIA_v2 / lua54: rollback da infraestrutura
+PASS main+ECONOMIA+PERSISTENCIA_v2 / lua54: falha após preflight: autosave suspenso, sem estoque fictício
+PASS main+ECONOMIA+PERSISTENCIA_v2 / lua54: gravação atômica/recuperação
+PASS main+ECONOMIA+PERSISTENCIA_v2 / lua54: legado v1
+PASS main+ECONOMIA+PERSISTENCIA_v2 / lua55: parser de literais (sem load, sem userdata)
+PASS main+ECONOMIA+PERSISTENCIA_v2 / lua55: schema/versões/migração v1
+PASS main+ECONOMIA+PERSISTENCIA_v2 / lua55: ida e volta em carga nova + regravação
+PASS main+ECONOMIA+PERSISTENCIA_v2 / lua55: restauração repetida e Alt+L antes (sem duplicar)
+PASS main+ECONOMIA+PERSISTENCIA_v2 / lua55: recusas preservam sessão e arquivo
+PASS main+ECONOMIA+PERSISTENCIA_v2 / lua55: rollback da infraestrutura
+PASS main+ECONOMIA+PERSISTENCIA_v2 / lua55: falha após preflight: autosave suspenso, sem estoque fictício
+PASS main+ECONOMIA+PERSISTENCIA_v2 / lua55: gravação atômica/recuperação
+PASS main+ECONOMIA+PERSISTENCIA_v2 / lua55: legado v1
+PASS pilha v2 completa (ECO+IA_v2+reserva+INTERFACE+PERS_v2) / lua54: parser de literais (sem load, sem userdata)
+PASS pilha v2 completa (ECO+IA_v2+reserva+INTERFACE+PERS_v2) / lua54: schema/versões/migração v1
+PASS pilha v2 completa (ECO+IA_v2+reserva+INTERFACE+PERS_v2) / lua54: ida e volta em carga nova + regravação
+PASS pilha v2 completa (ECO+IA_v2+reserva+INTERFACE+PERS_v2) / lua54: restauração repetida e Alt+L antes (sem duplicar)
+PASS pilha v2 completa (ECO+IA_v2+reserva+INTERFACE+PERS_v2) / lua54: recusas preservam sessão e arquivo
+PASS pilha v2 completa (ECO+IA_v2+reserva+INTERFACE+PERS_v2) / lua54: rollback da infraestrutura
+PASS pilha v2 completa (ECO+IA_v2+reserva+INTERFACE+PERS_v2) / lua54: falha após preflight: autosave suspenso, sem estoque fictício
+PASS pilha v2 completa (ECO+IA_v2+reserva+INTERFACE+PERS_v2) / lua54: gravação atômica/recuperação
+PASS pilha v2 completa (ECO+IA_v2+reserva+INTERFACE+PERS_v2) / lua54: legado v1
+PASS pilha v2 completa (ECO+IA_v2+reserva+INTERFACE+PERS_v2) / lua55: parser de literais (sem load, sem userdata)
+PASS pilha v2 completa (ECO+IA_v2+reserva+INTERFACE+PERS_v2) / lua55: schema/versões/migração v1
+PASS pilha v2 completa (ECO+IA_v2+reserva+INTERFACE+PERS_v2) / lua55: ida e volta em carga nova + regravação
+PASS pilha v2 completa (ECO+IA_v2+reserva+INTERFACE+PERS_v2) / lua55: restauração repetida e Alt+L antes (sem duplicar)
+PASS pilha v2 completa (ECO+IA_v2+reserva+INTERFACE+PERS_v2) / lua55: recusas preservam sessão e arquivo
+PASS pilha v2 completa (ECO+IA_v2+reserva+INTERFACE+PERS_v2) / lua55: rollback da infraestrutura
+PASS pilha v2 completa (ECO+IA_v2+reserva+INTERFACE+PERS_v2) / lua55: falha após preflight: autosave suspenso, sem estoque fictício
+PASS pilha v2 completa (ECO+IA_v2+reserva+INTERFACE+PERS_v2) / lua55: gravação atômica/recuperação
+PASS pilha v2 completa (ECO+IA_v2+reserva+INTERFACE+PERS_v2) / lua55: legado v1
+PASS: 36 casos (9 cenários x Lua 5.4/5.5 x 2 pilha(s)); SKIP: 0
+
+uso de logi.drive: if logi.drive(tr, logi.field, dt) then tr.state, tr.waitT = "loading", t + C.load end
+uso de logi.drive: if logi.drive(tr, logi.refinery, dt) then
+uso de logi.drive: if not logi.drive(tr, logi.factory, dt) then return end
+uso de logi.drive: if logi.drive(tr, logi.factory, dt) then
+uso de logi.drive: if logi.drive(tr, d, dt) then
+uso de logi.drive: if logi.drive(tr, tr.to, dt, E.speed) then
+uso de logi.drive: elseif tr.state == "back" and logi.drive(tr, tr.from, dt, E.speed) then
+==================================================================================================== 
+PASS 09 contrato ESTRADAS: driver true so na chegada / routeStatus (jogador, returnCargo, comboio inimigo) 
+
+==================================================================================================== 
+PASS 10 conflitos e patches entregues: painel.patch x ECONOMIA reproduzido; sequencia dos .patch e pilha.diff aplicam limpo 
+
+==================================================================================================== 
+PASS 11 ordens alternativas produzem o MESMO texto (comutacao) 
+
+==================================================================================================== 
+PASS 12 candidato nao toca o ESTRADAS e nao deixa residuos do contrato abstrato antigo 

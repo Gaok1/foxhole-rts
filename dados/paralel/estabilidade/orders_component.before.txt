@@ -1,0 +1,5 @@
+    K2_GetComponentScale=function() return {X=1,Y=1,Z=1} end,
+    SetCustomDepthStencilValue
+
+    K2_GetComponentScale=src.K2_GetComponentScale,
+    SetCustomDepthStencilValue

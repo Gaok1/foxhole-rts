@@ -1,0 +1,9 @@
+PID24924 HomeRegionW
+SETTINGS_INSTANCE ServerSettings instância própria
+SpawnInvulnerabilityTime 3.0
+GlobalRefineYieldModifier 1.0
+MinTankArmourMultiplier 1.0
+BallisticPenetrationMaxDistance 4000.0
+BallisticPenetrationDistanceExponent 1.5
+CONTEXT_UNCHANGED BEFORE_VALID false AFTER_VALID false
+LIMIT não associada; não prova dano/disparo

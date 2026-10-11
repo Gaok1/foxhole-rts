@@ -1,0 +1,2 @@
+62245d23af36160f589707fe422b6fb167abaa58482ef7f58a49cd39021b598f  candidato/main.lua (v4.1)
+025e3b80f76c5f13c4f2ed5ea83e04acfa7de79873c4308642badc5d072aaab0  base: candidato_v4/main.lua (v4)

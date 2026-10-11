@@ -1,0 +1,2 @@
+f3f53212c9fd0ab510f393a192fb66eacf9aa8136e211d329ac3facac36b4de2  candidato/main.lua (ferramenta)
+62245d23af36160f589707fe422b6fb167abaa58482ef7f58a49cd39021b598f  base: pacote_v4/v4_1/candidato/main.lua (v4.1)

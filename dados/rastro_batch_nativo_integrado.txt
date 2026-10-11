@@ -1,0 +1,118 @@
+STATUS	DONE	true	CASE	14	PHASE	flight	ERROR	nil
+CASE	native_refusals	TEAM	1	COLLISION	true	HP	900
+REFUSALS	PASS
+COOLDOWN	PASS
+PROJECTILE	BPGrenadeW_C /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.BPGrenadeW_C_2147479550	CODE	GrenadeW	FUSE	4.0
+OWNER_INSTIGATOR	PASS	CONTROLLER	HeadlessPlayerController /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.HeadlessPlayerController_2147479618
+HP_SAMPLE	native_refusals	T	0.016666412353516	HP	900
+HP_SAMPLE	native_refusals	T	4.0834503173828	HP	788
+RESULT	native_refusals	HP	788	LEASE	false	GATE	PASS
+CASE	W_collision_on	TEAM	1	COLLISION	true	HP	900
+PROJECTILE	BPGrenadeW_C /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.BPGrenadeW_C_2147479481	CODE	GrenadeW	FUSE	4.0
+OWNER_INSTIGATOR	PASS	CONTROLLER	HeadlessPlayerController /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.HeadlessPlayerController_2147479618
+HP_SAMPLE	W_collision_on	T	0.11669158935547	HP	900
+HP_SAMPLE	W_collision_on	T	4.0842819213867	HP	788
+RESULT	W_collision_on	HP	788	LEASE	false	GATE	PASS
+CASE	W_collision_off	TEAM	1	COLLISION	false	HP	900
+PROJECTILE	BPGrenadeW_C /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.BPGrenadeW_C_2147479414	CODE	GrenadeW	FUSE	4.0
+OWNER_INSTIGATOR	PASS	CONTROLLER	HeadlessPlayerController /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.HeadlessPlayerController_2147479618
+HP_SAMPLE	W_collision_off	T	0.11669158935547	HP	900
+RESULT	W_collision_off	HP	900	LEASE	false	GATE	OBSERVACAO_AB
+CASE	C_collision_on	TEAM	0	COLLISION	true	HP	900
+PROJECTILE	Grenade_C /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.Grenade_C_2147479358	CODE	GrenadeC	FUSE	4.0
+OWNER_INSTIGATOR	PASS	CONTROLLER	HeadlessPlayerController /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.HeadlessPlayerController_2147479618
+HP_SAMPLE	C_collision_on	T	0.11669158935547	HP	900
+HP_SAMPLE	C_collision_on	T	4.0842056274414	HP	883
+RESULT	C_collision_on	HP	883	LEASE	false	GATE	PASS
+CASE	reset_flight	TEAM	1	COLLISION	true	HP	900
+PROJECTILE	BPGrenadeW_C /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.BPGrenadeW_C_2147479290	CODE	GrenadeW	FUSE	4.0
+OWNER_INSTIGATOR	PASS	CONTROLLER	HeadlessPlayerController /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.HeadlessPlayerController_2147479618
+RESET	PASS
+HP_SAMPLE	reset_flight	T	0.11669158935547	HP	900
+RESULT	reset_flight	HP	900	LEASE	false	GATE	PASS
+CASE	infantry_hostile	TEAM	1	COLLISION	true	HP	100.0
+PROJECTILE	BPGrenadeW_C /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.BPGrenadeW_C_2147479219	CODE	GrenadeW	FUSE	4.0
+OWNER_INSTIGATOR	PASS	CONTROLLER	HeadlessPlayerController /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.HeadlessPlayerController_2147479237
+HP_SAMPLE	infantry_hostile	T	0.11663818359375	HP	100.0
+HP_SAMPLE	infantry_hostile	T	4.0824432373047	HP	1.0
+RESULT	infantry_hostile	HP	1.0	LEASE	false	GATE	PASS
+CASE	infantry_friendly	TEAM	1	COLLISION	true	HP	100.0
+PROJECTILE	BPGrenadeW_C /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.BPGrenadeW_C_2147479157	CODE	GrenadeW	FUSE	4.0
+OWNER_INSTIGATOR	PASS	CONTROLLER	HeadlessPlayerController /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.HeadlessPlayerController_2147479618
+HP_SAMPLE	infantry_friendly	T	0.11663818359375	HP	100.0
+HP_SAMPLE	infantry_friendly	T	4.0823822021484	HP	1.0
+RESULT	infantry_friendly	HP	1.0	LEASE	false	GATE	OBSERVACAO_FF
+CASE	launcher_removed	TEAM	1	COLLISION	true	HP	900
+PROJECTILE	BPGrenadeW_C /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.BPGrenadeW_C_2147479096	CODE	GrenadeW	FUSE	4.0
+OWNER_INSTIGATOR	PASS	CONTROLLER	HeadlessPlayerController /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.HeadlessPlayerController_2147479618
+LAUNCHER_REMOVED	PASS
+HP_SAMPLE	launcher_removed	T	0.11663818359375	HP	900
+HP_SAMPLE	launcher_removed	T	4.0823364257812	HP	788
+RESULT	launcher_removed	HP	788	LEASE	false	GATE	PASS
+CASE	mixed_classes	TEAM	1	COLLISION	true	HP	900
+PROJECTILE	BPGrenadeW_C /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.BPGrenadeW_C_2147479032	CODE	GrenadeW	FUSE	4.0
+OWNER_INSTIGATOR	PASS	CONTROLLER	HeadlessPlayerController /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.HeadlessPlayerController_2147479618
+PROJECTILE	Grenade_C /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.Grenade_C_2147479031	CODE	GrenadeC	FUSE	4.0
+OWNER_INSTIGATOR	PASS	CONTROLLER	HeadlessPlayerController /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.HeadlessPlayerController_2147479618
+HP_SAMPLE	mixed_classes	T	0.11663818359375	HP	900
+HP_SAMPLE	mixed_classes	T	4.0323791503906	HP	771
+RESULT	mixed_classes	HP	771	LEASE	false	GATE	PASS
+CASE	borrowed_context	TEAM	1	COLLISION	true	HP	900
+PROJECTILE	BPGrenadeW_C /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.BPGrenadeW_C_2147478945	CODE	GrenadeW	FUSE	4.0
+OWNER_INSTIGATOR	PASS	CONTROLLER	HeadlessPlayerController /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.HeadlessPlayerController_2147479618
+HP_SAMPLE	borrowed_context	T	0.11663818359375	HP	900
+HP_SAMPLE	borrowed_context	T	4.0823669433594	HP	788
+RESULT	borrowed_context	HP	788	LEASE	false	GATE	PASS
+CONTEXT_IDENTITY	PASS
+CASE	external_swap	TEAM	1	COLLISION	true	HP	900
+PROJECTILE	BPGrenadeW_C /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.BPGrenadeW_C_2147478878	CODE	GrenadeW	FUSE	4.0
+OWNER_INSTIGATOR	PASS	CONTROLLER	HeadlessPlayerController /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.HeadlessPlayerController_2147479618
+HP_SAMPLE	external_swap	T	0.11663818359375	HP	900
+HP_SAMPLE	external_swap	T	4.0823516845703	HP	788
+RESULT	external_swap	HP	788	LEASE	false	GATE	PASS
+CONTEXT_IDENTITY	PASS
+CASE	truck_loss	TEAM	0	COLLISION	true	HP	900
+PROJECTILE	Grenade_C /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.Grenade_C_2147478583	CODE	GrenadeC	FUSE	4.0
+OWNER_INSTIGATOR	PASS	CONTROLLER	HeadlessPlayerController /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.HeadlessPlayerController_2147479618
+PROJECTILE	Grenade_C /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.Grenade_C_2147478575	CODE	GrenadeC	FUSE	4.0
+OWNER_INSTIGATOR	PASS	CONTROLLER	HeadlessPlayerController /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.HeadlessPlayerController_2147479618
+PROJECTILE	Grenade_C /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.Grenade_C_2147478576	CODE	GrenadeC	FUSE	4.0
+OWNER_INSTIGATOR	PASS	CONTROLLER	HeadlessPlayerController /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.HeadlessPlayerController_2147479618
+PROJECTILE	Grenade_C /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.Grenade_C_2147478572	CODE	GrenadeC	FUSE	4.0
+OWNER_INSTIGATOR	PASS	CONTROLLER	HeadlessPlayerController /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.HeadlessPlayerController_2147479618
+PROJECTILE	Grenade_C /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.Grenade_C_2147478579	CODE	GrenadeC	FUSE	4.0
+OWNER_INSTIGATOR	PASS	CONTROLLER	HeadlessPlayerController /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.HeadlessPlayerController_2147479618
+PROJECTILE	Grenade_C /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.Grenade_C_2147478578	CODE	GrenadeC	FUSE	4.0
+OWNER_INSTIGATOR	PASS	CONTROLLER	HeadlessPlayerController /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.HeadlessPlayerController_2147479618
+PROJECTILE	Grenade_C /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.Grenade_C_2147478570	CODE	GrenadeC	FUSE	4.0
+OWNER_INSTIGATOR	PASS	CONTROLLER	HeadlessPlayerController /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.HeadlessPlayerController_2147479618
+PROJECTILE	Grenade_C /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.Grenade_C_2147478571	CODE	GrenadeC	FUSE	4.0
+OWNER_INSTIGATOR	PASS	CONTROLLER	HeadlessPlayerController /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.HeadlessPlayerController_2147479618
+PROJECTILE	Grenade_C /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.Grenade_C_2147478584	CODE	GrenadeC	FUSE	4.0
+OWNER_INSTIGATOR	PASS	CONTROLLER	HeadlessPlayerController /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.HeadlessPlayerController_2147479618
+PROJECTILE	Grenade_C /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.Grenade_C_2147478569	CODE	GrenadeC	FUSE	4.0
+OWNER_INSTIGATOR	PASS	CONTROLLER	HeadlessPlayerController /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.HeadlessPlayerController_2147479618
+PROJECTILE	Grenade_C /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.Grenade_C_2147478573	CODE	GrenadeC	FUSE	4.0
+OWNER_INSTIGATOR	PASS	CONTROLLER	HeadlessPlayerController /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.HeadlessPlayerController_2147479618
+PROJECTILE	Grenade_C /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.Grenade_C_2147478574	CODE	GrenadeC	FUSE	4.0
+OWNER_INSTIGATOR	PASS	CONTROLLER	HeadlessPlayerController /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.HeadlessPlayerController_2147479618
+PROJECTILE	Grenade_C /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.Grenade_C_2147478580	CODE	GrenadeC	FUSE	4.0
+OWNER_INSTIGATOR	PASS	CONTROLLER	HeadlessPlayerController /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.HeadlessPlayerController_2147479618
+PROJECTILE	Grenade_C /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.Grenade_C_2147478577	CODE	GrenadeC	FUSE	4.0
+OWNER_INSTIGATOR	PASS	CONTROLLER	HeadlessPlayerController /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.HeadlessPlayerController_2147479618
+PROJECTILE	Grenade_C /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.Grenade_C_2147478581	CODE	GrenadeC	FUSE	4.0
+OWNER_INSTIGATOR	PASS	CONTROLLER	HeadlessPlayerController /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.HeadlessPlayerController_2147479618
+PROJECTILE	Grenade_C /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.Grenade_C_2147478582	CODE	GrenadeC	FUSE	4.0
+OWNER_INSTIGATOR	PASS	CONTROLLER	HeadlessPlayerController /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.HeadlessPlayerController_2147479618
+HP_SAMPLE	truck_loss	T	0.16287231445312	HP	900
+HP_SAMPLE	truck_loss	T	4.0206298828125	HP	850
+RESULT	truck_loss	HP	850	LEASE	false	GATE	FAIL
+LOGI_GATE	FAIL	LOST_DELTA	0	DEAD_TIME	nil
+CASE	gc_in_flight	TEAM	1	COLLISION	true	HP	900
+PROJECTILE	BPGrenadeW_C /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.BPGrenadeW_C_2147477794	CODE	GrenadeW	FUSE	4.0
+OWNER_INSTIGATOR	PASS	CONTROLLER	HeadlessPlayerController /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.HeadlessPlayerController_2147478602
+HP_SAMPLE	gc_in_flight	T	0.11666870117188	HP	900
+GC_IN_FLIGHT	PASS
+HP_SAMPLE	gc_in_flight	T	4.0807495117188	HP	788
+RESULT	gc_in_flight	HP	788	LEASE	false	GATE	PASS
+REPORT_CLEANUP	PASS

@@ -1,0 +1,18 @@
+-- TRECHOS para integrador, nao executar como comando completo.
+-- Em logi.truckStep, substituir ramo destino perdido (sem creditar estoque aqui):
+-- if d ~= logi.base and not (d.pt and d.pt.owner == CFG.FRIENDLY_TEAM) then
+--     tr.dest, tr.state = logi.factory, "returnCargo"
+--     tr.route, tr.routeDest, tr.pathJob = nil, nil, nil
+--     return
+-- end
+-- Antes do elseif tr.state == "toDep", inserir:
+-- elseif tr.state == "returnCargo" then
+--     if not tr.cargo then tr.dest, tr.state = nil, "idle"; return end
+--     if logi.drive(tr, logi.factory, dt) then
+--         logi.fac.ammo = logi.fac.ammo + tr.cargo.ammo
+--         logi.fac.shirts = logi.fac.shirts + tr.cargo.shirts
+--         tr.cargo, tr.dest, tr.state = nil, nil, "idle"
+--     end
+-- ESSENCIAL: integrar driver com rotas/sweep antes de aplicar. Driver atual em reta
+-- nao valida retorno fisico por estrada. Snapshot/restore deve preservar returnCargo
+-- ou declarar interrupcao explicitamente; logi.snapshot atual nao salva caminhões.

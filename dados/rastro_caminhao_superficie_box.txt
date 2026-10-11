@@ -1,0 +1,9 @@
+TRUCK	11536.974609375	-49471.828125	775.35479736328	OFFSET	174	STATE	toField
+SURFACE	truck	true	0.49398657679558	49398.65625	true	false	Landscape /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.Landscape_1	601.35479736328
+SURFACE	factory	true	0.48610886931419	48610.88671875	true	false	BPFactory_C /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.BPFactory_C_2147479618	1389.11328125
+SURFACE	refinery	true	0.48617300391197	48617.30078125	true	false	BPRefinery_C /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.BPRefinery_C_2147479622	1382.697265625
+SURFACE	field	true	0.48764586448669	48764.5859375	true	false	BPSalvageField_C /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.SalvageField2_2	1235.4155273438
+BOX_CANDIDATE	0	true	0.0	0.0	true	true	Landscape /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.Landscape_1
+BOX_CANDIDATE	100	true	0.0	0.0	true	true	Character_C /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.Character_C_2147478449
+BOX_CANDIDATE	250	false	1.0	0.0	false	false	false
+LIMIT	caixa conservadora candidata; nao prova envelope nem estrada/suporte

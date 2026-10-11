@@ -1,0 +1,15 @@
+FUNCTION	Function /Script/Engine.KismetMathLibrary:MakeTransform
+PARAM	Location	StructProperty
+PARAM	Rotation	StructProperty
+PARAM	Scale	StructProperty
+PARAM	ReturnValue	StructProperty
+ACTOR_FUNCTION	Function /Script/Engine.Actor:K2_SetActorTransform
+ACTOR_FUNCTION	Function /Script/Engine.Actor:K2_SetActorRelativeTransform
+ACTOR_FUNCTION	Function /Script/Engine.Actor:K2_AddActorWorldTransform
+ACTOR_FUNCTION	Function /Script/Engine.Actor:K2_AddActorLocalTransform
+ACTOR_FUNCTION	Function /Script/Engine.Actor:GetTransform
+GRENADE_ROW	GrenadeW	MIN_SPEED	390.0	MAX_SPEED	1100.0	FUSE	4.0	RANGE	0.0	ARMOUR	1.0
+GRENADE_ROW	HEGrenade	MIN_SPEED	400.0	MAX_SPEED	900.0	FUSE	4.0	RANGE	0.0	ARMOUR	1.0
+GRENADE_ROW	GrenadeC	MIN_SPEED	390.0	MAX_SPEED	1200.0	FUSE	4.0	RANGE	0.0	ARMOUR	1.0
+GRENADE_ROW	HELaunchedGrenade	MIN_SPEED	400.0	MAX_SPEED	1450.0	FUSE	4.0	RANGE	0.0	ARMOUR	1.0
+ERRO: [string "cmd.lua"]:18: mathlib ausente

@@ -1,0 +1,38 @@
+--- ../build_patch.py	2026-10-09 18:28:40.236728400 -0300
++++ build_patch_v2.py	2026-10-09 20:43:51.667810400 -0300
+@@ -9,12 +9,14 @@
+ Saidas nesta pasta: ia_logistica.patch (sobre main+ECONOMIA), ia_logistica_base.patch (sobre main puro),
+ main_candidato.lua (main+ECONOMIA+IA, so para check_globals/inspecao; nunca copiar por cima do main.lua).
+ """
++import sys
+ from pathlib import Path
+ import difflib
+ import importlib.util
+ 
++sys.dont_write_bytecode = True  # nao gravar __pycache__ nas pastas dos outros agentes
+ HERE = Path(__file__).resolve().parent
+-ROOT = HERE.parents[2]
++ROOT = HERE.parents[3]
+ MAIN = ROOT / "mod/FoxholeRTS/Scripts/main.lua"
+ 
+ 
+@@ -26,7 +28,7 @@
+ 
+ 
+ def build(s):
+-    chunk = HERE.joinpath("ia_logistica.lua").read_text(encoding="utf-8-sig")
++    chunk = HERE.joinpath("ia_logistica_v2.lua").read_text(encoding="utf-8-sig")
+ 
+     def replace(old, new, optional=False):
+         nonlocal s
+@@ -99,7 +101,7 @@
+     def diff(a, b):
+         return "".join(difflib.unified_diff(a.splitlines(True), b.splitlines(True),
+                                             fromfile="a/mod/FoxholeRTS/Scripts/main.lua", tofile="b/mod/FoxholeRTS/Scripts/main.lua"))
+-    HERE.joinpath("ia_logistica.patch").write_text(diff(eco, final), encoding="utf-8")
+-    HERE.joinpath("ia_logistica_base.patch").write_text(diff(source, base), encoding="utf-8")
+-    HERE.joinpath("main_candidato.lua").write_text(final, encoding="utf-8")
++    HERE.joinpath("ia_logistica_v2.patch").write_text(diff(eco, final), encoding="utf-8")
++    HERE.joinpath("ia_logistica_v2_base.patch").write_text(diff(source, base), encoding="utf-8")
++    HERE.joinpath("main_candidato_v2.lua").write_text(final, encoding="utf-8")
+     print("patches gerados (HUD %s); main.lua intacto" % ("trocado" if hud else "mantido pela INTERFACE"))

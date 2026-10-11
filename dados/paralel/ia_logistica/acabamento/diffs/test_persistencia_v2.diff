@@ -1,0 +1,71 @@
+--- ../../persistencia/test_persistencia.py	2026-10-09 18:41:04.025851700 -0300
++++ test_persistencia_v2.py	2026-10-09 20:57:13.618292000 -0300
+@@ -1,31 +1,38 @@
+-"""Testes offline da PERSISTENCIA contra o candidato completo (main.lua atual + ECONOMIA + PERSISTENCIA).
++"""VARIANTE v2 (acabamento) de persistencia/test_persistencia.py: mesmos 9 cenarios, mas contra
++build_persistencia_v2 (politica unica do elogi) e tres pilhas. A unica mudanca de comportamento esperado e o bloco
++'elogi' de t_refusals (antes: recusa o save inteiro; agora: descarta so a secao). Diff: diffs/test_persistencia_v2.diff.
++
++Testes offline da PERSISTENCIA contra o candidato completo (main.lua atual + ECONOMIA + PERSISTENCIA).
+ 
+ Cada "carga do jogo" e um LuaRuntime novo executando o chunk candidato inteiro (estado Lua zerado, como ao
+ reiniciar o jogo); o arquivo de save passa de uma carga para a outra pelo sistema de arquivos falso.
+ Roda em Lua 5.4 (UE4SS) e 5.5 (padrao do lupa). Nao abre jogo, laboratorio, canal nem arquivos reais.
+-Uso (raiz do repo, bash): PYTHONPATH=D:/tools/pylibs python dados/paralel/persistencia/test_persistencia.py
++Uso (raiz do repo, bash): PYTHONPATH=D:/tools/pylibs python dados/paralel/ia_logistica/acabamento/test_persistencia_v2.py
+ """
+ from pathlib import Path
+ import importlib
+ import sys
+ 
+ HERE = Path(__file__).resolve().parent
+-ROOT = HERE.parents[2]
++ROOT = HERE.parents[3]
++ORIG = ROOT / "dados/paralel/persistencia"  # harness_test.lua inalterado
++sys.dont_write_bytecode = True
+ sys.path.insert(0, str(HERE))
+-import build_patch  # noqa: E402
++import build_persistencia_v2 as build_patch  # noqa: E402
+ 
+ SOURCE = ROOT.joinpath("mod/FoxholeRTS/Scripts/main.lua").read_text(encoding="utf-8")
+-STACKS = {"main+ECONOMIA+PERSISTENCIA": build_patch.build(SOURCE)}
++STACKS = {"main+ECONOMIA+PERSISTENCIA_v2": build_patch.build(SOURCE)}
+ SKIPPED = []
+ try:  # IA_LOGISTICA e entrega paralela em andamento: testada se o build dela fechar, senao registrada como SKIP
+-    STACKS["main+ECONOMIA+IA_LOGISTICA+PERSISTENCIA"] = build_patch.build_with_ia(SOURCE)
++    STACKS["main+ECONOMIA+IA_v2+PERSISTENCIA_v2"] = build_patch.build_with_ia(SOURCE)
++    STACKS["pilha completa (ECONOMIA+IA_v2+reserva bmat+PERSISTENCIA_v2)"] = build_patch.build_full(SOURCE)
+ except Exception as e:  # noqa: BLE001
+     SKIPPED.append(f"pilha com IA_LOGISTICA: build falhou ({type(e).__name__}: {e})")
+-CANDIDATE = STACKS["main+ECONOMIA+PERSISTENCIA"]
++CANDIDATE = STACKS["main+ECONOMIA+PERSISTENCIA_v2"]
+ scaffold = ROOT.joinpath("tools/test_orders.py").read_text(encoding="utf-8")
+ start = scaffold.index("lua.execute('''") + len("lua.execute('''")
+ PRELUDE = scaffold[start:scaffold.index("''')", start)]
+-HARNESS = HERE.joinpath("harness_test.lua").read_text(encoding="utf-8")
++HARNESS = ORIG.joinpath("harness_test.lua").read_text(encoding="utf-8")
+ SAVE = "ue4ss/Mods/FoxholeRTS/save.txt"
+ API_TAIL = '''
+ return { sv=sv, logi=logi, CFG=CFG, S=S, combat=combat, economy=economy, rts=rts, fort=fort,
+@@ -275,14 +282,17 @@
+     assert neg[SAVE] != files[SAVE]
+     b = live_session(v, neg); refused(b, "logística inválida")
+     b = live_session(v, {}); refused(b, "nenhuma partida salva")
+-    # cadeia inimiga (chave `elogi` da IA_LOGISTICA): com o módulo, valor inválido recusa o save inteiro;
+-    # sem o módulo, a chave é de outra versão do mod e também recusa (não descarta estoque inimigo calado)
++    # cadeia inimiga (chave `elogi` da IA_LOGISTICA): POLITICA v2 = descarta SO a secao (nao recusa o save inteiro).
++    # Cobertura completa (invalido, ausente, versao futura, valido, sem duplicar): test_elogi.py. Aqui so a
++    # troca do comportamento antigo: continua, avisa e nao suspende o autosave.
+     mutate = 'local P = "%s"; local d = api.sv.decode(FS.files[P]); %s; FS.files[P] = "return " .. api.sv.ser(d)'
+     b = live_session(v, files)
+     if b.eval("api.logi.eSnapshot ~= nil"):
+-        b.execute(mutate % (SAVE, "d.elogi.ready = -1")); refused(b, "cadeia inimiga inválida")
++        b.execute(mutate % (SAVE, "d.elogi.ready = -1"))
+     else:
+-        b.execute(mutate % (SAVE, "d.elogi = { v = 1 }")); refused(b, "campo desconhecido: elogi")
++        b.execute(mutate % (SAVE, "d.elogi = { v = 1 }"))
++    b.execute("H.logs = {}")
++    assert b.eval("api.sv.load()") is True and b.eval("H.saw('CADEIA INIMIGA REINICIADA')") and b.eval("api.sv.degraded") is None
+     # save sem caminhoes pagos numa carga sem caminhoes nativos: nao cria caminhao de graca
+     a2 = new_load(v); a2.execute("H.newWorld({trucks = 3}); assert(api.logi.deploy()); H.richMatch()")
+     assert a2.eval("api.S.deploy.spent") == 800 and a2.eval("api.sv.save()") is True

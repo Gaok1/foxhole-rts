@@ -1,0 +1,49 @@
+--- a/main.lua
++++ b/main.lua
+@@ -655,7 +655,7 @@
+     a.EquippedWeaponGripType = w.grip or 1
+     a.AimOffsetYaw, a.AimOffsetPitch = 0.0, 0.0
+     local c = os.clock()
+-    local aiming = c < (m.aimUntil or 0) and m.stillSince ~= nil
++    local aiming = c < (m.aimUntil or 0) and m.stillSince ~= nil and w.range > 0   -- ferramenta (range 0) nunca poe a arma no ombro
+     m.aiming = aiming  -- bIsInScopeMode do pawn vai no postureTick: no hook so se toca no AnimInstance vivo
+     if aiming then a.canEnterStandScoping = true; a.canEnterCrouchScoping = true end
+     -- postura (ESimCharacterStance): agachado parado na trincheira ou suprimido; curvado correndo ao recuar
+@@ -667,7 +667,8 @@
+     -- acao do momento (ECharacterActivityState): arremesso 6, primeiros socorros 20, tiro 3
+     if c < (m.throwAnimUntil or 0) then a.ActivityState = 6
+     elseif c < (m.healAnimUntil or 0) then a.ActivityState = 20
+-    elseif c < (m.fireAnimUntil or 0) then a.ActivityState = 3 end
++    elseif c < (m.fireAnimUntil or 0) then a.ActivityState = 3
++    elseif c < (m.workAnimUntil or 0) and CFG.COLETA.workAnim then a.ActivityState = CFG.COLETA.workAnim end   -- DoWork 15: trabalhador na coleta
+ end
+ 
+ -- Registra o soldado no hook (e liga o hook na primeira vez, quando o ABP ja esta carregado).
+@@ -2488,11 +2489,15 @@
+     pause = 60.0,         -- s de combate seguidos antes de largar a coleta (a carga se perde)
+     leg = 180.0,          -- s maximos por trecho de caminhada (preso: larga a coleta, carga perdida)
+     retry = 3.0,          -- s entre reenvios da rota
++    workAnim = 15,        -- ECharacterActivityState::DoWork enquanto o trabalhador junta sucata (nil = sem sinal visual)
+ }
+--- Trabalhador: soldado SEM fuzil (sem malha de arma, alcance 0: nunca atira), nasce na base (logi.workerDepot), custa 1 camisa
+--- do estoque desse deposito, debitada so apos o spawn confirmado. Fica no esquadrao (inimigo o enxerga e o ataca, morte,
+--- marcadores e save/continuar funcionam como em qualquer soldado). grip 0 = sem arma equipada (confirmar no laboratorio).
+-CFG.WEAPONS.worker = { name = "trabalhador", cost = 0, range = 0.0, interval = 9.0, hit = 0.0, dmg = 0.0, supp = 0.0, pitch = 1.0, ammo = 0, grip = 0 }
++-- Trabalhador: soldado SEM tiro (alcance 0, dmg 0, ammo 0: nunca atira nem gasta municao) com a FERRAMENTA do jogo, a marreta
++-- (BPSledgeHammerComponent: ItemMesh SledgeHammer_SK, EquippedGripType TwoHandItem = 51, TaskActivityState DoWork). Mesma
++-- malha dos dois lados. Nasce na base (logi.workerDepot), custa 1 camisa do estoque desse deposito, debitada so apos o spawn
++-- confirmado. Fica no esquadrao (inimigo o enxerga e o ataca, morte, marcadores e save/continuar funcionam como em qualquer
++-- soldado). Se a marreta der T-pose no laboratorio: grip = 2 (pistola, validado ao vivo) ou, sem malha, grip = 0.
++CFG.WEAPONS.worker = { name = "trabalhador", cost = 0, range = 0.0, interval = 9.0, hit = 0.0, dmg = 0.0, supp = 0.0, pitch = 1.0, ammo = 0,
++    grip = 51, meshW = "/Game/Meshes/Weapons/SledgeHammer_SK.SledgeHammer_SK", meshC = "/Game/Meshes/Weapons/SledgeHammer_SK.SledgeHammer_SK" }
+ 
+ -- Interface comum de nascimento (ESPECIFICACAO de bases avancadas, 4.3): decidir (logi.spawnSite, pura) -> criar o ator ->
+ -- logi.spawnCommit (unico debito de camisa/fuzil). Aqui so o trabalhador e o local "base"; as bases avancadas estendem
+@@ -3187,6 +3192,7 @@
+         if flatDist(here, F) > C.fieldR then
+             u.state, u.legT = "toField", t
+         elseif u.calm then
++            m.workAnimUntil = os.clock() + 0.6   -- anim.onUpdate: ActivityState DoWork
+             local take = math.min(C.rate * dt, C.cap - u.carry)
+             u.carry, K.gathered = u.carry + take, K.gathered + take
+             if u.carry >= C.cap - 1e-9 then

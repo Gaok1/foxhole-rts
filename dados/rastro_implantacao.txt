@@ -1,0 +1,29 @@
+Foxhole — oráculo da implantação própria (2026-10-09, lote 17)
+Contexto: cópia offline, CallumsCapeHex, autoridade local. Sem RPC/inventário nativo.
+Fonte de custos: dados/custos_do_jogo.txt, Cloth (bmat): Refinery400, Factory400, TruckW100.
+
+Preflight: carteira separada de cenário1100, duas instalações e três vagas, total1100.
+Refinaria: XYZ8966.8125,-46252.8125,600.00195, yaw-23.4914.
+Fábrica mais próxima (factory2): XYZ1723.84375,-51134.90625,600, yaw-113.51884.
+TruckW, vagas Landscape:
+  3123.84375,-51134.90625,600.00098, yaw0
+  2423.84375,-49922.47068,600.00012, yaw60
+  2423.84375,-52347.34182,600.00049, yaw300
+Trace de chão rejeita telhado/outras superfícies; quatro cantos, relevo, folga de corpo e separação.
+
+Falha forçada: HP esperado da fábrica +1, temporariamente. Implantação rejeitada/revertida:
+saldo1100/spent0, soldados existentes2 preservados, ruínas com ocultação/colisão originais restauradas.
+Publicação final: refinaria HP/max2700, fábrica2000, três TruckW900, Team1,
+BaseStructureClass/XYZ/yaw conferidos, caminhões não em destruição.
+Repetir: custo0, sem duplicatas, soldados2 preservados. Nova partida: seis soldados.
+
+Amostrador nativo: 65.20758 s, 64 amostras. made3, bmat9.77576, salvage120.44849,
+base ammo2/shirts10, três caminhões HP900/Team1. Entregas: ammo1, shirts10, ammo1.
+Estoque inicial da base zerado somente para criar demanda; ondas desligadas.
+NÃO valida equilíbrio, combate prolongado ou estrada. Transporte continua em reta/sem colisão.
+NÃO é conclusão nativa de canteiro; canteiro cru sem alvo não resolve reconstrução.
+Facilities e persistência de carteira/infraestrutura ainda não implementadas.
+Não reutilizar estas coordenadas em outra região: o preflight redescobre os atores do mundo atual.
+
+Regressão reproduzível: tools/test_orders.py (mocks da implementação real).
+Probes externos: D:/tools/foxhole-lab/; nada foi incorporado como script permanente de servidor.

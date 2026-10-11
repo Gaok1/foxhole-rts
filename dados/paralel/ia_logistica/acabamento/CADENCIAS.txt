@@ -1,0 +1,8 @@
+onda a cada ~N s (luta + 15 s de espera) | v1 (original) | v2 (calibrado); formato onda:enviados/pedidos, so ondas curtas marcadas com *
+~ 20 s | faltaram 32 em 5:8/9* 6:3/10* 7:3/10* 8:3/11* 10:4/13* | faltaram 12 em 7:9/10* 8:5/11* 10:8/13*
+~ 30 s | faltaram 32 em 5:8/9* 6:3/10* 8:6/11* 9:3/12* 10:3/13* | faltaram  4 em 9:8/12*
+~ 40 s | faltaram 22 em 7:5/10* 9:5/12* 10:3/13*              | faltaram  0 em -
+~ 45 s | faltaram 12 em 7:5/10* 9:5/12*                       | faltaram  0 em -
+~ 50 s | faltaram 12 em 8:8/11* 9:3/12*                       | faltaram  0 em -
+~ 60 s | faltaram  0 em -                                     | faltaram  0 em -
+~105 s | faltaram  0 em -                                     | faltaram  0 em -

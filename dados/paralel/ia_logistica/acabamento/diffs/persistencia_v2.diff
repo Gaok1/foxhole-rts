@@ -1,0 +1,102 @@
+--- ../../persistencia/persistencia.lua	2026-10-09 18:43:09.680943400 -0300
++++ persistencia_v2.lua	2026-10-09 20:57:19.719208600 -0300
+@@ -239,13 +239,22 @@
+         end
+         if cost ~= I.spent then return nil, "gasto da carteira não confere com o que foi implantado" end
+     end
+-    -- Cadeia inimiga da IA_LOGISTICA (chave `elogi`, schema e versao dela): so com o modulo integrado e valida
+-    -- pela propria logi.eValid. Sem o modulo, um save que a tenha e de outra versao do mod: recusa, nao descarta.
++    -- Cadeia inimiga da IA_LOGISTICA (chave `elogi`, schema e versao dela). POLITICA UNICA (v2, reconciliada com a
++    -- IA): a cadeia inimiga e um estado secundario e regeneravel (estoque de cenario); o resto do save e do
++    -- jogador. Por isso um `elogi` sem o modulo, invalido, de versao futura ou sem logistica NAO recusa o save
++    -- inteiro: so esta secao e descartada (terceiro retorno `soft.elogi` = motivo), a cadeia inimiga recomeca do
++    -- estoque de cenario com aviso explicito (logi.eRestore(nil, motivo)) e nada do jogador e tocado. Qualquer
++    -- outro campo invalido continua recusando tudo.
++    local soft = nil
+     if d.elogi ~= nil then
+-        if not logi.eValid then return nil, "campo desconhecido: elogi (cadeia inimiga de outra versão do mod)" end
+-        if d.logi == nil then return nil, "cadeia inimiga sem logística" end
+-        local ok, res, why = pcall(logi.eValid, d.elogi)
+-        if not ok or not res then return nil, "cadeia inimiga inválida (" .. tostring(ok and why or res) .. ")" end
++        local why = nil
++        if not logi.eValid then why = "este mod não tem a cadeia inimiga logística"
++        elseif d.logi == nil then why = "cadeia inimiga sem logística no save"
++        else
++            local ok, res, w = pcall(logi.eValid, d.elogi)
++            if not ok or not res then why = tostring(ok and w or res) end
++        end
++        if why then soft = { elogi = why } end
+     end
+     local E = d.enemy
+     if E ~= nil then
+@@ -258,19 +267,21 @@
+         end
+         if not int(E.cargo) or E.cargo > 1000 or not int(E.convoys) or not int(E.cut) then return nil, "inimigo valores" end
+     end
+-    return true
++    return true, nil, soft
+ end
+ 
+ -- sv.parse mantem o contrato antigo de "texto -> tabela" (testes da suite e da IA_LOGISTICA o usam para
+ -- sub-tabelas), agora sem executar nada: so o parser de literais. O save inteiro passa por sv.parseSave.
+ function sv.parse(txt) return sv.decode(txt) end
+ 
+--- Texto -> save validado (ou nil, motivo). Nunca executa o conteudo.
++-- Texto -> save validado (ou nil, motivo). Nunca executa o conteudo. Secao `elogi` descartada pela politica
++-- unica (ver sv.validate): sai de d e o motivo fica em d.elogiDropped (campo so de execucao, nunca gravado).
+ function sv.parseSave(txt)
+     local d, why = sv.decode(txt)
+     if not d then return nil, why end
+-    local ok, why2 = sv.validate(d)
++    local ok, why2, soft = sv.validate(d)
+     if not ok then return nil, why2 end
++    if soft and soft.elogi then d.elogi, d.elogiDropped = nil, soft.elogi end
+     return d
+ end
+ 
+@@ -357,7 +368,12 @@
+         return false
+     end
+     local d = sv.collect()
+-    local ok, why = sv.validate(d)
++    local ok, why, soft = sv.validate(d)
++    if ok and soft and soft.elogi then
++        -- estado inimigo proprio invalido na hora de gravar: grava o resto sem a secao (nunca um elogi invalido)
++        d.elogi = nil
++        log("save sem a cadeia inimiga (estado inválido: " .. tostring(soft.elogi) .. "); o restante é gravado")
++    end
+     local txt = ok and ("return " .. sv.ser(d) .. "\n")
+     if ok then ok, why = sv.parseSave(txt) end
+     if not ok then log("save recusado (arquivo anterior preservado): " .. tostring(why)); return false end
+@@ -501,6 +517,9 @@
+     local d, why, src = sv.read()
+     if not d then notify(why or "nenhuma partida salva", 6.0); return false end
+     src = src or ""
++    -- Save com logistica mas sem a secao da cadeia inimiga (build antigo, sem IA): tambem recomeca do estoque de
++    -- cenario e recebe o mesmo aviso explicito da politica unica do elogi.
++    if logi.eRestore and d.logi and d.elogi == nil and not d.elogiDropped then d.elogiDropped = "o save não traz a cadeia inimiga" end
+     local ok, plan, why2 = pcall(sv.preflight, d)
+     if not ok or not plan then
+         local msg = tostring(ok and why2 or plan)
+@@ -530,7 +549,7 @@
+             problems[#problems + 1] = "logística não restaurada"
+             pcall(logi.reset)  -- sem estoque inicial fictício no lugar do salvo
+         elseif logi.eRestore then
+-            pcall(logi.eRestore, d.elogi)  -- contrato da IA_LOGISTICA (nil = estoque de cenario, avisado por ela)
++            pcall(logi.eRestore, d.elogi, d.elogiDropped)  -- contrato da IA_LOGISTICA (nil = estoque de cenario, avisado por ela)
+         elseif d.enemy then
+             combat.cargo, combat.convoys, combat.convoysCut = d.enemy.cargo, d.enemy.convoys, d.enemy.cut
+         end
+@@ -541,9 +560,10 @@
+     notify(string.format("PARTIDA CONTINUADA (%s): %s, %d soldados, %d inimigos, mão de obra %.0f%s%s",
+         CFG.DIFFICULTIES[S.difficulty].name, where, n, #enemies, economy.manpower,
+         src ~= "" and (" [lido de save" .. src .. "]") or "",
+-        sv.degraded and (" | INCOMPLETA: " .. sv.degraded.why .. "; autosave suspenso") or ""), 10.0)
++        (sv.degraded and (" | INCOMPLETA: " .. sv.degraded.why .. "; autosave suspenso") or "")
++            .. (d.elogiDropped and (" | CADEIA INIMIGA REINICIADA (" .. tostring(d.elogiDropped) .. "): estoque de cenário") or "")), 10.0)
+     log(string.format("save carregado%s: onda %d, %d soldados, %d inimigos, %d pontos, %d barreiras, %d trincheiras, %d postos, %d arames%s",
+         src, combat.wave, n, #enemies, #points, #structures, #S.trenches, #S.tents, #S.wires,
+-        sv.degraded and (" | incompleto: " .. sv.degraded.why) or ""))
++        (sv.degraded and (" | incompleto: " .. sv.degraded.why) or "") .. (d.elogiDropped and (" | elogi descartado: " .. tostring(d.elogiDropped)) or "")))
+     return true
+ end

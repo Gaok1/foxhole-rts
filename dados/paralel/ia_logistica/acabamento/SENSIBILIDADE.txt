@@ -1,0 +1,37 @@
+parametro        cadencia  1a falta(T)  media 5-10(T)  1a falta(M)  recuperacao       criterios nao atendidos
+v2 (calibrado)   60s       5            0.52           9            2 ondas/119 s     nenhum
+v2 (calibrado)   105s      5            0.52           9            1 ondas/104 s     nenhum
+trip=15          60s       5            0.52           9            2 ondas/119 s     nenhum
+trip=15          105s      5            0.52           9            1 ondas/104 s     nenhum
+trip=25          60s       5            0.52           9            2 ondas/119 s     nenhum
+trip=25          105s      5            0.52           9            1 ondas/104 s     nenhum
+trip=30          60s       5            0.52           9            3 ondas/180 s     sem corte
+trip=30          105s      5            0.52           9            2 ondas/209 s     sem corte
+trip=40          60s       5            0.52           9            5 ondas/301 s     sem corte | recuperacao
+trip=40          105s      5            0.52           9            1 ondas/104 s     sem corte
+minLoad=1        60s       5            0.52           9            3 ondas/180 s     rastreabilidade byCut 0.56/0.83 < 0.75 do que faltou
+minLoad=1        105s      5            0.52           9            2 ondas/209 s     rastreabilidade byCut 0.56/0.90 < 0.75 do que faltou
+minLoad=5        60s       5            0.52           9            2 ondas/119 s     nenhum
+minLoad=5        105s      5            0.52           9            2 ondas/209 s     nenhum
+minLoad=8        60s       5            0.52           9            2 ondas/119 s     nenhum
+minLoad=8        105s      5            0.52           9            2 ondas/209 s     nenhum
+free=3           60s       4            0.28           8            3 ondas/180 s     sem corte | corte total desde o inicio | corte total | corte total | rastreabilidade byCut 0.77/0.71 < 0.75 do que faltou
+free=3           105s      4            0.28           8            2 ondas/210 s     sem corte | corte total desde o inicio | corte total | corte total
+free=4           60s       4            0.37           9            3 ondas/180 s     sem corte | corte total desde o inicio | corte total | corte total
+free=4           105s      4            0.37           9            2 ondas/210 s     sem corte | corte total desde o inicio | corte total | corte total
+free=6           60s       7            0.68           10           3 ondas/181 s     corte total | corte a partir da onda 5 nao morde antes da onda 10
+free=6           105s      7            0.68           10           1 ondas/105 s     corte total | corte a partir da onda 5 nao morde antes da onda 10
+want=3/15        60s       5            0.52           9            2 ondas/119 s     nenhum
+want=3/15        105s      5            0.52           9            1 ondas/104 s     nenhum
+want=5/25        60s       5            0.52           10           2 ondas/119 s     corte a partir da onda 5 nao morde antes da onda 10
+want=5/25        105s      5            0.52           10           1 ondas/104 s     corte a partir da onda 5 nao morde antes da onda 10
+want=6/30        60s       5            0.52           9            2 ondas/119 s     nenhum
+want=6/30        105s      5            0.52           10           1 ondas/104 s     corte a partir da onda 5 nao morde antes da onda 10
+front0=3/15      60s       6            0.61           10           1 ondas/59 s      corte a partir da onda 5 nao morde antes da onda 10
+front0=3/15      105s      6            0.61           10           2 ondas/210 s     corte a partir da onda 5 nao morde antes da onda 10
+front0=4/20      60s       7            0.69           9            1 ondas/60 s      corte total
+front0=4/20      105s      7            0.69           9            1 ondas/105 s     corte total
+bmat0=120        60s       5            0.52           9            3 ondas/180 s     sem corte
+bmat0=120        105s      5            0.52           9            2 ondas/209 s     sem corte
+bmat0=480        60s       5            0.52           9            3 ondas/180 s     nenhum
+bmat0=480        105s      5            0.52           9            2 ondas/209 s     nenhum

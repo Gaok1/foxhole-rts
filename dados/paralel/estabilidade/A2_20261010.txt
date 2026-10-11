@@ -1,0 +1,6 @@
+CONTROL	A2_no_selection	ELAPSED	74.173515319824	UNITS	6	SELECTED	0	CLONES	0
+PROFILE	mod: 1.44 ms/quadro em 4445 quadros | stratTick 0.56, squadTick 0.44, cameraTick 0.32, mouseTick 0.04, hudTick 0.03, eyeTick 0.02, pointsTick 0.01, hpTick 0.00, enemyTick 0.00, postureTick 0.00, pathTick 0.00, corpseTick 0.00, economyTick 0.00, logiTick 0.00, mortarTick 0.00, waveTick 0.00, saveTick 0.00
+CONTROL	A2_no_selection	ELAPSED	133.07697296143	UNITS	6	SELECTED	0	CLONES	0
+PROFILE	mod: 1.22 ms/quadro em 3533 quadros | stratTick 0.48, squadTick 0.37, cameraTick 0.27, mouseTick 0.03, hudTick 0.02, eyeTick 0.02, pointsTick 0.01, enemyTick 0.00, hpTick 0.00, waveTick 0.00, postureTick 0.00, economyTick 0.00, pathTick 0.00, saveTick 0.00, corpseTick 0.00, mortarTick 0.00, logiTick 0.00
+CONTROL	A2_no_selection	ELAPSED	201.21761322021	UNITS	6	SELECTED	0	CLONES	0
+PROFILE	mod: 1.23 ms/quadro em 4083 quadros | stratTick 0.48, squadTick 0.37, cameraTick 0.29, hudTick 0.03, mouseTick 0.03, eyeTick 0.02, pointsTick 0.01, enemyTick 0.00, hpTick 0.00, postureTick 0.00, mortarTick 0.00, pathTick 0.00, corpseTick 0.00, saveTick 0.00, economyTick 0.00, logiTick 0.00, waveTick 0.00

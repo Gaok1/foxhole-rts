@@ -1,0 +1,71 @@
+Foxhole instalado — CallumsCapeHex, sessão local, 2026-10-09 (lote 16)
+Método: reflexão UE4SS, SpawnActor pelo canal e análise estática read-only no Ghidra.
+Sem teclado/mouse, RPC ou inventário nativo. Não é rastro de construção feita pelo jogador.
+
+1. Schema de custos (corrige a exportação anterior)
+ProductionResource: ItemCodeName (NameProperty), Quantity.
+ResourceAmounts: Resource + OtherResources[], ambos CodeNameSmallQuantity.
+CodeNameSmallQuantity: CodeName (NameProperty), Quantity (Int16).
+Ler ItemCodeName neste segundo tipo falhava; a sonda antiga engolia o erro com pcall.
+Custo vazio antigo não significava construção gratuita.
+Exportador: tools/export_costs.lua; quatro tabelas, só colunas conhecidas.
+Linhas: itens 281, estruturas 592, veículos 184, munições 64.
+Factory: vida 2000, Cloth 400; Refinery: vida 2700, Cloth 400; TruckW: vida 900, Cloth 100.
+
+2. Classes e canteiro sem inicialização
+/Game/Blueprints/Structures/BPFactory.BPFactory_C
+/Game/Blueprints/Structures/BPRefinery.BPRefinery_C
+/Game/Blueprints/Structures/BPFactoryBuildSite.BPFactoryBuildSite_C
+/Game/Blueprints/Structures/BPRefineryBuildSite.BPRefineryBuildSite_C
+/Game/Blueprints/Vehicles/Truck/BPTruckW.BPTruckW_C
+CDO de Factory/Refinery: TeamId=255, BaseStructureClass=respectiva BPDestroyed*.
+Spawn de BPFactoryBuildSite na transformação da ruína retornou:
+StructureBeingBuiltCodeName=None, ContainedCodeName=None, TeamId=0,
+DefaultResourceRequirements.Resource=(None,0), ResourceRequirements.Resource=(None,0).
+CDO: bIsBuiltAutomatically=false, BaseStructureClassToRespawn inválida.
+Isso NÃO é fábrica operacional nem canteiro corretamente configurado.
+Reflexão achou OnRep_ResourceRequirements, OnRep_DefaultResourceRequirements,
+OnRep_BuildStepProgress e notificações de migração/upgrade, não uma UFunction pública de concluir construção.
+
+3. Oráculo mínimo de estrutura ativa (não construção completa)
+Sonda ocultou a ruína e desligou sua colisão; SpawnActor da classe ativa
+na MESMA posição/rotação; TeamId=1 escrito explicitamente. Não consumiu materiais.
+Refinery: (8966.8125,-46252.8125,600.00195), yaw=-23.49137, Health=MaxHealth=2700.
+Factory: (3280.9375,-54222.8125,599.99854), yaw=-23.51875, Health=MaxHealth=2000.
+CodeName e BaseStructureClass conferidos; classe-base correspondeu à ruína original.
+Inventário BPRefinery_C passou a 1; fábrica ativa também enumerada.
+Não foi testada produção/inventário do próprio jogo, nem persistência desta substituição.
+GetActorBounds(false,origin,extent) escreve as duas tabelas separadamente.
+Extent da fábrica (10594,10557,8000) inclui volumes; NÃO é footprint confiável do prédio.
+
+4. Estacionamento ingênuo falhou — não promover a cenário automático
+Trace Visibility vertical de Z=20000 até -5000; origem de TruckW = hit.Z +174.
+A partir da fábrica, X+3000 e Y+500/1000/1500:
+1) HP900 em (6297.729,-54070.156,774.00049); hit em Landscape, Z600.
+2) HP900 em (6280.9375,-53222.8125,1539.7163); hit em
+   UniqueWWarehouseG7/StaticMeshComponent, Z1365.7163: TELHADO, não chão de estacionamento.
+3) retorno IsValid=true, HP300, posição (0,0,0); inventário ativo rejeitou o ator.
+   logi.scan recusou iniciar: caminhões (2/3). IsValid sozinho não garante ator utilizável.
+Outro candidato X+4500,Y+500 atingiu Landscape Z600; X+6000,Y+500 atingiu
+BPDestroyedMassProduction_C Z1654.6893; X-3000,Y+500 atingiu armazém Z1344.208.
+Faltam superfície transitável, folga do corpo, pós-condições de spawn e conexão à estrada.
+Não usar só altura, distância à fábrica ou captura de tela.
+
+5. Limite da análise nativa
+Offsets refletidos: DefaultResourceRequirements 0x620, ResourceRequirements 0x640,
+StructureBeingBuiltCodeName 0x718, BaseStructureClassToRespawn 0x778,
+BaseStructureHealth 0x780, BaseStructureTeamId 0x784, BaseStructureRotation 0x790.
+Offsets são evidência de leitura, NÃO autorização para escrever memória bruta.
+FUN_140bf15b0 enumera materiais cujo Default - ResourceRequirements é positivo.
+Construtor StructureBuildSite 1412540b0 aponta vtable 14357ac68.
+FUN_140ccbdd0 usa BaseStructureClassToRespawn, transformação e saúde/time salvos
+ao respawnar a estrutura-base. NÃO confundir restauração com conclusão da fábrica-alvo;
+nenhum wrapper público nem fluxo completo de conclusão foi validado.
+Artefatos externos: D:/tools/foxhole-lab/decomp-rebuild*; sondas t_rebuild_*.lua.
+
+6. Próximo contrato offline
+Refinaria+fábrica+3 TruckW exigem 1100 bmat segundo os custos lidos.
+CFG.LOGI.bmat0=240 é estoque de PRODUÇÃO, não orçamento de reconstrução.
+Não descontar de estoque inexistente nem criar prédios gratuitos silenciosamente.
+Construção própria deve ter orçamento explícito, só aceitar locais nativos e reverter falhas.
+Ao encerrar: probes removidos, colisão das ruínas restaurada; laboratório fechado.

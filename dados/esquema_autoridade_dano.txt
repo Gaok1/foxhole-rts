@@ -1,0 +1,5 @@
+AUTH_FUNCTION	Function /Script/Engine.Actor:HasAuthority
+PARAM	ReturnValue	BoolProperty
+AUTH_FUNCTION	Function /Script/Engine.Actor:GetLocalRole
+PARAM	ReturnValue	ByteProperty
+WORLD_PROP	AuthorityGameMode	ObjectProperty

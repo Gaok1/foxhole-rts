@@ -1,0 +1,32 @@
+--- a/mod/FoxholeRTS/Scripts/main.lua (ECONOMIA+IA)
++++ b/mod/FoxholeRTS/Scripts/main.lua
+@@ -2781,6 +2781,13 @@
+     return best
+ end
+ 
++-- bmat que a fabrica nao pode gastar: LOGI.truckCost por caminhao do jogador destruido e ainda nao reconstruido.
++function logi.rebuildReserve()
++    local n = 0
++    for _, tr in ipairs(logi.trucks or {}) do if tr.state == "dead" then n = n + 1 end end
++    return n * CFG.LOGI.truckCost
++end
++
+ function logi.factoryStep(dt)
+     local C = CFG.LOGI
+     if logi.job then
+@@ -2795,6 +2802,15 @@
+     local kind = logi.nextKind()
+     local rc = kind and C.recipes[kind]
+     if not rc or type(rc.bmat) ~= "number" or rc.bmat <= 0 or type(rc.time) ~= "number" or rc.time <= 0 or logi.bmat < rc.bmat then return end
++    local keep = logi.rebuildReserve()
++    if logi.bmat - rc.bmat < keep then  -- guarda bmat para o caminhao destruido (senao a fabrica gasta cada 80 antes de juntar 100)
++        local t = now()
++        if t - (logi.rebuildNoteT or -1e9) >= 20.0 then
++            logi.rebuildNoteT = t
++            notify(string.format("fábrica guarda %d bmat para reconstruir caminhão", keep), 3.0)
++        end
++        return
++    end
+     logi.bmat = logi.bmat - rc.bmat
+     logi.job = { kind = kind, left = rc.time * C.time, total = rc.time * C.time }
+ end

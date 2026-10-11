@@ -1,0 +1,114 @@
+## v41-hex-deploy.txt
+ANTES	refinarias	0	fabricas	0	caminhoesW	0	carteira bmat	1000	gasto	0	built	0
+logi.deploy	true
+DEPOIS	refinarias	1	fabricas	1	caminhoesW	2	carteira bmat	0	gasto	1000	built	4
+esperado v4 apos a 1a vez: refinarias+1, fabricas+1, caminhoesW ate 2, carteira 0, gasto 1000, built 4; repetir nao muda nada
+## v41-hex-deploy-repeat.txt
+ANTES	refinarias	1	fabricas	1	caminhoesW	2	carteira bmat	0	gasto	1000	built	4
+logi.deploy	true
+DEPOIS	refinarias	1	fabricas	1	caminhoesW	2	carteira bmat	0	gasto	1000	built	4
+esperado v4 apos a 1a vez: refinarias+1, fabricas+1, caminhoesW ate 2, carteira 0, gasto 1000, built 4; repetir nao muda nada
+## v41-hex-worker-obstacles.txt
+WORKER	1	13235.71875	-50350.76953125	695.19366455078	target	9560.6475311155	-46338.60268487
+OBSTACULO	true	StaticMeshActor /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.IndustrialWall03Snow31	695.19366455078
+WORKER	2	13199.759765625	-50444.45703125	692.15100097656	target	9478.5130691528	-45939.503503116
+OBSTACULO	true	StaticMeshActor /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.IndustrialWall03Snow31	692.15100097656
+WORKER	3	13382.211914062	-49969.59375	790.70983886719	target	9166.8940330816	-45687.155907959
+OBSTACULO	true	StaticMeshActor /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.IndustrialWall03Snow31	790.70983886719
+## v41-hex-save.txt
+SAVE_HEX	true
+SAVE_LIDO	true	nil
+INFRA	1000	0	1000	4
+## v41-hex-load-fresh.txt
+ANTES	ref	0	fac	0	truck	0
+CONTINUAR_HEX	true	ms	318.0
+CARTEIRA	1000	0	1000	4
+DEPOIS	ref	1	fac	1	truck	2
+ESTADO	bmat	40.0	degradado	-
+AUDITORIA_INIMIGO	true	razão fechado
+## v41-hex-load-repeat.txt
+ANTES	ref	1	fac	1	truck	2
+CONTINUAR_HEX	true	ms	303.0
+CARTEIRA	1000	0	1000	4
+DEPOIS	ref	1	fac	1	truck	2
+ESTADO	bmat	40.0	degradado	-
+AUDITORIA_INIMIGO	true	razão fechado
+## v41-hex-sample-full.txt
+AMOSTRAS	360
+T	42.712749481201	bmat	40.0	sucata	0	colhido	0	entregue	0	perdido	0	res	dead	0	workers	0
+T	58.18314743042	bmat	40.0	sucata	0	colhido	9.8702392578125	entregue	0	perdido	0	res	dead	0	workers	3
+WORKER	15808.74609375	-53939.4765625	gather	5.316011428833
+WORKER	15706.915039062	-53934.47265625	gather	3.0303249359131
+WORKER	15421.942382812	-53891.59375	gather	1.5239028930664
+T	73.514671325684	bmat	40.0	sucata	0	colhido	32.867525100708	entregue	0	perdido	0	res	dead	0	workers	3
+WORKER	15808.74609375	-53939.4765625	gather	12.981773376465
+WORKER	15706.915039062	-53934.47265625	gather	10.696086883545
+WORKER	15421.942382812	-53891.59375	gather	9.1896648406982
+T	88.963478088379	bmat	40.0	sucata	0	colhido	56.040735244751	entregue	0	perdido	0	res	dead	0	workers	3
+WORKER	15808.74609375	-53939.4765625	gather	20.706176757812
+WORKER	15706.915039062	-53934.47265625	gather	18.420490264893
+WORKER	15421.942382812	-53891.59375	gather	16.914068222046
+T	104.40196990967	bmat	40.0	sucata	0	colhido	79.198472976685	entregue	0	perdido	0	res	dead	0	workers	3
+WORKER	15808.74609375	-53939.4765625	gather	28.425422668457
+WORKER	15706.915039062	-53934.47265625	gather	26.139736175537
+WORKER	15421.942382812	-53891.59375	gather	24.63331413269
+T	119.692527771	bmat	40.0	sucata	0	colhido	102.13430976868	entregue	0	perdido	0	res	dead	0	workers	3
+WORKER	15808.74609375	-53939.4765625	gather	36.070701599121
+WORKER	15706.915039062	-53934.47265625	gather	33.785015106201
+WORKER	15421.942382812	-53891.59375	gather	32.278593063354
+T	135.41912841797	bmat	40.0	sucata	0	colhido	120.0	entregue	0	perdido	0	res	dead	0	workers	3
+WORKER	15356.328125	-53350.5078125	toRef	40
+WORKER	15706.915039062	-53934.47265625	toRef	40
+WORKER	15421.942382812	-53891.59375	toRef	40
+T	150.89311218262	bmat	40.0	sucata	0	colhido	120.0	entregue	0	perdido	0	res	dead	0	workers	3
+WORKER	13234.622070312	-50353.77734375	toRef	40
+WORKER	13631.166992188	-51270.03125	toRef	40
+WORKER	14267.885742188	-52377.88671875	toRef	40
+T	166.34332275391	bmat	40.0	sucata	0	colhido	120.0	entregue	0	perdido	0	res	dead	0	workers	3
+WORKER	13234.672851562	-50353.64453125	toRef	40
+WORKER	13166.43359375	-50531.078125	toRef	40
+WORKER	13120.955078125	-50649.35546875	toRef	40
+T	181.79058837891	bmat	40.0	sucata	0	colhido	120.0	entregue	0	perdido	0	res	dead	0	workers	3
+WORKER	13235.142578125	-50352.44140625	toRef	40
+WORKER	13168.165039062	-50526.55078125	toRef	40
+WORKER	13126.186523438	-50635.81640625	toRef	40
+T	197.49465942383	bmat	40.0	sucata	0	colhido	120.0	entregue	0	perdido	0	res	dead	0	workers	3
+WORKER	13186.34375	-50479.34375	toRef	40
+WORKER	13150.379882812	-50572.94921875	toRef	40
+WORKER	13008.653320312	-50941.421875	toRef	40
+T	212.99371337891	bmat	40.0	sucata	0	colhido	120.0	entregue	0	perdido	0	res	dead	0	workers	3
+WORKER	13234.586914062	-50353.90625	toRef	40
+WORKER	13250.065429688	-50453.4296875	toRef	40
+WORKER	13171.858398438	-50516.6328125	toRef	40
+T	228.33876037598	bmat	40.0	sucata	0	colhido	120.0	entregue	0	perdido	0	res	dead	0	workers	3
+WORKER	13234.623046875	-50353.61328125	toRef	40
+WORKER	13128.14453125	-50630.54296875	toRef	40
+WORKER	13088.325195312	-50733.73046875	toRef	40
+T	243.49670410156	bmat	40.0	sucata	0	colhido	120.0	entregue	0	perdido	0	res	dead	0	workers	3
+WORKER	13235.141601562	-50352.265625	toRef	40
+WORKER	13248.891601562	-50451.79296875	toRef	40
+WORKER	13171.98828125	-50516.0546875	toRef	40
+T	258.71374511719	bmat	40.0	sucata	0	colhido	120.0	entregue	0	perdido	0	res	dead	0	workers	3
+WORKER	13234.620117188	-50353.609375	toRef	40
+WORKER	13198.956054688	-50447.2890625	toRef	40
+WORKER	13162.98828125	-50540.8203125	toRef	40
+T	273.95745849609	bmat	40.0	sucata	0	colhido	120.0	entregue	0	perdido	0	res	dead	0	workers	3
+WORKER	13234.91796875	-50352.8203125	toRef	40
+WORKER	13235.447265625	-50453.58984375	toRef	40
+WORKER	13013.205078125	-50928.97265625	toRef	40
+T	289.1272277832	bmat	40.0	sucata	0	colhido	120.0	entregue	0	perdido	0	res	dead	0	workers	3
+WORKER	13162.2421875	-50541.8203125	toRef	40
+WORKER	13124.83984375	-50639.17578125	toRef	40
+WORKER	13084.685546875	-50743.46875	toRef	40
+T	304.36236572266	bmat	40.0	sucata	0	colhido	120.0	entregue	0	perdido	0	res	dead	0	workers	3
+WORKER	13235.696289062	-50350.83203125	toRef	40
+WORKER	13172.678710938	-50514.9453125	toRef	40
+WORKER	13382.658203125	-49969.4609375	toRef	40
+T	319.72787475586	bmat	40.0	sucata	0	colhido	120.0	entregue	0	perdido	120	res	dead	0	workers	0
+T	334.94909667969	bmat	40.0	sucata	0	colhido	120.0	entregue	0	perdido	120	res	dead	0	workers	0
+T	350.22164916992	bmat	40.0	sucata	0	colhido	120.0	entregue	0	perdido	120	res	dead	0	workers	0
+T	365.47830200195	bmat	40.0	sucata	0	colhido	120.0	entregue	0	perdido	120	res	dead	0	workers	0
+T	380.73184204102	bmat	40.0	sucata	0	colhido	120.0	entregue	0	perdido	120	res	dead	0	workers	0
+T	395.97207641602	bmat	40.0	sucata	0	colhido	120.0	entregue	0	perdido	120	res	dead	0	workers	0
+COLETA_AUDIT	true
+INIMIGO_AUDIT	true	razão fechado

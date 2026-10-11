@@ -1,0 +1,4 @@
+AUTH	true	3	GAMEMODE	SimGameMode /Game/Maps/HomeRegionW.HomeRegionW:PersistentLevel.SimGameMode_2147480461	TEAM	0
+DELAY_ORACLE	12 s reais; sem healthwrite/offset/RPC; ator proprio removido no fim
+DONE	true	ator destruido
+DELAY_DAMAGE	12.197113037109	900	0.0	900

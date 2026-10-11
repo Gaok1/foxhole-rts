@@ -1,0 +1,6 @@
+CONTROL	TRANSITIONS_GC_DEATH	ELAPSED	87.358856201172	UNITS	6	SELECTED	6	CLONES	168
+PROFILE	mod: 12.01 ms/quadro em 3918 quadros | stratTick 11.11, squadTick 0.40, cameraTick 0.37, mouseTick 0.04, hudTick 0.03, eyeTick 0.02, pointsTick 0.01, enemyTick 0.00, saveTick 0.00, mortarTick 0.00, hpTick 0.00, economyTick 0.00, pathTick 0.00, postureTick 0.00, corpseTick 0.00, waveTick 0.00, logiTick 0.00
+CONTROL	TRANSITIONS_GC_DEATH	ELAPSED	143.99591064453	UNITS	6	SELECTED	6	CLONES	168
+PROFILE	mod: 11.97 ms/quadro em 2440 quadros | stratTick 11.07, squadTick 0.40, cameraTick 0.37, mouseTick 0.04, hudTick 0.04, eyeTick 0.03, pointsTick 0.01, enemyTick 0.00, hpTick 0.00, postureTick 0.00, mortarTick 0.00, economyTick 0.00, corpseTick 0.00, saveTick 0.00, waveTick 0.00, pathTick 0.00, logiTick 0.00
+CONTROL	TRANSITIONS_GC_DEATH	ELAPSED	219.16384887695	UNITS	6	SELECTED	6	CLONES	168
+PROFILE	mod: 12.23 ms/quadro em 3109 quadros | stratTick 11.34, squadTick 0.40, cameraTick 0.35, hudTick 0.04, mouseTick 0.04, eyeTick 0.03, pointsTick 0.01, postureTick 0.00, enemyTick 0.00, hpTick 0.00, pathTick 0.00, economyTick 0.00, mortarTick 0.00, saveTick 0.00, logiTick 0.00, waveTick 0.00, corpseTick 0.00

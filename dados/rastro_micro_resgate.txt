@@ -1,0 +1,95 @@
+AMOSTRAS	360
+T	15.488626480103	colhido	0	entregue	0	perdido	0	bmat	40.0	truck	dead	pawn	false
+T	30.889505386353	colhido	11.00772190094	entregue	0	perdido	0	bmat	40.0	truck	dead	pawn	false
+W	1	16072.2265625	-54192.98828125	1092.1506347656	gather	5.6758995056152	resgates	nil	tentativas	nil
+W	2	15877.842773438	-54505.3359375	1092.1505126953	gather	3.669994354248	resgates	nil	tentativas	nil
+W	3	16198.931640625	-54672.359375	1092.1505126953	gather	1.6618280410767	resgates	nil	tentativas	nil
+T	46.263584136963	colhido	34.068840026855	entregue	0	perdido	0	bmat	40.0	truck	dead	pawn	false
+W	1	16072.2265625	-54192.98828125	1092.1506347656	gather	13.36293888092	resgates	nil	tentativas	nil
+W	2	15877.842773438	-54505.3359375	1092.1505126953	gather	11.357033729553	resgates	nil	tentativas	nil
+W	3	16198.931640625	-54672.359375	1092.1505126953	gather	9.3488674163818	resgates	nil	tentativas	nil
+T	61.618175506592	colhido	57.100727081299	entregue	0	perdido	0	bmat	40.0	truck	dead	pawn	false
+W	1	16072.2265625	-54192.98828125	1092.1506347656	gather	21.040234565735	resgates	nil	tentativas	nil
+W	2	15877.842773438	-54505.3359375	1092.1505126953	gather	19.034329414368	resgates	nil	tentativas	nil
+W	3	16198.931640625	-54672.359375	1092.1505126953	gather	17.026163101196	resgates	nil	tentativas	nil
+T	77.201446533203	colhido	80.475633621216	entregue	0	perdido	0	bmat	40.0	truck	dead	pawn	false
+W	1	16072.2265625	-54192.98828125	1092.1506347656	gather	28.831870079041	resgates	nil	tentativas	nil
+W	2	15877.842773438	-54505.3359375	1092.1505126953	gather	26.825964927673	resgates	nil	tentativas	nil
+W	3	16198.931640625	-54672.359375	1092.1505126953	gather	24.817798614502	resgates	nil	tentativas	nil
+T	92.581695556641	colhido	103.54600715637	entregue	0	perdido	0	bmat	40.0	truck	dead	pawn	false
+W	1	16072.2265625	-54192.98828125	1092.1506347656	gather	36.521994590759	resgates	nil	tentativas	nil
+W	2	15877.842773438	-54505.3359375	1092.1505126953	gather	34.516089439392	resgates	nil	tentativas	nil
+W	3	16198.931640625	-54672.359375	1092.1505126953	gather	32.507923126221	resgates	nil	tentativas	nil
+T	107.93739318848	colhido	120.0	entregue	0	perdido	0	bmat	40.0	truck	dead	pawn	false
+W	1	13895.474609375	-51109.921875	1374.4862060547	toRef	40	resgates	nil	tentativas	0
+W	2	15061.247070312	-52959.69921875	1092.1505126953	toRef	40	resgates	nil	tentativas	0
+W	3	16198.931640625	-54672.359375	1092.1505126953	toRef	40	resgates	nil	tentativas	nil
+T	123.29132080078	colhido	120.0	entregue	0	perdido	0	bmat	40.0	truck	dead	pawn	false
+W	1	13382.376953125	-49969.546875	790.79321289062	toRef	40	resgates	nil	tentativas	3
+W	2	10490.181640625	-47008.265625	692.150390625	toRef	40	resgates	nil	tentativas	0
+W	3	13487.438476562	-51019.62109375	792.66070556641	toRef	40	resgates	nil	tentativas	0
+T	138.71981811523	colhido	120.0	entregue	40	perdido	0	bmat	60.0	truck	dead	pawn	false
+W	1	13382.375	-49969.546875	790.79223632812	toRef	40	resgates	nil	tentativas	6
+W	2	13478.157226562	-49939.9609375	843.51330566406	toField	0	resgates	nil	tentativas	1
+W	3	13490.73828125	-51008.16015625	799.47924804688	toRef	40	resgates	nil	tentativas	0
+T	154.12689208984	colhido	120.0	entregue	40	perdido	0	bmat	60.0	truck	dead	pawn	false
+W	1	13382.375	-49969.546875	790.79223632812	toRef	40	resgates	nil	tentativas	6
+W	2	13478.15234375	-49939.9609375	843.51086425781	toField	0	resgates	nil	tentativas	4
+W	3	13494.6484375	-50982.15234375	801.22351074219	toRef	40	resgates	nil	tentativas	0
+T	169.50436401367	colhido	120.0	entregue	40	perdido	0	bmat	60.0	truck	dead	pawn	false
+W	1	13382.375	-49969.546875	790.79223632812	toRef	40	resgates	nil	tentativas	6
+W	2	13478.15234375	-49939.9609375	843.51086425781	toField	0	resgates	nil	tentativas	6
+W	3	13486.752929688	-50957.26953125	765.09216308594	toRef	40	resgates	nil	tentativas	0
+T	184.94815063477	colhido	120.0	entregue	40	perdido	0	bmat	60.0	truck	dead	pawn	false
+W	1	13382.375	-49969.546875	790.79223632812	toRef	40	resgates	nil	tentativas	6
+W	2	13478.15234375	-49939.9609375	843.51086425781	toField	0	resgates	nil	tentativas	6
+W	3	13403.220703125	-51321.20703125	800.05938720703	toRef	40	resgates	nil	tentativas	0
+T	200.3720703125	colhido	120.0	entregue	40	perdido	0	bmat	60.0	truck	dead	pawn	false
+W	1	13382.375	-49969.546875	790.79223632812	toRef	40	resgates	nil	tentativas	6
+W	2	13478.15234375	-49939.9609375	843.51086425781	toField	0	resgates	nil	tentativas	6
+W	3	13486.678710938	-50994.125	780.87109375	toRef	40	resgates	nil	tentativas	0
+T	215.74714660645	colhido	120.0	entregue	40	perdido	0	bmat	60.0	truck	dead	pawn	false
+W	1	13382.375	-49969.546875	790.79223632812	toRef	40	resgates	nil	tentativas	6
+W	2	13478.15234375	-49939.9609375	843.51086425781	toField	0	resgates	nil	tentativas	6
+W	3	13469.038085938	-51085.078125	797.27325439453	toRef	40	resgates	nil	tentativas	0
+T	231.57711791992	colhido	120.0	entregue	40	perdido	0	bmat	60.0	truck	dead	pawn	false
+W	1	13382.375	-49969.546875	790.79223632812	toRef	40	resgates	nil	tentativas	6
+W	2	13478.15234375	-49939.9609375	843.51086425781	toField	0	resgates	nil	tentativas	6
+W	3	13441.256835938	-50897.69921875	757.18359375	toRef	40	resgates	nil	tentativas	0
+T	247.00625610352	colhido	120.0	entregue	40	perdido	0	bmat	60.0	truck	dead	pawn	false
+W	1	13382.375	-49969.546875	790.79223632812	toRef	40	resgates	nil	tentativas	6
+W	2	13478.15234375	-49939.9609375	843.51086425781	toField	0	resgates	nil	tentativas	6
+W	3	13490.409179688	-51017.0625	802.23040771484	toRef	40	resgates	nil	tentativas	0
+T	262.41983032227	colhido	120.0	entregue	40	perdido	0	bmat	60.0	truck	dead	pawn	false
+W	1	13382.375	-49969.546875	790.79223632812	toRef	40	resgates	nil	tentativas	6
+W	2	13478.15234375	-49939.9609375	843.51086425781	toField	0	resgates	nil	tentativas	6
+W	3	13351.896484375	-50541.71484375	792.30816650391	toRef	40	resgates	nil	tentativas	0
+T	277.82653808594	colhido	120.0	entregue	40	perdido	0	bmat	60.0	truck	dead	pawn	false
+W	1	13382.375	-49969.546875	790.79223632812	toRef	40	resgates	nil	tentativas	6
+W	2	13478.15234375	-49939.9609375	843.51086425781	toField	0	resgates	nil	tentativas	6
+W	3	13391.384765625	-50869.3671875	733.71356201172	toRef	40	resgates	nil	tentativas	0
+T	293.25283813477	colhido	120.0	entregue	40	perdido	80	bmat	60.0	truck	dead	pawn	false
+W	1	13478.145507812	-49939.9609375	843.50695800781	toField	0	resgates	nil	tentativas	6
+W	2	13382.357421875	-49969.55078125	790.78271484375	toField	0	resgates	nil	tentativas	2
+W	3	12566.130859375	-53068.28515625	705.63299560547	toField	0	resgates	nil	tentativas	0
+T	308.70205688477	colhido	124.48765563965	entregue	40	perdido	80	bmat	60.0	truck	dead	pawn	false
+W	1	13382.357421875	-49969.55078125	790.78271484375	toField	0	resgates	nil	tentativas	6
+W	2	14564.67578125	-54440.4375	1092.28515625	gather	4.4876556396484	resgates	nil	tentativas	0
+W	3	13478.139648438	-49939.9609375	843.50408935547	toField	0	resgates	nil	tentativas	0
+T	324.16033935547	colhido	132.216796875	entregue	40	perdido	80	bmat	60.0	truck	dead	pawn	false
+W	1	13382.357421875	-49969.55078125	790.78271484375	toField	0	resgates	nil	tentativas	6
+W	2	14564.67578125	-54440.4375	1092.28515625	gather	12.216796875	resgates	nil	tentativas	0
+W	3	13478.138671875	-49939.9609375	843.50378417969	toField	0	resgates	nil	tentativas	4
+T	339.61370849609	colhido	139.94348144531	entregue	40	perdido	80	bmat	60.0	truck	dead	pawn	false
+W	1	13382.357421875	-49969.55078125	790.78271484375	toField	0	resgates	nil	tentativas	6
+W	2	14564.67578125	-54440.4375	1092.28515625	gather	19.943481445312	resgates	nil	tentativas	0
+W	3	13478.138671875	-49939.9609375	843.50378417969	toField	0	resgates	nil	tentativas	6
+T	355.06011962891	colhido	147.66668701172	entregue	40	perdido	80	bmat	60.0	truck	dead	pawn	false
+W	1	13382.357421875	-49969.55078125	790.78271484375	toField	0	resgates	nil	tentativas	6
+W	2	14564.67578125	-54440.4375	1092.28515625	gather	27.666687011719	resgates	nil	tentativas	0
+W	3	13478.138671875	-49939.9609375	843.50378417969	toField	0	resgates	nil	tentativas	6
+T	370.56317138672	colhido	155.41821289062	entregue	40	perdido	80	bmat	60.0	truck	dead	pawn	false
+W	1	13382.356445312	-49969.55078125	790.78240966797	toField	0	resgates	nil	tentativas	6
+W	2	14564.67578125	-54440.4375	1092.28515625	gather	35.418212890625	resgates	nil	tentativas	0
+W	3	13478.138671875	-49939.9609375	843.50378417969	toField	0	resgates	nil	tentativas	6
+AUDIT	true

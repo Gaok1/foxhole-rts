@@ -1,0 +1,39 @@
+Contrato de morte — laboratório offline HomeRegionW, UE 4.24, 2026-10-09
+
+Oráculo nativo: HeadlessPlayerController + RestartPlayerAtTransform, sem armWith.
+Movimento original medido: GroundFriction=8, BrakingDecelerationWalking=2048,
+MaxAcceleration=2048. Cada soldado guarda seus valores reais antes de modificá-los.
+
+ANTES (mod v0.9, sem correção):
+  Soldado marchando: Health=100, velocidade horizontal=500 cm/s, AnimInstance.Speed=500.
+  ApplyDamage(..., 500, nil, nil, nil): Health=0, velocidade=500, Speed=500.
+  Três segundos depois: velocidade=500, Speed=500; corpo removido pelo mod aos 20 s.
+  No personagem nativo, Health também zera sem mudar CharacterActivityStateInternal.
+  BPCinematicDeath não acionou a transição neste cenário.
+
+CHAMADA ENCONTRADA:
+  SimCharacter:OnRep_Health (notificação local; não é RPC).
+  Inspeção nativa no Ghidra: wrapper 0x141227ed0 → 0x140b04440;
+  HP <= 0 chama 0x140b107f0, que aplica o perfil Ragdoll e liga física da malha.
+  Código decompilado fica fora do repositório, em D:/tools/foxhole-lab/decomp-death/.
+
+DEPOIS (lote 14, t_death_contract.lua):
+  Antes do dano: Health=100, velocidade=500 cm/s.
+  Depois do recolhimento da baixa:
+    velocidade XYZ=0;
+    GroundFriction e BrakingDecelerationWalking restaurados;
+    cache de animação sem o endereço do morto; m.animAddr=nil;
+    Mesh:IsSimulatingPhysics(None)=true;
+    Mesh:GetAnimInstance():IsValid()=false;
+    unidade removida do esquadrão; corpo ainda visível no chão (captura conferida).
+
+Ordem obrigatória:
+  1. Remover marcadores e registro do AnimInstance.
+  2. Consumir entrada pendente, StopMovementImmediately, restaurar movimento e sair da mira.
+  3. OnRep_Health, uma única vez por baixa.
+  4. Liberar o controlador para o pool; guardar só o pawn para a remoção após 20 s.
+
+Não ler AnimInstance após a chamada: o ragdoll o invalida.
+Não guardar pawn de teste para consultar depois do TTL: IsValid pode permanecer true até o GC.
+Testes offline: tools/test_orders.py (ordem, idempotência, cache reciclado, inválido, TTL).
+Sondas ao vivo: D:/tools/foxhole-lab/t_death_contract.lua e death_contract.txt.

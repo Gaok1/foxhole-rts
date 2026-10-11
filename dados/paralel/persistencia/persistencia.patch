@@ -1,0 +1,720 @@
+--- a/mod/FoxholeRTS/Scripts/main.lua (com ECONOMIA)
++++ b/mod/FoxholeRTS/Scripts/main.lua
+@@ -2536,9 +2536,16 @@
+               { active = "BPFactory_C", ruin = "BPDestroyedFactory_C", cost = 400, hp = 2000, code = "Factory",
+                 asset = "/Game/Blueprints/Structures/BPFactory.BPFactory_C" } } }
+ 
++-- Identidade desta CARGA do mundo (endereco muda a cada carga). Nunca vai para o save.
++function logi.walletId()
++    return world():GetFullName() .. ":" .. tostring(world():GetAddress())
++end
++
+ function logi.deployWallet()
+-    local id = world():GetFullName() .. ":" .. tostring(world():GetAddress())
+-    if not S.deploy or S.deploy.world ~= id then S.deploy = { world = id, bmat = CFG.DEPLOY.budget, spent = 0 } end
++    local id = logi.walletId()
++    if not S.deploy or S.deploy.world ~= id then
++        S.deploy = { world = id, budget = CFG.DEPLOY.budget, bmat = CFG.DEPLOY.budget, spent = 0, built = {} }
++    end
+     return S.deploy
+ end
+ 
+@@ -2627,12 +2634,11 @@
+     return plan
+ end
+ 
+-function logi.deploy()
+-    local ok, plan, why = pcall(logi.deployPlan)
+-    if not ok or not plan then notify("Implantação recusada: " .. tostring(ok and why or plan), 6); return false end
+-    if plan.cost == 0 then notify("Cadeia já implantada. Shift+F6 inicia a partida.", 4); return true end
+-    local created, touched = {}, {}
+-    ok, why = pcall(function()
++-- Aplica um plano de implantacao (logi.deployPlan ou sv.infraPlan) SEM tocar na carteira. Retorna registros
++-- puros do que nasceu (codigo/XYZ/yaw, nunca ator ou endereco) ou nil e o motivo, depois de desfazer tudo.
++function logi.applyPlan(plan)
++    local created, touched, built = {}, {}, {}
++    local ok, why = pcall(function()
+         for _, b in ipairs(plan.builds) do
+             assert(valid(b.ruin) and not b.ruin.bActorIsBeingDestroyed, "ruína deixou de existir")
+             touched[#touched+1] = b
+@@ -2646,6 +2652,7 @@
+             assert(flatDist(l, b.pos) < 100 and math.abs(l.Z-b.pos.Z) < 100, "estrutura deslocada")
+             assert(math.abs(a:K2_GetActorRotation().Yaw-b.rot.Yaw) < 1, "rotação da estrutura divergiu")
+             a.TeamId = CFG.FRIENDLY_TEAM
++            built[#built+1] = { kind="site", code=b.spec.code, x=b.pos.X+0, y=b.pos.Y+0, z=b.pos.Z+0, yaw=b.rot.Yaw+0 }
+         end
+         for _, p in ipairs(plan.parking) do
+             local a = world():SpawnActor(plan.truckClass, {X=p.X,Y=p.Y,Z=p.Z+CFG.DEPLOY.off}, {Pitch=0,Yaw=p.Yaw,Roll=0})
+@@ -2654,6 +2661,7 @@
+             local l = a:K2_GetActorLocation()
+             assert(flatDist(l,p) < 150 and math.abs(l.Z-p.Z-CFG.DEPLOY.off) < 100, "caminhão deslocado")
+             a.TeamId = CFG.FRIENDLY_TEAM
++            built[#built+1] = { kind="truck", x=p.X+0, y=p.Y+0, z=p.Z+0, yaw=p.Yaw+0 }
+         end
+         local setup, missing = logi.scan()
+         assert(setup, missing)
+@@ -2667,12 +2675,24 @@
+                 pcall(function() b.ruin:SetActorHiddenInGame(b.hidden); b.ruin:SetActorEnableCollision(b.collision) end)
+             end
+         end
+-        notify("Implantação desfeita, sem débito: " .. tostring(why), 8); return false
+-    end
++        return nil, why
++    end
++    -- O desocultador da camera nao deve reexibir a ruina substituida ao sair de foco.
++    for _, b in ipairs(touched) do S.occluders[b.ruin] = nil end
++    return built
++end
++
++function logi.deploy()
++    local ok, plan, why = pcall(logi.deployPlan)
++    if not ok or not plan then notify("Implantação recusada: " .. tostring(ok and why or plan), 6); return false end
++    if plan.cost == 0 then notify("Cadeia já implantada. Shift+F6 inicia a partida.", 4); return true end
++    local built, err = logi.applyPlan(plan)
++    if not built then notify("Implantação desfeita, sem débito: " .. tostring(err), 8); return false end
+     local wallet = logi.deployWallet()
+     wallet.bmat, wallet.spent = wallet.bmat-plan.cost, wallet.spent+plan.cost
+-    -- O desocultador da camera nao deve reexibir a ruina substituida ao sair de foco.
+-    for _, b in ipairs(touched) do S.occluders[b.ruin] = nil end
++    -- Registro do que foi pago (persistido pelo save; sv.infraPlan refaz sem cobrar de novo).
++    wallet.built = wallet.built or {}
++    for _, r in ipairs(built) do wallet.built[#wallet.built+1] = r end
+     notify(string.format("IMPLANTAÇÃO: -%d bmat do cenário; saldo %d. Shift+F6 inicia (transporte ainda em reta).", plan.cost, wallet.bmat), 10)
+     return true
+ end
+@@ -4508,9 +4528,10 @@
+ end
+ 
+ -- Salvar e continuar (Ctrl+F6). Com ondas automaticas, a partida e gravada a cada SAVE_EVERY s em SAVE_FILE
+--- (Lua "return {...}", lido com load num ambiente vazio): onda, placar, mao de obra, dificuldade, pontos e
+--- donos, barreiras, trincheiras e cada soldado vivo dos dois lados (classe, posicao, vida, abates, municao).
+--- Vitoria ou derrota apagam o save. Caixas, morteiros e alvos nao sao gravados (duram segundos).
++-- (texto "return {...}" lido por sv.decode, parser de literais; nunca load/dofile): onda, placar, mao de obra,
++-- dificuldade, pontos e donos, barreiras, trincheiras, postos, arames, cada soldado vivo dos dois lados,
++-- logistica (schema da ECONOMIA), carteira/infraestrutura implantada e estoque do comboio inimigo (schema v2).
++-- Vitoria ou derrota apagam o save. Caixas, morteiros, alvos, rotas e comboios em transito nao sao gravados.
+ CFG.SAVE_FILE = "ue4ss/Mods/FoxholeRTS/save.txt"
+ CFG.SAVE_EVERY = 30.0
+ 
+@@ -4532,14 +4553,6 @@
+     return "nil"
+ end
+ 
+-function sv.parse(txt)
+-    local chunk = load(txt or "", "save", "t", {})
+-    if not chunk then return nil end
+-    local ok, d = pcall(chunk)
+-    if ok and type(d) == "table" and d.v == 1 then return d end
+-    return nil
+-end
+-
+ function sv.map()
+     local ok, n = pcall(function() return world():GetFullName() end)
+     return ok and n and (tostring(n):match("([%w_]+)$") or tostring(n)) or nil
+@@ -4555,7 +4568,7 @@
+ 
+ function sv.collect()
+     local t = now()
+-    local d = { v = 1, map = sv.map(), diff = S.difficulty, wave = combat.wave, kills = combat.kills,
++    local d = { v = 2, map = sv.map(), world = sv.worldPath(), diff = S.difficulty, wave = combat.wave, kills = combat.kills,
+         losses = combat.losses, elapsed = t - (combat.startT or t), mp = economy.manpower, aimp = ai.mp,
+         shots = combat.shots and combat.shots[1] or 0, hits = combat.hits and combat.hits[1] or 0,
+         nextIn = combat.nextWaveAt and math.max(0, combat.nextWaveAt - t) or nil, mode = combat.mode,
+@@ -4577,27 +4590,559 @@
+         local q = d.points[i]
+         q.dug, q.wired = pt.dug or nil, pt.wired or nil
+     end
++    d.infra, d.enemy = sv.infraSnapshot(), sv.enemySnapshot()
+     return d
++end
++
++-- Persistencia v2 (proposta CLAUDE_PERSISTENCIA, 2026-10-09). Tudo em `sv`/`CFG`/`S`: nenhum local novo no chunk.
++-- Formato: o mesmo texto "return {...}" do v1, mas LIDO POR UM PARSER DE LITERAIS (sem load/dofile: o arquivo
++-- nunca executa codigo). Schema v2 = v1 + world (caminho do mundo) + infra (carteira de implantacao e o que foi
++-- pago, por codigo/XYZ) + enemy (estoque do comboio inimigo, reservado a IA_LOGISTICA). O bloco `logi` e o
++-- schema version=2 da ECONOMIA, validado pela propria logi.validateSave. Nada guarda ator, userdata ou endereco;
++-- rotas de ESTRADAS nao sao salvas (epoch inclui a sessao): o caminhao replaneja ao continuar.
++-- Gravacao: temporario verificado -> anterior vira .bak (ou .corrupt se invalido) -> temporario vira o save.
++-- Continuar: preflight completo sem mutacao (schema, mundo, superficie, ruinas/ativos, carteira, logistica);
++-- so depois refaz a infraestrutura paga (de graca, ja debitada no save) e limpa a partida atual.
++CFG.PERSIST = { version = 2, infraVersion = 1, enemyVersion = 1, tol = 200.0, maxBytes = 4194304, maxDepth = 12,
++                maxItems = 50000, maxCoord = 5.0e6, maxUnits = 300, maxList = 400, maxBuilt = 16 }
++
++-- Caminho do mundo sem o prefixo de classe ("World /Game/Maps/Master/X.X" -> "/Game/Maps/Master/X.X").
++function sv.worldPath()
++    local ok, n = pcall(function() return world():GetFullName() end)
++    if not ok or n == nil then return nil end
++    n = tostring(n)
++    return (n:gsub("^%S+%s+", ""))
++end
++
++-- Parser de literais: aceita exatamente o que sv.ser escreve (tabelas [chave]=valor, numeros, strings %q,
++-- booleanos). Recusa identificadores, chamadas, operadores, nil, chaves repetidas, profundidade/tamanho excessivos.
++function sv.decode(txt)
++    local P = CFG.PERSIST
++    if type(txt) ~= "string" then return nil, "conteúdo ausente" end
++    if #txt > P.maxBytes then return nil, "arquivo grande demais" end
++    local pos, n, items = 1, #txt, 0
++    local esc = { n = "\n", r = "\r", t = "\t", a = "\a", b = "\b", f = "\f", v = "\v", ["\\"] = "\\", ['"'] = '"', ["'"] = "'" }
++    local function ws() pos = txt:find("[^ \t\r\n]", pos) or (n + 1) end
++    local function fail(why) error({ why = why .. " (byte " .. pos .. ")" }, 0) end
++    local value
++    local function str()
++        local out = {}
++        pos = pos + 1
++        while true do
++            local c = txt:sub(pos, pos)
++            if c == "" then fail("string sem fim") end
++            if c == '"' then pos = pos + 1; return table.concat(out) end
++            if c == "\n" or c == "\r" then fail("quebra de linha sem escape") end
++            if c == "\\" then
++                local e = txt:sub(pos + 1, pos + 1)
++                if e == "\n" then out[#out + 1] = "\n"; pos = pos + 2
++                    if txt:sub(pos, pos) == "\r" then pos = pos + 1 end
++                elseif e == "\r" then out[#out + 1] = "\n"; pos = pos + 2
++                    if txt:sub(pos, pos) == "\n" then pos = pos + 1 end
++                elseif esc[e] then out[#out + 1] = esc[e]; pos = pos + 2
++                elseif e:match("%d") then
++                    local d = txt:match("^%d%d?%d?", pos + 1)
++                    local v = tonumber(d)
++                    if v > 255 then fail("escape decimal") end
++                    out[#out + 1] = string.char(v); pos = pos + 1 + #d
++                else fail("escape desconhecido") end
++            else
++                local s, e = txt:find('^[^"\\\r\n]+', pos)
++                out[#out + 1] = txt:sub(s, e); pos = e + 1
++            end
++        end
++    end
++    local function num()
++        local s = txt:match("^%-?%d+%.?%d*", pos)
++        if not s then fail("número") end
++        local ex = txt:match("^[eE][%+%-]?%d+", pos + #s)
++        if ex then s = s .. ex end
++        pos = pos + #s
++        local v = tonumber(s)
++        if not v or v ~= v or v == math.huge or v == -math.huge then fail("número inválido") end
++        return v
++    end
++    local function tbl(depth)
++        if depth > P.maxDepth then fail("profundidade") end
++        pos = pos + 1
++        local t = {}
++        ws()
++        if txt:sub(pos, pos) == "}" then pos = pos + 1; return t end
++        while true do
++            ws()
++            if txt:sub(pos, pos) ~= "[" then fail("esperava [chave]") end
++            pos = pos + 1; ws()
++            local c, k = txt:sub(pos, pos), nil
++            if c == '"' then k = str() elseif c == "-" or c:match("%d") then k = num() else fail("chave") end
++            if type(k) == "number" and k % 1 ~= 0 then fail("chave numérica fracionária") end
++            ws()
++            if txt:sub(pos, pos) ~= "]" then fail("esperava ]") end
++            pos = pos + 1; ws()
++            if txt:sub(pos, pos) ~= "=" then fail("esperava =") end
++            pos = pos + 1; ws()
++            if t[k] ~= nil then fail("chave repetida") end
++            items = items + 1
++            if items > P.maxItems then fail("itens demais") end
++            t[k] = value(depth + 1)
++            ws()
++            local sep = txt:sub(pos, pos)
++            if sep == "}" then pos = pos + 1; return t end
++            if sep ~= "," and sep ~= ";" then fail("esperava , ou }") end
++            pos = pos + 1; ws()
++            if txt:sub(pos, pos) == "}" then pos = pos + 1; return t end
++        end
++    end
++    value = function(depth)
++        ws()
++        local c = txt:sub(pos, pos)
++        if c == "{" then return tbl(depth) end
++        if c == '"' then return str() end
++        if c == "-" or c:match("%d") then return num() end
++        if txt:sub(pos, pos + 3) == "true" and not txt:sub(pos + 4, pos + 4):match("[%w_]") then pos = pos + 4; return true end
++        if txt:sub(pos, pos + 4) == "false" and not txt:sub(pos + 5, pos + 5):match("[%w_]") then pos = pos + 5; return false end
++        fail("valor não permitido")
++    end
++    local ok, res = pcall(function()
++        ws()
++        if txt:sub(pos, pos + 5) == "return" and not txt:sub(pos + 6, pos + 6):match("[%w_]") then pos = pos + 6 end
++        ws()
++        if txt:sub(pos, pos) ~= "{" then fail("esperava tabela") end
++        local d = tbl(1)
++        ws()
++        if pos <= n then fail("conteúdo depois da tabela") end
++        return d
++    end)
++    if ok then return res end
++    return nil, type(res) == "table" and res.why or tostring(res)
++end
++
++-- Sem userdata/funcao/thread em nenhum nivel: um ator dentro do save vira erro, nao "nil" silencioso.
++function sv.pure(v, depth)
++    local t = type(v)
++    if t == "number" then return v == v and v ~= math.huge and v ~= -math.huge end
++    if t == "string" or t == "boolean" or t == "nil" then return true end
++    if t ~= "table" or (depth or 0) > CFG.PERSIST.maxDepth then return false end
++    for k, x in pairs(v) do
++        if (type(k) ~= "string" and type(k) ~= "number") or not sv.pure(x, (depth or 0) + 1) then return false end
++    end
++    return true
++end
++
++function sv.siteSpec(code)
++    for _, spec in ipairs(CFG.DEPLOY.sites) do if spec.code == code then return spec end end
++    return nil
++end
++
++-- Validacao completa do schema (v1 legado ou v2). Retorna true ou nil, motivo. Nao toca o mundo.
++function sv.validate(d)
++    local P = CFG.PERSIST
++    local function fin(x) return type(x) == "number" and x == x and x ~= math.huge and x ~= -math.huge end
++    local function nonneg(x) return fin(x) and x >= 0 end
++    local function int(x) return nonneg(x) and x % 1 == 0 end
++    local function coord(x) return fin(x) and math.abs(x) <= P.maxCoord end
++    local function opt(x, f) return x == nil or f(x) end
++    local function list(t, max)
++        if type(t) ~= "table" then return false end
++        local c = 0
++        for k in pairs(t) do
++            if type(k) ~= "number" or k % 1 ~= 0 or k < 1 or k > #t then return false end
++            c = c + 1
++        end
++        return c == #t and c <= max
++    end
++    if type(d) ~= "table" or not sv.pure(d) then return nil, "não é tabela de dados" end
++    if d.v ~= 1 and d.v ~= 2 then
++        if type(d.v) == "number" and d.v > P.version then return nil, "versão futura v" .. tostring(d.v) .. " (atualize o mod)" end
++        return nil, "versão desconhecida"
++    end
++    local known = { v=1, map=1, world=1, diff=1, wave=1, kills=1, losses=1, elapsed=1, mp=1, aimp=1, shots=1, hits=1,
++        nextIn=1, mode=1, points=1, squad=1, enemies=1, walls=1, trenches=1, tents=1, wires=1, logi=1, infra=1, enemy=1,
++        elogi=1 }
++    for k in pairs(d) do if not known[k] then return nil, "campo desconhecido: " .. tostring(k) end end
++    if d.v == 1 and (d.infra ~= nil or d.enemy ~= nil or d.world ~= nil) then return nil, "v1 com campos de v2" end
++    if d.v == 2 and (type(d.world) ~= "string" or #d.world == 0 or #d.world > 256) then return nil, "v2 sem mundo" end
++    if not opt(d.map, function(x) return type(x) == "string" and #x <= 128 end) then return nil, "map" end
++    if not opt(d.diff, function(x) return int(x) and x >= 1 and x <= #CFG.DIFFICULTIES end) then return nil, "dificuldade" end
++    for _, k in ipairs({ "wave", "kills", "losses" }) do if not opt(d[k], int) then return nil, k end end
++    for _, k in ipairs({ "elapsed", "shots", "hits", "nextIn" }) do if not opt(d[k], nonneg) then return nil, k end end
++    for _, k in ipairs({ "mp", "aimp" }) do
++        if not opt(d[k], function(x) return fin(x) and math.abs(x) < 1e6 end) then return nil, k end
++    end
++    if d.mode ~= nil and d.mode ~= "assault" then return nil, "modo" end
++    local pts = d.points or {}
++    if not list(pts, CFG.POINT_MAX) then return nil, "pontos" end
++    for i, q in ipairs(pts) do
++        if type(q) ~= "table" or not coord(q.x) or not coord(q.y) then return nil, "ponto " .. i end
++        if q.owner ~= -1 and q.owner ~= CFG.ENEMY_TEAM and q.owner ~= CFG.FRIENDLY_TEAM then return nil, "dono do ponto " .. i end
++        if not fin(q.prog or 0) or math.abs(q.prog or 0) > 1.001 then return nil, "progresso do ponto " .. i end
++        if (q.dug ~= nil and type(q.dug) ~= "boolean") or (q.wired ~= nil and type(q.wired) ~= "boolean") then return nil, "ponto " .. i end
++    end
++    for _, side in ipairs({ "squad", "enemies" }) do
++        local us = d[side] or {}
++        if not list(us, P.maxUnits) then return nil, side end
++        for i, u in ipairs(us) do
++            if type(u) ~= "table" or type(u.role) ~= "string" or not CFG.WEAPONS[u.role] or not coord(u.x) or not coord(u.y)
++                or not opt(u.z, coord) or not opt(u.hp, nonneg) or not opt(u.kills, int) or not opt(u.ammo, nonneg)
++                or not opt(u.group, function(x) return int(x) and x <= 9 end)
++                or not opt(u.post, function(x) return int(x) and x >= 1 and x <= #pts end) then
++                return nil, side .. " " .. i
++            end
++        end
++    end
++    for _, k in ipairs({ "walls", "trenches", "tents", "wires" }) do
++        local l = d[k] or {}
++        if not list(l, P.maxList) then return nil, k end
++        for i, w in ipairs(l) do
++            if type(w) ~= "table" or not coord(w.x) or not coord(w.y) or not opt(w.yaw, fin) then return nil, k .. " " .. i end
++        end
++    end
++    if d.logi ~= nil then
++        if type(d.logi) ~= "table" then return nil, "logística" end
++        -- A logistica guarda depositos por indice de ponto: validar contra os pontos DO SAVE, nao os vivos.
++        local proxy = {}
++        for i, q in ipairs(pts) do proxy[i] = { X = q.x, Y = q.y, owner = q.owner ~= -1 and q.owner or nil } end
++        local live = points
++        points = proxy
++        local ok, res = pcall(logi.validateSave, d.logi)
++        points = live
++        if not ok or not res then return nil, "logística inválida" end
++    end
++    local I = d.infra
++    if I ~= nil then
++        if type(I) ~= "table" then return nil, "infra" end
++        if I.version ~= P.infraVersion then
++            return nil, (type(I.version) == "number" and I.version > P.infraVersion) and "infra de versão futura" or "infra versão"
++        end
++        for k in pairs(I) do
++            if k ~= "version" and k ~= "budget" and k ~= "bmat" and k ~= "spent" and k ~= "built" then return nil, "infra campo " .. tostring(k) end
++        end
++        if not int(I.budget) or not int(I.bmat) or not int(I.spent) or I.bmat + I.spent ~= I.budget then return nil, "carteira incoerente" end
++        if not list(I.built or {}, P.maxBuilt) then return nil, "infra built" end
++        local cost, codes = 0, {}
++        for i, r in ipairs(I.built or {}) do
++            if type(r) ~= "table" or not coord(r.x) or not coord(r.y) or not coord(r.z) or not fin(r.yaw) then return nil, "infra " .. i end
++            for key in pairs(r) do
++                if key ~= "kind" and key ~= "code" and key ~= "x" and key ~= "y" and key ~= "z" and key ~= "yaw" then return nil, "infra " .. i end
++            end
++            if r.kind == "truck" then
++                if r.code ~= nil then return nil, "infra " .. i end
++                cost = cost + CFG.DEPLOY.truckCost
++            elseif r.kind == "site" then
++                local spec = sv.siteSpec(r.code)
++                if not spec or codes[r.code] then return nil, "instalação " .. tostring(r.code) end
++                codes[r.code], cost = true, cost + spec.cost
++            else return nil, "infra tipo" end
++        end
++        if cost ~= I.spent then return nil, "gasto da carteira não confere com o que foi implantado" end
++    end
++    -- Cadeia inimiga da IA_LOGISTICA (chave `elogi`, schema e versao dela): so com o modulo integrado e valida
++    -- pela propria logi.eValid. Sem o modulo, um save que a tenha e de outra versao do mod: recusa, nao descarta.
++    if d.elogi ~= nil then
++        if not logi.eValid then return nil, "campo desconhecido: elogi (cadeia inimiga de outra versão do mod)" end
++        if d.logi == nil then return nil, "cadeia inimiga sem logística" end
++        local ok, res, why = pcall(logi.eValid, d.elogi)
++        if not ok or not res then return nil, "cadeia inimiga inválida (" .. tostring(ok and why or res) .. ")" end
++    end
++    local E = d.enemy
++    if E ~= nil then
++        if type(E) ~= "table" or d.logi == nil then return nil, "inimigo" end
++        if E.version ~= P.enemyVersion then
++            return nil, (type(E.version) == "number" and E.version > P.enemyVersion) and "inimigo de versão futura" or "inimigo versão"
++        end
++        for k in pairs(E) do
++            if k ~= "version" and k ~= "cargo" and k ~= "convoys" and k ~= "cut" then return nil, "inimigo campo " .. tostring(k) end
++        end
++        if not int(E.cargo) or E.cargo > 1000 or not int(E.convoys) or not int(E.cut) then return nil, "inimigo valores" end
++    end
++    return true
++end
++
++-- sv.parse mantem o contrato antigo de "texto -> tabela" (testes da suite e da IA_LOGISTICA o usam para
++-- sub-tabelas), agora sem executar nada: so o parser de literais. O save inteiro passa por sv.parseSave.
++function sv.parse(txt) return sv.decode(txt) end
++
++-- Texto -> save validado (ou nil, motivo). Nunca executa o conteudo.
++function sv.parseSave(txt)
++    local d, why = sv.decode(txt)
++    if not d then return nil, why end
++    local ok, why2 = sv.validate(d)
++    if not ok then return nil, why2 end
++    return d
++end
++
++function sv.infraSnapshot()
++    local ok, w = pcall(logi.deployWallet)
++    if not ok or type(w) ~= "table" then return nil end
++    local out = { version = CFG.PERSIST.infraVersion, budget = w.budget or CFG.DEPLOY.budget, bmat = w.bmat, spent = w.spent, built = {} }
++    for i, r in ipairs(w.built or {}) do out.built[i] = { kind = r.kind, code = r.code, x = r.x, y = r.y, z = r.z, yaw = r.yaw } end
++    return out
++end
++
++-- Estoque abstrato do comboio do main atual (combat.cargo). Com a IA_LOGISTICA integrada (logi.eSnapshot), o
++-- estado inimigo vai na chave `elogi` dela e este bloco nao e gravado. Comboio em transito nao e salvo.
++function sv.enemySnapshot()
++    if not logi.on or logi.eSnapshot then return nil end
++    return { version = CFG.PERSIST.enemyVersion, cargo = combat.cargo or 0, convoys = combat.convoys or 0, cut = combat.convoysCut or 0 }
++end
++
++function sv.readFile(path)
++    local f = io.open(path, "rb")
++    if not f then return nil end
++    local size = f:seek("end")
++    if size and size > CFG.PERSIST.maxBytes then f:close(); return false end
++    f:seek("set")
++    local txt = f:read("*a")
++    f:close()
++    return txt
++end
++
++-- Grava sem janela de perda: temporario conferido; o save anterior vai para .bak (ou .corrupt, se invalido);
++-- Windows nao renomeia por cima, por isso remove o destino antes. Falha devolve o anterior ao lugar.
++function sv.writeAtomic(path, txt)
++    local tmp, bak = path .. ".tmp", path .. ".bak"
++    local f = io.open(tmp, "wb")
++    if not f then return false, "não abriu o temporário" end
++    local okw = f:write(txt)
++    local okf = okw and f:flush()
++    f:close()
++    if not okw or not okf or sv.readFile(tmp) ~= txt then os.remove(tmp); return false, "temporário não confere" end
++    local old = sv.readFile(path)
++    local moved = nil
++    if old ~= nil then
++        -- O que esta sessao mesma gravou ja foi validado: so reparsear conteudo de origem desconhecida.
++        moved = (old and (old == sv.lastWritten or sv.parseSave(old))) and bak or (path .. ".corrupt")
++        os.remove(moved)
++        if not os.rename(path, moved) then os.remove(tmp); return false, "não moveu o save anterior" end
++    end
++    if not os.rename(tmp, path) then
++        if moved then os.rename(moved, path) end
++        return false, "não renomeou o temporário"
++    end
++    sv.lastWritten = txt
++    return true
++end
++
++-- Primeiro valido entre o save, o temporario (queda entre os dois renames) e o .bak. Nada e apagado aqui.
++function sv.read()
++    local why = nil
++    for _, suffix in ipairs({ "", ".tmp", ".bak" }) do
++        local txt = sv.readFile(CFG.SAVE_FILE .. suffix)
++        if txt == false then why = why or "arquivo grande demais"
++        elseif txt then
++            local d, err = sv.parseSave(txt)
++            if d then return d, nil, suffix end
++            why = why or err
++        end
++    end
++    if why then return nil, "save inválido ou incompatível (" .. why .. "); arquivo preservado" end
++    return nil, "nenhuma partida salva"
++end
++
++function sv.clear()
++    for _, suffix in ipairs({ "", ".tmp", ".bak", ".corrupt" }) do os.remove(CFG.SAVE_FILE .. suffix) end
+ end
+ 
+ function sv.save()
+     if not combat.auto or combat.won or #squad == 0 then return false end
+-    local f = io.open(CFG.SAVE_FILE, "w")
+-    if not f then return false end
+-    f:write("return " .. sv.ser(sv.collect()) .. "\n")
+-    f:close()
++    -- Restauracao incompleta: nao sobrescrever o save bom com uma partida que perdeu algo ao carregar.
++    if sv.degraded and sv.degraded.start == combat.startT then
++        if not sv.degraded.told then
++            sv.degraded.told = true
++            notify("autosave suspenso: continuação incompleta (" .. sv.degraded.why .. "). Ctrl+F6 tenta de novo; Shift+F6 começa outra", 10.0)
++        end
++        return false
++    end
++    local d = sv.collect()
++    local ok, why = sv.validate(d)
++    local txt = ok and ("return " .. sv.ser(d) .. "\n")
++    if ok then ok, why = sv.parseSave(txt) end
++    if not ok then log("save recusado (arquivo anterior preservado): " .. tostring(why)); return false end
++    local done, err = sv.writeAtomic(CFG.SAVE_FILE, txt)
++    if not done then log("save não gravado (arquivo anterior preservado): " .. tostring(err)) end
++    return done
++end
++
++function sv.sameBuilt(a, b)
++    local function sites(l)
++        local s, trucks = {}, 0
++        for _, r in ipairs(l or {}) do if r.kind == "truck" then trucks = trucks + 1 else s[r.code] = r end end
++        return s, trucks
++    end
++    local sa, ta = sites(a)
++    local sb, tb = sites(b)
++    if ta ~= tb then return false end
++    for code, r in pairs(sa) do
++        local q = sb[code]
++        if not q or flatDist({ X = r.x, Y = r.y }, { X = q.x, Y = q.y }) > CFG.PERSIST.tol then return false end
++    end
++    for code in pairs(sb) do if not sa[code] then return false end end
+     return true
+ end
+ 
+-function sv.read()
+-    local f = io.open(CFG.SAVE_FILE, "r")
+-    if not f then return nil end
+-    local txt = f:read("*a")
+-    f:close()
+-    return sv.parse(txt)
+-end
+-
+-function sv.clear() os.remove(CFG.SAVE_FILE) end
++-- Preflight da infraestrutura paga, sem mutacao. Mesma carga do mundo com a mesma implantacao: nada a fazer.
++-- Carga nova: cada instalacao salva precisa de ativo ou ruina correspondente na posicao salva (tolerancia
++-- PERSIST.tol); caminhoes faltantes so ate o numero pago. Nunca inventa campo/instalacao, nunca cobra de novo.
++function sv.infraPlan(I)
++    local tol = CFG.PERSIST.tol
++    -- Leitura sem criar a carteira desta carga (preflight nao muda estado).
++    local W = (S.deploy and S.deploy.world == logi.walletId()) and S.deploy or { spent = 0, built = {} }
++    local wallet = { budget = I.budget, bmat = I.bmat, spent = I.spent, built = {} }
++    for i, r in ipairs(I.built or {}) do wallet.built[i] = { kind = r.kind, code = r.code, x = r.x, y = r.y, z = r.z, yaw = r.yaw } end
++    if (W.spent or 0) > 0 or #(W.built or {}) > 0 then
++        if not sv.sameBuilt(W.built, I.built) then
++            return nil, "esta carga do mundo já tem uma implantação diferente da salva (reinicie o mapa para continuar)"
++        end
++        return { wallet = wallet }
++    end
++    local base = rts.base()
++    if not base then return nil, "sem base" end
++    local plan, paid, factoryAt = { builds = {}, parking = {}, cost = 0 }, 0, nil
++    for _, r in ipairs(I.built or {}) do
++        if r.kind == "truck" then paid = paid + 1
++        else
++            local spec, at = sv.siteSpec(r.code), { X = r.x, Y = r.y, Z = r.z }
++            local a = logi.nearest(spec.active, at)
++            if not (a and flatDist(at, a:K2_GetActorLocation()) <= tol) then
++                local ruin = logi.nearest(spec.ruin, at)
++                if not ruin or flatDist(at, ruin:K2_GetActorLocation()) > tol then
++                    return nil, "sem " .. spec.active .. " nem ruína na posição salva"
++                end
++                local rot = ruin:K2_GetActorRotation()
++                local dy = math.abs((rot.Yaw - r.yaw) % 360)
++                if math.min(dy, 360 - dy) > 1 then return nil, "ruína de " .. r.code .. " com rotação diferente da salva" end
++                local cls = LoadAsset(spec.asset)
++                if not valid(cls) then return nil, "classe não carregou: " .. spec.active end
++                local hidden, collision = ruin.bHidden, ruin:GetActorEnableCollision()
++                if type(hidden) ~= "boolean" or type(collision) ~= "boolean" then return nil, "não leu estado da ruína" end
++                plan.builds[#plan.builds + 1] = { spec = spec, ruin = ruin, cls = cls, hidden = hidden, collision = collision,
++                    pos = ruin:K2_GetActorLocation(), rot = rot }
++            end
++            if r.code == "Factory" then factoryAt = at end
++        end
++    end
++    if not logi.site("BPSalvageField_C", base) then return nil, "sem campo de sucata ativo carregado" end
++    local occupied = {}
++    for _, a in ipairs(FindAllOf("BPTruckW_C") or {}) do
++        if valid(a) and not a.bActorIsBeingDestroyed then occupied[#occupied + 1] = a:K2_GetActorLocation() end
++    end
++    local need = math.max(0, CFG.LOGI.supply + 1 - #occupied)
++    if need > paid then return nil, string.format("faltam %d caminhões e o save só pagou %d", need, paid) end
++    if need > 0 then
++        local ref = factoryAt or logi.site("BPFactory_C", base)
++        if not ref then return nil, "sem fábrica para estacionar caminhões" end
++        plan.parking = logi.parking(ref, need, occupied)
++        if not plan.parking then return nil, "sem vagas de terreno com folga para caminhões" end
++        plan.truckClass = LoadAsset(CFG.DEPLOY.truck)
++        if not valid(plan.truckClass) then return nil, "classe TruckW não carregou" end
++    end
++    if #plan.builds == 0 and need == 0 then return { wallet = wallet } end
++    return { apply = plan, wallet = wallet }
++end
++
++-- Tudo que pode ser conferido antes de destruir a partida atual. Retorna plano ou nil, motivo.
++function sv.preflight(d)
++    local here = sv.worldPath()
++    if d.world then
++        if not here or d.world:lower() ~= here:lower() then return nil, "save de outro mundo (" .. d.world .. ")" end
++    else
++        local m = sv.map()
++        if d.map and m and d.map:lower() ~= m:lower() then return nil, "save de outro mapa (" .. d.map .. ")" end
++    end
++    for i, q in ipairs(d.points or {}) do
++        -- addPoint recusaria: sem isto a lista sairia fora de ordem e os depositos por indice trocariam de dono.
++        for j = 1, i - 1 do
++            local o = d.points[j]
++            if (o.x - q.x) ^ 2 + (o.y - q.y) ^ 2 < (2 * CFG.POINT_RADIUS) ^ 2 then return nil, "pontos salvos sobrepostos" end
++        end
++        if not surfaceZ(q.x, q.y) then return nil, "sem superfície no ponto salvo " .. i .. " (região não carregada?)" end
++    end
++    for _, k in ipairs({ "walls", "trenches", "tents" }) do
++        for i, w in ipairs(d[k] or {}) do
++            if not groundZ(w.x, w.y) then return nil, "sem chão para " .. k .. " " .. i end
++        end
++    end
++    local plan = {}
++    if d.infra then
++        local p, why = sv.infraPlan(d.infra)
++        if not p then return nil, why end
++        plan = p
++    end
++    -- logi.ready = scan + aviso nativo do mod ("Alt+L tenta implantação"); nao muda estado.
++    if d.logi and not plan.apply and not logi.ready() then return nil, "cadeia logística sem atores ativos carregados" end
++    return plan
++end
++
++-- Depois de sv.restore: o que voltou confere com o save? Pontos fora de ordem invalidam depositos por indice.
++function sv.verify(d)
++    local problems, pointsOk = {}, #points == #(d.points or {})
++    for i, q in ipairs(d.points or {}) do
++        local pt = points[i]
++        if not pt or math.abs(pt.X - q.x) > 1 or math.abs(pt.Y - q.y) > 1 then pointsOk = false end
++    end
++    if not pointsOk then problems[#problems + 1] = string.format("pontos %d/%d", #points, #(d.points or {})) end
++    local function cmp(name, have, want)
++        if have ~= want then problems[#problems + 1] = string.format("%s %d/%d", name, have, want) end
++    end
++    cmp("soldados", #squad, #(d.squad or {}))
++    cmp("inimigos", #enemies, #(d.enemies or {}))
++    cmp("barreiras", #structures, #(d.walls or {}))
++    cmp("trincheiras", #S.trenches, #(d.trenches or {}))
++    cmp("postos", #S.tents, #(d.tents or {}))
++    cmp("arames", #S.wires, #(d.wires or {}))
++    return problems, pointsOk
++end
++
++function sv.load()
++    if not isLocalAuthority() then return false end
++    local d, why, src = sv.read()
++    if not d then notify(why or "nenhuma partida salva", 6.0); return false end
++    src = src or ""
++    local ok, plan, why2 = pcall(sv.preflight, d)
++    if not ok or not plan then
++        local msg = tostring(ok and why2 or plan)
++        log("continuar recusado: " .. msg)
++        notify("Continuar recusado (partida atual e save preservados): " .. msg, 8.0)
++        return false
++    end
++    if plan.apply then
++        local built, err = logi.applyPlan(plan.apply)
++        if not built then
++            log("continuar recusado: infraestrutura " .. tostring(err))
++            notify("Continuar recusado: infraestrutura salva não foi refeita (" .. tostring(err) .. "); nada mudou", 8.0)
++            return false
++        end
++    end
++    if plan.wallet then
++        local W = logi.deployWallet()
++        W.budget, W.bmat, W.spent, W.built = plan.wallet.budget, plan.wallet.bmat, plan.wallet.spent, plan.wallet.built
++    end
++    if d.logi and not logi.ready() then return false end
++    local n = sv.restore(d)
++    local problems, pointsOk = sv.verify(d)
++    if d.logi then
++        local okL, res = false, false
++        if pointsOk then okL, res = pcall(logi.restore, d.logi) end
++        if not (okL and res ~= false) then
++            problems[#problems + 1] = "logística não restaurada"
++            pcall(logi.reset)  -- sem estoque inicial fictício no lugar do salvo
++        elseif logi.eRestore then
++            pcall(logi.eRestore, d.elogi)  -- contrato da IA_LOGISTICA (nil = estoque de cenario, avisado por ela)
++        elseif d.enemy then
++            combat.cargo, combat.convoys, combat.convoysCut = d.enemy.cargo, d.enemy.convoys, d.enemy.cut
++        end
++    end
++    sv.degraded = #problems > 0 and { why = table.concat(problems, ", "), start = combat.startT } or nil
++    local where = combat.mode == "assault" and string.format("assalto, pontos inimigos %d/%d", pointsOwned(CFG.ENEMY_TEAM), #points)
++        or string.format("onda %d/%d", combat.wave, CFG.WAVES_TO_WIN)
++    notify(string.format("PARTIDA CONTINUADA (%s): %s, %d soldados, %d inimigos, mão de obra %.0f%s%s",
++        CFG.DIFFICULTIES[S.difficulty].name, where, n, #enemies, economy.manpower,
++        src ~= "" and (" [lido de save" .. src .. "]") or "",
++        sv.degraded and (" | INCOMPLETA: " .. sv.degraded.why .. "; autosave suspenso") or ""), 10.0)
++    log(string.format("save carregado%s: onda %d, %d soldados, %d inimigos, %d pontos, %d barreiras, %d trincheiras, %d postos, %d arames%s",
++        src, combat.wave, n, #enemies, #points, #structures, #S.trenches, #S.tents, #S.wires,
++        sv.degraded and (" | incompleto: " .. sv.degraded.why) or ""))
++    return true
++end
+ 
+ -- Recria a partida de d (tabela de sv.collect) sobre um campo limpo.
+ function sv.restore(d)
+@@ -4647,24 +5192,6 @@
+     combat.nextWaveAt = d.nextIn and (t + math.max(d.nextIn, 10.0)) or nil
+     sv.nextT = t + CFG.SAVE_EVERY
+     return #squad
+-end
+-
+-function sv.load()
+-    if not isLocalAuthority() then return false end
+-    local d = sv.read()
+-    if not d then notify("nenhuma partida salva", 3.0); return false end
+-    local here = sv.map()
+-    if d.map and here and d.map ~= here then notify("a partida salva é de outro mapa (" .. d.map .. ")", 4.0); return false end
+-    if d.logi and not logi.ready() then return false end
+-    local n = sv.restore(d)
+-    if d.logi then pcall(logi.restore, d.logi) end
+-    local where = combat.mode == "assault" and string.format("assalto, pontos inimigos %d/%d", pointsOwned(CFG.ENEMY_TEAM), #points)
+-        or string.format("onda %d/%d", combat.wave, CFG.WAVES_TO_WIN)
+-    notify(string.format("PARTIDA CONTINUADA (%s): %s, %d soldados, %d inimigos, mão de obra %.0f",
+-        CFG.DIFFICULTIES[S.difficulty].name, where, n, #enemies, economy.manpower), 8.0)
+-    log(string.format("save carregado: onda %d, %d soldados, %d inimigos, %d pontos, %d barreiras, %d trincheiras, %d postos, %d arames",
+-        combat.wave, n, #enemies, #points, #structures, #S.trenches, #S.tents, #S.wires))
+-    return true
+ end
+ 
+ -- Por quadro: grava a cada SAVE_EVERY s durante a partida; sem partida, avisa uma vez que ha save.

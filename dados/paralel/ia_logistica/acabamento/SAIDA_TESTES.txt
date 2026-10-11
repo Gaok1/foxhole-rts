@@ -1,0 +1,330 @@
+$ python dados/paralel/ia_logistica/acabamento/build_patch_v2.py (IA v2: patches + candidato, main.lua intacto)
+patches gerados (HUD trocado); main.lua intacto
+rc=0
+
+$ python dados/paralel/ia_logistica/acabamento/build_persistencia_v2.py (pilha completa em dados/paralel/ia_logistica/acabamento/main_final_v2.lua)
+main_final_v2.lua (so para inspecao/check_globals; nunca copiar sobre o main) e persistencia_v2_sobre_ia.patch gerados; main.lua real intacto
+rc=0
+
+$ python tools/check_globals.py dados/paralel/ia_logistica/acabamento/main_candidato_v2.lua
+rc=0
+
+$ python tools/check_globals.py dados/paralel/ia_logistica/acabamento/main_final_v2.lua
+rc=0
+
+$ python dados/paralel/ia_logistica/acabamento/test_bmat_caminhao.py   (item 2)
+main+ECONOMIA+IA (original) | continuo, sup 2 morre em 60 s
+    antes : reconstruido=None jobs=22 bmat=27 (maior bmat enquanto esperava: 79.0) estados=loading/dead/idle
+    depois: reconstruido=36.5 jobs=21 bmat=7 estados=loading/idle/idle avisos=1
+main+ECONOMIA+IA (original) | continuo, sup 2 morre em 60 s, fabrica DEPOIS dos caminhoes
+    antes : reconstruido=None jobs=22 bmat=27 (maior bmat enquanto esperava: 79.0) estados=loading/dead/idle
+    depois: reconstruido=36.5 jobs=21 bmat=7 estados=loading/idle/idle avisos=1
+main+ECONOMIA+IA (original) | continuo, recurso morre em 60 s
+    antes : reconstruido=None jobs=5 bmat=0 (maior bmat enquanto esperava: 79.0) estados=dead/idle/idle
+    depois: reconstruido=36.5 jobs=21 bmat=7 estados=toRef/idle/idle avisos=1
+main+ECONOMIA+IA (original) | folgado (fabrica parada), sup 2 morre em 60 s
+    antes : reconstruido=30.0 jobs=0 bmat=1987 (maior bmat enquanto esperava: 466.0) estados=loading/idle/idle
+    depois: reconstruido=30.0 jobs=0 bmat=1987 estados=loading/idle/idle avisos=0
+main+ECONOMIA+IA_v2 | continuo, sup 2 morre em 60 s
+    antes : reconstruido=None jobs=22 bmat=27 (maior bmat enquanto esperava: 79.0) estados=loading/dead/idle
+    depois: reconstruido=36.5 jobs=21 bmat=7 estados=loading/idle/idle avisos=1
+main+ECONOMIA+IA_v2 | continuo, sup 2 morre em 60 s, fabrica DEPOIS dos caminhoes
+    antes : reconstruido=None jobs=22 bmat=27 (maior bmat enquanto esperava: 79.0) estados=loading/dead/idle
+    depois: reconstruido=36.5 jobs=21 bmat=7 estados=loading/idle/idle avisos=1
+main+ECONOMIA+IA_v2 | continuo, recurso morre em 60 s
+    antes : reconstruido=None jobs=5 bmat=0 (maior bmat enquanto esperava: 79.0) estados=dead/idle/idle
+    depois: reconstruido=36.5 jobs=21 bmat=7 estados=toRef/idle/idle avisos=1
+main+ECONOMIA+IA_v2 | folgado (fabrica parada), sup 2 morre em 60 s
+    antes : reconstruido=30.0 jobs=0 bmat=1987 (maior bmat enquanto esperava: 466.0) estados=loading/idle/idle
+    depois: reconstruido=30.0 jobs=0 bmat=1987 estados=loading/idle/idle avisos=0
+pilha completa, continuo, sup 2 morre em 60 s: reconstruido=36.5 jobs=21
+limite conhecido (recurso destruido com bmat=0 e sucata=0): permanece destruido? {'sem patch': True, 'com patch': True}
+varredura do instante da destruicao (30..120 s), caminhao de suprimento, consumo continuo: reconstruido em 600 s: antes 0/31, depois 31/31 (pior caso depois: 49.5 s)
+varredura do instante da destruicao (30..120 s), caminhao de recurso, consumo continuo: reconstruido em 600 s: antes 0/31, depois 31/31 (pior caso depois: 49.5 s)
+PASS: test_bmat_caminhao (hipotese confirmada sem a correcao; com patch_reserva_bmat o caminhao volta; controle sem regressao)
+rc=0
+
+$ python dados/paralel/ia_logistica/acabamento/test_elogi.py   (item 3)
+PASS main+ECONOMIA+IA_v2+PERSISTENCIA_v2 / lua54: elogi valido: restaura igual, 3x sem duplicar
+PASS pilha completa (ECONOMIA+IA_v2+reserva bmat+PERSISTENCIA_v2) / lua54: elogi valido: restaura igual, 3x sem duplicar
+PASS main+ECONOMIA+IA_v2+PERSISTENCIA_v2 / lua54: elogi invalido/futuro/estranho: descarta so a secao, jogador intacto, sem duplicar
+PASS pilha completa (ECONOMIA+IA_v2+reserva bmat+PERSISTENCIA_v2) / lua54: elogi invalido/futuro/estranho: descarta so a secao, jogador intacto, sem duplicar
+PASS main+ECONOMIA+IA_v2+PERSISTENCIA_v2 / lua54: elogi ausente / save legado: mesmo aviso e cenario
+PASS pilha completa (ECONOMIA+IA_v2+reserva bmat+PERSISTENCIA_v2) / lua54: elogi ausente / save legado: mesmo aviso e cenario
+PASS main+ECONOMIA+IA_v2+PERSISTENCIA_v2 / lua54: estado inimigo proprio invalido ao gravar: grava sem a secao
+PASS pilha completa (ECONOMIA+IA_v2+reserva bmat+PERSISTENCIA_v2) / lua54: estado inimigo proprio invalido ao gravar: grava sem a secao
+PASS main+ECONOMIA+IA_v2+PERSISTENCIA_v2 / lua54: outros campos invalidos continuam recusando tudo
+PASS pilha completa (ECONOMIA+IA_v2+reserva bmat+PERSISTENCIA_v2) / lua54: outros campos invalidos continuam recusando tudo
+PASS main+ECONOMIA+PERSISTENCIA_v2 lendo save da IA / lua54: modulo ausente descarta so o elogi, jogador intacto
+PASS main+ECONOMIA+IA_v2+PERSISTENCIA_v2 / lua55: elogi valido: restaura igual, 3x sem duplicar
+PASS pilha completa (ECONOMIA+IA_v2+reserva bmat+PERSISTENCIA_v2) / lua55: elogi valido: restaura igual, 3x sem duplicar
+PASS main+ECONOMIA+IA_v2+PERSISTENCIA_v2 / lua55: elogi invalido/futuro/estranho: descarta so a secao, jogador intacto, sem duplicar
+PASS pilha completa (ECONOMIA+IA_v2+reserva bmat+PERSISTENCIA_v2) / lua55: elogi invalido/futuro/estranho: descarta so a secao, jogador intacto, sem duplicar
+PASS main+ECONOMIA+IA_v2+PERSISTENCIA_v2 / lua55: elogi ausente / save legado: mesmo aviso e cenario
+PASS pilha completa (ECONOMIA+IA_v2+reserva bmat+PERSISTENCIA_v2) / lua55: elogi ausente / save legado: mesmo aviso e cenario
+PASS main+ECONOMIA+IA_v2+PERSISTENCIA_v2 / lua55: estado inimigo proprio invalido ao gravar: grava sem a secao
+PASS pilha completa (ECONOMIA+IA_v2+reserva bmat+PERSISTENCIA_v2) / lua55: estado inimigo proprio invalido ao gravar: grava sem a secao
+PASS main+ECONOMIA+IA_v2+PERSISTENCIA_v2 / lua55: outros campos invalidos continuam recusando tudo
+PASS pilha completa (ECONOMIA+IA_v2+reserva bmat+PERSISTENCIA_v2) / lua55: outros campos invalidos continuam recusando tudo
+PASS main+ECONOMIA+PERSISTENCIA_v2 lendo save da IA / lua55: modulo ausente descarta so o elogi, jogador intacto
+PASS: test_elogi (22 casos)
+rc=0
+
+$ python dados/paralel/ia_logistica/acabamento/test_persistencia_v2.py   (item 3: test_persistencia contra a variante)
+PASS main+ECONOMIA+PERSISTENCIA_v2 / lua54: parser de literais (sem load, sem userdata)
+PASS main+ECONOMIA+PERSISTENCIA_v2 / lua54: schema/versões/migração v1
+PASS main+ECONOMIA+PERSISTENCIA_v2 / lua54: ida e volta em carga nova + regravação
+PASS main+ECONOMIA+PERSISTENCIA_v2 / lua54: restauração repetida e Alt+L antes (sem duplicar)
+PASS main+ECONOMIA+PERSISTENCIA_v2 / lua54: recusas preservam sessão e arquivo
+PASS main+ECONOMIA+PERSISTENCIA_v2 / lua54: rollback da infraestrutura
+PASS main+ECONOMIA+PERSISTENCIA_v2 / lua54: falha após preflight: autosave suspenso, sem estoque fictício
+PASS main+ECONOMIA+PERSISTENCIA_v2 / lua54: gravação atômica/recuperação
+PASS main+ECONOMIA+PERSISTENCIA_v2 / lua54: legado v1
+PASS main+ECONOMIA+PERSISTENCIA_v2 / lua55: parser de literais (sem load, sem userdata)
+PASS main+ECONOMIA+PERSISTENCIA_v2 / lua55: schema/versões/migração v1
+PASS main+ECONOMIA+PERSISTENCIA_v2 / lua55: ida e volta em carga nova + regravação
+PASS main+ECONOMIA+PERSISTENCIA_v2 / lua55: restauração repetida e Alt+L antes (sem duplicar)
+PASS main+ECONOMIA+PERSISTENCIA_v2 / lua55: recusas preservam sessão e arquivo
+PASS main+ECONOMIA+PERSISTENCIA_v2 / lua55: rollback da infraestrutura
+PASS main+ECONOMIA+PERSISTENCIA_v2 / lua55: falha após preflight: autosave suspenso, sem estoque fictício
+PASS main+ECONOMIA+PERSISTENCIA_v2 / lua55: gravação atômica/recuperação
+PASS main+ECONOMIA+PERSISTENCIA_v2 / lua55: legado v1
+PASS main+ECONOMIA+IA_v2+PERSISTENCIA_v2 / lua54: parser de literais (sem load, sem userdata)
+PASS main+ECONOMIA+IA_v2+PERSISTENCIA_v2 / lua54: schema/versões/migração v1
+PASS main+ECONOMIA+IA_v2+PERSISTENCIA_v2 / lua54: ida e volta em carga nova + regravação
+PASS main+ECONOMIA+IA_v2+PERSISTENCIA_v2 / lua54: restauração repetida e Alt+L antes (sem duplicar)
+PASS main+ECONOMIA+IA_v2+PERSISTENCIA_v2 / lua54: recusas preservam sessão e arquivo
+PASS main+ECONOMIA+IA_v2+PERSISTENCIA_v2 / lua54: rollback da infraestrutura
+PASS main+ECONOMIA+IA_v2+PERSISTENCIA_v2 / lua54: falha após preflight: autosave suspenso, sem estoque fictício
+PASS main+ECONOMIA+IA_v2+PERSISTENCIA_v2 / lua54: gravação atômica/recuperação
+PASS main+ECONOMIA+IA_v2+PERSISTENCIA_v2 / lua54: legado v1
+PASS main+ECONOMIA+IA_v2+PERSISTENCIA_v2 / lua55: parser de literais (sem load, sem userdata)
+PASS main+ECONOMIA+IA_v2+PERSISTENCIA_v2 / lua55: schema/versões/migração v1
+PASS main+ECONOMIA+IA_v2+PERSISTENCIA_v2 / lua55: ida e volta em carga nova + regravação
+PASS main+ECONOMIA+IA_v2+PERSISTENCIA_v2 / lua55: restauração repetida e Alt+L antes (sem duplicar)
+PASS main+ECONOMIA+IA_v2+PERSISTENCIA_v2 / lua55: recusas preservam sessão e arquivo
+PASS main+ECONOMIA+IA_v2+PERSISTENCIA_v2 / lua55: rollback da infraestrutura
+PASS main+ECONOMIA+IA_v2+PERSISTENCIA_v2 / lua55: falha após preflight: autosave suspenso, sem estoque fictício
+PASS main+ECONOMIA+IA_v2+PERSISTENCIA_v2 / lua55: gravação atômica/recuperação
+PASS main+ECONOMIA+IA_v2+PERSISTENCIA_v2 / lua55: legado v1
+PASS pilha completa (ECONOMIA+IA_v2+reserva bmat+PERSISTENCIA_v2) / lua54: parser de literais (sem load, sem userdata)
+PASS pilha completa (ECONOMIA+IA_v2+reserva bmat+PERSISTENCIA_v2) / lua54: schema/versões/migração v1
+PASS pilha completa (ECONOMIA+IA_v2+reserva bmat+PERSISTENCIA_v2) / lua54: ida e volta em carga nova + regravação
+PASS pilha completa (ECONOMIA+IA_v2+reserva bmat+PERSISTENCIA_v2) / lua54: restauração repetida e Alt+L antes (sem duplicar)
+PASS pilha completa (ECONOMIA+IA_v2+reserva bmat+PERSISTENCIA_v2) / lua54: recusas preservam sessão e arquivo
+PASS pilha completa (ECONOMIA+IA_v2+reserva bmat+PERSISTENCIA_v2) / lua54: rollback da infraestrutura
+PASS pilha completa (ECONOMIA+IA_v2+reserva bmat+PERSISTENCIA_v2) / lua54: falha após preflight: autosave suspenso, sem estoque fictício
+PASS pilha completa (ECONOMIA+IA_v2+reserva bmat+PERSISTENCIA_v2) / lua54: gravação atômica/recuperação
+PASS pilha completa (ECONOMIA+IA_v2+reserva bmat+PERSISTENCIA_v2) / lua54: legado v1
+PASS pilha completa (ECONOMIA+IA_v2+reserva bmat+PERSISTENCIA_v2) / lua55: parser de literais (sem load, sem userdata)
+PASS pilha completa (ECONOMIA+IA_v2+reserva bmat+PERSISTENCIA_v2) / lua55: schema/versões/migração v1
+PASS pilha completa (ECONOMIA+IA_v2+reserva bmat+PERSISTENCIA_v2) / lua55: ida e volta em carga nova + regravação
+PASS pilha completa (ECONOMIA+IA_v2+reserva bmat+PERSISTENCIA_v2) / lua55: restauração repetida e Alt+L antes (sem duplicar)
+PASS pilha completa (ECONOMIA+IA_v2+reserva bmat+PERSISTENCIA_v2) / lua55: recusas preservam sessão e arquivo
+PASS pilha completa (ECONOMIA+IA_v2+reserva bmat+PERSISTENCIA_v2) / lua55: rollback da infraestrutura
+PASS pilha completa (ECONOMIA+IA_v2+reserva bmat+PERSISTENCIA_v2) / lua55: falha após preflight: autosave suspenso, sem estoque fictício
+PASS pilha completa (ECONOMIA+IA_v2+reserva bmat+PERSISTENCIA_v2) / lua55: gravação atômica/recuperação
+PASS pilha completa (ECONOMIA+IA_v2+reserva bmat+PERSISTENCIA_v2) / lua55: legado v1
+PASS: 54 casos (9 cenários x Lua 5.4/5.5 x 3 pilha(s)); SKIP: 0
+rc=0
+
+$ python dados/paralel/ia_logistica/acabamento/test_ia_logistica_v2.py   (itens 1/3: test_ia_logistica contra a variante)
+== main+IA: PASS (custos do jogo, cenario, fail-closed, producao, comboio sem fantasma, entrega unica, perda unica + reconstrucao, ator invalido, rota ausente, onda/commit, reforco, assalto/sem logistica, save/continue, 25x600 pas
+controle                                 venceu=true lost(m=0,c=0) convoys=9 cut=0 | ondas enviados/pedidos: 1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:10/10 8:11/11 9:12/12 10:13/13
+interdicao total                         venceu=true lost(m=8,c=40) convoys=4 cut=4 | ondas enviados/pedidos: 1:6/6 2:6/6 3:7/7 4:8/8 5:8/9[i1] 6:5/10[i5] 7:5/10[i5] 8:5/11[i6] 9:5/12[i7] 10:5/13[i8]
+interdicao 0-420 s, depois livre         venceu=true lost(m=6,c=30) convoys=4 cut=3 | ondas enviados/pedidos: 1:6/6 2:6/6 3:7/7 4:8/8 5:8/9[i1] 6:5/10[i5] 7:5/10[i5] 8:5/11[i6] 9:5/12[i7] 10:13/13
+escassez (retaguarda sem bmat/sucata)    venceu=true lost(m=0,c=0) convoys=0 cut=0 | ondas enviados/pedidos: 1:6/6 2:6/6 3:7/7 4:8/8 5:8/9 6:5/10 7:5/10 8:5/11 9:5/12 10:5/13
+== main+ECONOMIA+IA: PASS (custos do jogo, cenario, fail-closed, producao, comboio sem fantasma, entrega unica, perda unica + reconstrucao, ator invalido, rota ausente, onda/commit, reforco, assalto/sem logistica, save/continue, 2
+controle                                 venceu=true lost(m=0,c=0) convoys=9 cut=0 | ondas enviados/pedidos: 1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:10/10 8:11/11 9:12/12 10:13/13
+interdicao total                         venceu=true lost(m=8,c=40) convoys=4 cut=4 | ondas enviados/pedidos: 1:6/6 2:6/6 3:7/7 4:8/8 5:8/9[i1] 6:5/10[i5] 7:5/10[i5] 8:5/11[i6] 9:5/12[i7] 10:5/13[i8]
+interdicao 0-420 s, depois livre         venceu=true lost(m=6,c=30) convoys=4 cut=3 | ondas enviados/pedidos: 1:6/6 2:6/6 3:7/7 4:8/8 5:8/9[i1] 6:5/10[i5] 7:5/10[i5] 8:5/11[i6] 9:5/12[i7] 10:13/13
+escassez (retaguarda sem bmat/sucata)    venceu=true lost(m=0,c=0) convoys=0 cut=0 | ondas enviados/pedidos: 1:6/6 2:6/6 3:7/7 4:8/8 5:8/9 6:5/10 7:5/10 8:5/11 9:5/12 10:5/13
+PASS: test_ia_logistica (2 candidatos)
+rc=0
+
+$ python dados/paralel/ia_logistica/acabamento/test_regressao_v2.py   (test_orders + economia/test_integracao + ia + globals na pilha completa)
+PASS: syntax, lab map case matching, H gating, selected/all orders, repeated braking, resume, dead/invalid units, native death cleanup/cache/corpse TTL, authority guards, empty squad, click/box selection, attack order, hold, path 
+PASS 1/5: tools/test_orders.py contra a pilha completa
+PASS: complete main.lua candidate executed in memory; production/trucks/recruit/medic/save/memento
+PASS 2/5: economia/test_integracao.py contra a pilha completa
+== main+IA: PASS (custos do jogo, cenario, fail-closed, producao, comboio sem fantasma, entrega unica, perda unica + reconstrucao, ator invalido, rota ausente, onda/commit, reforco, assalto/sem logistica, save/continue, 25x600 pas
+controle                                 venceu=true lost(m=0,c=0) convoys=9 cut=0 | ondas enviados/pedidos: 1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:10/10 8:11/11 9:12/12 10:13/13
+interdicao total                         venceu=true lost(m=8,c=40) convoys=4 cut=4 | ondas enviados/pedidos: 1:6/6 2:6/6 3:7/7 4:8/8 5:8/9[i1] 6:5/10[i5] 7:5/10[i5] 8:5/11[i6] 9:5/12[i7] 10:5/13[i8]
+interdicao 0-420 s, depois livre         venceu=true lost(m=6,c=30) convoys=4 cut=3 | ondas enviados/pedidos: 1:6/6 2:6/6 3:7/7 4:8/8 5:8/9[i1] 6:5/10[i5] 7:5/10[i5] 8:5/11[i6] 9:5/12[i7] 10:13/13
+escassez (retaguarda sem bmat/sucata)    venceu=true lost(m=0,c=0) convoys=0 cut=0 | ondas enviados/pedidos: 1:6/6 2:6/6 3:7/7 4:8/8 5:8/9 6:5/10 7:5/10 8:5/11 9:5/12 10:5/13
+== main+ECONOMIA+IA: PASS (custos do jogo, cenario, fail-closed, producao, comboio sem fantasma, entrega unica, perda unica + reconstrucao, ator invalido, rota ausente, onda/commit, reforco, assalto/sem logistica, save/continue, 2
+controle                                 venceu=true lost(m=0,c=0) convoys=9 cut=0 | ondas enviados/pedidos: 1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:10/10 8:11/11 9:12/12 10:13/13
+interdicao total                         venceu=true lost(m=8,c=40) convoys=4 cut=4 | ondas enviados/pedidos: 1:6/6 2:6/6 3:7/7 4:8/8 5:8/9[i1] 6:5/10[i5] 7:5/10[i5] 8:5/11[i6] 9:5/12[i7] 10:5/13[i8]
+interdicao 0-420 s, depois livre         venceu=true lost(m=6,c=30) convoys=4 cut=3 | ondas enviados/pedidos: 1:6/6 2:6/6 3:7/7 4:8/8 5:8/9[i1] 6:5/10[i5] 7:5/10[i5] 8:5/11[i6] 9:5/12[i7] 10:13/13
+escassez (retaguarda sem bmat/sucata)    venceu=true lost(m=0,c=0) convoys=0 cut=0 | ondas enviados/pedidos: 1:6/6 2:6/6 3:7/7 4:8/8 5:8/9 6:5/10 7:5/10 8:5/11 9:5/12 10:5/13
+PASS: test_ia_logistica (2 candidatos)
+PASS 3/5: test_ia_logistica_v2.py contra a pilha completa
+(check_globals sem saída)
+PASS 4/5: check_globals limpo; locais de topo 178 (main atual 178)
+PASS 5/5: reserva->persistencia == persistencia->reserva
+PASS 6/6: ECONOMIA+IA_v2+INTERFACE(rebaseada)+reserva+PERSISTENCIA_v2 compoe, comuta e mantem 178 locais de topo
+rc=0
+
+$ python dados/paralel/ia_logistica/acabamento/sweep_echain.py   (item 1: tabela antes/depois; saida tambem em TABELA_CALIBRACAO.txt)
+=== cadencia: luta de 45 s por onda (~60 s por onda) ===
+-- v1 (original: free 3, trip 25, want 6/30)
+   controle (sem corte)                     1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:10/10 8:11/11 9:12/12 10:13/13
+   corte total desde 0 s                    1:6/6 2:6/6 3:7/7 4:3/8[i5] 5:3/9[i6] 6:3/10[i7] 7:3/10[i7] 8:3/11[i5] 9:3/12[i9] 10:3/13[i1]
+   corte total desde a onda 5               1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:5/10[i5] 8:3/11[i8] 9:3/12[i9] 10:3/13[i6]
+   corte ate a 1a falta, depois livre       1:6/6 2:6/6 3:7/7 4:3/8[i5] 5:3/9[i6] 6:3/10[i7] 7:10/10 8:6/11[i2] 9:12/12 10:4/13
+   escassez (retaguarda sem bmat/sucata)    1:6/6 2:6/6 3:7/7 4:3/8 5:3/9 6:3/10 7:3/10 8:3/11 9:3/12 10:3/13
+   parcial p=0.25 (20 sementes): faltaram 20.7 soldados no total (40% do corte total); carga perdida no razao = 29% da despachada
+   parcial p=0.50 (20 sementes): faltaram 32.0 soldados no total (62% do corte total); carga perdida no razao = 53% da despachada
+   parcial p=0.75 (20 sementes): faltaram 46.5 soldados no total (89% do corte total); carga perdida no razao = 85% da despachada
+   semente 1, p=0.50: 1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:10/10 8:8/11[i3] 9:3/12[i9] 10:13/13
+   semente 2, p=0.50: 1:6/6 2:6/6 3:7/7 4:8/8 5:8/9[i1] 6:3/10[i7] 7:3/10[i7] 8:3/11[i5] 9:12/12 10:4/13
+   semente 3, p=0.50: 1:6/6 2:6/6 3:7/7 4:8/8 5:8/9[i1] 6:3/10[i7] 7:3/10[i7] 8:3/11[i5] 9:12/12 10:4/13
+   CRITERIOS: sem corte: alguma onda saiu menor que a atual; corte total desde o inicio: falta ja na onda 4 (<5); corte total: media das ondas 5-10 = 0.28 fora de [0.40, 0.65]; corte total: piso 0.23 < 0.33 do pedido; rastreabilid
+-- v2 (calibrado: free 5, trip 20, want 4/20)
+   controle (sem corte)                     1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:10/10 8:11/11 9:12/12 10:13/13
+   corte total desde 0 s                    1:6/6 2:6/6 3:7/7 4:8/8 5:8/9[i1] 6:5/10[i5] 7:5/10[i5] 8:5/11[i6] 9:5/12[i7] 10:5/13[i8]
+   corte total desde a onda 5               1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:10/10 8:11/11 9:8/12[i4] 10:5/13[i8]
+   corte ate a 1a falta, depois livre       1:6/6 2:6/6 3:7/7 4:8/8 5:8/9[i1] 6:5/10[i5] 7:10/10 8:10/11[i1] 9:12/12 10:8/13[i5]
+   escassez (retaguarda sem bmat/sucata)    1:6/6 2:6/6 3:7/7 4:8/8 5:8/9 6:5/10 7:5/10 8:5/11 9:5/12 10:5/13
+   parcial p=0.25 (20 sementes): faltaram 5.1 soldados no total (16% do corte total); carga perdida no razao = 22% da despachada
+   parcial p=0.50 (20 sementes): faltaram 16.1 soldados no total (50% do corte total); carga perdida no razao = 62% da despachada
+   parcial p=0.75 (20 sementes): faltaram 22.3 soldados no total (70% do corte total); carga perdida no razao = 77% da despachada
+   semente 1, p=0.50: 1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:10/10 8:11/11 9:8/12[i4] 10:5/13[i8]
+   semente 2, p=0.50: 1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:9/10[i1] 8:5/11[i6] 9:5/12[i7] 10:5/13[i8]
+   semente 3, p=0.50: 1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:10/10 8:11/11 9:8/12[i4] 10:5/13[i8]
+   CRITERIOS: todos atendidos
+=== cadencia: luta de 90 s por onda (~105 s por onda) ===
+-- v1 (original: free 3, trip 25, want 6/30)
+   controle (sem corte)                     1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:10/10 8:11/11 9:12/12 10:13/13
+   corte total desde 0 s                    1:6/6 2:6/6 3:7/7 4:3/8[i5] 5:3/9[i6] 6:3/10[i7] 7:3/10[i7] 8:3/11[i8] 9:3/12[i9] 10:3/13[i10]
+   corte total desde a onda 5               1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:10/10 8:11/11 9:10/12[i2] 10:3/13[i10]
+   corte ate a 1a falta, depois livre       1:6/6 2:6/6 3:7/7 4:3/8[i5] 5:3/9[i6] 6:10/10 7:10/10 8:11/11 9:11/12[i1] 10:13/13
+   escassez (retaguarda sem bmat/sucata)    1:6/6 2:6/6 3:7/7 4:3/8 5:3/9 6:3/10 7:3/10 8:3/11 9:3/12 10:3/13
+   parcial p=0.25 (20 sementes): faltaram 2.9 soldados no total (6% do corte total); carga perdida no razao = 24% da despachada
+   parcial p=0.50 (20 sementes): faltaram 14.2 soldados no total (27% do corte total); carga perdida no razao = 48% da despachada
+   parcial p=0.75 (20 sementes): faltaram 39.3 soldados no total (76% do corte total); carga perdida no razao = 78% da despachada
+   semente 1, p=0.50: 1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:10/10 8:11/11 9:12/12 10:5/13[i8]
+   semente 2, p=0.50: 1:6/6 2:6/6 3:7/7 4:8/8 5:8/9[i1] 6:10/10 7:10/10 8:11/11 9:12/12 10:6/13[i7]
+   semente 3, p=0.50: 1:6/6 2:6/6 3:7/7 4:8/8 5:8/9[i1] 6:10/10 7:6/10[i4] 8:3/11[i8] 9:3/12[i9] 10:13/13
+   CRITERIOS: sem corte: alguma onda saiu menor que a atual; corte total desde o inicio: falta ja na onda 4 (<5); corte total: media das ondas 5-10 = 0.28 fora de [0.40, 0.65]; corte total: piso 0.23 < 0.33 do pedido
+-- v2 (calibrado: free 5, trip 20, want 4/20)
+   controle (sem corte)                     1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:10/10 8:11/11 9:12/12 10:13/13
+   corte total desde 0 s                    1:6/6 2:6/6 3:7/7 4:8/8 5:8/9[i1] 6:5/10[i5] 7:5/10[i5] 8:5/11[i6] 9:5/12[i7] 10:5/13[i8]
+   corte total desde a onda 5               1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:10/10 8:11/11 9:8/12[i4] 10:5/13[i8]
+   corte ate a 1a falta, depois livre       1:6/6 2:6/6 3:7/7 4:8/8 5:8/9[i1] 6:10/10 7:10/10 8:11/11 9:12/12 10:13/13
+   escassez (retaguarda sem bmat/sucata)    1:6/6 2:6/6 3:7/7 4:8/8 5:8/9 6:5/10 7:5/10 8:5/11 9:5/12 10:5/13
+   parcial p=0.25 (20 sementes): faltaram 0.0 soldados no total (0% do corte total); carga perdida no razao = 21% da despachada
+   parcial p=0.50 (20 sementes): faltaram 3.6 soldados no total (11% do corte total); carga perdida no razao = 50% da despachada
+   parcial p=0.75 (20 sementes): faltaram 17.6 soldados no total (55% do corte total); carga perdida no razao = 77% da despachada
+   semente 1, p=0.50: 1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:10/10 8:11/11 9:8/12[i4] 10:13/13
+   semente 2, p=0.50: 1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:9/10[i1] 8:11/11 9:12/12 10:12/13[i1]
+   semente 3, p=0.50: 1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:10/10 8:11/11 9:12/12 10:13/13
+   CRITERIOS: todos atendidos
+rc=0
+
+$ python dados/paralel/ia_logistica/acabamento/sweep_echain.py --sens   (item 1: sensibilidade; SENSIBILIDADE.txt)
+parametro        cadencia  1a falta(T)  media 5-10(T)  1a falta(M)  recuperacao       criterios nao atendidos
+v2 (calibrado)   60s       5            0.52           9            2 ondas/119 s     nenhum
+v2 (calibrado)   105s      5            0.52           9            1 ondas/104 s     nenhum
+trip=15          60s       5            0.52           9            2 ondas/119 s     nenhum
+trip=15          105s      5            0.52           9            1 ondas/104 s     nenhum
+trip=25          60s       5            0.52           9            2 ondas/119 s     nenhum
+trip=25          105s      5            0.52           9            1 ondas/104 s     nenhum
+trip=30          60s       5            0.52           9            3 ondas/180 s     sem corte
+trip=30          105s      5            0.52           9            2 ondas/209 s     sem corte
+trip=40          60s       5            0.52           9            5 ondas/301 s     sem corte | recuperacao
+trip=40          105s      5            0.52           9            1 ondas/104 s     sem corte
+minLoad=1        60s       5            0.52           9            3 ondas/180 s     rastreabilidade byCut 0.56/0.83 < 0.75 do que faltou
+minLoad=1        105s      5            0.52           9            2 ondas/209 s     rastreabilidade byCut 0.56/0.90 < 0.75 do que faltou
+minLoad=5        60s       5            0.52           9            2 ondas/119 s     nenhum
+minLoad=5        105s      5            0.52           9            2 ondas/209 s     nenhum
+minLoad=8        60s       5            0.52           9            2 ondas/119 s     nenhum
+minLoad=8        105s      5            0.52           9            2 ondas/209 s     nenhum
+free=3           60s       4            0.28           8            3 ondas/180 s     sem corte | corte total desde o inicio | corte total | corte total | rastreabilidade byCut 0.77/0.71 < 0.75 do que faltou
+free=3           105s      4            0.28           8            2 ondas/210 s     sem corte | corte total desde o inicio | corte total | corte total
+free=4           60s       4            0.37           9            3 ondas/180 s     sem corte | corte total desde o inicio | corte total | corte total
+free=4           105s      4            0.37           9            2 ondas/210 s     sem corte | corte total desde o inicio | corte total | corte total
+free=6           60s       7            0.68           10           3 ondas/181 s     corte total | corte a partir da onda 5 nao morde antes da onda 10
+free=6           105s      7            0.68           10           1 ondas/105 s     corte total | corte a partir da onda 5 nao morde antes da onda 10
+want=3/15        60s       5            0.52           9            2 ondas/119 s     nenhum
+want=3/15        105s      5            0.52           9            1 ondas/104 s     nenhum
+want=5/25        60s       5            0.52           10           2 ondas/119 s     corte a partir da onda 5 nao morde antes da onda 10
+want=5/25        105s      5            0.52           10           1 ondas/104 s     corte a partir da onda 5 nao morde antes da onda 10
+want=6/30        60s       5            0.52           9            2 ondas/119 s     nenhum
+want=6/30        105s      5            0.52           10           1 ondas/104 s     corte a partir da onda 5 nao morde antes da onda 10
+front0=3/15      60s       6            0.61           10           1 ondas/59 s      corte a partir da onda 5 nao morde antes da onda 10
+front0=3/15      105s      6            0.61           10           2 ondas/210 s     corte a partir da onda 5 nao morde antes da onda 10
+front0=4/20      60s       7            0.69           9            1 ondas/60 s      corte total
+front0=4/20      105s      7            0.69           9            1 ondas/105 s     corte total
+bmat0=120        60s       5            0.52           9            3 ondas/180 s     sem corte
+bmat0=120        105s      5            0.52           9            2 ondas/209 s     sem corte
+bmat0=480        60s       5            0.52           9            3 ondas/180 s     nenhum
+bmat0=480        105s      5            0.52           9            2 ondas/209 s     nenhum
+rc=0
+
+$ python dados/paralel/ia_logistica/acabamento/sweep_echain.py --cad   (item 1: controle em cadencias rapidas; CADENCIAS.txt)
+onda a cada ~N s (luta + 15 s de espera) | v1 (original) | v2 (calibrado); formato onda:enviados/pedidos, so ondas curtas marcadas com *
+~ 20 s | faltaram 32 em 5:8/9* 6:3/10* 7:3/10* 8:3/11* 10:4/13* | faltaram 12 em 7:9/10* 8:5/11* 10:8/13*
+~ 30 s | faltaram 32 em 5:8/9* 6:3/10* 8:6/11* 9:3/12* 10:3/13* | faltaram  4 em 9:8/12*
+~ 40 s | faltaram 22 em 7:5/10* 9:5/12* 10:3/13*              | faltaram  0 em -
+~ 45 s | faltaram 12 em 7:5/10* 9:5/12*                       | faltaram  0 em -
+~ 50 s | faltaram 12 em 8:8/11* 9:3/12*                       | faltaram  0 em -
+~ 60 s | faltaram  0 em -                                     | faltaram  0 em -
+~105 s | faltaram  0 em -                                     | faltaram  0 em -
+rc=0
+
+$ python dados/paralel/ia_logistica/test_ia_logistica.py   (original, controle)
+== main+IA: PASS (custos do jogo, cenario, fail-closed, producao, comboio sem fantasma, entrega unica, perda unica + reconstrucao, ator invalido, rota ausente, onda/commit, reforco, assalto/sem logistica, save/continue, 25x600 pas
+controle                                 venceu=true lost(m=0,c=0) convoys=5 cut=0 | ondas enviados/pedidos: 1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:10/10 8:11/11 9:12/12 10:13/13
+interdicao total                         venceu=true lost(m=8,c=40) convoys=4 cut=4 | ondas enviados/pedidos: 1:6/6 2:6/6 3:7/7 4:3/8[i5] 5:3/9[i6] 6:3/10[i7] 7:3/10[i7] 8:3/11[i5] 9:3/12[i9] 10:3/13[i1]
+interdicao 0-420 s, depois livre         venceu=true lost(m=6,c=30) convoys=4 cut=3 | ondas enviados/pedidos: 1:6/6 2:6/6 3:7/7 4:3/8[i5] 5:3/9[i6] 6:3/10[i7] 7:3/10[i7] 8:3/11[i5] 9:3/12 10:13/13
+escassez (retaguarda sem bmat/sucata)    venceu=true lost(m=0,c=0) convoys=0 cut=0 | ondas enviados/pedidos: 1:6/6 2:6/6 3:7/7 4:3/8 5:3/9 6:3/10 7:3/10 8:3/11 9:3/12 10:3/13
+== main+ECONOMIA+IA: PASS (custos do jogo, cenario, fail-closed, producao, comboio sem fantasma, entrega unica, perda unica + reconstrucao, ator invalido, rota ausente, onda/commit, reforco, assalto/sem logistica, save/continue, 2
+controle                                 venceu=true lost(m=0,c=0) convoys=5 cut=0 | ondas enviados/pedidos: 1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:10/10 8:11/11 9:12/12 10:13/13
+interdicao total                         venceu=true lost(m=8,c=40) convoys=4 cut=4 | ondas enviados/pedidos: 1:6/6 2:6/6 3:7/7 4:3/8[i5] 5:3/9[i6] 6:3/10[i7] 7:3/10[i7] 8:3/11[i5] 9:3/12[i9] 10:3/13[i1]
+interdicao 0-420 s, depois livre         venceu=true lost(m=6,c=30) convoys=4 cut=3 | ondas enviados/pedidos: 1:6/6 2:6/6 3:7/7 4:3/8[i5] 5:3/9[i6] 6:3/10[i7] 7:3/10[i7] 8:3/11[i5] 9:3/12 10:13/13
+escassez (retaguarda sem bmat/sucata)    venceu=true lost(m=0,c=0) convoys=0 cut=0 | ondas enviados/pedidos: 1:6/6 2:6/6 3:7/7 4:3/8 5:3/9 6:3/10 7:3/10 8:3/11 9:3/12 10:3/13
+PASS: test_ia_logistica (2 candidatos)
+rc=0
+
+$ python dados/paralel/persistencia/test_persistencia.py   (original, controle)
+PASS main+ECONOMIA+PERSISTENCIA / lua54: parser de literais (sem load, sem userdata)
+PASS main+ECONOMIA+PERSISTENCIA / lua54: schema/versões/migração v1
+PASS main+ECONOMIA+PERSISTENCIA / lua54: ida e volta em carga nova + regravação
+PASS main+ECONOMIA+PERSISTENCIA / lua54: restauração repetida e Alt+L antes (sem duplicar)
+PASS main+ECONOMIA+PERSISTENCIA / lua54: recusas preservam sessão e arquivo
+PASS main+ECONOMIA+PERSISTENCIA / lua54: rollback da infraestrutura
+PASS main+ECONOMIA+PERSISTENCIA / lua54: falha após preflight: autosave suspenso, sem estoque fictício
+PASS main+ECONOMIA+PERSISTENCIA / lua54: gravação atômica/recuperação
+PASS main+ECONOMIA+PERSISTENCIA / lua54: legado v1
+PASS main+ECONOMIA+PERSISTENCIA / lua55: parser de literais (sem load, sem userdata)
+PASS main+ECONOMIA+PERSISTENCIA / lua55: schema/versões/migração v1
+PASS main+ECONOMIA+PERSISTENCIA / lua55: ida e volta em carga nova + regravação
+PASS main+ECONOMIA+PERSISTENCIA / lua55: restauração repetida e Alt+L antes (sem duplicar)
+PASS main+ECONOMIA+PERSISTENCIA / lua55: recusas preservam sessão e arquivo
+PASS main+ECONOMIA+PERSISTENCIA / lua55: rollback da infraestrutura
+PASS main+ECONOMIA+PERSISTENCIA / lua55: falha após preflight: autosave suspenso, sem estoque fictício
+PASS main+ECONOMIA+PERSISTENCIA / lua55: gravação atômica/recuperação
+PASS main+ECONOMIA+PERSISTENCIA / lua55: legado v1
+PASS main+ECONOMIA+IA_LOGISTICA+PERSISTENCIA / lua54: parser de literais (sem load, sem userdata)
+PASS main+ECONOMIA+IA_LOGISTICA+PERSISTENCIA / lua54: schema/versões/migração v1
+PASS main+ECONOMIA+IA_LOGISTICA+PERSISTENCIA / lua54: ida e volta em carga nova + regravação
+PASS main+ECONOMIA+IA_LOGISTICA+PERSISTENCIA / lua54: restauração repetida e Alt+L antes (sem duplicar)
+PASS main+ECONOMIA+IA_LOGISTICA+PERSISTENCIA / lua54: recusas preservam sessão e arquivo
+PASS main+ECONOMIA+IA_LOGISTICA+PERSISTENCIA / lua54: rollback da infraestrutura
+PASS main+ECONOMIA+IA_LOGISTICA+PERSISTENCIA / lua54: falha após preflight: autosave suspenso, sem estoque fictício
+PASS main+ECONOMIA+IA_LOGISTICA+PERSISTENCIA / lua54: gravação atômica/recuperação
+PASS main+ECONOMIA+IA_LOGISTICA+PERSISTENCIA / lua54: legado v1
+PASS main+ECONOMIA+IA_LOGISTICA+PERSISTENCIA / lua55: parser de literais (sem load, sem userdata)
+PASS main+ECONOMIA+IA_LOGISTICA+PERSISTENCIA / lua55: schema/versões/migração v1
+PASS main+ECONOMIA+IA_LOGISTICA+PERSISTENCIA / lua55: ida e volta em carga nova + regravação
+PASS main+ECONOMIA+IA_LOGISTICA+PERSISTENCIA / lua55: restauração repetida e Alt+L antes (sem duplicar)
+PASS main+ECONOMIA+IA_LOGISTICA+PERSISTENCIA / lua55: recusas preservam sessão e arquivo
+PASS main+ECONOMIA+IA_LOGISTICA+PERSISTENCIA / lua55: rollback da infraestrutura
+PASS main+ECONOMIA+IA_LOGISTICA+PERSISTENCIA / lua55: falha após preflight: autosave suspenso, sem estoque fictício
+PASS main+ECONOMIA+IA_LOGISTICA+PERSISTENCIA / lua55: gravação atômica/recuperação
+PASS main+ECONOMIA+IA_LOGISTICA+PERSISTENCIA / lua55: legado v1
+PASS: 36 casos (9 cenários x Lua 5.4/5.5 x 2 pilha(s)); SKIP: 0
+rc=0
+
+TUDO PASS

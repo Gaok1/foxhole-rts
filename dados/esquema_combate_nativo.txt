@@ -1,0 +1,78 @@
+CLASS	BlueprintGeneratedClass /Game/Blueprints/Character/Character.Character_C
+PROPERTY	BlueprintGeneratedClass /Game/Blueprints/Character/Character.Character_C	PlayerFire	ObjectProperty
+CLASS	Class /Script/War.PlayerCharacter
+CLASS	Class /Script/War.SimCharacter
+PROPERTY	Class /Script/War.SimCharacter	MinFallSpeedForDamage	FloatProperty
+PROPERTY	Class /Script/War.SimCharacter	MaxHealth	IntProperty
+PROPERTY	Class /Script/War.SimCharacter	HealthThresholdForHurtMaterial	FloatProperty
+PROPERTY	Class /Script/War.SimCharacter	AllowedDeviationOfShootingDirection	FloatProperty
+PROPERTY	Class /Script/War.SimCharacter	InVehicleAllowedDeviationOfShootingDirection	FloatProperty
+PROPERTY	Class /Script/War.SimCharacter	WeaponFiringConeAbilityModifierPct	FloatProperty
+PROPERTY	Class /Script/War.SimCharacter	Health	FloatProperty
+PROPERTY	Class /Script/War.SimCharacter	MeleeMinDamage	FloatProperty
+PROPERTY	Class /Script/War.SimCharacter	MeleeMaxDamage	FloatProperty
+PROPERTY	Class /Script/War.SimCharacter	MeleeDamageType	ClassProperty
+PROPERTY	Class /Script/War.SimCharacter	BleedDamagePerSecond	FloatProperty
+PROPERTY	Class /Script/War.SimCharacter	BleedMinDamageReq	FloatProperty
+PROPERTY	Class /Script/War.SimCharacter	StaggerMinDamageReq	FloatProperty
+FUNCTION	Function /Script/War.SimCharacter:ServerSyncLastWeaponInvoke	RPC_NAME	true
+PARAM	ServerSyncLastWeaponInvoke	ClientWeaponInvoke	StructProperty
+FUNCTION	Function /Script/War.SimCharacter:OnRep_Health	RPC_NAME	false
+FUNCTION	Function /Script/War.SimCharacter:MulticastOnUniformMitigatedDamage	RPC_NAME	true
+PARAM	MulticastOnUniformMitigatedDamage	DamageType	EnumProperty
+CLASS	Class /Script/War.WarCharacter
+CLASS	Class /Script/Engine.Character
+CLASS	Class /Script/Engine.Pawn
+CLASS	Class /Script/Engine.Actor
+PROPERTY	Class /Script/Engine.Actor	bCanBeDamaged	BoolProperty
+PROPERTY	Class /Script/Engine.Actor	OnTakeAnyDamage	MulticastSparseDelegateProperty
+PROPERTY	Class /Script/Engine.Actor	OnTakePointDamage	MulticastSparseDelegateProperty
+PROPERTY	Class /Script/Engine.Actor	OnTakeRadialDamage	MulticastSparseDelegateProperty
+FUNCTION	Function /Script/Engine.Actor:ReceiveRadialDamage	RPC_NAME	false
+PARAM	ReceiveRadialDamage	DamageReceived	FloatProperty
+PARAM	ReceiveRadialDamage	DamageType	ObjectProperty
+PARAM	ReceiveRadialDamage	Origin	StructProperty
+PARAM	ReceiveRadialDamage	HitInfo	StructProperty
+PARAM	ReceiveRadialDamage	InstigatedBy	ObjectProperty
+PARAM	ReceiveRadialDamage	DamageCauser	ObjectProperty
+FUNCTION	Function /Script/Engine.Actor:ReceivePointDamage	RPC_NAME	false
+PARAM	ReceivePointDamage	Damage	FloatProperty
+PARAM	ReceivePointDamage	DamageType	ObjectProperty
+PARAM	ReceivePointDamage	HitLocation	StructProperty
+PARAM	ReceivePointDamage	HitNormal	StructProperty
+PARAM	ReceivePointDamage	HitComponent	ObjectProperty
+PARAM	ReceivePointDamage	BoneName	NameProperty
+PARAM	ReceivePointDamage	ShotFromDirection	StructProperty
+PARAM	ReceivePointDamage	InstigatedBy	ObjectProperty
+PARAM	ReceivePointDamage	DamageCauser	ObjectProperty
+PARAM	ReceivePointDamage	HitInfo	StructProperty
+FUNCTION	Function /Script/Engine.Actor:ReceiveAnyDamage	RPC_NAME	false
+PARAM	ReceiveAnyDamage	Damage	FloatProperty
+PARAM	ReceiveAnyDamage	DamageType	ObjectProperty
+PARAM	ReceiveAnyDamage	InstigatedBy	ObjectProperty
+PARAM	ReceiveAnyDamage	DamageCauser	ObjectProperty
+CLASS	Class /Script/CoreUObject.Object
+PLAYER_FIRE	ParticleSystemComponent /Game/Maps/HomeRegionW.HomeRegionW:PersistentLevel.Character_C_2147479746.PlayerFire
+CLASS	Class /Script/Engine.ParticleSystemComponent
+CLASS	Class /Script/Engine.FXSystemComponent
+CLASS	Class /Script/Engine.PrimitiveComponent
+PROPERTY	Class /Script/Engine.PrimitiveComponent	bApplyImpulseOnDamage	BoolProperty
+CLASS	Class /Script/Engine.SceneComponent
+CLASS	Class /Script/Engine.ActorComponent
+CLASS	BlueprintGeneratedClass /Game/Blueprints/Vehicles/Truck/BPTruckW.BPTruckW_C
+CLASS	BlueprintGeneratedClass /Game/Blueprints/Vehicles/Truck/BPTruckBaseW.BPTruckBaseW_C
+CLASS	BlueprintGeneratedClass /Game/Blueprints/Vehicles/Truck/BPTruckBase.BPTruckBase_C
+CLASS	Class /Script/War.TransportTruck
+PROPERTY	Class /Script/War.TransportTruck	StashedAmmo	IntProperty
+PROPERTY	Class /Script/War.TransportTruck	StashedAmmoType	NameProperty
+FUNCTION	Function /Script/War.TransportTruck:OnRep_StashedAmmo	RPC_NAME	false
+CLASS	Class /Script/War.RWDSimVehicle
+CLASS	Class /Script/War.SimVehicle
+PROPERTY	Class /Script/War.SimVehicle	Health	IntProperty
+PROPERTY	Class /Script/War.SimVehicle	DepthCuttoffForSwimDamage	FloatProperty
+PROPERTY	Class /Script/War.SimVehicle	MinorDamagePS	ObjectProperty
+PROPERTY	Class /Script/War.SimVehicle	MajorDamagePS	ObjectProperty
+FUNCTION	Function /Script/War.SimVehicle:ServerFire	RPC_NAME	true
+FUNCTION	Function /Script/War.SimVehicle:OnRep_Health	RPC_NAME	false
+FUNCTION	Function /Script/War.SimVehicle:AllFire	RPC_NAME	false
+DONE	combate metadata; nenhum metodo de gameplay chamado

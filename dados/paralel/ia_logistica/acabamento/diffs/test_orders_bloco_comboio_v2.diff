@@ -1,0 +1,28 @@
+--- ../test_orders_bloco_comboio.lua	2026-10-09 18:29:33.610523800 -0300
++++ test_orders_bloco_comboio_v2.lua	2026-10-09 21:00:03.028574200 -0300
+@@ -1,3 +1,5 @@
++-- VARIANTE v2 (acabamento) de ia_logistica/test_orders_bloco_comboio.lua: as expectativas numericas leem CFG.ECHAIN
++-- (free/front0) em vez de assumir free 3 (calibracao v2: free 5). Mesma logica do bloco original.
+ -- Proposta para tools/test_orders.py (IA_LOGISTICA): substitui o bloco "enemy convoy" (do comentario
+ -- "-- enemy convoy: missing cargo shrinks the wave..." ate "assert(cv2.state == "dead" ...)").
+ -- O contrato antigo (combat.cargo abstrato, +1 por chegada, perWave/cut) deixa de existir.
+@@ -6,11 +8,14 @@
+ for i=#L.foes,1,-1 do table.remove(L.foes,i) end
+ assert(L.eReset() and L.eActive() and L.eAudit())
+ local w0 = api.combat.wave
+-assert(L.waveCut(10) == 10)                      -- 3 free + 7 paid (front0: 10 shirts, 2 ammo crates = 12 loads)
+-api.combat.wave = w0 + 1; assert(L.eCommit(10) == 7)
+-assert(L.en.front.shirts == 3 and math.abs(L.en.front.ammo - (2 - 7 / api.CFG.LOGI.reloads)) < 1e-9)
+-assert(L.waveCut(10) == 6 and L.en.waves[#L.en.waves].short == 4)   -- shortage shrinks the next wave
+-api.combat.wave = w0 + 2; L.eCommit(6)
++local EC = api.CFG.ECHAIN
++local paid1 = 10 - EC.free
++assert(L.waveCut(10) == 10)                      -- free garrison + paid (front0: 10 shirts, 2 ammo crates = 12 loads)
++api.combat.wave = w0 + 1; assert(L.eCommit(10) == paid1)
++assert(L.en.front.shirts == EC.front0.shirts - paid1 and math.abs(L.en.front.ammo - (EC.front0.ammo - paid1 / api.CFG.LOGI.reloads)) < 1e-9)
++local canNow = (L.eSoldiers())
++assert(L.waveCut(EC.free + canNow + 4) == EC.free + canNow and L.en.waves[#L.en.waves].short == 4)   -- shortage shrinks the next wave
++api.combat.wave = w0 + 2; L.eCommit(EC.free + canNow)
+ assert(L.eAudit())
+ for _ = 1, 400 do L.eTick(0.5, clock) end        -- rear produces from its own bmat/salvage, never for free
+ assert(L.en.fac.ammo + L.en.fac.shirts > 0 and L.en.led.spent > 0 and L.eAudit())

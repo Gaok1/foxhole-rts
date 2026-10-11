@@ -1,0 +1,56 @@
+Inventário local de regiões — 2026-10-09, cópia isolada, OpenLevel ?listen, UE4SS
+Fonte: FindAllOf + classe/nome/posição de atores; NÃO inventário por imagem.
+Contagens são do estado carregado offline neste teste, não do estado de uma guerra.
+Zero numa classe não prova ausência de outras variantes ou de criação posterior.
+Estruturas/veículos podem ficar invisíveis pela LOS ou pelo ângulo/oclusão da câmera.
+
+Região                              DeadLandsHex       CallumsCapeHex
+ResourceField                       0                  1 (BPSalvageField_C)
+Refinery ativa                      0                  0
+SpecializedFactory ativa            0                  0
+BPFactory_C                         0                  0
+BPTruckW_C / BPTruckC_C              0 / 0              0 / 0
+BPDestroyedFactory_C                1                  2
+BPDestroyedRefinery_C               0*                 1
+BPDestroyedVehicleFactory_C         1                  1
+DestroyedStructure                  36                 30
+PlayerStart                         23                 0
+Landscape                           1                  1
+LandscapeSplinesComponent           1                  1
+LandscapeSplineSegment              634                431
+LandscapeSplineControlPoint         596                405
+LevelStreaming                      0                  0
+
+* Deadlands: ausência desta variante no histograma de TODAS as classes dos atores carregados;
+  não declaração de que a região jamais tenha refinaria.
+
+Posições de instalações observadas (cm):
+Deadlands fábrica em ruínas:       (-20585.477,   2199.264,  48.907)
+Callums campo de sucata ativo:     ( 15504.438, -54440.906, 965.928)
+Callums fábrica em ruínas 1:       (  3280.938, -54222.813, 599.999)
+Callums fábrica em ruínas 2:       (  1723.844, -51134.906, 600.000)
+Callums refinaria em ruínas:       (  8966.813, -46252.813, 600.002)
+Callums oficina em ruínas:         (  6931.281, -43042.000, 599.997)
+
+Deadlands: âncora PlayerStart + 600 X -> comandante (15985.609, 38997.613, 298.282), HP100.
+Callums: sem âncoras de veículos/PlayerStart pesquisadas; usar o campo como último recurso ->
+  comandante (16104.438, -54440.906, 1150.000), HP100, RTS ligado (sonda via CFG, sem entrada real).
+  Reinício com a fonte final: autostart RTS ligado sem intervenção, HP100, Z1160.000;
+  nova partida e assalto recusados, preservando dois soldados reais e estado de ondas.
+
+Autostart: índice usa DeadlandsHex, GetFullName retorna DeadLandsHex; o pacote abre mesmo assim,
+  mas a antiga comparação Lua sensível a maiúsculas não ligava o RTS. Comparar caminho sem case.
+
+Navegação estrita (base para acesso futuro de caminhões, não transporte pronto):
+Deadlands: quatro metas a 12m do spawn; rotas [2,1,1,1] waypoints, [13,6,6,6] nós, 36–54ms síncronos.
+A sonda prova chamadas/tratos de terreno, NÃO transitabilidade de água/ponte/acesso de caminhão.
+O motorista atual ainda anda em reta; a opção estrita não está conectada a ele.
+
+Classes nativas inspecionadas: DestroyedStructure, RuinableStructure, Structure, ResourceField,
+  RuinedComponent, BuildSite, BuildableStructure, NextWarRegionData. Há classes de ruína separadas das
+  instalações ativas; reconstrução ainda não rastreada/implementada. NextWarRegionData não tinha
+  instâncias carregadas nas sondas; LoadAsset dos caminhos pesquisados devolveu objetos inválidos.
+
+Reprodução somente leitura: tools/inspect_region.lua pelo canal run.sh.
+Sondas extensas fora do repositório: D:/tools/foxhole-lab/deadlands-actors.tsv,
+  deadlands-inventory.txt, callumscape-inventory.txt, hex-*-schema*.txt, hex-nav-live.txt.

@@ -1,0 +1,28 @@
+--- ../test_ia_logistica.py	2026-10-09 18:36:29.323735200 -0300
++++ test_ia_logistica_v2.py	2026-10-09 20:59:26.690686800 -0300
+@@ -1,6 +1,10 @@
+-"""Testes offline da IA_LOGISTICA sobre o main.lua candidato COMPLETO executado em memoria (lupa).
++"""VARIANTE v2 (acabamento) de ia_logistica/test_ia_logistica.py contra build_patch_v2 (IA calibrada: free 5, trip 20,
++want 4/20; eRestore com motivo; versao futura do elogi). Mesmos testes, NENHUMA expectativa precisou mudar (as que
++dependem do piso leem E.free do proprio CFG); so caminhos/imports (diffs/test_ia_logistica_v2.diff).
+ 
+-$env:PYTHONPATH='D:/tools/pylibs'; python dados/paralel/ia_logistica/test_ia_logistica.py
++Testes offline da IA_LOGISTICA sobre o main.lua candidato COMPLETO executado em memoria (lupa).
++
++$env:PYTHONPATH='D:/tools/pylibs'; python dados/paralel/ia_logistica/acabamento/test_ia_logistica_v2.py
+ Roda tudo duas vezes: main+IA e main+ECONOMIA+IA (ordem declarada). Substitui so fronteiras de engine:
+ spawnEnemies/waveSpawnPoint (soldados falsos), SpawnActor/LoadAsset (caminhao falso) e, num teste, logi.drive.
+ NAO prova fisica Unreal, rota real, LOS, equilibrio de combate nem desempenho: isso e gate do laboratorio.
+@@ -11,9 +15,10 @@
+ from lupa import LuaRuntime
+ 
+ HERE = Path(__file__).resolve().parent
+-ROOT = HERE.parents[2]
++ROOT = HERE.parents[3]
++sys.dont_write_bytecode = True
+ sys.path.insert(0, str(HERE))
+-from build_patch import build, stacked  # noqa: E402
++from build_patch_v2 import build, stacked  # noqa: E402
+ 
+ # ---- custos reais do jogo (dados/custos_do_jogo.txt), conferidos contra CFG do candidato ----
+ COSTS = ROOT.joinpath("dados/custos_do_jogo.txt").read_text(encoding="utf-8")

@@ -1,0 +1,68 @@
+CLASS	Class /Script/War.WarProjectile
+PROP	WarProjectile	MovementComp	ObjectProperty
+PROP	WarProjectile	CollisionComp	ObjectProperty
+PROP	WarProjectile	ParticleComp	ObjectProperty
+PROP	WarProjectile	LoopingAudio	ObjectProperty
+PROP	WarProjectile	SkeletalMesh	ObjectProperty
+PROP	WarProjectile	LaunchSoundCue	ObjectProperty
+PROP	WarProjectile	ExplosionTemplate	ClassProperty
+PROP	WarProjectile	MyController	WeakObjectProperty
+PROP	WarProjectile	ExplosiveCodeName	NameProperty
+PROP	WarProjectile	ProjectileLife	FloatProperty
+PROP	WarProjectile	AutoDetonateTime	FloatProperty
+PROP	WarProjectile	ProjectileDeathDelay	FloatProperty
+PROP	WarProjectile	ExplosionImpactBumpDistance	FloatProperty
+PROP	WarProjectile	PenetrationBonusMaxRange	FloatProperty
+PROP	WarProjectile	bProjectImpactDownward	BoolProperty
+PROP	WarProjectile	bHideMeshOnExplode	BoolProperty
+PROP	WarProjectile	bSpawnExplosionOnServer	BoolProperty
+PROP	WarProjectile	bImpactsWater	BoolProperty
+PROP	WarProjectile	bExploded	BoolProperty
+PROP	WarProjectile	bInterpolatesMesh	BoolProperty
+PROP	WarProjectile	bInterpolateFromRelativeSpawnPosition	BoolProperty
+PROP	WarProjectile	PackedMuzzleInfo	StructProperty
+PROP	WarProjectile	RotationSpeed	StructProperty
+PROP	WarProjectile	bRotationRequiresVelocity	BoolProperty
+PROP	WarProjectile	RotationVelocityRequirement	FloatProperty
+PROP	WarProjectile	UnderWaterExplosionTemplate	ClassProperty
+PROP	WarProjectile	WaterSurfaceExplosionTemplate	ClassProperty
+FUNCTION	Function /Script/War.WarProjectile:Detonate
+PARAM	Detonate	HitResult	StructProperty
+FUNCTION	Function /Script/War.WarProjectile:ApplyExplosiveDamageAndSpawnFx
+PARAM	ApplyExplosiveDamageAndSpawnFx	HitResult	StructProperty
+CLASS	Class /Script/War.TimedProjectile
+PROP	TimedProjectile	FuseTimer	FloatProperty
+PROJECTILE_CDO	Grenade	Grenade_C /Game/Blueprints/Items/Grenade.Default__Grenade_C
+SUPER	Grenade	BlueprintGeneratedClass /Game/Blueprints/Items/Grenade.Grenade_C
+SUPER	Grenade	Class /Script/War.TimedProjectile
+SUPER	Grenade	Class /Script/War.WarProjectile
+SUPER	Grenade	Class /Script/Engine.Actor
+SUPER	Grenade	Class /Script/CoreUObject.Object
+DEFAULTS	Grenade	EXPLOSIVE	GrenadeC	LIFE	0.0	AUTO	0.0	FUSE	20.0
+EXPLOSION_TEMPLATE	Grenade	BlueprintGeneratedClass /Game/Blueprints/Items/GrenadeCExplosion.GrenadeCExplosion_C
+PROJECTILE_CDO	BPGrenadeW	BPGrenadeW_C /Game/Blueprints/Items/BPGrenadeW.Default__BPGrenadeW_C
+SUPER	BPGrenadeW	BlueprintGeneratedClass /Game/Blueprints/Items/BPGrenadeW.BPGrenadeW_C
+SUPER	BPGrenadeW	BlueprintGeneratedClass /Game/Blueprints/Items/Grenade.Grenade_C
+SUPER	BPGrenadeW	Class /Script/War.TimedProjectile
+SUPER	BPGrenadeW	Class /Script/War.WarProjectile
+SUPER	BPGrenadeW	Class /Script/Engine.Actor
+SUPER	BPGrenadeW	Class /Script/CoreUObject.Object
+DEFAULTS	BPGrenadeW	EXPLOSIVE	GrenadeW	LIFE	0.0	AUTO	0.0	FUSE	20.0
+EXPLOSION_TEMPLATE	BPGrenadeW	BlueprintGeneratedClass /Game/Blueprints/Items/GrenadeExplosion.GrenadeExplosion_C
+PROJECTILE_CDO	BPHEGrenade	BPHEGrenade_C /Game/Blueprints/Items/BPHEGrenade.Default__BPHEGrenade_C
+SUPER	BPHEGrenade	BlueprintGeneratedClass /Game/Blueprints/Items/BPHEGrenade.BPHEGrenade_C
+SUPER	BPHEGrenade	Class /Script/War.WarProjectile
+SUPER	BPHEGrenade	Class /Script/Engine.Actor
+SUPER	BPHEGrenade	Class /Script/CoreUObject.Object
+DEFAULTS	BPHEGrenade	EXPLOSIVE	HEGrenade	LIFE	0.0	AUTO	0.0	FUSE	nao temporizado
+EXPLOSION_TEMPLATE	BPHEGrenade	BlueprintGeneratedClass /Game/Blueprints/Items/HEGrenadeExplosion.HEGrenadeExplosion_C
+PROJECTILE_CDO	BPHELaunchedGrenade	BPHELaunchedGrenade_C /Game/Blueprints/Items/BPHELaunchedGrenade.Default__BPHELaunchedGrenade_C
+SUPER	BPHELaunchedGrenade	BlueprintGeneratedClass /Game/Blueprints/Items/BPHELaunchedGrenade.BPHELaunchedGrenade_C
+SUPER	BPHELaunchedGrenade	BlueprintGeneratedClass /Game/Blueprints/Items/Grenade.Grenade_C
+SUPER	BPHELaunchedGrenade	Class /Script/War.TimedProjectile
+SUPER	BPHELaunchedGrenade	Class /Script/War.WarProjectile
+SUPER	BPHELaunchedGrenade	Class /Script/Engine.Actor
+SUPER	BPHELaunchedGrenade	Class /Script/CoreUObject.Object
+DEFAULTS	BPHELaunchedGrenade	EXPLOSIVE	HELaunchedGrenade	LIFE	0.0	AUTO	0.0	FUSE	20.0
+EXPLOSION_TEMPLATE	BPHELaunchedGrenade	BlueprintGeneratedClass /Game/Blueprints/Items/HEGrenadeExplosion.HEGrenadeExplosion_C
+LIMIT	CDO/schema nao prova spawn, fuse inicializado ou dano

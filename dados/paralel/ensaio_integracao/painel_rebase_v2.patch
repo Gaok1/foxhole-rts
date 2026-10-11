@@ -1,0 +1,89 @@
+--- a/mod/FoxholeRTS/Scripts/main.lua
++++ b/mod/FoxholeRTS/Scripts/main.lua
+@@ -2993,25 +2993,70 @@
+ end
+ 
+ function logi.hudLine()
++    if not logi.on then return "LOGÍSTICA INATIVA" end
+     local C = CFG.LOGI
+-    local fab = logi.job and string.format("%s %.0f s", C.recipes[logi.job.kind].name, logi.job.left)
+-        or (logi.nextKind() and "sem bmat" or "parada (estoque cheio)")
+-    if logi.prio ~= "auto" then fab = fab .. " [só " .. C.recipes[logi.prio].name .. "]" end
+-    local moving, dead = 0, 0
+-    for _, tr in ipairs(logi.trucks) do
+-        if tr.state == "dead" then dead = dead + 1 elseif tr.state == "toDep" then moving = moving + 1 end
+-    end
+-    local deps = {}
++    local function recipeName(kind)
++        return C.recipes[kind] and C.recipes[kind].name or tostring(kind)
++    end
++    local fab
++    if logi.job then
++        fab = string.format("%s: %.0f s restantes", recipeName(logi.job.kind), math.max(0, logi.job.left))
++        if logi.job.total then fab = fab .. string.format(" (total %.0f s)", logi.job.total) end
++    else
++        local keep = logi.rebuildReserve and logi.rebuildReserve() or 0
++        local kind = logi.nextKind()
++        local rc = kind and C.recipes[kind]
++        if keep > 0 and rc and logi.bmat - (rc.bmat or 0) < keep then
++            fab = string.format("guarda %d bmat para reconstruir caminhão (bmat %.0f)", keep, logi.bmat)
++        else
++            fab = kind and "aguarda bmat" or "parada: demanda atendida"
++        end
++    end
++    local lines = {
++        string.format("LOGÍSTICA | sucata %.0f | bmat %.0f | prioridade %s", logi.salvage, logi.bmat, logi.prio),
++        "Fábrica | " .. fab,
++        string.format("Pronto | munição %d caixas | camisas %d caixas (%d unidades)",
++            logi.fac.ammo, logi.fac.shirts, logi.fac.shirts * C.recipes.shirts.units),
++    }
+     for _, d in ipairs(logi.depots()) do
+-        deps[#deps + 1] = string.format("%s m%.0f c%d", d == logi.base and "base" or d.name, d.ammo or 0, d.shirts or 0)
+-    end
+-    local foe = ""
++        -- Estoque físico, não necessidade após descontar carga em trânsito.
++        local a, sh = d.ammo or 0, d.shirts or 0
++        local low = a < C.want.ammo or sh < C.want.shirts
++        lines[#lines + 1] = string.format("%s | munição %.0f | camisas %d%s", d.name, a, sh,
++            low and " | abaixo da meta" or "")
++    end
++    local states = { idle="retorno/aguarda fábrica", toField="ao campo", loading="carregando sucata",
++        toRef="à refinaria", toDep="ao depósito", returnCargo="retornando carga à fábrica", dead="destruído" }
++    for i, tr in ipairs(logi.trucks) do
++        local cargo = tr.cargo
++        local load = cargo and string.format("%d munição + %d camisas (caixas)", cargo.ammo or 0, cargo.shirts or 0)
++            .. ((cargo.rifle or 0) > 0 and string.format(" + %d fuzis", cargo.rifle) or "")
++            .. ((cargo.medical or 0) > 0 and string.format(" + %d bandagens", cargo.medical) or "")
++            or string.format("%.0f sucata", tr.salv or 0)
++        local dest = tr.dest and tr.dest.name or
++            (tr.state == "returnCargo" and "fábrica" or tr.state == "toField" and "campo" or tr.state == "toRef" and "refinaria" or
++                tr.state == "loading" and "campo" or
++                tr.state == "idle" and (tr.kind == "res" and "campo" or "fábrica") or "—")
++        -- Não apresentar carga/destino histórico como entrega pendente de veículo morto.
++        if tr.state == "dead" then load, dest = "perdida", "—" end
++        lines[#lines + 1] = string.format("Caminhão %d | %s | %s | destino %s", i,
++            (tr.state == "idle" and tr.kind == "res") and "iniciando coleta" or
++                states[tr.state] or tostring(tr.state), load, dest)
++    end
+     if combat.mode ~= "assault" then
+-        foe = logi.eHud()
+-    end
+-    return string.format("LOGÍSTICA | sucata %.0f > bmat %.0f | fábrica: %s, pronto m%d c%d | entregando %d%s | %s%s",
+-        logi.salvage, logi.bmat, fab, logi.fac.ammo, logi.fac.shirts, moving, dead > 0 and string.format(", %d destruído", dead) or "",
+-        table.concat(deps, " | "), foe) .. logi.extraHud()
++        local chain = logi.eHud and logi.eHud() or nil  -- cadeia inimiga real (IA_LOGISTICA); eHud devolve " | INIMIGO: ..."
++        if chain then
++            chain = chain:gsub("^ | ", "")
++            if chain ~= "" then
++                lines[#lines + 1] = chain .. (CFG.ECHAIN and string.format(" | piso grátis %d/onda", CFG.ECHAIN.free) or "")
++            end
++        else
++            lines[#lines + 1] = string.format("INIMIGO | carga %d%s", combat.cargo or 0,
++                #(logi.foes or {}) > 0 and " | comboio na estrada" or "")
++        end
++    end
++    lines[#lines + 1] = "Ctrl+L: foco na cadeia | Q/E: frentes | Espaço: último alerta"
++    return table.concat(lines, "\n") .. (logi.extraHud and logi.extraHud() or "")
+ end
+ 
+ -- Comboio inimigo (lote 13): com ondas automaticas (fora do assalto), a cada ECONVOY.every s um caminhao colonial

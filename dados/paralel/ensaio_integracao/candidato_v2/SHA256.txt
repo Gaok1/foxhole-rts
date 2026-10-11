@@ -1,0 +1,5 @@
+variante: v2 (ECONOMIA > IA_LOGISTICA v2 > reserva de bmat > INTERFACE v2 (painel rebaseado) > PERSISTENCIA v2)
+main.lua real (antes) : 33d6c7e5920a3b5e00b7f3bafbc7b8a86c984db810217241a567afe0901ee679
+main.lua real (depois): 33d6c7e5920a3b5e00b7f3bafbc7b8a86c984db810217241a567afe0901ee679
+iguais: True
+candidato_v2/main.lua (CRLF): a93c1531588ea4534a7791dbb2e9578654ad0fa4a87373be1cbed569cbc3eda6

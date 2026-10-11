@@ -1,0 +1,4 @@
+WORLD	World /Game/Maps/HomeRegionW.HomeRegionW
+GAME_INSTANCE	BPWarGameInstance_C /Engine/Transient.GameEngine_2147482154:BPWarGameInstance_C_2147482148
+NATIVE_DAMAGE_CONTEXT	SERVER_SETTINGS_VALID	false	OBJECT	nulo
+LIMIT	diagnostico somente; nao criar/alterar ServerSettings nem contornar guards

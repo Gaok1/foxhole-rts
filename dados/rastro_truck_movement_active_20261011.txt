@@ -1,0 +1,287 @@
+WORLD	World /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex
+TRUCK	BPTruckW_C /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.BPTruckW_C_2147479619	ACTOR_COLLISION	false
+CLASS	truck	1	BlueprintGeneratedClass /Game/Blueprints/Vehicles/Truck/BPTruckW.BPTruckW_C
+CLASS	truck	2	BlueprintGeneratedClass /Game/Blueprints/Vehicles/Truck/BPTruckBaseW.BPTruckBaseW_C
+CLASS	truck	3	BlueprintGeneratedClass /Game/Blueprints/Vehicles/Truck/BPTruckBase.BPTruckBase_C
+PROPERTY	truck	DriverExit0	ObjectProperty
+PROPERTY	truck	DriverTrigger	ObjectProperty
+PROPERTY	truck	DriverSeat0	ObjectProperty
+CLASS	truck	4	Class /Script/War.TransportTruck
+CLASS	truck	5	Class /Script/War.RWDSimVehicle
+PROPERTY	truck	RepRWDMovement	StructProperty
+FUNCTION	truck	Function /Script/War.RWDSimVehicle:ServerMoveRwdTowing
+PARAM	truck	ServerMoveRwdTowing	Move	StructProperty
+PARAM	truck	ServerMoveRwdTowing	Base	StructProperty
+PARAM	truck	ServerMoveRwdTowing	TrailerMove	StructProperty
+FUNCTION	truck	Function /Script/War.RWDSimVehicle:ServerMoveRwd
+PARAM	truck	ServerMoveRwd	Move	StructProperty
+PARAM	truck	ServerMoveRwd	Base	StructProperty
+FUNCTION	truck	Function /Script/War.RWDSimVehicle:ServerMoveNoBaseRwdTowing
+PARAM	truck	ServerMoveNoBaseRwdTowing	Move	StructProperty
+PARAM	truck	ServerMoveNoBaseRwdTowing	TrailerMove	StructProperty
+FUNCTION	truck	Function /Script/War.RWDSimVehicle:ServerMoveNoBaseRwd
+PARAM	truck	ServerMoveNoBaseRwd	Move	StructProperty
+FUNCTION	truck	Function /Script/War.RWDSimVehicle:ServerMoveDualRwd
+PARAM	truck	ServerMoveDualRwd	Dual	StructProperty
+PARAM	truck	ServerMoveDualRwd	Move	StructProperty
+PARAM	truck	ServerMoveDualRwd	Base	StructProperty
+FUNCTION	truck	Function /Script/War.RWDSimVehicle:ServerMoveDualNoBaseRwd
+PARAM	truck	ServerMoveDualNoBaseRwd	Dual	StructProperty
+PARAM	truck	ServerMoveDualNoBaseRwd	Move	StructProperty
+FUNCTION	truck	Function /Script/War.RWDSimVehicle:OnRep_RepRWDMovement
+CLASS	truck	6	Class /Script/War.SimVehicle
+PROPERTY	truck	VehicleMovementProfileType	EnumProperty
+PROPERTY	truck	bIgnoreNonRootComponentsDuringVehicleMovement	BoolProperty
+BOOL_PROPERTY	truck	bIgnoreNonRootComponentsDuringVehicleMovement	true
+PROPERTY	truck	bRestrictMovementFromItems	BoolProperty
+PROPERTY	truck	BoxCollision	ObjectProperty
+FUNCTION	truck	Function /Script/War.SimVehicle:ClientAddDriverSuppression
+PARAM	truck	ClientAddDriverSuppression	SuppressAmount	FloatProperty
+CLASS	truck	7	Class /Script/War.WarCharacter
+CLASS	truck	8	Class /Script/Engine.Character
+PROPERTY	truck	CharacterMovement	ObjectProperty
+PROPERTY	truck	BasedMovement	StructProperty
+PROPERTY	truck	ReplicatedBasedMovement	StructProperty
+PROPERTY	truck	AnimRootMotionTranslationScale	FloatProperty
+PROPERTY	truck	ReplicatedMovementMode	ByteProperty
+PROPERTY	truck	bClientResimulateRootMotion	BoolProperty
+PROPERTY	truck	bClientResimulateRootMotionSources	BoolProperty
+PROPERTY	truck	bServerMoveIgnoreRootMotion	BoolProperty
+PROPERTY	truck	MovementModeChangedDelegate	MulticastInlineDelegateProperty
+PROPERTY	truck	OnCharacterMovementUpdated	MulticastInlineDelegateProperty
+PROPERTY	truck	SavedRootMotion	StructProperty
+PROPERTY	truck	ClientRootMotionParams	StructProperty
+PROPERTY	truck	RootMotionRepMoves	ArrayProperty
+PROPERTY	truck	RepRootMotion	StructProperty
+FUNCTION	truck	Function /Script/Engine.Character:ServerMoveOld
+PARAM	truck	ServerMoveOld	OldTimeStamp	FloatProperty
+PARAM	truck	ServerMoveOld	OldAccel	StructProperty
+PARAM	truck	ServerMoveOld	OldMoveFlags	ByteProperty
+FUNCTION	truck	Function /Script/Engine.Character:ServerMoveNoBase
+PARAM	truck	ServerMoveNoBase	Timestamp	FloatProperty
+PARAM	truck	ServerMoveNoBase	InAccel	StructProperty
+PARAM	truck	ServerMoveNoBase	ClientLoc	StructProperty
+PARAM	truck	ServerMoveNoBase	CompressedMoveFlags	ByteProperty
+PARAM	truck	ServerMoveNoBase	ClientRoll	ByteProperty
+PARAM	truck	ServerMoveNoBase	View	UInt32Property
+PARAM	truck	ServerMoveNoBase	ClientMovementMode	ByteProperty
+FUNCTION	truck	Function /Script/Engine.Character:ServerMoveDualNoBase
+PARAM	truck	ServerMoveDualNoBase	TimeStamp0	FloatProperty
+PARAM	truck	ServerMoveDualNoBase	InAccel0	StructProperty
+PARAM	truck	ServerMoveDualNoBase	PendingFlags	ByteProperty
+PARAM	truck	ServerMoveDualNoBase	View0	UInt32Property
+PARAM	truck	ServerMoveDualNoBase	Timestamp	FloatProperty
+PARAM	truck	ServerMoveDualNoBase	InAccel	StructProperty
+PARAM	truck	ServerMoveDualNoBase	ClientLoc	StructProperty
+PARAM	truck	ServerMoveDualNoBase	NewFlags	ByteProperty
+PARAM	truck	ServerMoveDualNoBase	ClientRoll	ByteProperty
+PARAM	truck	ServerMoveDualNoBase	View	UInt32Property
+PARAM	truck	ServerMoveDualNoBase	ClientMovementMode	ByteProperty
+FUNCTION	truck	Function /Script/Engine.Character:ServerMoveDualHybridRootMotion
+PARAM	truck	ServerMoveDualHybridRootMotion	TimeStamp0	FloatProperty
+PARAM	truck	ServerMoveDualHybridRootMotion	InAccel0	StructProperty
+PARAM	truck	ServerMoveDualHybridRootMotion	PendingFlags	ByteProperty
+PARAM	truck	ServerMoveDualHybridRootMotion	View0	UInt32Property
+PARAM	truck	ServerMoveDualHybridRootMotion	Timestamp	FloatProperty
+PARAM	truck	ServerMoveDualHybridRootMotion	InAccel	StructProperty
+PARAM	truck	ServerMoveDualHybridRootMotion	ClientLoc	StructProperty
+PARAM	truck	ServerMoveDualHybridRootMotion	NewFlags	ByteProperty
+PARAM	truck	ServerMoveDualHybridRootMotion	ClientRoll	ByteProperty
+PARAM	truck	ServerMoveDualHybridRootMotion	View	UInt32Property
+PARAM	truck	ServerMoveDualHybridRootMotion	ClientMovementBase	ObjectProperty
+PARAM	truck	ServerMoveDualHybridRootMotion	ClientBaseBoneName	NameProperty
+PARAM	truck	ServerMoveDualHybridRootMotion	ClientMovementMode	ByteProperty
+FUNCTION	truck	Function /Script/Engine.Character:ServerMoveDual
+PARAM	truck	ServerMoveDual	TimeStamp0	FloatProperty
+PARAM	truck	ServerMoveDual	InAccel0	StructProperty
+PARAM	truck	ServerMoveDual	PendingFlags	ByteProperty
+PARAM	truck	ServerMoveDual	View0	UInt32Property
+PARAM	truck	ServerMoveDual	Timestamp	FloatProperty
+PARAM	truck	ServerMoveDual	InAccel	StructProperty
+PARAM	truck	ServerMoveDual	ClientLoc	StructProperty
+PARAM	truck	ServerMoveDual	NewFlags	ByteProperty
+PARAM	truck	ServerMoveDual	ClientRoll	ByteProperty
+PARAM	truck	ServerMoveDual	View	UInt32Property
+PARAM	truck	ServerMoveDual	ClientMovementBase	ObjectProperty
+PARAM	truck	ServerMoveDual	ClientBaseBoneName	NameProperty
+PARAM	truck	ServerMoveDual	ClientMovementMode	ByteProperty
+FUNCTION	truck	Function /Script/Engine.Character:ServerMove
+PARAM	truck	ServerMove	Timestamp	FloatProperty
+PARAM	truck	ServerMove	InAccel	StructProperty
+PARAM	truck	ServerMove	ClientLoc	StructProperty
+PARAM	truck	ServerMove	CompressedMoveFlags	ByteProperty
+PARAM	truck	ServerMove	ClientRoll	ByteProperty
+PARAM	truck	ServerMove	View	UInt32Property
+PARAM	truck	ServerMove	ClientMovementBase	ObjectProperty
+PARAM	truck	ServerMove	ClientBaseBoneName	NameProperty
+PARAM	truck	ServerMove	ClientMovementMode	ByteProperty
+FUNCTION	truck	Function /Script/Engine.Character:OnRep_ReplicatedBasedMovement
+FUNCTION	truck	Function /Script/Engine.Character:K2_UpdateCustomMovement
+PARAM	truck	K2_UpdateCustomMovement	DeltaTime	FloatProperty
+FUNCTION	truck	Function /Script/Engine.Character:K2_OnMovementModeChanged
+PARAM	truck	K2_OnMovementModeChanged	PrevMovementMode	ByteProperty
+PARAM	truck	K2_OnMovementModeChanged	NewMovementMode	ByteProperty
+PARAM	truck	K2_OnMovementModeChanged	PrevCustomMode	ByteProperty
+PARAM	truck	K2_OnMovementModeChanged	NewCustomMode	ByteProperty
+FUNCTION	truck	Function /Script/Engine.Character:ClientAckGoodMove
+PARAM	truck	ClientAckGoodMove	Timestamp	FloatProperty
+CLASS	truck	9	Class /Script/Engine.Pawn
+PROPERTY	truck	ControlInputVector	StructProperty
+PROPERTY	truck	LastControlInputVector	StructProperty
+FUNCTION	truck	Function /Script/Engine.Pawn:K2_GetMovementInputVector
+PARAM	truck	K2_GetMovementInputVector	ReturnValue	StructProperty
+FUNCTION	truck	Function /Script/Engine.Pawn:IsMoveInputIgnored
+PARAM	truck	IsMoveInputIgnored	ReturnValue	BoolProperty
+FUNCTION	truck	Function /Script/Engine.Pawn:GetPendingMovementInputVector
+PARAM	truck	GetPendingMovementInputVector	ReturnValue	StructProperty
+FUNCTION	truck	Function /Script/Engine.Pawn:GetMovementComponent
+PARAM	truck	GetMovementComponent	ReturnValue	ObjectProperty
+FUNCTION	truck	Function /Script/Engine.Pawn:GetMovementBaseActor
+PARAM	truck	GetMovementBaseActor	Pawn	ObjectProperty
+PARAM	truck	GetMovementBaseActor	ReturnValue	ObjectProperty
+FUNCTION	truck	Function /Script/Engine.Pawn:GetLastMovementInputVector
+PARAM	truck	GetLastMovementInputVector	ReturnValue	StructProperty
+FUNCTION	truck	Function /Script/Engine.Pawn:ConsumeMovementInputVector
+PARAM	truck	ConsumeMovementInputVector	ReturnValue	StructProperty
+FUNCTION	truck	Function /Script/Engine.Pawn:AddMovementInput
+PARAM	truck	AddMovementInput	WorldDirection	StructProperty
+PARAM	truck	AddMovementInput	ScaleValue	FloatProperty
+PARAM	truck	AddMovementInput	bForce	BoolProperty
+FUNCTION	truck	Function /Script/Engine.Pawn:AddControllerYawInput
+PARAM	truck	AddControllerYawInput	Val	FloatProperty
+FUNCTION	truck	Function /Script/Engine.Pawn:AddControllerRollInput
+PARAM	truck	AddControllerRollInput	Val	FloatProperty
+FUNCTION	truck	Function /Script/Engine.Pawn:AddControllerPitchInput
+PARAM	truck	AddControllerPitchInput	Val	FloatProperty
+CLASS	truck	10	Class /Script/Engine.Actor
+PROPERTY	truck	bReplicateMovement	BoolProperty
+PROPERTY	truck	bBlockInput	BoolProperty
+PROPERTY	truck	bActorEnableCollision	BoolProperty
+PROPERTY	truck	ReplicatedMovement	StructProperty
+PROPERTY	truck	NetDriverName	NameProperty
+PROPERTY	truck	SpawnCollisionHandlingMethod	EnumProperty
+PROPERTY	truck	AutoReceiveInput	ByteProperty
+PROPERTY	truck	InputPriority	IntProperty
+PROPERTY	truck	InputComponent	ObjectProperty
+PROPERTY	truck	RootComponent	ObjectProperty
+PROPERTY	truck	OnInputTouchBegin	MulticastSparseDelegateProperty
+PROPERTY	truck	OnInputTouchEnd	MulticastSparseDelegateProperty
+PROPERTY	truck	OnInputTouchEnter	MulticastSparseDelegateProperty
+PROPERTY	truck	OnInputTouchLeave	MulticastSparseDelegateProperty
+FUNCTION	truck	Function /Script/Engine.Actor:SetReplicateMovement
+PARAM	truck	SetReplicateMovement	bInReplicateMovement	BoolProperty
+FUNCTION	truck	Function /Script/Engine.Actor:ReceiveActorOnInputTouchLeave
+PARAM	truck	ReceiveActorOnInputTouchLeave	FingerIndex	ByteProperty
+FUNCTION	truck	Function /Script/Engine.Actor:ReceiveActorOnInputTouchEnter
+PARAM	truck	ReceiveActorOnInputTouchEnter	FingerIndex	ByteProperty
+FUNCTION	truck	Function /Script/Engine.Actor:ReceiveActorOnInputTouchEnd
+PARAM	truck	ReceiveActorOnInputTouchEnd	FingerIndex	ByteProperty
+FUNCTION	truck	Function /Script/Engine.Actor:ReceiveActorOnInputTouchBegin
+PARAM	truck	ReceiveActorOnInputTouchBegin	FingerIndex	ByteProperty
+FUNCTION	truck	Function /Script/Engine.Actor:OnRep_ReplicateMovement
+FUNCTION	truck	Function /Script/Engine.Actor:OnRep_ReplicatedMovement
+FUNCTION	truck	Function /Script/Engine.Actor:GetInputVectorAxisValue
+PARAM	truck	GetInputVectorAxisValue	InputAxisKey	StructProperty
+PARAM	truck	GetInputVectorAxisValue	ReturnValue	StructProperty
+FUNCTION	truck	Function /Script/Engine.Actor:GetInputAxisValue
+PARAM	truck	GetInputAxisValue	InputAxisName	NameProperty
+PARAM	truck	GetInputAxisValue	ReturnValue	FloatProperty
+FUNCTION	truck	Function /Script/Engine.Actor:GetInputAxisKeyValue
+PARAM	truck	GetInputAxisKeyValue	InputAxisKey	StructProperty
+PARAM	truck	GetInputAxisKeyValue	ReturnValue	FloatProperty
+FUNCTION	truck	Function /Script/Engine.Actor:EnableInput
+PARAM	truck	EnableInput	PlayerController	ObjectProperty
+FUNCTION	truck	Function /Script/Engine.Actor:DisableInput
+PARAM	truck	DisableInput	PlayerController	ObjectProperty
+CLASS	truck	11	Class /Script/CoreUObject.Object
+GETTER_PARAM	K2_GetRootComponent	ReturnValue	ObjectProperty
+OBJECT	K2_GetRootComponent	BoxComponent /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.BPTruckW_C_2147479619.VehicleCollision
+CLASS	K2_GetRootComponent	1	Class /Script/Engine.BoxComponent
+CLASS	K2_GetRootComponent	2	Class /Script/Engine.ShapeComponent
+CLASS	K2_GetRootComponent	3	Class /Script/Engine.PrimitiveComponent
+PROPERTY	K2_GetRootComponent	OnInputTouchBegin	MulticastSparseDelegateProperty
+PROPERTY	K2_GetRootComponent	OnInputTouchEnd	MulticastSparseDelegateProperty
+PROPERTY	K2_GetRootComponent	OnInputTouchEnter	MulticastSparseDelegateProperty
+PROPERTY	K2_GetRootComponent	OnInputTouchLeave	MulticastSparseDelegateProperty
+FUNCTION	K2_GetRootComponent	Function /Script/Engine.PrimitiveComponent:CopyArrayOfMoveIgnoreComponents
+PARAM	K2_GetRootComponent	CopyArrayOfMoveIgnoreComponents	ReturnValue	ArrayProperty
+FUNCTION	K2_GetRootComponent	Function /Script/Engine.PrimitiveComponent:CopyArrayOfMoveIgnoreActors
+PARAM	K2_GetRootComponent	CopyArrayOfMoveIgnoreActors	ReturnValue	ArrayProperty
+FUNCTION	K2_GetRootComponent	Function /Script/Engine.PrimitiveComponent:ClearMoveIgnoreComponents
+FUNCTION	K2_GetRootComponent	Function /Script/Engine.PrimitiveComponent:ClearMoveIgnoreActors
+CLASS	K2_GetRootComponent	4	Class /Script/Engine.SceneComponent
+PROPERTY	K2_GetRootComponent	bComponentToWorldUpdated	BoolProperty
+CLASS	K2_GetRootComponent	5	Class /Script/Engine.ActorComponent
+CLASS	K2_GetRootComponent	6	Class /Script/CoreUObject.Object
+GETTER_PARAM	GetMovementComponent	ReturnValue	ObjectProperty
+OBJECT	GetMovementComponent	RWDVehicleMovementComponent /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.BPTruckW_C_2147479619.CharMoveComp
+CLASS	GetMovementComponent	1	Class /Script/War.RWDVehicleMovementComponent
+CLASS	GetMovementComponent	2	Class /Script/War.SimpleVehicleMovementComponent
+CLASS	GetMovementComponent	3	Class /Script/Engine.CharacterMovementComponent
+PROPERTY	GetMovementComponent	MovementMode	ByteProperty
+PROPERTY	GetMovementComponent	CustomMovementMode	ByteProperty
+PROPERTY	GetMovementComponent	MaxCustomMovementSpeed	FloatProperty
+PROPERTY	GetMovementComponent	bOrientRotationToMovement	BoolProperty
+PROPERTY	GetMovementComponent	bMovementInProgress	BoolProperty
+PROPERTY	GetMovementComponent	bEnableScopedMovementUpdates	BoolProperty
+PROPERTY	GetMovementComponent	bEnableServerDualMoveScopedMovementUpdates	BoolProperty
+PROPERTY	GetMovementComponent	DeferredUpdatedMoveComponent	ObjectProperty
+PROPERTY	GetMovementComponent	AnalogInputModifier	FloatProperty
+PROPERTY	GetMovementComponent	DefaultLandMovementMode	ByteProperty
+PROPERTY	GetMovementComponent	DefaultWaterMovementMode	ByteProperty
+PROPERTY	GetMovementComponent	GroundMovementMode	ByteProperty
+PROPERTY	GetMovementComponent	bNetworkMovementModeChanged	BoolProperty
+PROPERTY	GetMovementComponent	bIgnoreClientMovementErrorChecksAndCorrection	BoolProperty
+PROPERTY	GetMovementComponent	bWasSimulatingRootMotion	BoolProperty
+PROPERTY	GetMovementComponent	bAllowPhysicsRotationDuringAnimRootMotion	BoolProperty
+PROPERTY	GetMovementComponent	bWasAvoidanceUpdated	BoolProperty
+PROPERTY	GetMovementComponent	CurrentRootMotion	StructProperty
+PROPERTY	GetMovementComponent	RootMotionParams	StructProperty
+PROPERTY	GetMovementComponent	AnimRootMotionVelocity	StructProperty
+FUNCTION	GetMovementComponent	Function /Script/Engine.CharacterMovementComponent:SetMovementMode
+PARAM	GetMovementComponent	SetMovementMode	NewMovementMode	ByteProperty
+PARAM	GetMovementComponent	SetMovementMode	NewCustomMode	ByteProperty
+FUNCTION	GetMovementComponent	Function /Script/Engine.CharacterMovementComponent:GetMovementBase
+PARAM	GetMovementComponent	GetMovementBase	ReturnValue	ObjectProperty
+FUNCTION	GetMovementComponent	Function /Script/Engine.CharacterMovementComponent:GetImpartedMovementBaseVelocity
+PARAM	GetMovementComponent	GetImpartedMovementBaseVelocity	ReturnValue	StructProperty
+FUNCTION	GetMovementComponent	Function /Script/Engine.CharacterMovementComponent:GetAnalogInputModifier
+PARAM	GetMovementComponent	GetAnalogInputModifier	ReturnValue	FloatProperty
+FUNCTION	GetMovementComponent	Function /Script/Engine.CharacterMovementComponent:DisableMovement
+CLASS	GetMovementComponent	4	Class /Script/Engine.PawnMovementComponent
+FUNCTION	GetMovementComponent	Function /Script/Engine.PawnMovementComponent:K2_GetInputVector
+PARAM	GetMovementComponent	K2_GetInputVector	ReturnValue	StructProperty
+FUNCTION	GetMovementComponent	Function /Script/Engine.PawnMovementComponent:IsMoveInputIgnored
+PARAM	GetMovementComponent	IsMoveInputIgnored	ReturnValue	BoolProperty
+FUNCTION	GetMovementComponent	Function /Script/Engine.PawnMovementComponent:GetPendingInputVector
+PARAM	GetMovementComponent	GetPendingInputVector	ReturnValue	StructProperty
+FUNCTION	GetMovementComponent	Function /Script/Engine.PawnMovementComponent:GetLastInputVector
+PARAM	GetMovementComponent	GetLastInputVector	ReturnValue	StructProperty
+FUNCTION	GetMovementComponent	Function /Script/Engine.PawnMovementComponent:ConsumeInputVector
+PARAM	GetMovementComponent	ConsumeInputVector	ReturnValue	StructProperty
+FUNCTION	GetMovementComponent	Function /Script/Engine.PawnMovementComponent:AddInputVector
+PARAM	GetMovementComponent	AddInputVector	WorldVector	StructProperty
+PARAM	GetMovementComponent	AddInputVector	bForce	BoolProperty
+CLASS	GetMovementComponent	5	Class /Script/Engine.NavMovementComponent
+PROPERTY	GetMovementComponent	bUpdateNavAgentWithOwnersCollision	BoolProperty
+PROPERTY	GetMovementComponent	MovementState	StructProperty
+FUNCTION	GetMovementComponent	Function /Script/Engine.NavMovementComponent:StopMovementKeepPathing
+FUNCTION	GetMovementComponent	Function /Script/Engine.NavMovementComponent:StopActiveMovement
+CLASS	GetMovementComponent	6	Class /Script/Engine.MovementComponent
+PROPERTY	GetMovementComponent	UpdatedComponent	ObjectProperty
+OBJECT_PROPERTY	GetMovementComponent	UpdatedComponent	BoxComponent /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.BPTruckW_C_2147479619.VehicleCollision
+PROPERTY	GetMovementComponent	UpdatedPrimitive	ObjectProperty
+OBJECT_PROPERTY	GetMovementComponent	UpdatedPrimitive	BoxComponent /Game/Maps/Master/CallumsCapeHex.CallumsCapeHex:PersistentLevel.BPTruckW_C_2147479619.VehicleCollision
+PROPERTY	GetMovementComponent	bAutoRegisterUpdatedComponent	BoolProperty
+FUNCTION	GetMovementComponent	Function /Script/Engine.MovementComponent:StopMovementImmediately
+FUNCTION	GetMovementComponent	Function /Script/Engine.MovementComponent:K2_MoveUpdatedComponent
+PARAM	GetMovementComponent	K2_MoveUpdatedComponent	Delta	StructProperty
+PARAM	GetMovementComponent	K2_MoveUpdatedComponent	NewRotation	StructProperty
+PARAM	GetMovementComponent	K2_MoveUpdatedComponent	OutHit	StructProperty
+PARAM	GetMovementComponent	K2_MoveUpdatedComponent	bSweep	BoolProperty
+PARAM	GetMovementComponent	K2_MoveUpdatedComponent	bTeleport	BoolProperty
+PARAM	GetMovementComponent	K2_MoveUpdatedComponent	ReturnValue	BoolProperty
+CLASS	GetMovementComponent	7	Class /Script/Engine.ActorComponent
+CLASS	GetMovementComponent	8	Class /Script/CoreUObject.Object
+LIMIT	Root/UpdatedComponent nao provam envelope integral nem autorizam movimento, colisao ou arestas
+DONE	native_truck_movement_v1
