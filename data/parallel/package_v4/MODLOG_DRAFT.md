@@ -1,74 +1,74 @@
-# MODLOG_RASCUNHO — entrada de topo para `MODLOG.md`
+# MODLOG_DRAFT — top entry for `MODLOG.md`
 
-Rascunho para a task INTEGRACAO/LABORATORIO colar **no topo** do `MODLOG.md` (as entradas novas ficam no topo), **depois** de rodar o `BATCH_SCRIPT.md`. Tudo o que o texto
-afirma sobre código e testes offline foi conferido contra o candidato **v4.1** (`package_v4/v4_1/candidate/main.lua`, SHA256 `62245d23…598f` = `candidate_v4` `025e3b80…aab0` + `v4_1/v4_1.patch`) ou executado na cópia de ensaio (`HOW_TO_INTEGRATE.md` §6).
-Os campos `[preencher no laboratório]` são medições ao vivo que **ninguém fez**: se um não for medido, apague a frase em vez de deixar o campo, e não escreva resultado inventado.
-Ajuste a data e o título ao dia da sessão. Nada daqui foi aplicado.
+Draft for the INTEGRACAO/LABORATORIO task to paste **at the top** of `MODLOG.md` (new entries go at the top), **after** running `BATCH_SCRIPT.md`. Everything the text
+claims about code and offline tests was checked against candidate **v4.1** (`package_v4/v4_1/candidate/main.lua`, SHA256 `62245d23…598f` = `candidate_v4` `025e3b80…aab0` + `v4_1/v4_1.patch`) or run on the rehearsal copy (`HOW_TO_INTEGRATE.md` §6).
+The `[fill in at the lab]` fields are live measurements **nobody has made**: if one is not measured, delete the sentence instead of leaving the field, and do not write an invented result.
+Adjust the date and title to the session's day. Nothing here was applied.
 
-Instruções de preenchimento: trocar cada `[preencher no laboratório]` pelo número da saída do passo indicado entre parênteses (os passos são do `BATCH_SCRIPT.md`);
-onde um passo falhou, escrever "FALHOU" e o motivo, e **não** repetir a promessa da primeira frase.
+Filling instructions: replace each `[fill in at the lab]` with the number from the output of the step shown in parentheses (the steps are from `BATCH_SCRIPT.md`);
+where a step failed, write "FAILED" and the reason, and do **not** repeat the promise of the first sentence.
 
 ---
 
-## 2026-10-10 — Pilha v4.1 (ECONOMIA, IA_LOGISTICA v2, reserva de bmat, INTERFACE v2, PERSISTENCIA v2, COLETA_MANUAL, BASES_AVANÇADAS, trabalhadores fora da escala das ondas): integrada e validada em lote
+## 2026-10-10 — Stack v4.1 (ECONOMIA, IA_LOGISTICA v2, bmat reserve, INTERFACE v2, PERSISTENCIA v2, COLETA_MANUAL, BASES_AVANÇADAS, workers outside the wave scale): integrated and validated in a batch
 
-- **O que entrou (um único `main.lua`, v4.1, SHA256 `62245d23af36160f589707fe422b6fb167abaa58482ef7f58a49cd39021b598f`, CRLF, 7323 linhas; antes `33d6c7e5…e679`; a v4 `025e3b80…aab0` é a base).** Ordem da pilha: ECONOMIA >
-  IA_LOGISTICA v2 > reserva de bmat > INTERFACE v2 (painel rebaseado) > PERSISTENCIA v2 > COLETA_MANUAL > BASES_AVANÇADAS. ESTRADAS **não** entrou. O diff por função (105 hunks) não toca contorno,
-  hook de animação nem câmera. Locais de topo: 178 pelo compilador (folga 22), 175 pelo `check_globals.py`; nada novo no topo (tudo em `CFG`, `S`, `logi`, `sv`, `rts`).
-- **Economia:** a partida logística tem 4 produtos na fábrica (munição 80 bmat, camisas 80 bmat/10 un, fuzis 100 bmat/20 un, bandagens 80 bmat/50 un). Recrutar custa **1 camisa**
-  (o fuzileiro, também 1 fuzil) do estoque do local de nascimento; **não** gasta mão de obra (que só paga morteiro, barreira, trincheira, caixa, posto e arame, e o recrutamento
-  **no Assalto**). O médico só trata com bandagem num depósito a ≤ 5 m (consome 1 por tratamento). Custos de receita/estrutura vêm das tabelas do jogo.
-- **Reserva de bmat:** 100 por caminhão destruído ou ainda por construir; a fábrica não gasta essa reserva em caixas. O pedido de base avançada reserva mais 300, depois do caminhão.
-- **Coleta manual:** Shift+F6 já **não** cria o caminhão de recurso. A partida começa com bmat 40, 30 camisas, 10 fuzis, 6 caixas de munição e 3 trabalhadores (soldados **sem arma**, 1 camisa
-  cada; o 1º aos ~5 s, os outros a cada ~3 s) que coletam sucata a pé (0,5/s, carga 40) até a fábrica juntar 100 bmat e construir o caminhão. Ordem do jogador libera o trabalhador
-  por 60 s; combate o faz pausar. A implantação (Alt+L) passou de 1100 a **1000** bmat (2 caminhões de suprimento em vez de 3).
-- **IA logística v2:** o inimigo tem cadeia real (retaguarda → fábrica → comboio de `BPTruckC` → frente); razão fechado (`eAudit`). A onda recebe a guarnição grátis (piso 5/onda) mais o que a frente equipa;
-  comboio destruído rende +25 de mão de obra. Calibração v2 (`CFG.ECHAIN`: `free 5`, `trip 20`, `front0 m2/c10`, `want 4/20`, `trucks 2`, `minLoad 3`) é **proposta**; vale em cadência de onda ≥ ~55 s.
-- **Painel (INTERFACE v2):** várias linhas (logística, fábrica, pronto, depósitos, `base …`, caminhões, `INIMIGO …`, `coleta manual …`, atalhos), 12–13 linhas, ≤ ~222 colunas medido offline.
-- **Persistência v2:** save v2 com parser de literais (nunca `load` do arquivo), escrita atômica `.tmp` → `.bak`/`.corrupt`, infraestrutura paga e bases avançadas refeitas de graça e
-  **tudo ou nada**, seção `elogi` descartável sozinha ("CADEIA INIMIGA REINICIADA"), "Continuar recusado (partida atual e save preservados)", "INCOMPLETA … autosave suspenso".
-  A infraestrutura **não** sobrevive ao reinício do jogo por si só (as ruínas voltam); só o Continuar a refaz.
-- **Bases avançadas:** Shift+J (2 toques em até 4 s de relógio real), 300 bmat, estrutura nativa `ForwardBase1` (1725 HP), até 3, 15 slots, o recruta nasce na saída da base com a camisa e o
-  fuzil da própria base; ponto comum **não** reforça (`CFG.SPAWN.pointSpawn=false`); perda por captura do ponto ou por morteiro inimigo (`blastMul` 2) apaga a estrutura e o estoque.
-  O `J` agora só cria ponto **sem** modificador.
+- **What went in (a single `main.lua`, v4.1, SHA256 `62245d23af36160f589707fe422b6fb167abaa58482ef7f58a49cd39021b598f`, CRLF, 7323 lines; before `33d6c7e5…e679`; v4 `025e3b80…aab0` is the base).** Stack order: ECONOMIA >
+  IA_LOGISTICA v2 > bmat reserve > INTERFACE v2 (rebased panel) > PERSISTENCIA v2 > COLETA_MANUAL > BASES_AVANÇADAS. ESTRADAS did **not** go in. The per-function diff (105 hunks) does not touch the outline,
+  the animation hook nor the camera. Top-level locals: 178 by the compiler (22 headroom), 175 by `check_globals.py`; nothing new at the top (everything in `CFG`, `S`, `logi`, `sv`, `rts`).
+- **Economy:** the logistics match has 4 products in the factory (ammo 80 bmat, shirts 80 bmat/10 units, rifles 100 bmat/20 units, bandages 80 bmat/50 units). Recruiting costs **1 shirt**
+  (the rifleman, also 1 rifle) from the stock of the spawn location; it does **not** spend manpower (which only pays for mortar, barrier, trench, crate, post and wire, and recruiting
+  **in Assault**). The medic only treats with bandages in a depot within ≤ 5 m (consumes 1 per treatment). Recipe/structure costs come from the game's tables.
+- **bmat reserve:** 100 per truck destroyed or still to be built; the factory does not spend that reserve on crates. A forward base order reserves another 300, after the truck.
+- **Manual collection:** Shift+F6 **no longer** creates the resource truck. The match starts with bmat 40, 30 shirts, 10 rifles, 6 ammo crates and 3 workers (soldiers **without a weapon**, 1 shirt
+  each; the 1st at ~5 s, the others every ~3 s) who collect salvage on foot (0.5/s, load 40) until the factory gathers 100 bmat and builds the truck. A player order releases the worker
+  for 60 s; combat makes them pause. Deployment (Alt+L) went from 1100 to **1000** bmat (2 supply trucks instead of 3).
+- **Logistics AI v2:** the enemy has a real chain (rear → factory → `BPTruckC` convoy → front); closed ledger (`eAudit`). The wave gets the free garrison (floor 5/wave) plus what the front equips;
+  a destroyed convoy yields +25 manpower. The v2 calibration (`CFG.ECHAIN`: `free 5`, `trip 20`, `front0 m2/c10`, `want 4/20`, `trucks 2`, `minLoad 3`) is a **proposal**; it holds at a wave cadence ≥ ~55 s.
+- **Panel (INTERFACE v2):** several lines (logistics, factory, ready, depots, `base …`, trucks, `INIMIGO …`, `coleta manual …`, shortcuts), 12–13 lines, ≤ ~222 columns measured offline.
+- **Persistence v2:** save v2 with a literal parser (never `load` of the file), atomic write `.tmp` → `.bak`/`.corrupt`, paid infrastructure and forward bases rebuilt for free and
+  **all or nothing**, the `elogi` section discardable on its own ("CADEIA INIMIGA REINICIADA"), "Continuar recusado (partida atual e save preservados)", "INCOMPLETA … autosave suspenso".
+  The infrastructure does **not** survive a game restart by itself (the ruins come back); only Continue rebuilds it.
+- **Forward bases:** Shift+J (2 presses within 4 s of real clock), 300 bmat, native structure `ForwardBase1` (1725 HP), up to 3, 15 slots, the recruit spawns at the base's exit with the shirt and
+  rifle of the base itself; a plain point does **not** reinforce (`CFG.SPAWN.pointSpawn=false`); loss by capture of the point or by enemy mortar (`blastMul` 2) erases the structure and the stock.
+  `J` now only creates a point **without** a modifier.
 
-- **v4.1 (decisão do orquestrador):** soldados da coleta (`role="worker"`) não contam no tamanho das ondas inimigas, no aviso "próxima onda" nem na derrota por falta de tropa do Assalto
-  (`waveTick` e `logi.noReinforce` passam a usar `rts.combatCount()`) e `squadCenter()` usa só os combatentes vivos (fallback: todos os vivos; nil sem ninguém), para o campo de sucata não puxar ondas, reforço, arame nem pontos iniciais. 4 trocas, sem local de topo novo.
+- **v4.1 (orchestrator's decision):** collection soldiers (`role="worker"`) do not count toward the enemy wave size, the "next wave" warning nor the Assault defeat by lack of troops
+  (`waveTick` and `logi.noReinforce` now use `rts.combatCount()`) and `squadCenter()` uses only the live combatants (fallback: all the living; nil with nobody), so the salvage field does not pull waves, reinforcement, wire nor starting points. 4 swaps, no new top-level local.
 
-### Verificações offline (feitas antes do laboratório)
+### Offline checks (done before the lab)
 
-- Bateria pós-integração (`data/parallel/package_v4/post_integration_battery.py`): com a v4.1, **28/28 PASS** (o item novo é `v4_1/test_v4_1.py`; com `--sensibilidade --rapido`, 26/26 com os 21 mutantes pegos); com a v4 pura eram 27/27 e a mesma bateria falha só no item novo. Cobre (em cópia de ensaio no scratchpad) sintaxe e folga de locais em Lua 5.4 e 5.5, `check_globals`,
-  `test_costs`, `test_inventory_probe`, `test_orders` adaptado, 7 suítes de bases, passos 05–09 do `test_pilha_v4` e o contraste v4 × v4.1; tem controle negativo (suíte quebrada de propósito reprova).
-- `tools/test_orders.py`: 9 adaptações às teclas/mensagens novas + bloco do comboio v2 (`apply_test_orders.py`); passa contra o candidato.
+- Post-integration battery (`data/parallel/package_v4/post_integration_battery.py`): with v4.1, **28/28 PASS** (the new item is `v4_1/test_v4_1.py`; with `--sensibilidade --rapido`, 26/26 with the 21 mutants caught); with pure v4 it was 27/27 and the same battery fails only on the new item. It covers (on a rehearsal copy in the scratchpad) syntax and local headroom in Lua 5.4 and 5.5, `check_globals`,
+  `test_costs`, `test_inventory_probe`, the adapted `test_orders`, 7 base suites, steps 05–09 of `test_pilha_v4` and the v4 × v4.1 contrast; it has a negative control (a suite broken on purpose fails).
+- `tools/test_orders.py`: 9 adaptations to the new keys/messages + the v2 convoy block (`apply_test_orders.py`); passes against the candidate.
 
-### Laboratório (preencher com as saídas dos passos; tudo abaixo é medição ao vivo)
+### Lab (fill in with the steps' outputs; everything below is live measurement)
 
-- **Gate de estabilidade** (G): A1 184 s (já no topo do MODLOG, 2026-10-09). B1 184,3 s, 168 cópias, stratTick ~12 ms (arquivo `crash-control-B1.txt`). B2 `[preencher no laboratório]`;
-  A2 `[preencher no laboratório]`. Fonte do gate: `[preencher: 33d6c7e5… ou 62245d23…]`. Log sem `Registry`/`Access violation`: `[preencher no laboratório]`.
-- **Sondas só leitura / bancada (S):** versão do UE4SS e do jogo `[preencher no laboratório]`; `io.open`/`os.rename`/`os.remove` no Windows `[preencher no laboratório]` (S7);
-  mundo e superfície `[preencher no laboratório]`.
-- **B1 da classe `ForwardBase1` (S11):** spawn `[preencher no laboratório]` ms; `Health/MaxHealth` `[preencher no laboratório]` (esperado 1725/1725 pelo contrato `strict`);
-  `CodeName` `[preencher no laboratório]`; `TeamId` `[preencher no laboratório]` (o mod não escreve); some sem residual `[preencher no laboratório]`; 60 s sem queda `[preencher no laboratório]`.
-- **Hex (H0–H1):** mapa `CallumsCapeHex`; Alt+L `[preencher no laboratório]` (esperado `-1000 bmat do cenário; saldo 0`, 2 `BPTruckW_C`); repetir não duplica `[preencher no laboratório]`.
-- **Coleta manual (C):** distância campo–refinaria real `[preencher no laboratório]` m; 1ª entrega aos `[preencher no laboratório]` s; 1º caminhão de recurso aos `[preencher no laboratório]` s
-  (harness: 165 s a 80 m, 359 s a 470 m); T-pose dos trabalhadores `[preencher no laboratório]`; trabalhador preso/perdido `[preencher no laboratório]`; reativação após perda do caminhão
-  `[preencher no laboratório]`; custo por quadro com e sem coleta `[preencher no laboratório]` ms.
-- **Economia (C10–C12):** os 4 produtos chegam ao depósito `[preencher no laboratório]`; recrutar fuzileiros recusa ao acabar os 10 fuzis `[preencher no laboratório]`; a reserva de 100 bmat
-  segura a fábrica e o caminhão volta em `[preencher no laboratório]` s.
-- **Cadeia inimiga (I1–I14):** comboio 1 saiu aos `[preencher no laboratório]` s; entrega única `[preencher no laboratório]`; emboscada: perda única + alerta `+25`
-  `[preencher no laboratório]`; `auditoria` verdadeira ao fim de toda partida `[preencher no laboratório]`; `BPTruckC` ativos ≤ 2 `[preencher no laboratório]`.
-- **Bases avançadas (K):** pontos elegíveis no hex `[preencher no laboratório]`; construção `[preencher no laboratório]` (ator íntegro, `bmat` só debitado depois do ator); recrutar na base
-  `[preencher no laboratório]`; perda por captura e por morteiro sem ator residual `[preencher no laboratório]`; 10 min com 3 bases (T1): PID vivo `[preencher no laboratório]`, custo
-  `[preencher no laboratório]` ms/quadro.
-- **Persistência (V):** `sv.save` `[preencher no laboratório]` ms, `sv.load` `[preencher no laboratório]` ms; 4 spawns na restauração; carteira `0/1000`; idempotência do 2º `sv.load`;
-  recusas (V9) `[preencher no laboratório]`; arquivos restaurados ao SHA256 inicial `[preencher no laboratório]`.
-- **Painel e teclas (entrada real do usuário):** ver `MANUAL_TEST.md` itens 2, 8, 9, 11, 11a–11j, 12s–12v, 12y, 12z*, 12aa–12am: `[preencher com o resultado do usuário]`.
-- **Regressão com o robô (R, opcional):** `[preencher no laboratório]` ou "não rodou nesta sessão".
-- Laboratório encerrado: só o PID da cópia (`[preencher: PID]`); Steam preservado; `map.txt` temporário removido `[preencher no laboratório]`.
+- **Stability gate** (G): A1 184 s (already at the top of MODLOG, 2026-10-09). B1 184.3 s, 168 copies, stratTick ~12 ms (file `crash-control-B1.txt`). B2 `[fill in at the lab]`;
+  A2 `[fill in at the lab]`. Gate source: `[fill in: 33d6c7e5… or 62245d23…]`. Log without `Registry`/`Access violation`: `[fill in at the lab]`.
+- **Read-only probes / bench (S):** UE4SS and game version `[fill in at the lab]`; `io.open`/`os.rename`/`os.remove` on Windows `[fill in at the lab]` (S7);
+  world and surface `[fill in at the lab]`.
+- **B1 of the `ForwardBase1` class (S11):** spawn `[fill in at the lab]` ms; `Health/MaxHealth` `[fill in at the lab]` (expected 1725/1725 by the `strict` contract);
+  `CodeName` `[fill in at the lab]`; `TeamId` `[fill in at the lab]` (the mod does not write it); vanishes without residue `[fill in at the lab]`; 60 s without a crash `[fill in at the lab]`.
+- **Hex (H0–H1):** map `CallumsCapeHex`; Alt+L `[fill in at the lab]` (expected `-1000 bmat do cenário; saldo 0`, 2 `BPTruckW_C`); repeating does not duplicate `[fill in at the lab]`.
+- **Manual collection (C):** real field–refinery distance `[fill in at the lab]` m; 1st delivery at `[fill in at the lab]` s; 1st resource truck at `[fill in at the lab]` s
+  (harness: 165 s at 80 m, 359 s at 470 m); workers' T-pose `[fill in at the lab]`; worker stuck/lost `[fill in at the lab]`; reactivation after losing the truck
+  `[fill in at the lab]`; per-frame cost with and without collection `[fill in at the lab]` ms.
+- **Economy (C10–C12):** the 4 products reach the depot `[fill in at the lab]`; recruiting riflemen refuses when the 10 rifles run out `[fill in at the lab]`; the 100 bmat reserve
+  holds the factory and the truck comes back in `[fill in at the lab]` s.
+- **Enemy chain (I1–I14):** convoy 1 left at `[fill in at the lab]` s; single delivery `[fill in at the lab]`; ambush: single loss + `+25` alert
+  `[fill in at the lab]`; `auditoria` true at the end of every match `[fill in at the lab]`; active `BPTruckC` ≤ 2 `[fill in at the lab]`.
+- **Forward bases (K):** eligible points in the hex `[fill in at the lab]`; construction `[fill in at the lab]` (whole actor, `bmat` debited only after the actor); recruiting at the base
+  `[fill in at the lab]`; loss by capture and by mortar without a residual actor `[fill in at the lab]`; 10 min with 3 bases (T1): PID alive `[fill in at the lab]`, cost
+  `[fill in at the lab]` ms/frame.
+- **Persistence (V):** `sv.save` `[fill in at the lab]` ms, `sv.load` `[fill in at the lab]` ms; 4 spawns on restore; wallet `0/1000`; idempotency of the 2nd `sv.load`;
+  refusals (V9) `[fill in at the lab]`; files restored to the initial SHA256 `[fill in at the lab]`.
+- **Panel and keys (real user input):** see `MANUAL_TEST.md` items 2, 8, 9, 11, 11a–11j, 12s–12v, 12y, 12z*, 12aa–12am: `[fill in with the user's result]`.
+- **Regression with the bot (R, optional):** `[fill in at the lab]` or "did not run in this session".
+- Lab closed: only the copy's PID (`[fill in: PID]`); Steam preserved; temporary `map.txt` removed `[fill in at the lab]`.
 
-### Decisões e achados registrados nesta entrada
+### Decisions and findings recorded in this entry
 
-- Divergências relatório × código que o texto da integração segue pelo código estão em `HOW_TO_INTEGRATE.md` §8 (a lista de 9 itens). Decisões que dependem do usuário (balanço): `OPEN_DECISIONS.md`.
-- Gotchas novos (de 48 em diante) em `CONSOLIDATED_GOTCHAS.md`, a levar para `knowledge/games/foxhole/…` com `UM_HOME=D:/tools/um-home python -m um kb check`.
-- Pendências que **não** fecham com este lote: gate de estabilidade completo (B2/A2) se rodou com outra fonte; o plano B visual das bases (malha) se `ForwardBase1` não nasceu; calibração da cadeia inimiga
-  em cadência real de ondas; Shift+J durante a pausa (relógio real).
+- Report × code divergences where the integration text follows the code are in `HOW_TO_INTEGRATE.md` §8 (the list of 9 items). Decisions that depend on the user (balance): `OPEN_DECISIONS.md`.
+- New gotchas (from 48 on) in `CONSOLIDATED_GOTCHAS.md`, to be taken to `knowledge/games/foxhole/…` with `UM_HOME=D:/tools/um-home python -m um kb check`.
+- Pending items that do **not** close with this batch: the complete stability gate (B2/A2) if it ran with another source; the bases' visual plan B (mesh) if `ForwardBase1` did not spawn; calibration of the enemy chain
+  at the real wave cadence; Shift+J during pause (real clock).

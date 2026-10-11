@@ -1,150 +1,152 @@
-# ENSAIO_INTEGRACAO — pilha completa de patches, offline (2026-10-09)
+# ENSAIO_INTEGRACAO (integration rehearsal) — complete patch stack, offline (2026-10-09)
 
-Agente ENSAIO_INTEGRACAO. Montei a pilha ECONOMIA → IA_LOGISTICA → INTERFACE (rebaseada) → PERSISTENCIA sobre uma
-**cópia** do `main.lua` e rodei toda a bateria contra ela. **Nada foi aplicado** ao `main.lua` real (SHA256
-`33d6c7e5920a3b5e00b7f3bafbc7b8a86c984db810217241a567afe0901ee679` antes e depois, conferido no build e no fim dos
-testes). Não toquei docs compartilhadas, pastas de outros agentes, laboratório, jogo, canal, nem entrada de teclado/mouse.
-Dos builds alheios só importei as funções puras `build`/`build_on` (sem bytecode, sem executar os blocos `__main__`),
-então nada foi escrito fora desta pasta.
+Agent ENSAIO_INTEGRACAO. I assembled the stack ECONOMIA → IA_LOGISTICA → INTERFACE (rebased) → PERSISTENCIA over a
+**copy** of `main.lua` and ran the whole battery against it. **Nothing was applied** to the real `main.lua` (SHA256
+`33d6c7e5920a3b5e00b7f3bafbc7b8a86c984db810217241a567afe0901ee679` before and after, checked in the build and at the end of the
+tests). I did not touch shared docs, other agents' folders, the lab, the game, the channel, nor keyboard/mouse input.
+From the other builds I only imported the pure functions `build`/`build_on` (no bytecode, without running the `__main__` blocks),
+so nothing was written outside this folder.
 
-**Estado honesto:** a pilha **compõe e passa toda a bateria offline**. Isso **não** significa pronta para jogo:
-nada aqui prova física Unreal, rota, UMG, input, desempenho, equilíbrio nem save em disco real.
+**Honest state:** the stack **composes and passes the whole offline battery**. That does **not** mean ready to play:
+nothing here proves Unreal physics, route, UMG, input, performance, balance nor a real on-disk save.
 
-## 1. Ordem final e por quê
+(The panel samples below are in-game text and stay in Portuguese, as the mod's UI is in Portuguese.)
+
+## 1. Final order and why
 
 ```
-main.lua real (ESTABILIDADE já integrada)
- 1. ECONOMIA        data/parallel/economy/build_patch.py        build(texto)
- 2. IA_LOGISTICA    data/parallel/logistics_ai/build_patch.py    build(texto)[0]
- 3. INTERFACE       painel REBASEADO (build_pilha.interface_build): troca a função logi.hudLine inteira
- 4. PERSISTENCIA    data/parallel/persistence/build_patch.py    build_on(texto)
- (ESTRADAS: não aplicada)
+real main.lua (ESTABILIDADE already integrated)
+ 1. ECONOMIA        data/parallel/economy/build_patch.py        build(text)
+ 2. IA_LOGISTICA    data/parallel/logistics_ai/build_patch.py    build(text)[0]
+ 3. INTERFACE       REBASED panel (build_pilha.interface_build): replaces the whole logi.hudLine function
+ 4. PERSISTENCIA    data/parallel/persistence/build_patch.py    build_on(text)
+ (ESTRADAS: not applied)
 ```
 
-- **ECONOMIA antes da INTERFACE.** O gerador da ECONOMIA ancora no fim de `logi.hudLine` original
-  (`table.concat(deps, " | "), foe)\nend`) e injeta `logi.extraHud()` ali. O `painel.patch` original apaga essa âncora.
-  Reproduzido no passo 10 do teste: `painel.patch` aplica sozinho no main atual, mas o `build` da ECONOMIA depois dele
-  falha com "âncora não única ... table.concat(deps". Com a ECONOMIA primeiro, `extraHud` (inserida *antes* de
-  `hudLine`) sobrevive à troca da função.
-- **IA antes da PERSISTENCIA.** A IA ancora na linha original de `sv.load` (`pcall(logi.restore, d.logi)`), que a
-  PERSISTENCIA remove; `build_on` já reconhece a variante da IA.
-- **IA e INTERFACE comutam.** Como o painel rebaseado substitui a *função inteira* por limites de texto, a ordem
-  ECONOMIA → INTERFACE → IA → PERSISTENCIA produz **exatamente o mesmo texto** (passo 11). Escolhi IA antes porque foi
-  como a IA a testou e porque deixa a âncora opcional do HUD dela ser consumida (e depois descartada pela troca).
-- **ESTRADAS fora.** Sem driver integrável; só confirmei que nada da pilha quebra o contrato (seção 5).
+- **ECONOMIA before INTERFACE.** ECONOMIA's generator anchors on the end of the original `logi.hudLine`
+  (`table.concat(deps, " | "), foe)\nend`) and injects `logi.extraHud()` there. The original `painel.patch` erases that anchor.
+  Reproduced in step 10 of the test: `painel.patch` applies alone on the current main, but ECONOMIA's `build` after it
+  fails with "âncora não única ... table.concat(deps". With ECONOMIA first, `extraHud` (inserted *before*
+  `hudLine`) survives the function swap.
+- **AI before PERSISTENCIA.** The AI anchors on the original `sv.load` line (`pcall(logi.restore, d.logi)`), which
+  PERSISTENCIA removes; `build_on` already recognizes the AI variant.
+- **AI and INTERFACE commute.** Since the rebased panel replaces the *whole function* by text boundaries, the order
+  ECONOMIA → INTERFACE → AI → PERSISTENCIA produces **exactly the same text** (step 11). I chose AI first because that is
+  how the AI tested it and because it lets its optional HUD anchor be consumed (and then discarded by the swap).
+- **ESTRADAS left out.** No integrable driver; I only confirmed nothing in the stack breaks the contract (section 5).
 
-### Entregáveis nesta pasta
+### Deliverables in this folder
 
-| Arquivo | O que é |
+| File | What it is |
 |---|---|
-| `build_stack.py` | monta a pilha em memória (âncoras únicas, para no primeiro erro com mensagem clara: `ETAPA <nome> FALHOU`), grava os arquivos abaixo, confere SHA256 do main real |
-| `candidate/main.lua` | candidato completo, **CRLF** como o real (315 531 bytes, 6245 linhas, +1172 sobre as 5073 do real) |
-| `candidate/SHA256.txt` | SHA256 do main real antes/depois (iguais) e do candidato |
-| `stack.diff` | diff unificado **main real → candidato**, em **CRLF** (aplica direto no `main.lua` real com `git apply -p1`/`patch -p1`; testado: reproduz o candidato byte a byte) |
-| `stack_lf.diff` | o mesmo diff em LF, só para leitura |
-| `painel_rebase.patch` | passo INTERFACE: `main+ECONOMIA+IA` → `+painel rebaseado` (LF, 80 linhas) |
-| `test_stack.py` | bateria completa (17 etapas); saída detalhada em `test_output.txt` |
-| `test_output.txt` | saída capturada da última execução |
+| `build_stack.py` | assembles the stack in memory (unique anchors, stops at the first error with a clear message: `ETAPA <nome> FALHOU`), writes the files below, checks the real main's SHA256 |
+| `candidate/main.lua` | complete candidate, **CRLF** like the real one (315,531 bytes, 6245 lines, +1172 over the real one's 5073) |
+| `candidate/SHA256.txt` | SHA256 of the real main before/after (equal) and of the candidate |
+| `stack.diff` | unified diff **real main → candidate**, in **CRLF** (applies directly on the real `main.lua` with `git apply -p1`/`patch -p1`; tested: reproduces the candidate byte for byte) |
+| `stack_lf.diff` | the same diff in LF, for reading only |
+| `painel_rebase.patch` | INTERFACE step: `main+ECONOMIA+AI` → `+rebased panel` (LF, 80 lines) |
+| `test_stack.py` | complete battery (17 steps); detailed output in `test_output.txt` |
+| `test_output.txt` | captured output of the last run |
 
-> **Atualização:** existe também a **pilha v2** (seção "Pilha v2" no fim deste arquivo; `candidate_v2/`, `stack_v2.diff`).
-> Tudo antes dela descreve a pilha v1, que continua reproduzível.
+> **Update:** there is also the **v2 stack** (section "Stack v2" at the end of this file; `candidate_v2/`, `stack_v2.diff`).
+> Everything before it describes the v1 stack, which stays reproducible.
 
-Reproduzir (bash, raiz do repo):
+Reproduce (bash, repo root):
 
 ```bash
 PYTHONPATH=D:/tools/pylibs PYTHONDONTWRITEBYTECODE=1 python data/parallel/integration_rehearsal/build_stack.py
 PYTHONPATH=D:/tools/pylibs PYTHONDONTWRITEBYTECODE=1 python data/parallel/integration_rehearsal/test_stack.py
 ```
 
-Etapas do build (linhas +/- sobre o texto anterior): ECONOMIA +203/-65, IA_LOGISTICA +516/-45, INTERFACE +52/-16,
+Build steps (+/- lines over the previous text): ECONOMIA +203/-65, IA_LOGISTICA +516/-45, INTERFACE +52/-16,
 PERSISTENCIA +582/-55.
 
-## 2. Conflitos encontrados e como foram resolvidos
+## 2. Conflicts found and how they were resolved
 
-1. **ECONOMIA × `painel.patch`** (conhecido): âncora `table.concat(deps, " | "), foe)` some. Resolução: ordem
-   (ECONOMIA primeiro) + painel rebaseado por função inteira, não por contexto de linha.
-2. **`painel.lua` sem a reconciliação.** `painel.lua` não chama `extraHud`, não conhece o estado `returnCargo` da ECONOMIA e
-   lia `combat.cargo` na linha do inimigo. O rebase aplica, com âncoras únicas e fail-closed, os 4 hunks de
-   `interface/reconciliation_extraHud.patch` (nome/destino de `returnCargo`; `cargo.ammo/shirts or 0`; chamada opcional
-   de `logi.extraHud`) **e duas mudanças minhas** (listadas abaixo para o coordenador revisar):
-   - linha INIMIGO: se `logi.eHud` existe (IA integrada), usa a linha dela ("INIMIGO: frente equipa N ... comboios ...
-     perdidos"); senão mantém a linha antiga `INIMIGO | carga N`. Motivo: com a IA, `combat.cargo` virou alias de
-     "soldados que a frente equipa" e a linha antiga mostraria um número sem o sentido de antes (a própria IA recomendou
-     usar `logi.eHud()`). `eHud()` vazio (sem cadeia) não gera linha. Em assalto continua sem linha inimiga.
-   - carga do caminhão: acrescenta ` + N fuzis` / ` + N bandagens` quando existem (sem isso um caminhão só com fuzis
-     aparecia como "0 munição + 0 camisas (caixas)", enganoso).
-3. **Fim de linha misto nos `.patch` entregues:** `economy_integrated.patch`, `logistics_ai.patch`, `painel.patch` estão
-   em **CRLF** (gravados com `write_text` no Windows); `persistencia*.patch` e `reconciliation_extraHud.patch` em LF. O
-   `main.lua` é CRLF. Por isso `git apply` direto falha para metade deles dependendo do arquivo. Meu teste normaliza
-   para LF e aplica em sequência; **resultado byte a byte igual ao candidato** (passo 10). Recomendo aplicar via
-   `stack.diff` (CRLF, aplica no main real) ou copiar `candidate/main.lua`, não encadear os `.patch` à mão.
-4. **`economy/test_existing.py`** roda `tools/test_orders.py` contra o build da ECONOMIA **sem** trocar o bloco "enemy
-   convoy"; com a IA integrada esse bloco antigo não vale mais (a IA removeu o contrato abstrato `cargo0/perWave/cut`).
-   Substituído na bateria pela execução do `test_orders.py` com o bloco de `logistics_ai/test_orders_convoy_block.lua`
-   (passo 03b). Não executei `test_existing.py` nem `economy/test_economy.py` (módulo puro `economy.lua`, que a própria
-   ECONOMIA diz **não** carregar junto da integração).
-5. **`sv.enemySnapshot` × IA:** devolve `nil` quando `logi.eSnapshot` existe (a IA é dona do estado inimigo via `elogi`).
-   Sem conflito; mas os contadores `combat.convoys`/`combat.convoysCut` (só exibição) **não** são persistidos na
-   pilha com IA e voltam a 0 no continue. A fonte de verdade (`led.lost`, razão) é salva. Cosmético.
+1. **ECONOMIA × `painel.patch`** (known): the anchor `table.concat(deps, " | "), foe)` disappears. Resolution: order
+   (ECONOMIA first) + panel rebased by whole function, not by line context.
+2. **`painel.lua` without the reconciliation.** `painel.lua` does not call `extraHud`, does not know ECONOMIA's `returnCargo` state and
+   read `combat.cargo` on the enemy line. The rebase applies, with unique and fail-closed anchors, the 4 hunks of
+   `interface/reconciliation_extraHud.patch` (`returnCargo` name/destination; `cargo.ammo/shirts or 0`; optional call
+   to `logi.extraHud`) **and two changes of mine** (listed below for the coordinator to review):
+   - INIMIGO line: if `logi.eHud` exists (AI integrated), it uses its line ("INIMIGO: frente equipa N ... comboios ...
+     perdidos"); otherwise it keeps the old line `INIMIGO | carga N`. Reason: with the AI, `combat.cargo` became an alias of
+     "soldiers the front equips" and the old line would show a number without its former meaning (the AI itself recommended
+     using `logi.eHud()`). An empty `eHud()` (no chain) produces no line. In assault there is still no enemy line.
+   - truck cargo: adds ` + N fuzis` / ` + N bandagens` when they exist (without it a truck with only rifles
+     showed up as "0 munição + 0 camisas (caixas)", misleading).
+3. **Mixed line endings in the delivered `.patch` files:** `economy_integrated.patch`, `logistics_ai.patch`, `painel.patch` are
+   in **CRLF** (written with `write_text` on Windows); `persistencia*.patch` and `reconciliation_extraHud.patch` in LF. The
+   `main.lua` is CRLF. So a direct `git apply` fails for half of them depending on the file. My test normalizes
+   to LF and applies in sequence; **result byte for byte equal to the candidate** (step 10). I recommend applying through
+   `stack.diff` (CRLF, applies on the real main) or copying `candidate/main.lua`, not chaining the `.patch` files by hand.
+4. **`economy/test_existing.py`** runs `tools/test_orders.py` against ECONOMIA's build **without** swapping the "enemy
+   convoy" block; with the AI integrated that old block no longer holds (the AI removed the abstract contract `cargo0/perWave/cut`).
+   Replaced in the battery by running `test_orders.py` with the block from `logistics_ai/test_orders_convoy_block.lua`
+   (step 03b). I did not run `test_existing.py` nor `economy/test_economy.py` (pure module `economy.lua`, which ECONOMIA
+   itself says **not** to load together with the integration).
+5. **`sv.enemySnapshot` × AI:** returns `nil` when `logi.eSnapshot` exists (the AI owns the enemy state through `elogi`).
+   No conflict; but the counters `combat.convoys`/`combat.convoysCut` (display only) are **not** persisted in the
+   stack with the AI and go back to 0 on continue. The source of truth (`led.lost`, ledger) is saved. Cosmetic.
 
-Nenhum outro conflito de âncora entre ECONOMIA, IA e PERSISTENCIA (já tinham sido compostas por eles; reconfirmado).
+No other anchor conflict between ECONOMIA, AI and PERSISTENCIA (they had already been composed by them; reconfirmed).
 
-## 3. Contagem de locais de topo (limite 200 por chunk)
+## 3. Top-level local count (limit 200 per chunk)
 
-| Medida | main real | candidato |
+| Measure | real main | candidate |
 |---|---|---|
-| Compilador (Lua 5.4 = UE4SS **e** 5.5; maior nº de locais extras que ainda compila) | **178** ativos (folga 22) | **178** ativos (folga 22) |
-| Contagem por regex de `tools/check_globals.py` (limite do aviso: 180) | 175 | 175 |
+| Compiler (Lua 5.4 = UE4SS **and** 5.5; largest number of extra locals that still compiles) | **178** active (22 headroom) | **178** active (22 headroom) |
+| Regex count of `tools/check_globals.py` (warning limit: 180) | 175 | 175 |
 
-Nenhuma etapa da pilha (ECONOMIA, IA, INTERFACE, PERSISTENCIA) adicionou local de topo: tudo em `logi`, `sv`, `CFG`.
-`check_globals.py` no candidato: **rc=0, sem nenhuma saída** (nem avisos de sombra de nome de topo).
+No stack step (ECONOMIA, AI, INTERFACE, PERSISTENCIA) added a top-level local: everything in `logi`, `sv`, `CFG`.
+`check_globals.py` on the candidate: **rc=0, no output at all** (not even top-level name shadowing warnings).
 
-## 4. Teclas, `env` do canal, funções e campos novos
+## 4. Keys, channel `env`, new functions and fields
 
-- **Teclas novas: nenhuma.** `RegisterKeyBind` do candidato é idêntico ao do main real e `HELP_TEXT` também. O painel
-  só cita teclas existentes (Ctrl+L, Q/E, Espaço). Logo `tools/test_orders.py` (teste de teclas) e `MANUAL_TEST.md`
-  não ganham tecla nova. Mas o **README/TESTE_MANUAL precisam descrever**: Shift+L agora cicla prioridade também para
-  fuzis/bandagens; recrutar fuzileiro exige 1 fuzil + 1 camisa; médico só trata com bandagem em depósito aliado perto;
-  cadeia inimiga (alerta de comboio com `byCut`); painel multilinha; save v2 (infraestrutura/carteira, recusas,
-  autosave suspenso em continuação incompleta, arquivos `save.txt.tmp/.bak/.corrupt`).
-- **`env` de `runCommandFile`: nenhuma entrada nova necessária.** Já exporta `logi`, `sv`, `CFG`, `combat`, `S`, `ai`,
-  `fort`, `points`, `economy`; tudo que a pilha adiciona fica nessas tabelas e é acessível.
-- **Funções novas** (diff de `^function X.y(` real × candidato; nada removido):
+- **New keys: none.** The candidate's `RegisterKeyBind` is identical to the real main's and so is `HELP_TEXT`. The panel
+  only mentions existing keys (Ctrl+L, Q/E, Space). So `tools/test_orders.py` (key test) and `MANUAL_TEST.md`
+  get no new key. But **README/MANUAL_TEST need to describe**: Shift+L now cycles priority also for
+  rifles/bandages; recruiting a rifleman requires 1 rifle + 1 shirt; the medic only treats with bandages in a nearby allied depot;
+  enemy chain (convoy alert with `byCut`); multiline panel; save v2 (infrastructure/wallet, refusals,
+  autosave suspended on an incomplete continue, files `save.txt.tmp/.bak/.corrupt`).
+- **`env` of `runCommandFile`: no new entry needed.** It already exports `logi`, `sv`, `CFG`, `combat`, `S`, `ai`,
+  `fort`, `points`, `economy`; everything the stack adds lives in these tables and is reachable.
+- **New functions** (diff of `^function X.y(` real × candidate; nothing removed):
   - `logi`: `needs`, `moveCargo`, `medicalDepot`, `extraHud`, `validateSave` (ECONOMIA); `eActive eAfford eAudit eCommit
     eConsume eDeliver eEvent eFmt eHave eHome eHud eLoad eLose eNeed eNextKind eReport eReset eRestore eSnapshot
-    eSoldiers eStuck eTick eTransit eUnits eValid` (IA; `eAudit`, `eReport` são as de canal); `walletId`, `applyPlan`
+    eSoldiers eStuck eTick eTransit eUnits eValid` (AI; `eAudit`, `eReport` are the channel ones); `walletId`, `applyPlan`
     (PERSISTENCIA).
   - `sv`: `decode parseSave pure readFile writeAtomic validate verify preflight infraPlan infraSnapshot enemySnapshot
-    sameBuilt siteSpec worldPath` (PERSISTENCIA; `sv.parse` agora só decodifica).
-  - Campos de estado: `logi.en` (cadeia inimiga), `logi.fac/depots` com `rifle`/`medical`, `tr.cargo` genérico por
-    produto, `tr.state == "returnCargo"`, `S.deploy` com `budget/built`, `sv.degraded`, `sv.lastWritten`.
-  - `CFG` novos: `CFG.ECHAIN`, `CFG.PERSIST`; `CFG.LOGI` ganha `products`, `want.rifle/medical`, `recipes.rifle/medical`;
-    `CFG.ECONVOY` perde `cargo0/perWave/cut`.
-- **Formato de save:** v2 (lê v1). `save.txt` + `.tmp/.bak/.corrupt`.
+    sameBuilt siteSpec worldPath` (PERSISTENCIA; `sv.parse` now only decodes).
+  - State fields: `logi.en` (enemy chain), `logi.fac/depots` with `rifle`/`medical`, generic `tr.cargo` per
+    product, `tr.state == "returnCargo"`, `S.deploy` with `budget/built`, `sv.degraded`, `sv.lastWritten`.
+  - New `CFG`: `CFG.ECHAIN`, `CFG.PERSIST`; `CFG.LOGI` gains `products`, `want.rifle/medical`, `recipes.rifle/medical`;
+    `CFG.ECONVOY` loses `cargo0/perWave/cut`.
+- **Save format:** v2 (reads v1). `save.txt` + `.tmp/.bak/.corrupt`.
 
-## 5. Contrato ESTRADAS (driver devolve `true` só na chegada; `tr.routeStatus`)
+## 5. ESTRADAS contract (the driver returns `true` only on arrival; `tr.routeStatus`)
 
-Sem alteração do contrato; verificado em quatro frentes (passos 05, 06, 08 e 09):
-- **Estático:** `function logi.drive(` tem uma única definição (ponto de troca) e os 7 usos no candidato consomem o
-  retorno dentro de `if`/`elseif`; nenhum ignora o valor.
-- **Jogador (`toDep`):** com `drive` devolvendo `false` (e `routeStatus` em `rota_ausente`, `bloqueado`,
-  `regiao_invalida`) 30 ticks cada, nenhuma entrega, carga fica no caminhão; `true` entrega uma única vez.
-- **`returnCargo`:** destino capturado → `state="returnCargo"`, `dest=logi.factory`, sem crédito; `false` mantém tudo;
-  só `true` devolve as caixas fechadas à fábrica, uma vez, sem duplicar (conservação).
-- **Comboio inimigo (IA):** rota ausente por `ECHAIN.stuck` s → volta carregado (`back`), frente não recebe; crédito na
-  retaguarda só quando o driver devolve `true` (`logi.eHome`); razão `eAudit` fecha.
-- **Salvar/restaurar** não credita nada durante o retorno (ECONOMIA + PERSISTENCIA passam no mesmo candidato).
+No contract change; verified on four fronts (steps 05, 06, 08 and 09):
+- **Static:** `function logi.drive(` has a single definition (swap point) and the 7 uses in the candidate consume the
+  return inside `if`/`elseif`; none ignores the value.
+- **Player (`toDep`):** with `drive` returning `false` (and `routeStatus` in `rota_ausente`, `bloqueado`,
+  `regiao_invalida`) 30 ticks each, no delivery, the cargo stays on the truck; `true` delivers a single time.
+- **`returnCargo`:** destination captured → `state="returnCargo"`, `dest=logi.factory`, no credit; `false` keeps everything;
+  only `true` returns the closed crates to the factory, once, without duplicating (conservation).
+- **Enemy convoy (AI):** missing route for `ECHAIN.stuck` s → returns loaded (`back`), the front receives nothing; credit in
+  the rear only when the driver returns `true` (`logi.eHome`); the `eAudit` ledger closes.
+- **Save/restore** credits nothing during the return (ECONOMIA + PERSISTENCIA pass on the same candidate).
 
-**Pendência do lado ESTRADAS (achada aqui, não corrigi):** `data/parallel/roads/native_adapter.lua`,
-`adapter.returnCargo`, ainda credita `factory.ammo/factory.shirts` com `tr.cargo.ammo/shirts` (cargo de 2 produtos).
-No candidato o retorno é inline em `logi.truckStep` e credita via `logi.moveCargo(tr.cargo, logi.fac, false)` (4
-produtos, `logi.fac`). Quando o driver da ESTRADAS for integrado, **não usar `adapter.returnCargo` como está**: perderia
-fuzis/bandagens e erraria o alvo do crédito. Idem `RETURN_PATCH.lua` (versão de 2 produtos), já superado pelo patch da
-ECONOMIA.
+**Pending item on the ESTRADAS side (found here, not fixed by me):** `data/parallel/roads/native_adapter.lua`,
+`adapter.returnCargo`, still credits `factory.ammo/factory.shirts` with `tr.cargo.ammo/shirts` (2-product cargo).
+In the candidate the return is inline in `logi.truckStep` and credits through `logi.moveCargo(tr.cargo, logi.fac, false)` (4
+products, `logi.fac`). When the ESTRADAS driver is integrated, **do not use `adapter.returnCargo` as is**: it would lose
+rifles/bandages and get the credit target wrong. Same for `RETURN_PATCH.lua` (2-product version), already superseded by
+ECONOMIA's patch.
 
-## 6. Resultado dos testes (execução final)
+## 6. Test results (final run)
 
-`python data/parallel/integration_rehearsal/test_stack.py` → **17 etapas, 17 PASS, 0 FAIL** (Python 3.14.3, lupa 2.8):
+`python data/parallel/integration_rehearsal/test_stack.py` → **17 steps, 17 PASS, 0 FAIL** (Python 3.14.3, lupa 2.8):
 
 ```
 PASS  00 integridade: build reproduz candidate/main.lua (CRLF) e main.lua real intacto
@@ -167,23 +169,25 @@ PASS  12 candidato nao toca o ESTRADAS e nao deixa residuos do contrato abstrato
 PASS  99 main.lua real intacto ao fim (SHA256 33d6c7e5920a...)
 ```
 
-Como cada suíte alheia foi apontada para o candidato (nenhum original editado; `exec` de uma cópia do código com a
-linha de obtenção do candidato trocada, mesma técnica de `logistics_ai/test_orders_candidate.py` e
+(This is the test script's own output, kept verbatim.)
+
+How each other suite was pointed at the candidate (no original edited; `exec` of a copy of the code with the
+line that obtains the candidate swapped, the same technique as `logistics_ai/test_orders_candidate.py` and
 `persistence/test_regression.py`):
 
-| Suíte | Adaptação em memória |
+| Suite | In-memory adaptation |
 |---|---|
-| `tools/test_orders.py` | `source = candidato`; bloco "enemy convoy" trocado por `logistics_ai/test_orders_convoy_block.lua` (03b); controle sem mudança no main real (03a) |
-| `tools/test_costs.py`, `tools/test_inventory_probe.py` | não leem o `main.lua` (verificado por texto): rodados como estão |
-| `economy/test_integration.py` | `proposal = candidato` (executa o chunk inteiro; `ROOT` injetado) |
-| `logistics_ai/test_logistics_ai.py` | `stacked = candidato`; 25 sementes × 600 passos aleatórios com `eAudit` + 4 partidas completas, rodadas na pilha completa |
-| `interface/test_interface.py` | original (07a) e com o `hudLine` extraído do candidato no lugar de `painel.lua` (07b); teste novo 07c no chunk completo |
-| `persistence/test_persistence.py` | `STACKS` reduzido a 1 pilha = candidato completo (9 cenários × Lua 5.4/5.5) |
+| `tools/test_orders.py` | `source = candidate`; "enemy convoy" block swapped for `logistics_ai/test_orders_convoy_block.lua` (03b); control unchanged on the real main (03a) |
+| `tools/test_costs.py`, `tools/test_inventory_probe.py` | they do not read `main.lua` (verified by text): run as they are |
+| `economy/test_integration.py` | `proposal = candidate` (runs the whole chunk; `ROOT` injected) |
+| `logistics_ai/test_logistics_ai.py` | `stacked = candidate`; 25 seeds × 600 random steps with `eAudit` + 4 complete matches, run on the complete stack |
+| `interface/test_interface.py` | original (07a) and with the `hudLine` extracted from the candidate in place of `painel.lua` (07b); new test 07c on the complete chunk |
+| `persistence/test_persistence.py` | `STACKS` reduced to 1 stack = complete candidate (9 scenarios × Lua 5.4/5.5) |
 
-**Teste novo 07c (painel integrado):** estados (`returnCargo`, `toDep`, `idle` de recurso, `dead`), fuzis/bandagens na
-carga e em `extraHud`, linha INIMIGO da IA (sem a linha antiga), assalto sem linha inimiga, logística inativa, cargo com
-campos ausentes, e `hudLine` **não altera** estado (`sv.ser` de `snapshot` + `eSnapshot` igual antes/depois).
-Primeira renderização do teste = **12 linhas, até 222 caracteres de largura** (4 caminhões, 2 depósitos); amostra real:
+**New test 07c (integrated panel):** states (`returnCargo`, `toDep`, resource `idle`, `dead`), rifles/bandages in the
+cargo and in `extraHud`, the AI's INIMIGO line (without the old line), assault without an enemy line, inactive logistics, cargo with
+missing fields, and `hudLine` **does not change** state (`sv.ser` of `snapshot` + `eSnapshot` equal before/after).
+The test's first rendering = **12 lines, up to 222 characters wide** (4 trucks, 2 depots); real sample:
 
 ```
 LOGÍSTICA | sucata 12 | bmat 100 | prioridade auto
@@ -200,172 +204,172 @@ Ctrl+L: foco na cadeia | Q/E: frentes | Espaço: último alerta
 Fuzis: fábrica 3 caixas | bandagens: fábrica 4 caixas | base: 2 fuzis, 5 bandagens | A: 0 fuzis, 0 bandagens | caminhão 1 -> fábrica: 1 caixas fuzis, 1 caixas bandagens | caminhão 2 -> A: 2 caixas fuzis, 1 caixas bandagens
 ```
 
-**Os testes não são vácuos (mutação, fora da entrega):** 6 mutações no candidato foram pegas — returnCargo creditando
-sem chegada (05, 09); painel sem `returnCargo` (07c); comboio inimigo entregando sem driver (03b, 06, 09); save v=3
-(08); `hudLine` escrevendo estoque (07c); `validateSave` da ECONOMIA desligada (08).
+**The tests are not vacuous (mutation, outside the delivery):** 6 mutations in the candidate were caught — returnCargo crediting
+without arrival (05, 09); panel without `returnCargo` (07c); enemy convoy delivering without a driver (03b, 06, 09); save v=3
+(08); `hudLine` writing stock (07c); ECONOMIA's `validateSave` turned off (08).
 
-## 7. Riscos e limites
+## 7. Risks and limits
 
-- **Painel (gate visual):** pior caso 12 linhas e a última (`extraHud`) é uma linha única de ~200 caracteres; o
-  `hudTick` usa um TextBlock com `SetAutoSize`. Sem clipping/scroll provados (a INTERFACE já avisava). Se estourar a tela,
-  reconverter `extraHud` em várias linhas (por produto) em vez de esconder estoques.
-- **Painel × IA:** a linha INIMIGO mudou de forma (de "carga N" para o resumo da cadeia). Decisão minha, descrita em 2.
-- **Orquestração futura:** depois de aplicar a pilha, os `build_patch.py` das 3 pastas **deixam de funcionar** sobre o
-  novo main (âncoras já aplicadas; `build_on` aborta com "persistência já aplicada"), e `test_integration.py`,
-  `test_logistics_ai.py`, `test_persistence.py`, `test_orders_candidate.py` e `test_regression.py` ainda importam esses
-  builds. A bateria permanente deve passar a apontar para o `main.lua` real (trocar a linha de obtenção do candidato
-  como faço aqui) e `tools/test_orders.py` precisa do bloco do comboio trocado de forma definitiva.
-- **Contadores de comboio:** `combat.convoys/convoysCut` não persistem com IA (cosmético, ver 2.5).
-- **Arquivos novos em disco no laboratório:** `save.txt.tmp`, `.bak`, `.corrupt`; leitura de `.bak` pode trazer save até
-  30 s mais velho (avisado na tela).
-- **Escassez de grande risco de equilíbrio (IA):** interdição total leva ondas ao piso de 3; parâmetros em `CFG.ECHAIN`.
-- **Limitações assumidas das entregas (não resolvidas pela pilha):** ECONOMIA: granada impossível (falta Explosive);
-  cura passiva de pontos/postos e composição inicial/recompensa/F6 continuam grátis. IA: munição inimiga no tiro,
-  morteiro e fortificações inimigas continuam abstratos; retaguarda fora do mapa não pode ser atacada. PERSISTENCIA:
-  mudança de layout do hex invalida o save (recusa, não inventa).
-- **Transporte continua em linha reta** até o driver da ESTRADAS: a pilha só garante que a lógica de carga/retorno/
-  perda é correta *quando* o driver for confiável.
+- **Panel (visual gate):** worst case 12 lines and the last one (`extraHud`) is a single line of ~200 characters; the
+  `hudTick` uses a TextBlock with `SetAutoSize`. No proven clipping/scroll (INTERFACE already warned). If it overflows the screen,
+  turn `extraHud` back into several lines (per product) instead of hiding stocks.
+- **Panel × AI:** the INIMIGO line changed shape (from "carga N" to the chain summary). My decision, described in 2.
+- **Future orchestration:** after applying the stack, the `build_patch.py` of the 3 folders **stop working** on the
+  new main (anchors already applied; `build_on` aborts with "persistência já aplicada"), and `test_integration.py`,
+  `test_logistics_ai.py`, `test_persistence.py`, `test_orders_candidate.py` and `test_regression.py` still import those
+  builds. The permanent battery must start pointing at the real `main.lua` (swap the line that obtains the candidate
+  as I do here) and `tools/test_orders.py` needs the convoy block swapped permanently.
+- **Convoy counters:** `combat.convoys/convoysCut` do not persist with the AI (cosmetic, see 2.5).
+- **New files on disk in the lab:** `save.txt.tmp`, `.bak`, `.corrupt`; reading `.bak` may bring a save up to
+  30 s older (warned on screen).
+- **High-risk balance scarcity (AI):** total interdiction brings waves to the floor of 3; parameters in `CFG.ECHAIN`.
+- **Accepted limitations of the deliveries (not solved by the stack):** ECONOMIA: grenade impossible (no Explosive);
+  passive healing at points/posts and the starting composition/reward/F6 stay free. AI: enemy ammo when firing,
+  enemy mortar and fortifications stay abstract; the off-map rear cannot be attacked. PERSISTENCIA:
+  a hex layout change invalidates the save (refusal, it does not invent).
+- **Transport keeps going in a straight line** until the ESTRADAS driver: the stack only guarantees that the cargo/return/
+  loss logic is correct *when* the driver is reliable.
 
-## 8. O que exige laboratório (gates abertos copiados dos RELATÓRIOS)
+## 8. What requires the lab (open gates copied from the REPORTS)
 
-**ECONOMIA:** aplicação sequencial real + reconciliação do painel; globals/sintaxe (feito aqui offline); teste ao vivo
-receita → produção → transporte → rifle recrutado / bandagem tratada **sem estoques artificiais**; contraste
-escassez / corte de transporte / retomada; save em meio a produção e carga; falha de engine **depois** do preflight
-(rollback transacional não provado); captura de ponto / novo mapa; legibilidade e equilíbrio; atualizar README/
-TESTE_MANUAL (prioridade fuzis/bandagens, suprimento ativo de médico/recrutamento). **Driver atual anda em reta: não usar
-como transporte seguro sem integrar o driver ESTRADAS com rota/sweep/chegada.** Granada continua bloqueada (Explosive).
+**ECONOMIA:** real sequential application + panel reconciliation; globals/syntax (done here offline); live test
+recipe → production → transport → recruited rifleman / treated bandage **without artificial stocks**; contrast
+scarcity / transport cut / recovery; save in the middle of production and cargo; engine failure **after** the preflight
+(transactional rollback not proven); point capture / new map; readability and balance; update README/
+MANUAL_TEST (rifle/bandage priority, active medic/recruiting supply). **The current driver drives straight: do not use it
+as safe transport without integrating the ESTRADAS driver with route/sweep/arrival.** Grenade stays blocked (Explosive).
 
-**IA_LOGISTICA** (`logistics_ai/LAB_SCRIPT.md`): spawn e movimento do `BPTruckC` com o patch; LOS e alertas;
-desempenho por quadro; efeito real na frente com soldados de verdade; equilíbrio (piso de 3 com interdição total);
-save/continue real em disco com comboio na estrada; integração com o driver da ESTRADAS; `logi.convoyRoute` ainda
-escolhe retaguarda e frente por traços de chão em reta (paradas precisam virar paradas validadas do grafo).
+**IA_LOGISTICA** (`logistics_ai/LAB_SCRIPT.md`): `BPTruckC` spawn and movement with the patch; LOS and alerts;
+per-frame performance; real effect at the front with real soldiers; balance (floor of 3 with total interdiction);
+real on-disk save/continue with a convoy on the road; integration with the ESTRADAS driver; `logi.convoyRoute` still
+picks rear and front through straight ground traces (stops need to become validated graph stops).
 
-**INTERFACE:** painel em partida com logística ativa, pausa, logística desligada, mapa novo, depósito perdido, caminhão
-morto/recriado, com captura e dados do mesmo instante; sobreposição, largura/altura em vários zooms/resoluções, ajuda F5
-e alertas nativos; ver se o elenco excede a altura (ajustar layout, não esconder dados); **o usuário** confere
-esquerda/Shift/direita/câmera/F5/Ctrl+L/Q/E/Espaço (nenhuma entrada real foi testada). Caixa de seleção por arrasto
-**não está entregue** (precisa das sondas UMG/projeção); botões de foco por caminhão e alertas de estoque deduplicados
-seguem abertos. Troca de mapa: não confundir `IsValid` do widget antigo com o mundo atual.
+**INTERFACE:** panel in a match with active logistics, pause, logistics off, new map, lost depot, dead/recreated
+truck, with a capture and data from the same instant; overlap, width/height at several zooms/resolutions, F5 help
+and native alerts; check whether the cast exceeds the height (adjust the layout, do not hide data); **the user** checks
+left/Shift/right/camera/F5/Ctrl+L/Q/E/Space (no real input was tested). Drag selection box
+**is not delivered** (needs the UMG/projection probes); per-truck focus buttons and deduplicated stock alerts
+remain open. Map change: do not confuse `IsValid` of the old widget with the current world.
 
-**PERSISTENCIA** (`persistence/LAB_SCRIPT.md`): `io.open("rb"/"wb")`, `f:seek`, `os.rename`/`os.remove` no Lua do
-UE4SS/Windows; spawn real refazendo a infraestrutura numa carga nova do hex com ruína/yaw idênticos entre cargas
-(tolerâncias 2 m / 1° são hipótese); `GetFullName` do mundo; carga em trânsito retomada com o driver real; custo no
-game thread; IA_LOGISTICA ao vivo; queda real entre renames. Matriz do laboratório obrigatória antes de fechar a task.
+**PERSISTENCIA** (`persistence/LAB_SCRIPT.md`): `io.open("rb"/"wb")`, `f:seek`, `os.rename`/`os.remove` in
+UE4SS's Lua/Windows; a real spawn redoing the infrastructure on a new load of the hex with identical ruin/yaw between loads
+(2 m / 1° tolerances are a hypothesis); the world's `GetFullName`; cargo in transit resumed with the real driver; cost on the
+game thread; IA_LOGISTICA live; a real crash between renames. Lab matrix mandatory before closing the task.
 
-**ESTRADAS:** driver real (rota, sweep, chegada confirmada, `routeStatus`) integrado e testado ao vivo; exportar schema
-das splines; curva real campo → refinaria → fábrica; ponte/água; replano; ms por tick. Adaptar o `adapter.returnCargo`
-(ver seção 5) antes de integrar.
+**ESTRADAS:** real driver (route, sweep, confirmed arrival, `routeStatus`) integrated and tested live; export the schema
+of the splines; real curve field → refinery → factory; bridge/water; replanning; ms per tick. Adapt `adapter.returnCargo`
+(see section 5) before integrating.
 
-**Específico desta pilha (laboratório):** carregar o candidato (via `restart.sh` do coordenador, não por mim) e rodar
-uma partida curta com logística ligada: painel legível, produção de fuzis/bandagens, comboio inimigo, Ctrl+F6 depois de
-Alt+L; conferir `UE4SS.log` sem erro de Lua nos primeiros 5 minutos; gravar HUD de 12 linhas em vários zooms.
+**Specific to this stack (lab):** load the candidate (through the coordinator's `restart.sh`, not by me) and run
+a short match with logistics on: readable panel, rifle/bandage production, enemy convoy, Ctrl+F6 after
+Alt+L; check `UE4SS.log` without a Lua error in the first 5 minutes; record the 12-line HUD at several zooms.
 
-## 9. Como aplicar (para o coordenador, quando decidir)
+## 9. How to apply (for the coordinator, when they decide)
 
-1. Conferir que o `main.lua` real ainda tem o SHA256 acima (senão refazer `build_stack.py`).
-2. Copiar `candidate/main.lua` por cima do real **ou** aplicar `stack.diff` (CRLF) com `git apply -p1`/`patch -p1`
-   na raiz (o resultado é idêntico byte a byte, testado em diretório temporário).
-3. Trocar em `tools/test_orders.py` o bloco "enemy convoy" pelo de `logistics_ai/test_orders_convoy_block.lua`; incluir
-   na bateria os testes novos das três entregas apontando para o `main.lua` real.
-4. Rodar `check_globals.py` e a bateria; só então laboratório.
-5. Registrar no `MODLOG.md`; gotchas já propostos estão em `logistics_ai/PROPOSED_GOTCHAS.md` e
-   `persistence/PROPOSED_GOTCHAS.md`; novos gotchas desta rodada para a nota `knowledge/games/foxhole/...`:
-   (a) `.patch` gravados com `write_text` no Windows saem CRLF — usar `newline="\n"` ou aplicar por script;
-   (b) um painel que substitui função inteira por limites de texto comuta com patches que ancoram dentro dela;
-   (c) adaptador de retorno de carga de 2 produtos fica obsoleto quando a economia generaliza produtos.
+1. Check that the real `main.lua` still has the SHA256 above (otherwise redo `build_stack.py`).
+2. Copy `candidate/main.lua` over the real one **or** apply `stack.diff` (CRLF) with `git apply -p1`/`patch -p1`
+   at the root (the result is byte for byte identical, tested in a temporary directory).
+3. Swap in `tools/test_orders.py` the "enemy convoy" block for the one in `logistics_ai/test_orders_convoy_block.lua`; include
+   in the battery the new tests of the three deliveries pointing at the real `main.lua`.
+4. Run `check_globals.py` and the battery; only then the lab.
+5. Record in `MODLOG.md`; already proposed gotchas are in `logistics_ai/PROPOSED_GOTCHAS.md` and
+   `persistence/PROPOSED_GOTCHAS.md`; new gotchas from this round for the note `knowledge/games/foxhole/...`:
+   (a) `.patch` files written with `write_text` on Windows come out CRLF — use `newline="\n"` or apply through a script;
+   (b) a panel that replaces a whole function by text boundaries commutes with patches that anchor inside it;
+   (c) a 2-product cargo return adapter becomes obsolete when the economy generalizes products.
 
 ---
 
-# Pilha v2 (entregas de `logistics_ai/finishing/`) — 2026-10-09
+# Stack v2 (deliveries from `logistics_ai/finishing/`) — 2026-10-09
 
-A pilha v1 acima continua reproduzível e **inalterada** (`build_stack.py v1`; hash do `candidate/main.lua` igual ao de
-antes: `fe91ce776eec7f2c79a41223e1430f4bd9f37d9ba0e9d317daf2bf07b48765ed`). A v2 é uma variante nova; nada foi aplicado
-ao `main.lua` real (SHA256 igual antes/depois em build e testes) e nada foi editado em `finishing/` (só leitura; as
-funções puras `build`/`build_on`/`apply` foram importadas sem bytecode).
+The v1 stack above stays reproducible and **unchanged** (`build_stack.py v1`; hash of `candidate/main.lua` equal to
+before: `fe91ce776eec7f2c79a41223e1430f4bd9f37d9ba0e9d317daf2bf07b48765ed`). v2 is a new variant; nothing was applied
+to the real `main.lua` (SHA256 equal before/after in build and tests) and nothing was edited in `finishing/` (read-only; the
+pure functions `build`/`build_on`/`apply` were imported without bytecode).
 
-## V2.1 Ordem e candidato
+## V2.1 Order and candidate
 
 ```
-main.lua real
+real main.lua
  1. ECONOMIA          economy/build_patch.py                       build
  2. IA_LOGISTICA v2   finishing/build_patch_v2.py                  build()[0]   (CFG.ECHAIN free 5, want 4/20, trip 20; eRestore(d, dropped))
- 3. reserva de bmat   finishing/patch_bmat_reserve.py              apply        (logi.rebuildReserve + guarda em logi.factoryStep)
- 4. INTERFACE v2      build_pilha.interface_build(s, v2=True)       painel rebaseado + estado da reserva + piso gratis
- 5. PERSISTENCIA v2   finishing/build_persistence_v2.py           build_on     (elogi: descarta so a secao)
+ 3. bmat reserve      finishing/patch_bmat_reserve.py              apply        (logi.rebuildReserve + guard in logi.factoryStep)
+ 4. INTERFACE v2      build_pilha.interface_build(s, v2=True)       rebased panel + reserve state + free floor
+ 5. PERSISTENCIA v2   finishing/build_persistence_v2.py           build_on     (elogi: discards only the section)
 ```
 
-**SHA256 do `candidate_v2/main.lua` (CRLF): `a93c1531588ea4534a7791dbb2e9578654ad0fa4a87373be1cbed569cbc3eda6`**
-(319 236 bytes, 6302 linhas). Main real: `33d6c7e5920a3b5e00b7f3bafbc7b8a86c984db810217241a567afe0901ee679` (antes = depois).
+**SHA256 of `candidate_v2/main.lua` (CRLF): `a93c1531588ea4534a7791dbb2e9578654ad0fa4a87373be1cbed569cbc3eda6`**
+(319,236 bytes, 6302 lines). Real main: `33d6c7e5920a3b5e00b7f3bafbc7b8a86c984db810217241a567afe0901ee679` (before = after).
 
-Etapas (+/- linhas): ECONOMIA +203/-65, IA v2 +528/-45, reserva +16/-0, INTERFACE v2 +61/-16, PERSISTENCIA v2 +602/-55.
+Steps (+/- lines): ECONOMIA +203/-65, AI v2 +528/-45, reserve +16/-0, INTERFACE v2 +61/-16, PERSISTENCIA v2 +602/-55.
 
-Comutação (passo 11, texto idêntico byte a byte nas 4 ordens, além da principal): `ECO>IA>INTERFACE>reserva>PERS`,
-`ECO>INTERFACE>IA>reserva>PERS`, `ECO>INTERFACE>reserva>IA>PERS`, `ECO>IA>reserva>PERS>INTERFACE`. A posição do painel e
-da reserva é indiferente; só IA→PERSISTENCIA e ECONOMIA antes da INTERFACE são obrigatórias.
+Commutation (step 11, text identical byte for byte in 4 orders, besides the main one): `ECO>IA>INTERFACE>reserva>PERS`,
+`ECO>INTERFACE>IA>reserva>PERS`, `ECO>INTERFACE>reserva>IA>PERS`, `ECO>IA>reserva>PERS>INTERFACE`. The position of the panel and
+of the reserve does not matter; only AI→PERSISTENCIA and ECONOMIA before INTERFACE are mandatory.
 
-Arquivos novos: `candidate_v2/main.lua`, `candidate_v2/SHA256.txt`, `stack_v2.diff` (CRLF, aplica direto no main real;
-testado, reproduz o candidato byte a byte), `stack_v2_lf.diff`, `painel_rebase_v2.patch` (LF, etapa 3 → 4),
-`test_output_v2.txt`. Reproduzir:
+New files: `candidate_v2/main.lua`, `candidate_v2/SHA256.txt`, `stack_v2.diff` (CRLF, applies directly on the real main;
+tested, reproduces the candidate byte for byte), `stack_v2_lf.diff`, `painel_rebase_v2.patch` (LF, step 3 → 4),
+`test_output_v2.txt`. Reproduce:
 
 ```bash
-PYTHONPATH=D:/tools/pylibs PYTHONDONTWRITEBYTECODE=1 python data/parallel/integration_rehearsal/build_stack.py v2     # ou: all
+PYTHONPATH=D:/tools/pylibs PYTHONDONTWRITEBYTECODE=1 python data/parallel/integration_rehearsal/build_stack.py v2     # or: all
 PYTHONPATH=D:/tools/pylibs PYTHONDONTWRITEBYTECODE=1 python data/parallel/integration_rehearsal/test_stack.py v2
 ```
 
-## V2.2 Resultado dos testes (20 etapas, 20 PASS, 0 FAIL)
+## V2.2 Test results (20 steps, 20 PASS, 0 FAIL)
 
-| Etapa | Resultado |
+| Step | Result |
 |---|---|
-| 00 integridade (candidate_v2 em CRLF == build; main real intacto) | PASS |
-| 01 sintaxe Lua 5.4 e 5.5 + locais: compilador **178** ativos (folga 22), regex do check_globals **175**, igual ao main real; nenhuma etapa adiciona local | PASS |
-| 02 `tools/check_globals.py` no candidate_v2 | PASS (rc=0, sem saída, sem avisos) |
-| 03a `tools/test_orders.py` no main real (controle) | PASS |
-| 03b `tools/test_orders.py` no candidate_v2 com `test_orders_convoy_block_v2.lua` | PASS |
-| 04 `tools/test_costs.py`, `tools/test_inventory_probe.py` (independentes do main) | PASS |
+| 00 integrity (candidate_v2 in CRLF == build; real main intact) | PASS |
+| 01 syntax Lua 5.4 and 5.5 + locals: compiler **178** active (22 headroom), check_globals regex **175**, equal to the real main; no step adds a local | PASS |
+| 02 `tools/check_globals.py` on candidate_v2 | PASS (rc=0, no output, no warnings) |
+| 03a `tools/test_orders.py` on the real main (control) | PASS |
+| 03b `tools/test_orders.py` on candidate_v2 with `test_orders_convoy_block_v2.lua` | PASS |
+| 04 `tools/test_costs.py`, `tools/test_inventory_probe.py` (independent of main) | PASS |
 | 05 `economy/test_integration.py` | PASS |
-| 06 `finishing/test_logistics_ai_v2.py` (25×600 passos + partidas, na pilha completa) | PASS |
-| 06b `finishing/test_elogi.py` (Lua 5.4/5.5; candidate_v2 + cenário "mod sem IA") | PASS (12 casos) |
-| 06c `finishing/test_truck_bmat.py` (hipótese sem patch; com patch o caminhão volta; pilha completa = candidate_v2) | PASS |
-| 07a `interface/test_interface.py` original | PASS |
-| 07b `interface/test_interface.py` com o `hudLine` do candidate_v2 | PASS |
-| 07c painel integrado (estados, returnCargo, fuzis/bandagens, linha INIMIGO da IA, só leitura) | PASS |
-| **07d painel v2 (novo): reserva de bmat e linha INIMIGO com piso `free=5`** | PASS |
-| 08 `finishing/test_persistence_v2.py` (9 cenários × Lua 5.4/5.5 × 2 pilhas: sem IA e candidate_v2) | PASS (36 casos) |
-| 09 contrato ESTRADAS (7 usos de `logi.drive`, todos condicionais; false nunca entrega; returnCargo; comboio) | PASS |
-| 10 conflito `painel.patch`×ECONOMIA reproduzido; `economia_integrada > ia_logistica_v2 > reserva_bmat > painel_rebase_v2 > persistencia_v2_sobre_ia` aplicam em sequência e == candidato; `stack_v2.diff` aplica no main real | PASS |
-| 11 quatro ordens alternativas == candidato | PASS |
-| 12 sem resíduos do contrato abstrato; calibração `free 5 / trip 20.0 / want 4,20`; `rebuildReserve` única | PASS |
-| 99 main real intacto ao fim | PASS |
+| 06 `finishing/test_logistics_ai_v2.py` (25×600 steps + matches, on the complete stack) | PASS |
+| 06b `finishing/test_elogi.py` (Lua 5.4/5.5; candidate_v2 + "mod without AI" scenario) | PASS (12 cases) |
+| 06c `finishing/test_truck_bmat.py` (hypothesis without the patch; with the patch the truck comes back; complete stack = candidate_v2) | PASS |
+| 07a original `interface/test_interface.py` | PASS |
+| 07b `interface/test_interface.py` with candidate_v2's `hudLine` | PASS |
+| 07c integrated panel (states, returnCargo, rifles/bandages, the AI's INIMIGO line, read-only) | PASS |
+| **07d panel v2 (new): bmat reserve and INIMIGO line with the `free=5` floor** | PASS |
+| 08 `finishing/test_persistence_v2.py` (9 scenarios × Lua 5.4/5.5 × 2 stacks: without AI and candidate_v2) | PASS (36 cases) |
+| 09 ESTRADAS contract (7 uses of `logi.drive`, all conditional; false never delivers; returnCargo; convoy) | PASS |
+| 10 conflict `painel.patch`×ECONOMIA reproduced; `economia_integrada > ia_logistica_v2 > reserva_bmat > painel_rebase_v2 > persistencia_v2_sobre_ia` apply in sequence and == candidate; `stack_v2.diff` applies on the real main | PASS |
+| 11 four alternative orders == candidate | PASS |
+| 12 no leftovers of the abstract contract; calibration `free 5 / trip 20.0 / want 4,20`; single `rebuildReserve` | PASS |
+| 99 real main intact at the end | PASS |
 
-Notas: `test_elogi.py` e `test_persistence_v2.py` rodam com 2 pilhas (a "sem IA" é necessária ao caso "mod sem o módulo";
-a outra é **o candidate_v2 completo, com INTERFACE**) em vez das 3 originais deles (as pilhas só com IA e sem INTERFACE
-ficam cobertas por `finishing/run_all.sh`; não rodei esse script nem `sweep_echain.py`, que não dependem do painel).
-Não executei `finishing/test_regression_v2.py` (cobertura repetida pelos passos 03b/05/06/01/02/11); ele importa
-`interface_build` deste arquivo, cuja assinatura continua compatível (`interface_build(s)` = painel v1).
+Notes: `test_elogi.py` and `test_persistence_v2.py` run with 2 stacks (the "without AI" one is needed for the "mod without the module" case;
+the other is **the complete candidate_v2, with INTERFACE**) instead of their original 3 (the stacks with only AI and without INTERFACE
+are covered by `finishing/run_all.sh`; I did not run that script nor `sweep_echain.py`, which do not depend on the panel).
+I did not run `finishing/test_regression_v2.py` (coverage repeated by steps 03b/05/06/01/02/11); it imports
+`interface_build` from this file, whose signature stays compatible (`interface_build(s)` = panel v1).
 
-Mutações no candidate_v2 (fora da entrega), todas pegas: reserva = 0 (06c, 07d); painel sem aviso de reserva (07d);
-`free` 5→3 (06, 07d, 12); painel sem piso (07d); `sv.validate` recusando tudo por `elogi` inválido (06b, 08).
+Mutations on candidate_v2 (outside the delivery), all caught: reserve = 0 (06c, 07d); panel without the reserve warning (07d);
+`free` 5→3 (06, 07d, 12); panel without the floor (07d); `sv.validate` refusing everything for an invalid `elogi` (06b, 08).
 
-## V2.3 Painel: estado novo
+## V2.3 Panel: new state
 
-O painel v1 dizia **"aguarda bmat"** com a fábrica parada, o que é **enganoso na v2**: com um caminhão do jogador destruído a
-fábrica deixa de iniciar receita de propósito para juntar 100 bmat, e a única indicação era o toast
-`fábrica guarda N bmat para reconstruir caminhão` (3 s, no máximo 1 a cada 20 s). Por isso o painel rebaseado v2 ganhou
-(só na variante v2; a v1 ficou intacta):
+The v1 panel said **"aguarda bmat"** with the factory idle, which is **misleading in v2**: with a player truck destroyed the
+factory stops starting recipes on purpose to gather 100 bmat, and the only indication was the toast
+`fábrica guarda N bmat para reconstruir caminhão` (3 s, at most 1 every 20 s). So the rebased v2 panel gained
+(only in the v2 variant; v1 stayed intact):
 
-- **Linha da fábrica:** `Fábrica | guarda 100 bmat para reconstruir caminhão (bmat 130)` quando `logi.rebuildReserve() > 0` e
-  `bmat − custo da receita < reserva` (mesma condição de `factoryStep`); `guarda 200` com dois caminhões destruídos;
-  volta a `aguarda bmat` (sem caminhão destruído) / `N s restantes` (job iniciado com bmat de sobra) / `parada: demanda
-  atendida`. Provado que o painel diz a verdade: nessa condição `factoryStep` de fato não inicia job.
-- **Linha INIMIGO com o piso:** `INIMIGO: frente equipa 10 (m2.0 c10) | retaguarda bmat 240, cx m0 c0 | comboios 0 na
-  estrada, 0 perdidos | piso grátis 5/onda`. Com a cadeia cortada e a frente zerada: `frente equipa 0 (m0.0 c0) ... | piso grátis
-  5/onda`, e `waveCut(13)` devolve exatamente 5 = o número mostrado. Em assalto, sem cadeia (`logi.en` nulo) ou sem logística
-  não há linha nem piso; cadeia recusada mostra `cadeia recusada (...)`, sem erro.
-- Continua só leitura (snapshot + eSnapshot idênticos antes/depois do `hudLine`).
+- **Factory line:** `Fábrica | guarda 100 bmat para reconstruir caminhão (bmat 130)` when `logi.rebuildReserve() > 0` and
+  `bmat − recipe cost < reserve` (the same condition as `factoryStep`); `guarda 200` with two destroyed trucks;
+  back to `aguarda bmat` (no destroyed truck) / `N s restantes` (job started with spare bmat) / `parada: demanda
+  atendida`. Proven that the panel tells the truth: under that condition `factoryStep` indeed does not start a job.
+- **INIMIGO line with the floor:** `INIMIGO: frente equipa 10 (m2.0 c10) | retaguarda bmat 240, cx m0 c0 | comboios 0 na
+  estrada, 0 perdidos | piso grátis 5/onda`. With the chain cut and the front at zero: `frente equipa 0 (m0.0 c0) ... | piso grátis
+  5/onda`, and `waveCut(13)` returns exactly 5 = the number shown. In assault, without a chain (`logi.en` nil) or without logistics
+  there is no line nor floor; a refused chain shows `cadeia recusada (...)`, without an error.
+- Still read-only (snapshot + eSnapshot identical before/after `hudLine`).
 
-Cuidado de teste registrado: `retaguarda` contém `guarda`; as asserções de texto do painel usam `Fábrica | guarda`.
+Recorded test caveat: `retaguarda` contains `guarda`; the panel's text assertions use `Fábrica | guarda`.
 
-Amostra (07d):
+Sample (07d):
 
 ```
 Fábrica | guarda 100 bmat para reconstruir caminhão (bmat 130)
@@ -373,36 +377,36 @@ INIMIGO: frente equipa 10 (m2.0 c10) | retaguarda bmat 240, cx m0 c0 | comboios 
 INIMIGO: frente equipa 0 (m0.0 c0) | retaguarda bmat 240, cx m0 c0 | comboios 0 na estrada, 0 perdidos | piso grátis 5/onda
 ```
 
-A linha INIMIGO passa a ter ~125 caracteres; o painel completo continua em 12 linhas no pior caso do teste 07c (gate
-visual do laboratório, como antes).
+The INIMIGO line now has ~125 characters; the complete panel stays at 12 lines in the worst case of test 07c (lab
+visual gate, as before).
 
-## V2.4 Conflitos novos (v2 em relação à v1)
+## V2.4 New conflicts (v2 relative to v1)
 
-1. **Nenhum conflito de âncora novo.** `reserva_bmat` ancora dentro de `logi.factoryStep` (linha da receita da ECONOMIA) e
-   em `function logi.factoryStep(`: não toca o HUD nem o save; comuta com IA v2, INTERFACE e PERSISTENCIA v2.
-2. **Fim de linha dos `.patch` de `finishing/`:** `logistics_ai_v2.patch` em **CRLF** (mesmo vício de `write_text` no
-   Windows); `bmat_reserve.patch`, `persistence_v2_over_ai.patch` e `painel_rebase_v2.patch` em LF. O encadeamento só aplica
-   depois de normalizar para LF (feito no teste). Use `stack_v2.diff` ou `candidate_v2/main.lua`.
-3. **`persistence_v2_over_ai.patch`** foi gerado sobre `ECO+IA2+reserva` (sem INTERFACE) e mesmo assim aplica limpo
-   depois da INTERFACE (contexto longe do HUD), confirmado byte a byte.
-4. **Painel × reserva:** o rótulo `aguarda bmat` ficou incorreto com a reserva; resolvido no painel v2. O toast continua
-   existindo (não é persistente).
-5. **Decisões de comportamento para o coordenador** (já apontadas pelo acabamento): a calibração `free 5 / want 4,20 / trip 20`
-   e a política "elogi descarta só a seção" (editar o save pode virar atalho de reinício da cadeia inimiga; risco baixo em
-   jogo solo offline).
-6. **Pendências herdadas, não resolvidas pela v2:** caminhão de **recurso** destruído com bmat=0 e sucata=0 continua sem renda
-   para reconstruir (`finishing/REPORT.md` 2.3); estoque de recomeço da cadeia inimiga após `elogi` descartado (3.2);
-   `combat.convoys/convoysCut` seguem sem persistir (v1, item 2.5); `adapter.returnCargo` da ESTRADAS defasado (seção 5).
-7. **Locais, teclas, `env`:** iguais à v1 (178 pelo compilador, 175 pela regex; nenhuma tecla nova; nada novo no `env`). Única
-   função nova em relação à v1: `logi.rebuildReserve` (e o campo `logi.rebuildNoteT`); `logi.eRestore` ganha o 2º parâmetro
-   `dropped`. O README precisa dizer, além do que a v1 já pedia: piso/estoque da cadeia inimiga, reserva de bmat para
-   reconstruir caminhão (linha "guarda N bmat" no painel) e o aviso `CADEIA INIMIGA REINICIADA` no continue.
+1. **No new anchor conflict.** `reserva_bmat` anchors inside `logi.factoryStep` (ECONOMIA's recipe line) and
+   on `function logi.factoryStep(`: it does not touch the HUD nor the save; it commutes with AI v2, INTERFACE and PERSISTENCIA v2.
+2. **Line endings of the `finishing/` `.patch` files:** `logistics_ai_v2.patch` in **CRLF** (the same `write_text` flaw on
+   Windows); `bmat_reserve.patch`, `persistence_v2_over_ai.patch` and `painel_rebase_v2.patch` in LF. The chain only applies
+   after normalizing to LF (done in the test). Use `stack_v2.diff` or `candidate_v2/main.lua`.
+3. **`persistence_v2_over_ai.patch`** was generated over `ECO+IA2+reserva` (without INTERFACE) and still applies cleanly
+   after INTERFACE (context far from the HUD), confirmed byte for byte.
+4. **Panel × reserve:** the label `aguarda bmat` became incorrect with the reserve; solved in panel v2. The toast still
+   exists (it is not persistent).
+5. **Behavior decisions for the coordinator** (already pointed out by the finishing): the calibration `free 5 / want 4,20 / trip 20`
+   and the policy "elogi discards only the section" (editing the save may become a shortcut to restart the enemy chain; low risk in
+   an offline solo game).
+6. **Inherited pending items, not solved by v2:** a destroyed **resource** truck with bmat=0 and salvage=0 still has no income
+   to rebuild (`finishing/REPORT.md` 2.3); restart stock of the enemy chain after a discarded `elogi` (3.2);
+   `combat.convoys/convoysCut` still not persisted (v1, item 2.5); ESTRADAS's `adapter.returnCargo` outdated (section 5).
+7. **Locals, keys, `env`:** same as v1 (178 by the compiler, 175 by the regex; no new key; nothing new in `env`). The only
+   new function relative to v1: `logi.rebuildReserve` (and the field `logi.rebuildNoteT`); `logi.eRestore` gains the 2nd parameter
+   `dropped`. The README needs to say, besides what v1 already asked: floor/stock of the enemy chain, bmat reserve to
+   rebuild a truck (line "guarda N bmat" in the panel) and the warning `CADEIA INIMIGA REINICIADA` on continue.
 
-## V2.5 O que exige laboratório (acréscimo à seção 8)
+## V2.5 What requires the lab (addition to section 8)
 
-Os gates da seção 8 continuam valendo. Acrescentam-se os de `finishing/REPORT.md` §6: medir a cadência real das ondas
-(robô e humano) e repetir `sweep_echain.py` com as lutas reais; tempo real do ciclo do caminhão de recurso (`trip`);
-`logi.eReport()` com a calibração v2 (`byCut`, perdas, pressão); matar um caminhão de suprimento sob consumo alto, ver o toast
-e a linha "guarda N bmat" e o caminhão voltar em < 60 s; editar `save.txt` (corromper `elogi`, `v=2`), Ctrl+F6, conferir o
-aviso de 10 s, o jogador intacto e o autosave seguinte. Visual: a linha INIMIGO ampliada e a linha da fábrica com a reserva
-em vários zooms/resoluções.
+The gates of section 8 still hold. Added are those of `finishing/REPORT.md` §6: measure the real wave cadence
+(bot and human) and repeat `sweep_echain.py` with the real fights; real cycle time of the resource truck (`trip`);
+`logi.eReport()` with the v2 calibration (`byCut`, losses, pressure); kill a supply truck under high consumption, see the toast
+and the line "guarda N bmat" and the truck come back in < 60 s; edit `save.txt` (corrupt `elogi`, `v=2`), Ctrl+F6, check the
+10 s warning, the player intact and the following autosave. Visual: the enlarged INIMIGO line and the factory line with the reserve
+at several zooms/resolutions.
