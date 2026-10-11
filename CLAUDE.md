@@ -1,6 +1,5 @@
-# Foxhole RTS — instruções para o Claude
-
-As instruções valem para todos os agentes e ficam em `AGENTS.md` (importado abaixo). Edite lá, não aqui.
-Conhecimento do projeto vai para os arquivos do repositório, não para a memória privada do agente.
-
 @AGENTS.md
+
+## Claude Code specifics
+- Project skills are in `.claude/skills` (a copy of `skills/`; edit `skills/` and run `python tools/sync_skills.py`).
+- Project knowledge goes into the repository files (`AGENTS.md`, `MODLOG.md`, `ROADMAP.md`), not into private memory.

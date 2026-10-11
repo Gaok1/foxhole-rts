@@ -68,7 +68,7 @@ the default paths (`D:\...`) are the author's, pass your own with `-SteamGame`, 
   Capture the points, recruit with Ctrl+1-4 and survive 10 waves, or hold all three points for 90 s.
 - **Alt+L** deploys the initial refinery/factory and trucks for the logistics scenario.
 
-Full controls and mechanics: [`mod/README.md`](mod/README.md) (Portuguese).
+Full controls and mechanics: [`mod/README.md`](mod/README.md).
 
 ## Repository layout
 
@@ -76,7 +76,8 @@ Full controls and mechanics: [`mod/README.md`](mod/README.md) (Portuguese).
 |---|---|
 | `mod/FoxholeRTS/Scripts/main.lua` | The whole mod (single Lua file) |
 | `mod/README.md` | Controls, mechanics, install details |
-| `tools/` | Offline tests (`test_orders.py` and friends), probes, cost exporter, `lab.ps1` |
+| `tools/` | Offline tests (`test_orders.py` and friends), probes, cost exporter, `lab.ps1`; `tools/lab/` publish/restart, command channel and regression bot |
+| `skills/` | Agent skills (also in `.claude/skills` and `.agents/skills`): resume, trace, test, lab, wrap-up |
 | `data/` | Data and traces recorded from the game; `data/parallel/` holds parallel agent work, patches and reports |
 | `MODLOG.md` | Development diary, newest first. Read "Como retomar" before working |
 | `ROADMAP.md` | Where the project is going and what is broken now |
@@ -84,11 +85,12 @@ Full controls and mechanics: [`mod/README.md`](mod/README.md) (Portuguese).
 | `MANUAL_TEST.md` | Manual test checklist |
 | `MECHANICS_STUDY.md` | Game mechanics extracted from the game data |
 
-**Most docs are in Portuguese.** Issues and PRs in English or Portuguese are both welcome.
+Issues in English or Portuguese are both welcome. Recorded traces and in-game text are still Portuguese.
 
 ## Running the offline tests
 
 ```bash
+pip install lupa
 python tools/test_orders.py
 ```
 
@@ -110,7 +112,15 @@ Ground rules (from `AGENTS.md`): stay fully offline with the mod's own systems (
 or native inventory), never bypass Steam/DRM, never remove the lab's network block.
 Record real traces of the game's own calls before reinventing a mechanic by hand.
 
-Open an issue first for anything big, so work does not overlap.
+Open an issue first for anything big, so work does not overlap. Details in [`CONTRIBUTING.md`](CONTRIBUTING.md).
+
+### Bring your AI agent
+
+This repo is built to be worked on by coding agents. Open Claude Code, Codex, Gemini CLI, Cursor or Copilot in a
+clone and ask it to continue the project: [`AGENTS.md`](AGENTS.md) and the skills in [`skills/`](skills)
+(resume work, trace before reinventing, offline tests, lab batch, wrap-up) tell it where the last agent stopped and
+how to work without breaking the rules. Field notes are shared with
+[universal-modder](https://github.com/rehan-remade/universal-modder).
 
 ## License
 

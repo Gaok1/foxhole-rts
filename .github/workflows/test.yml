@@ -1,0 +1,28 @@
+name: offline tests
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install lupa==2.8
+      - name: Lua syntax and globals
+        run: |
+          python -c "
+          import sys
+          from lupa import LuaRuntime
+          r = LuaRuntime().eval('function(s) local f,e=load(s,\"main\",\"t\"); return f and \"OK\" or e end')(open('mod/FoxholeRTS/Scripts/main.lua', encoding='utf-8').read())
+          print('syntax:', r); sys.exit(0 if r == 'OK' else 1)"
+          python tools/check_globals.py mod/FoxholeRTS/Scripts/main.lua
+      - name: tools/test_*.py
+        run: |
+          fail=0
+          for t in tools/test_*.py; do
+            if python "$t" > /tmp/out.txt 2>&1; then echo "OK   $t"; else echo "FAIL $t"; tail -20 /tmp/out.txt; fail=1; fi
+          done
+          exit $fail

@@ -1,4 +1,4 @@
-"""PYTHONPATH=D:/tools/pylibs python tools/test_costs.py — schemas reais, sem jogo."""
+"""PYTHONPATH=<folder with lupa> python tools/test_costs.py — real schemas, no game."""
 from pathlib import Path
 from lupa import LuaRuntime
 

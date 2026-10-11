@@ -1,0 +1,16 @@
+name: Take a roadmap item
+description: Claim an item from PROGRESS.md so nobody duplicates the work
+labels: [task]
+body:
+  - type: input
+    id: item
+    attributes:
+      label: PROGRESS.md item
+      description: Copy the item text.
+    validations:
+      required: true
+  - type: textarea
+    id: plan
+    attributes:
+      label: Plan
+      description: How you will approach it. Traced the game's own flow yet? (see skills/trace-before-reinvent)

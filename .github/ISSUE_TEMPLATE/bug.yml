@@ -1,0 +1,22 @@
+name: Bug or crash
+description: Something broke in the lab copy
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, what you saw.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Relevant lines of UE4SS.log and, for a crash, the newest folder in %LOCALAPPDATA%\Foxhole\Saved\Crashes (text only, no game files).
+      render: text
+  - type: input
+    id: version
+    attributes:
+      label: Versions
+      description: Commit of this repo, Foxhole Steam build, UE4SS version.

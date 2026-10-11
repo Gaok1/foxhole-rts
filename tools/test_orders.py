@@ -1,6 +1,6 @@
 """Offline checks of the actual mod functions; requires lupa (no game or UE4SS).
 
-Local setup: $env:PYTHONPATH='D:\\tools\\pylibs'; python tools/test_orders.py
+Local setup: PYTHONPATH=<folder with lupa> python tools/test_orders.py
 Mocks check Lua decisions, NOT Unreal physics, hooks or keyboard integration.
 """
 from pathlib import Path

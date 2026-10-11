@@ -1,111 +1,141 @@
-# Foxhole RTS — instruções para agentes (Claude, Codex, Gemini, ...)
+# Foxhole RTS: instructions for agents (Claude Code, Codex, Gemini CLI, Cursor, Copilot, ...)
 
-Mod UE4SS (Lua, UE 4.24) que transforma uma cópia de laboratório do Foxhole num RTS solo contra IA.
-Código: `mod/FoxholeRTS/Scripts/main.lua` (v0.9). Controles e mecânicas: `mod/README.md`. Rumo: `ROADMAP.md`.
-Tudo o que um agente precisa saber fica **neste repositório** (não em memória privada de agente): ao aprender algo
-que vale para a próxima sessão, escreva aqui, no `MODLOG.md` ou no `ROADMAP.md`.
+A UE4SS mod (Lua, UE 4.24) that turns an isolated lab copy of Foxhole into a single-player RTS against an AI,
+with logistics at the center. Code: `mod/FoxholeRTS/Scripts/main.lua` (v0.9, one file). Controls and mechanics:
+`mod/README.md`. Direction: `ROADMAP.md`. Public checklist: `PROGRESS.md`.
 
-**Antes de trabalhar, leia em `MODLOG.md` a seção "Como retomar"** (meio do arquivo; procure por esse
-título). Entradas novas do diário ficam no topo. Teste manual pendente do usuário: `MANUAL_TEST.md`.
-Dados extraídos do jogo: `MECHANICS_STUDY.md` e `data/`.
+Everything an agent needs lives **in this repository**, not in private agent memory. When you learn something that
+matters for the next session, write it here, in `MODLOG.md` or in `ROADMAP.md`.
 
-## Regras do usuário
-- Totalmente offline, com sistemas próprios do mod. Não perseguir RPC, inventário ou servidor do jogo.
-- Manter a verificação de posse do Steam (Steam aberto e logado); nunca contornar DRM; nunca logar no Steam pelo usuário.
-- Não remover o bloqueio de firewall do laboratório (o aviso "Falha ao baixar informações do servidor" no menu é
-  efeito dele: Slate nativo, o mod não fecha; o autostart sai do menu em 2 s).
-- O usuário negou acesso de computer-use à janela do jogo: não injete teclado nem mouse por nenhum meio.
-  Testes com entrada real são dele; os seus vão pelo canal de comandos.
-- Terminal do usuário: Windows PowerShell 5.1 (sem `&&`, sem caminhos `/d/`).
-- Escreva docs e mensagens em português. Exceção: `README.md` da raiz e `PROGRESS.md` são a vitrine pública
-  para a comunidade de Foxhole e ficam em inglês.
-- O repositório é público (`github.com/Gaok1/foxhole-rts`, MIT): nada de tokens, caminhos pessoais
-  (`C:\Users\...`) nem arquivos do jogo (binários, DLLs, paks, assets extraídos) nos commits.
-- Instalações e downloads grandes vão para `D:\tools` (é onde há espaço).
-- **Trabalhar em lotes:** várias features com teste offline, depois uma única sessão no laboratório (reiniciar o
-  jogo custa minutos).
-  **Reforço explícito do usuário (2026-10-11):** não abrir/reiniciar o laboratório a cada descoberta,
-  sonda, helper ou pequena alteração. Avançar primeiro na pesquisa e implementação offline;
-  acumular mudanças e preparar os cenários com critérios de aprovação. Só então publicar uma vez
-  e executar os cenários sequencialmente na MESMA sessão do jogo, com cleanup entre eles.
-  Novas ideias surgidas durante a validação entram no próximo lote; não iniciar outra run imediatamente.
-  Exceção: crash ou pré-requisito concreto que impeça continuar o lote; registrar a causa antes de reiniciar.
-- **Fechar o jogo quando o laboratório estiver ocioso:** terminado o teste/robô, ou ao passar ao trabalho só
-  offline, encerrar apenas o PID da cópia em `D:\FoxholeLab\Foxhole`. Não deixar aberto "pronto para testar"
-  por padrão. Manter aberto só enquanto houver validação ativa ou se o usuário pedir; não fechar Steam.
-- **Direção (2026-10-09):** começar numa região pequena e só depois o mundo; a logística (recurso, refino,
-  fábrica, transporte, abastecimento) é o centro, a guerra é "a pequena parte da engrenagem". O RTS precisa
-  servir para olhar várias frentes (zoom alto, alertas, grupos).
-- **Rastrear antes de reinventar** (`ROADMAP.md`): procure a chamada do próprio jogo e grave o fluxo real antes de
-  recriar uma mecânica à mão.
+## Start here
+1. **Read `skills/resume-work/SKILL.md` and follow it.** In short: `git status`, the "How to resume" section of
+   `MODLOG.md` (middle of the file, search for that title), the top of `ROADMAP.md`, then pick an item from
+   `PROGRESS.md`. New diary entries go at the top of `MODLOG.md`.
+2. **Before a new mechanic or an engine problem:** `skills/trace-before-reinvent/SKILL.md`. Find the game's own
+   call and record the real flow before rebuilding anything by hand.
+3. **Change code offline first:** `skills/offline-tests/SKILL.md`. Live validation in the game is batched:
+   `skills/lab-batch/SKILL.md`.
+4. **At the end:** `skills/wrap-up/SKILL.md` (diary, progress bars, docs, commit/PR).
 
-## Fluxo
-- **universal-modder (`D:/GitHub/universal-modder`) no começo e no fim** (o usuário cobrou isso duas vezes):
-  antes de uma mecânica nova ou de um problema de engine, `um kb search <tema>` e as skills `reverse-engineering`
-  ("record real traces"), `mod-any-game` (`references/engines/unreal.md`) e a técnica de oráculos. No fim da
-  sessão, acrescentar os aprendizados como Gotchas na nota `knowledge/games/foxhole/...` e rodar `um kb check`
-  (local; PR só com OK do usuário). Rodar com `UM_HOME=D:/tools/um-home python -m um ...`.
-- Publicar e reiniciar o jogo: `bash D:/tools/foxhole-lab/restart.sh` (checa sintaxe e locais, copia, espera o RTS).
-  Não use o Ctrl+R do UE4SS (travou o jogo).
-- Testes offline: `PYTHONPATH=D:/tools/pylibs python tools/test_orders.py`.
-- Comandos ao vivo: `sh D:/tools/foxhole-lab/run.sh <arquivo.lua>`; a saída vem só de `out(...)`. Os scripts
-  `t_*.lua` e o robô `botloop.sh` ficam em `D:/tools/foxhole-lab/`, fora deste repositório. Não usar o canal
-  com o robô rodando (as respostas se misturam).
-- Robô de regressão: `sh D:/tools/foxhole-lab/botloop.sh` em segundo plano. O que ele faz e não faz: `MODLOG.md`.
-- Captura: `cd D:/GitHub/universal-modder && UM_HOME=D:/tools/um-home python -m um win shot --title '^War' --scale 0.5 <png>`.
-- Depois de cada mudança: validar ao vivo, registrar no topo do `MODLOG.md`, atualizar `mod/README.md`
-  e, se houver tecla nova, `MANUAL_TEST.md` e o teste de teclas em `tools/test_orders.py`.
-- Quando um item do roteiro mudar de estado (`[ ]` → `[~]` → `[x]`, só `[x]` com validação ao vivo), atualizar
-  `PROGRESS.md` e rodar `python tools/progress.py`, que recalcula as barras do `README.md`.
+Your human may be the maintainer (Gaok1) or a contributor with their own copy of the game. Rules marked
+*maintainer's lab* describe the maintainer's machine; contributors adapt the paths (`tools/lab/env.sh`).
 
-## Ambiente
-- Cópia de laboratório: `D:\FoxholeLab\Foxhole` (UE4SS em `War/Binaries/Win64/ue4ss`, log `UE4SS.log`).
-  Precisa do Steam aberto e logado + `steam_appid.txt`. Config/logs do jogo: `%LOCALAPPDATA%\Foxhole\Saved\`
-  (não "War"); crashes em `Saved\Crashes`.
-- O primeiro carregamento fica ~3 min em tela preta "Not responding": está carregando, não travou.
-- Shipping ignora o mapa da linha de comando; o mod abre `HomeRegionW?listen` com `OpenLevel` (autostart).
-- Ghidra 12.1.2 em `D:\tools\ghidra\ghidra_12.1.2_PUBLIC` (JDK 21); ponte GhidraMCP em
-  `D:\tools\ghidra-mcp-v5.14.2`, servidor em `127.0.0.1:8089` (GUI com o plugin ou
-  `com.xebyte.headless.GhidraMCPHeadlessServer`); projeto `D:\tools\ghidra-projects\Foxhole`, pré-script
-  `D:\tools\ghidra-scripts\FoxPre.java`. Agentes não editam `~/.claude.json`: passe ao usuário comandos `claude mcp`.
+## Skills
+`skills/*/SKILL.md` (Agent Skills format) are copied to `.claude/skills` (Claude Code) and `.agents/skills`
+(Codex, Gemini CLI, Copilot, Cursor, OpenCode). Edit `skills/`, then run `python tools/sync_skills.py`;
+`tools/test_skills_sync.py` fails while the copies differ.
 
-## Armadilhas
-- Custos: receitas usam `ProductionResource.ItemCodeName`; estruturas/veículos usam
-  `ResourceAmounts` com `CodeNameSmallQuantity.CodeName`. Não engolir erro de schema como custo zero.
-  Exportador/teste em `tools/export_costs.lua` e `tools/test_costs.py`.
-- Spawn de caminhão pode retornar IsValid já em destruição; trace de chão pode acertar telhado.
-  Conferir `bActorIsBeingDestroyed`, posição/saúde e superfície/folga, não só retorno/bounds totais.
-- Lua tem limite de 200 locais por chunk: `main.lua` está em 178. Constantes em `CFG`, estados em `S`,
-  funções novas em tabelas (`rts`, `fort`, `sv`, `logi`, `anim`, `ai`).
-- Repositório git desde 2026-10-11 (`main` em github.com/Gaok1/foxhole-rts); o histórico anterior não existe.
-  `.gitattributes` guarda os bytes como estão (`* -text`): não converter CRLF/LF dos patches `_lf` e candidatos.
-- Hook de animação (`anim.onUpdate`, em `BlueprintUpdateAnimation` do `ABP_Male_C`, roda depois do nativo) só
-  escreve no AnimInstance vivo. Todo caminho que destrói um soldado chama `anim.untrack` (endereço reaproveitado →
-  escrita em pawn morto → crash nativo que pcall não pega). Mesma regra para qualquer cache por endereço.
-- O canal de comandos só enxerga o que está na tabela `env` de `runCommandFile`; local nova precisa entrar lá.
-- `tools/check_globals.py` é insensível a escopo: um `local x` interno antes do `local x` de topo esconde usos
-  do de topo como global nil. Ele avisa esses casos; não use nome de tabela de topo (`ai`, `sv`, `fort`, `rts`,
-  `anim`, `S`, `logi`) como variável local.
-- Movimento: o mod zera atrito e frenagem, então a escala de `AddMovementInput` só limita a aceleração; para
-  desacelerar escreva `CharacterMovement.Velocity` (`fort.capSpeed`). Meça movimento com um amostrador
-  `LoopInGameThreadWithDelay(100)` gravando em `_G`, não com idas e vindas pelo canal (~1,8 s cada).
-- UE4SS: ler `MasterPoseComponent`/`AnimClass` de um SkeletalMeshComponent derrubou o UE4SS; componentes não
-  refletidos se acham por nome com `K2_GetComponentsByClass` (`v:get()`). Funções UFunction não podem ser chamadas
-  de dentro de corrotina Lua: fatie trabalho longo em máquina de estados por quadro. `UEHelpers.GetWorld()` /
-  `GetPlayerController()` fazem `FindAllOf` a cada chamada (lento): o mod guarda em cache por quadro.
-  `K2_DestroyActor` não destrói `HeadlessPlayerController` (o mod reaproveita). `IsValid()` continua true em ator
-  destruído até o GC. Saída de parâmetros vai na primeira tabela (`GetMousePosition(a, b)` → `a.LocationX/Y`).
-- Visão: o jogo esconde personagens e veículos que o **pawn** do comandante não vê; o mod transforma o comandante
-  num "olho" invisível levado ao soldado mais perto do foco da câmera. Mudar a posição do componente de LOS não
-  adianta. Bordas de neve bloqueiam a visão.
-- **Imagem não prova ausência:** estruturas também podem ficar invisíveis conforme o ângulo/oclusão da câmera.
-  Conferir atores/classes/variantes e estado carregado; distinguir ruína de instalação ativa. Uma contagem zero
-  numa classe não prova que a instalação não exista no mapa nem no estado de uma guerra do servidor.
-- Traços em HomeRegionW: canal Visibility (0) atravessa veículos; Camera (1) bate em caminhões e prédios e não em
-  `BPNoBuild_C` (o A* usa esse); traço por tipo de objeto acerta os volumes `BPNoBuild_C` (ignore).
-- Animação: `CharacterStance` 0 em pé / 1 agachado / 3 correndo (+ `bStanceIsCrouched`); `ActivityState` 3 atirando,
-  6 arremessando, 20 primeiros socorros; arma no soquete `S_GenericGun`; mira ao ombro com `bIsInScopeMode` +
+| Skill | When |
+|---|---|
+| `resume-work` | Start of every session |
+| `trace-before-reinvent` | Before implementing or fixing a game mechanic (oracles, UE4SS hooks, Ghidra) |
+| `offline-tests` | Every code change: Lua harness in Python (lupa), globals check, the 200-locals limit |
+| `lab-batch` | Live validation in the lab copy: one publish, scenarios in sequence, close the game |
+| `wrap-up` | End of session: MODLOG, PROGRESS, README/MANUAL_TEST, universal-modder note, commit/PR |
+
+## Hard rules
+- **Fully offline**, with the mod's own systems. Do not chase the game's RPC, native inventory or server.
+- **Never on the Steam install, never online.** UE4SS and the mod go only in the isolated lab copy, which is blocked
+  from the network. Keep its firewall block (the menu warning "Failed to download server information" is its effect;
+  the autostart leaves the menu in 2 s).
+- **Steam ownership stays:** Steam open and logged in; never bypass DRM or ownership checks; never log in to Steam for
+  the user.
+- **No game files in commits:** binaries, DLLs, paks, extracted assets, decompiled code. The repository is public
+  (MIT). No tokens or personal paths (`C:\Users\...`).
+- **No injected input:** the maintainer denied computer-use on the game window. Do not send keyboard or mouse by any
+  means. Real-input tests belong to the human (`MANUAL_TEST.md`); yours go through the command channel.
+- **Trace before reinventing:** look for the game's own call and record the real flow before recreating a mechanic.
+  Do not replace engine systems (damage, shots, vehicles) with abstract numbers without proving it is impossible.
+- **Do not fake results:** no fictitious deliveries, extra money or disabled protections to make a gate pass.
+  `[x]` in `PROGRESS.md` only with live validation.
+- **Ask first** before publishing anything (PRs, issues, releases) and before installing loaders into game folders.
+
+## Language
+- Repository content is **English**: docs, diary, comments in new code, commit messages, PRs.
+- Talk to your human in their language (the maintainer writes Portuguese).
+- On-screen strings in `main.lua` and recorded traces (`data/trace_*`) are still Portuguese. Do not translate traces:
+  they are evidence and checkers parse them. Localizing the UI is a roadmap item, not a drive-by change.
+
+## Direction (maintainer, 2026-10-09)
+- Start in a small region and only then the world. Logistics (resource, refining, factory, transport, supply) is the
+  center; the war is "the small part of the machine". The RTS must work for watching several fronts (high zoom,
+  alerts, groups).
+- **Work in batches.** Several features with offline tests, then one single lab session (a game restart costs
+  minutes). Do not open or restart the lab for every finding, probe, helper or small change. Accumulate changes, write
+  scenarios with pass criteria, publish once, run them in sequence in the SAME game session with cleanup between them.
+  New ideas found during validation go to the next batch. Exception: a crash or a concrete prerequisite that blocks the
+  batch; record the cause before restarting.
+- **Close the game when the lab is idle:** kill only the PID of the lab copy. Never close Steam.
+
+## Workflow
+- **universal-modder at the start and at the end** (the maintainer asked twice): before a new mechanic or engine
+  problem, `um kb search <topic>` and the skills `reverse-engineering` ("record real traces"), `mod-any-game`
+  (`references/engines/unreal.md`) and the oracle technique. At the end, add learnings as gotchas to the note
+  `knowledge/games/foxhole/...` and run `um kb check` (local; PR only with the human's OK).
+  Repo: https://github.com/rehan-remade/universal-modder.
+- Publish and restart the game: `sh tools/lab/restart.sh` (syntax + globals check, copy, wait for RTS mode).
+  Do not use UE4SS Ctrl+R (it froze the game).
+- Offline tests: `PYTHONPATH=<pylibs> python tools/test_orders.py` (and the other `tools/test_*.py`).
+- Live commands: `sh tools/lab/run.sh <file.lua>`; only `out(...)` comes back. Never use the channel while the bot runs.
+- Regression bot: `sh tools/lab/botloop.sh` in the background. What it does and does not cover: `MODLOG.md`.
+- After each change: validate live, write at the top of `MODLOG.md`, update `mod/README.md`; for a new key, also
+  `MANUAL_TEST.md` and the key test in `tools/test_orders.py`.
+- When a roadmap item changes state (`[ ]` → `[~]` → `[x]`), update `PROGRESS.md` and run
+  `python tools/progress.py`, which recomputes the bars in `README.md`.
+
+## Environment
+- Lab copy: UE4SS in `War/Binaries/Win64/ue4ss`, log `UE4SS.log`. Needs Steam open and logged in plus
+  `steam_appid.txt`. Game config/logs: `%LOCALAPPDATA%\Foxhole\Saved\` (not "War"); crashes in `Saved\Crashes`.
+- The first load sits ~3 min on a black "Not responding" screen: it is loading, not frozen.
+- Shipping ignores the map on the command line; the mod opens `HomeRegionW?listen` with `OpenLevel` (autostart,
+  enabled by `Mods/FoxholeRTS/autostart.txt`).
+- The command channel folder is `CFG.CMD_FILE` / `CFG.CMD_OUT` in `main.lua`; it must match `LAB_CHANNEL` in
+  `tools/lab/env.sh`. The channel runs arbitrary local Lua: it is not a sandbox.
+- *Maintainer's lab:* lab copy `D:\FoxholeLab\Foxhole`, channel and probe scripts (`t_*.lua`) in
+  `D:\tools\foxhole-lab`, lupa in `D:\tools\pylibs`, large installs go to `D:\tools`. Terminal: Windows PowerShell 5.1
+  (no `&&`, no `/d/` paths). Ghidra 12.1.2 in `D:\tools\ghidra\ghidra_12.1.2_PUBLIC` (JDK 21); GhidraMCP bridge in
+  `D:\tools\ghidra-mcp-v5.14.2`, server on `127.0.0.1:8089` (GUI with the plugin or
+  `com.xebyte.headless.GhidraMCPHeadlessServer`); project `D:\tools\ghidra-projects\Foxhole`, pre-script
+  `D:\tools\ghidra-scripts\FoxPre.java`. universal-modder: `UM_HOME=D:/tools/um-home python -m um ...`.
+  Agents do not edit `~/.claude.json`: hand the human `claude mcp` commands.
+
+## Pitfalls
+- Costs: recipes use `ProductionResource.ItemCodeName`; structures/vehicles use `ResourceAmounts` with
+  `CodeNameSmallQuantity.CodeName`. Never swallow a schema error as zero cost. Exporter/test: `tools/export_costs.lua`,
+  `tools/test_costs.py`.
+- Truck spawn can return IsValid on an actor already being destroyed; a ground trace can hit a roof. Check
+  `bActorIsBeingDestroyed`, position/health and surface/clearance, not just the return value or total bounds.
+- Lua allows 200 locals per chunk: `main.lua` is at 178. Constants in `CFG`, state in `S`, new functions in tables
+  (`rts`, `fort`, `sv`, `logi`, `anim`, `ai`).
+- Git repository since 2026-10-11; earlier history does not exist. `.gitattributes` stores bytes as they are
+  (`* -text`): do not convert CRLF/LF of the `_lf` patches and candidate copies (their SHA256 is recorded).
+- Animation hook (`anim.onUpdate`, on `ABP_Male_C`'s `BlueprintUpdateAnimation`, runs after native) only writes to a
+  live AnimInstance. Every path that destroys a soldier calls `anim.untrack` (reused address → write into a dead pawn →
+  native crash that pcall cannot catch). Same rule for any cache keyed by address.
+- The command channel only sees what is in the `env` table of `runCommandFile`; a new local must be added there.
+- `tools/check_globals.py` is scope-insensitive: an inner `local x` before the top-level `local x` hides uses of the
+  top-level one as nil globals. It warns about these; never use a top-level table name (`ai`, `sv`, `fort`, `rts`,
+  `anim`, `S`, `logi`) as a local variable.
+- Movement: the mod zeroes friction and braking, so the `AddMovementInput` scale only limits acceleration; to slow
+  down, write `CharacterMovement.Velocity` (`fort.capSpeed`). Measure movement with a `LoopInGameThreadWithDelay(100)`
+  sampler writing to `_G`, not with channel round trips (~1.8 s each).
+- UE4SS: reading `MasterPoseComponent`/`AnimClass` of a SkeletalMeshComponent crashed UE4SS; non-reflected components
+  are found by name with `K2_GetComponentsByClass` (`v:get()`). UFunctions cannot be called from inside a Lua
+  coroutine: slice long work into a per-frame state machine. `UEHelpers.GetWorld()` / `GetPlayerController()` run
+  `FindAllOf` on every call (slow): the mod caches them per frame. `K2_DestroyActor` does not destroy
+  `HeadlessPlayerController` (the mod reuses it). `IsValid()` stays true on a destroyed actor until GC. Out parameters
+  land in the first table (`GetMousePosition(a, b)` → `a.LocationX/Y`).
+- Vision: the game hides characters and vehicles the commander's **pawn** cannot see; the mod turns the commander
+  into an invisible "eye" carried to the soldier closest to the camera focus. Moving the LOS component does not help.
+  Snow edges block vision.
+- **A picture does not prove absence:** structures can also turn invisible depending on camera angle/occlusion.
+  Check actors/classes/variants and loaded state; tell a ruin from an active installation. A zero count of one class
+  does not prove the installation is missing from the map or from a server war's state.
+- Traces in HomeRegionW: channel Visibility (0) goes through vehicles; Camera (1) hits trucks and buildings but not
+  `BPNoBuild_C` (the A* uses it); an object-type trace hits the `BPNoBuild_C` volumes (ignore them).
+- Animation: `CharacterStance` 0 standing / 1 crouched / 3 running (+ `bStanceIsCrouched`); `ActivityState` 3 firing,
+  6 throwing, 20 first aid; weapon on socket `S_GenericGun`; shoulder aim with `bIsInScopeMode` +
   `canEnterStandScoping`.
-- Achar assets: `FindAllOf("StaticMesh"/"SoundCue"/"Material")` + filtro de nome, `GetBounds()` para tamanho,
-  depois uma "vitrine" lado a lado + captura para escolher.
-- Câmera do RTS olha para +X: topo da tela = X maior, direita = Y maior.
+- Finding assets: `FindAllOf("StaticMesh"/"SoundCue"/"Material")` + a name filter, `GetBounds()` for size, then a
+  side-by-side "showcase" + screenshot to choose.
+- The RTS camera looks toward +X: top of the screen = larger X, right = larger Y.
