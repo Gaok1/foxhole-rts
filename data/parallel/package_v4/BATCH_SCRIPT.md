@@ -1,247 +1,248 @@
-# ROTEIRO_LOTE — uma sessão de laboratório para a pilha v4 (para a task LABORATORIO)
+# BATCH_SCRIPT — one lab session for the v4 stack (for the LABORATORIO task)
 
-Preparado offline pelo agente PACOTE_V4 (2026-10-10). **Nada abaixo foi executado no jogo.** Junta, sem perder itens, os roteiros de
-`logistics_ai/`, `logistics_ai/finishing/manual_collection/`, `persistence/`, `forward_bases/` (etapa 1 e 2), `interface/`, `economy/` e
-`stability/` (rastreio no fim, §13). Quem executa é o dono do laboratório (Codex coordenador); este arquivo não abre o jogo.
+Prepared offline by the PACOTE_V4 agent (2026-10-10). **Nothing below was run in the game.** It merges, without losing items, the scripts of
+`logistics_ai/`, `logistics_ai/finishing/manual_collection/`, `persistence/`, `forward_bases/` (stages 1 and 2), `interface/`, `economy/` and
+`stability/` (traceability at the end, §13). The lab owner (Codex coordinator) runs it; this file does not open the game.
+In-game messages are quoted in Portuguese, as they appear in the log and on screen.
 
-## 0. Regras do lote (valem para todos os passos)
+## 0. Batch rules (apply to every step)
 
-- Steam aberto e logado; cópia em `D:\FoxholeLab\Foxhole`; **nenhum** `botloop.sh` junto do canal de comandos (as respostas se misturam):
-  `Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match 'botloop' }` tem de vir vazio antes de cada bloco com canal.
-- Publicar só por `bash D:/tools/foxhole-lab/restart.sh` (sintaxe + `check_globals` + cópia + reinício + espera de "modo RTS ligado", 240 s).
-  Nunca Ctrl+R do UE4SS. Primeira carga ~3 min de tela preta "Not responding": **não** é travamento; confirme por log/processo.
-- **Sem injeção de teclado ou mouse.** O que precisa de entrada real está em `MANUAL_TEST_DRAFT.md` (não aqui). Os scripts `pv4_cmd_*.lua`
-  chamam as mesmas funções do mod que as teclas chamam (`newGame`, `logi.deploy`, `recruit`, `logi.fwdKey`, `sv.save`, …) pelo canal
-  `sh D:/tools/foxhole-lab/run.sh <arquivo.lua>`; isso testa a lógica, **não** o registro da tecla nem o `plain()` do J.
-- A saída do canal vem só de `out(...)`. Mensagens do mod (`notify`) vão para `UE4SS.log` com o prefixo `[FoxholeRTS]` (leia-o para o texto exato).
-- Cada passo grava: hora, hash do `main.lua` publicado (`sha256sum`), PID do jogo, saída do canal (`sh run.sh X > saida_X.txt`) e, quando
-  indicado, captura (`cd D:/GitHub/universal-modder && UM_HOME=D:/tools/um-home python -m um win shot --title '^War' --scale 0.5 <png>`).
-- Qualquer queda UE4SS/jogo: parar, preservar `UE4SS.log`, `Saved\Crashes` e o PID; **não** reiniciar por reflexo. Registrar no MODLOG como
-  falha, não como "ajuste".
-- Ao final: encerrar **só** o PID da cópia (`D:\FoxholeLab\Foxhole`); Steam e firewall ficam como estão; remover `map.txt` temporário.
-- Valores de `CFG` que o roteiro compara foram lidos no candidato a integrar, **v4.1** (SHA `62245d23…598f`; a v4 `025e3b80…aab0` tem os mesmos valores de `CFG`). Se o main publicado for outro, pare no S2.
+- Steam open and logged in; copy at `D:\FoxholeLab\Foxhole`; **no** `botloop.sh` together with the command channel (the answers mix):
+  `Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match 'botloop' }` must come back empty before each block that uses the channel.
+- Publish only through `bash D:/tools/foxhole-lab/restart.sh` (syntax + `check_globals` + copy + restart + wait for "modo RTS ligado", 240 s).
+  Never UE4SS's Ctrl+R. The first load is ~3 min of black screen "Not responding": it is **not** a freeze; confirm by log/process.
+- **No keyboard or mouse injection.** What needs real input is in `MANUAL_TEST_DRAFT.md` (not here). The `pv4_cmd_*.lua` scripts
+  call the same mod functions the keys call (`newGame`, `logi.deploy`, `recruit`, `logi.fwdKey`, `sv.save`, …) through the channel
+  `sh D:/tools/foxhole-lab/run.sh <file.lua>`; that tests the logic, **not** the key registration nor J's `plain()`.
+- The channel output comes only from `out(...)`. Mod messages (`notify`) go to `UE4SS.log` with the prefix `[FoxholeRTS]` (read it for the exact text).
+- Each step records: time, hash of the published `main.lua` (`sha256sum`), game PID, channel output (`sh run.sh X > output_X.txt`) and, when
+  indicated, a capture (`cd D:/GitHub/universal-modder && UM_HOME=D:/tools/um-home python -m um win shot --title '^War' --scale 0.5 <png>`).
+- Any UE4SS/game crash: stop, keep `UE4SS.log`, `Saved\Crashes` and the PID; do **not** restart by reflex. Record it in MODLOG as a
+  failure, not as an "adjustment".
+- At the end: close **only** the copy's PID (`D:\FoxholeLab\Foxhole`); Steam and the firewall stay as they are; remove the temporary `map.txt`.
+- The `CFG` values the script compares were read from the candidate to integrate, **v4.1** (SHA `62245d23…598f`; v4 `025e3b80…aab0` has the same `CFG` values). If the published main is a different one, stop at S2.
 
-## 1. Duração estimada
+## 1. Estimated duration
 
-| Bloco | O que é | Min (estimado, não medido) |
+| Block | What it is | Min (estimated, not measured) |
 |---|---|---|
-| P | Pré-voo, backups, cópia das sondas | 15 |
-| G | Gate de estabilidade: registrar B1 + cargas B2 e A2 (cada uma ~5 min de carga + 3 min de janela + checagens) | 25 |
-| S | Publicar a v4.1 em HomeRegionW, sondas só leitura (A1–A3, io/os, estado), partida de fumaça e ensaio B1 (cria 1 ator) | 45 |
-| H0–H1 | Trocar para CallumsCapeHex (`map.txt`) e reiniciar; A3/estado no hex; implantar (Alt+L pelo canal) | 10 |
-| C | Partida manual: trabalhadores, caminhão de recurso, perda, combate; economia (fuzis/bandagens/prioridade/escassez) | 35 |
-| I | Cadeia inimiga e interdição (L1–L12) + I15 (onda com trabalhadores, v4.1) na mesma partida | 35 |
-| K | Bases avançadas: elegibilidade, construção, pedido, entrega, recrutamento, perda, Assalto | 45 |
-| V | Persistência: save/continue com 2 reinícios do jogo, recusas, elogi corrompido | 50 |
-| T | 10 min com 3 bases (estabilidade + custo por quadro) | 15 |
-| Z | Encerramento, restauração, relatório | 10 |
-| **Soma** | | **~285 min (4 h 45)** |
-| Com 20% de imprevistos | | **~5 h 40** |
-| R (opcional) | Regressão prolongada com o robô: mínimo 4 partidas (1 por célula B0–B3) | +70 a +90 |
-| R completo | 3 partidas por célula + 1 fácil + 1 difícil | +3 h 30 |
+| P | Preflight, backups, copying the probes | 15 |
+| G | Stability gate: record B1 + loads B2 and A2 (each ~5 min of loading + 3 min of window + checks) | 25 |
+| S | Publish v4.1 in HomeRegionW, read-only probes (A1–A3, io/os, state), smoke match and rehearsal B1 (creates 1 actor) | 45 |
+| H0–H1 | Switch to CallumsCapeHex (`map.txt`) and restart; A3/state in the hex; deploy (Alt+L through the channel) | 10 |
+| C | Manual match: workers, resource truck, loss, combat; economy (rifles/bandages/priority/scarcity) | 35 |
+| I | Enemy chain and interdiction (L1–L12) + I15 (wave with workers, v4.1) in the same match | 35 |
+| K | Forward bases: eligibility, construction, order, delivery, recruiting, loss, Assault | 45 |
+| V | Persistence: save/continue with 2 game restarts, refusals, corrupted elogi | 50 |
+| T | 10 min with 3 bases (stability + per-frame cost) | 15 |
+| Z | Closing, restoration, report | 10 |
+| **Sum** | | **~285 min (4 h 45)** |
+| With 20% for surprises | | **~5 h 40** |
+| R (optional) | Long regression with the bot: at least 4 matches (1 per cell B0–B3) | +70 to +90 |
+| R complete | 3 matches per cell + 1 easy + 1 hard | +3 h 30 |
 
-Cargas limpas do jogo no núcleo: 2 (gate) + 1 (v4 em HomeRegionW) + 1 (hex) + 2 (persistência) = 6. Cada uma custa ~5 min; é o que mais pesa.
+Clean game loads in the core: 2 (gate) + 1 (v4 in HomeRegionW) + 1 (hex) + 2 (persistence) = 6. Each costs ~5 min; that is what weighs most.
 
-## 2. Arquivos a levar para `D:/tools/foxhole-lab/` (cópia, nada é editado nos originais)
+## 2. Files to bring to `D:/tools/foxhole-lab/` (copy, nothing is edited in the originals)
 
 ```
 cd /d/GitHub/foxhole-rts/data/parallel
 cp package_v4/probes/*.lua                                  D:/tools/foxhole-lab/
 cp forward_bases/probes/A1_structure_columns.lua forward_bases/probes/A2_base_classes.lua forward_bases/probes/A3_world_bases.lua forward_bases/probes/A4_ground_at_points.lua D:/tools/foxhole-lab/
 cp logistics_ai/t_logistics_ai.lua persistence/lab/t_persist_state.lua D:/tools/foxhole-lab/
-# já existem lá: t_crash_control_start.lua / _check.lua (A) e t_crash_B1_prepare.lua / _start.lua / _check.lua (B)
+# already there: t_crash_control_start.lua / _check.lua (A) and t_crash_B1_prepare.lua / _start.lua / _check.lua (B)
 ```
-Legenda dos arquivos novos (`package_v4/probes/`; mais `read_save.py` e `post_integration_battery.py` fora do jogo): `pv4_estado` e `pv4_perfil` (só leitura), `pv4_bases_cena` (só leitura, traços), `pv4_io_os`
-(cria e apaga 2 arquivos temporários), `pv4_B1_forwardbase` + `pv4_B1_limpar` (cria 1 ator nativo), `pv4_cmd_*` (chamam funções do mod; alteram estado,
-editar as variáveis do topo antes de rodar). Todos tiveram a **sintaxe** conferida (Lua 5.4 e 5.5); `pv4_estado`, `pv4_bases_cena`, `pv4_io_os` e vários
-`pv4_cmd_*` foram executados contra o candidato no harness offline (mock do mundo), o que prova que não há erro de nome/campo, não que o jogo responde igual.
+Legend of the new files (`package_v4/probes/`; plus `read_save.py` and `post_integration_battery.py` outside the game): `pv4_state` and `pv4_profile` (read-only), `pv4_bases_scene` (read-only, traces), `pv4_io_os`
+(creates and deletes 2 temporary files), `pv4_B1_forwardbase` + `pv4_B1_clean` (creates 1 native actor), `pv4_cmd_*` (call mod functions; they change state,
+edit the variables at the top before running). All had their **syntax** checked (Lua 5.4 and 5.5); `pv4_state`, `pv4_bases_scene`, `pv4_io_os` and several
+`pv4_cmd_*` were run against the candidate in the offline harness (world mock), which proves there is no name/field error, not that the game answers the same.
 
-## 3. P — Pré-voo (15 min)
+## 3. P — Preflight (15 min)
 
-| ID | Passo | Medir / PASS | Fecha |
+| ID | Step | Measure / PASS | Closes |
 |---|---|---|---|
-| P1 | Steam aberto/logado; sem botloop; cópia presente; `steam_appid.txt`; nenhuma `War-Win64-Shipping.exe` da cópia rodando (ou anote o PID) | PASS: tudo conferido e anotado | LABORATORIO "Conferir Steam… antes de lançar" |
-| P2 | **Backup fora da cópia**: `War/Binaries/Win64/ue4ss/Mods/FoxholeRTS/save.txt*` (e `settings.txt`, `map.txt` se houver) + SHA256 de cada; lista de `%LOCALAPPDATA%\Foxhole\Saved\Crashes`; tamanho do `UE4SS.log` | PASS: SHA256 anotados (L12 do roteiro de persistência os restaura no fim) | PERSISTENCIA |
-| P3 | Cópia das sondas (§2). Conferir `sha256sum mod/FoxholeRTS/Scripts/main.lua` e o que o `restart.sh` vai publicar | PASS: hash anotado = o do passo em que for usado (33d6c7e5… no gate, 62245d23… (v4.1) depois) | INTEGRACAO |
-| P4 | Decidir a ordem gate × integração (`HOW_TO_INTEGRATE.md` §2). Este roteiro assume: G (fonte 33d6c7e5…) → integração → S em diante | PASS: decisão registrada | ESTABILIDADE |
+| P1 | Steam open/logged in; no botloop; copy present; `steam_appid.txt`; no `War-Win64-Shipping.exe` of the copy running (or note the PID) | PASS: everything checked and noted | LABORATORIO "Check Steam… before launching" |
+| P2 | **Backup outside the copy**: `War/Binaries/Win64/ue4ss/Mods/FoxholeRTS/save.txt*` (and `settings.txt`, `map.txt` if any) + SHA256 of each; listing of `%LOCALAPPDATA%\Foxhole\Saved\Crashes`; size of `UE4SS.log` | PASS: SHA256 noted (L12 of the persistence script restores them at the end) | PERSISTENCIA |
+| P3 | Copy the probes (§2). Check `sha256sum mod/FoxholeRTS/Scripts/main.lua` and what `restart.sh` will publish | PASS: hash noted = the one of the step where it is used (33d6c7e5… in the gate, 62245d23… (v4.1) afterwards) | INTEGRACAO |
+| P4 | Decide the gate × integration order (`HOW_TO_INTEGRATE.md` §2). This script assumes: G (source 33d6c7e5…) → integration → S onward | PASS: decision recorded | ESTABILIDADE |
 
-## 4. G — Gate de estabilidade (25 min; fonte 33d6c7e5…, antes de gravar a v4.1)
+## 4. G — Stability gate (25 min; source 33d6c7e5…, before writing v4.1)
 
-Base: `stability/crash_control.md`. Mesma fonte, mesmo mapa, câmera e estado; sem ondas, sem logística, 6 soldados parados; **nenhuma** entrada do
-usuário nem do agente durante a janela (nem console); checkpoints por canal em 60/120/180 s, iguais em todas as cargas; não reiniciar por
-"Not responding". Janela mínima 180 s (a queda histórica aconteceu antes de 111 s).
+Base: `stability/crash_control.md`. Same source, same map, camera and state; no waves, no logistics, 6 soldiers standing still; **no** input from the
+user nor the agent during the window (not even the console); channel checkpoints at 60/120/180 s, equal in all loads; do not restart because of
+"Not responding". Minimum window 180 s (the historical crash happened before 111 s).
 
-| ID | Passo / comando | Medir | PASS | FAIL (o que fazer) | Fecha |
+| ID | Step / command | Measure | PASS | FAIL (what to do) | Closes |
 |---|---|---|---|---|---|
-| G1 | **Registrar o B1 já feito**: `D:/tools/foxhole-lab/crash-control-B1.txt` (184,3 s, 6 selecionados, 168 cópias, stratTick 11,66/11,90/12,37 ms) → entrada no MODLOG com PID/hora (o arquivo não diz) | confirmar no `UE4SS.log` do dia: sem `Registry`/fatal na janela | arquivo e log coerentes | sem log do dia: registrar "sem log de apoio" | ESTABILIDADE |
-| G2 | **B2** (ordem invertida, carga nova): `restart.sh` → esperar RTS → `run.sh t_crash_B1_prepare.lua` → esperar 5 s → `run.sh t_crash_B1_start.lua` → em 60/120/180 s `run.sh t_crash_B1_check.lua` | PID vivo; `SELECTED 6 CLONES 168` nos 3 checkpoints; `stratTick`; `UE4SS.log` sem `Registry`/`Access violation` | ≥ 180 s sem queda, contagens iguais, stratTick ~12 ms (não pior que B1) | queda < 111 s: guardar log+Crashes, **parar o lote** (regra do MODLOG), decisão do coordenador | ESTABILIDADE "Distinguir hipóteses…" |
-| G3 | **A2** (carga nova, sem seleção): `restart.sh` → `run.sh t_crash_control_start.lua` → 60/120/180 s `run.sh t_crash_control_check.lua` | idem; `SELECTED 0 CLONES 0`; stratTick ~0,5 ms | ≥ 180 s, 0 cópias, ~0,5 ms | queda com 0 cópias: o contorno não é necessário para reproduzir; investigar callbacks/anim comuns (decisão do `crash_control.md`) | ESTABILIDADE |
-| G4 | Tabela de decisão (`crash_control.md`): falha só B → seleção/cópias associadas (não causa); A/B ambas sobrevivem 2× → sem reprodução, ampliar duração/transições em lote posterior; falha A+B → ponte comum merece símbolos/trace | registrar a linha da decisão no MODLOG | decisão escrita | — | ESTABILIDADE |
-| G5 (opcional) | Matriz ampliada de `audit.md` (A: 10 min sem seleção; B: 1 selecionado/28 cópias 10 min; D: 100 selecionar/desselecionar; E: 20 morte/recriação; J: 1/3/10/25 selecionados em zoom alto, 60 s por degrau) | `profile()` por degrau; cópias = 28×N; sem residuais | só se o coordenador pedir: não é gate do lote | — | ESTABILIDADE "validação prolongada, GC, desseleção/reseleção, morte e recriação" |
+| G1 | **Record the B1 already done**: `D:/tools/foxhole-lab/crash-control-B1.txt` (184.3 s, 6 selected, 168 copies, stratTick 11.66/11.90/12.37 ms) → MODLOG entry with PID/time (the file does not say) | confirm in the day's `UE4SS.log`: no `Registry`/fatal in the window | file and log consistent | no log for the day: record "no supporting log" | ESTABILIDADE |
+| G2 | **B2** (reversed order, new load): `restart.sh` → wait for RTS → `run.sh t_crash_B1_prepare.lua` → wait 5 s → `run.sh t_crash_B1_start.lua` → at 60/120/180 s `run.sh t_crash_B1_check.lua` | PID alive; `SELECTED 6 CLONES 168` in all 3 checkpoints; `stratTick`; `UE4SS.log` without `Registry`/`Access violation` | ≥ 180 s without a crash, equal counts, stratTick ~12 ms (not worse than B1) | crash < 111 s: keep log+Crashes, **stop the batch** (MODLOG rule), coordinator's decision | ESTABILIDADE "Distinguish hypotheses…" |
+| G3 | **A2** (new load, no selection): `restart.sh` → `run.sh t_crash_control_start.lua` → 60/120/180 s `run.sh t_crash_control_check.lua` | same; `SELECTED 0 CLONES 0`; stratTick ~0.5 ms | ≥ 180 s, 0 copies, ~0.5 ms | crash with 0 copies: the outline is not needed to reproduce; investigate common callbacks/anim (decision in `crash_control.md`) | ESTABILIDADE |
+| G4 | Decision table (`crash_control.md`): only B fails → selection/copies associated (not the cause); A/B both survive 2× → no reproduction, widen duration/transitions in a later batch; A+B fail → the common bridge deserves symbols/trace | record the decision row in MODLOG | decision written | — | ESTABILIDADE |
+| G5 (optional) | Widened matrix from `audit.md` (A: 10 min without selection; B: 1 selected/28 copies 10 min; D: 100 select/deselect; E: 20 death/recreation; J: 1/3/10/25 selected at high zoom, 60 s per step) | `profile()` per step; copies = 28×N; no leftovers | only if the coordinator asks: not a batch gate | — | ESTABILIDADE "long validation, GC, deselect/reselect, death and recreation" |
 
-Depois do G: **INTEGRACAO grava a v4** (`HOW_TO_INTEGRATE.md` §3–§6) e a bateria offline passa 27/27 antes de seguir.
+After G: **INTEGRACAO writes v4** (`HOW_TO_INTEGRATE.md` §3–§6) and the offline battery passes 27/27 before going on.
 
-## 5. S — HomeRegionW (bancada): sondas só leitura, partida de fumaça e ensaio B1 (45 min)
+## 5. S — HomeRegionW (bench): read-only probes, smoke match and rehearsal B1 (45 min)
 
-Sem `map.txt` (HomeRegionW). Sem botloop. Cada sonda: `sh D:/tools/foxhole-lab/run.sh <arquivo> > saida_<arquivo>.txt`.
+No `map.txt` (HomeRegionW). No botloop. Each probe: `sh D:/tools/foxhole-lab/run.sh <file> > output_<file>.txt`.
 
-| ID | Passo / comando | Medir | PASS | FAIL (o que fazer) | Fecha |
+| ID | Step / command | Measure | PASS | FAIL (what to do) | Closes |
 |---|---|---|---|---|---|
-| S1 | `restart.sh` com a v4 publicada; `sha256sum` do publicado | espera do RTS ≤ 4 min; no `UE4SS.log` a linha `v0.9 carregado (... Shift+J base avançada ...)`; ausência de `Registry`/`ERRO` | RTS ligado e linha presente | falha de lançamento (`restart.sh` sai com código ≠ 0 em ~1 s = Steam fechado): abrir/logar o Steam, não esperar 240 s | LABORATORIO "Publicar… Verificar carregamento…" |
-| S2 | `run.sh pv4_state.lua` (sem partida) | seção `CFG`: `COLETA.manualStart true`, `bmat0 40`, `DEPLOY.budget 1000`, `FWD cost 300 hp 1725 cap 15 max 3 confirm 4.0 pending 180.0 strict true ruin false teamId nil visual native`, `SPAWN.pointSpawn false startRifles 10`, `ECHAIN.free 5 trip 20.0`, `PERSIST.version 2 fwdVersion 1` | todos iguais | divergência: o main publicado não é a v4; parar | INTEGRACAO |
-| S3 | `run.sh pv4_profile.lua` (zera a janela) e, 60 s depois, de novo | `mod: X ms/quadro … stratTick …` sem partida | linha de base registrada | — | custo por quadro (§7 C9) |
-| S4 | `run.sh A1_structure_columns.lua` | colunas de `BPStructureDynamicData` além das 5 conhecidas; valores de `ForwardBase1` (MaxHealth 1725? ResourceAmounts 300 bmat? StoredItemCapacity 15?) | sem queda; valores anotados | queda: ver §0; não repetir a sonda | BASES_AVANCADAS "Rastrear nos dados" |
-| S5 | `run.sh A2_base_classes.lua` | `BPForwardBase1_C` (caminho **inferido**) carrega? pai, CDO, propriedades `TeamId/Health/CodeName`, UFunctions de spawn/estoque/dano; `DestroyedForwardBase1` | classe carrega e `CodeName/Health/MaxHealth/TeamId` aparecem | classe não carrega: o caminho de `CFG.FWD.asset` muda; sem classe, não há bases (pular K inteiro) | BASES_AVANCADAS (decide `visual="native"` e R1) |
-| S6 | `run.sh A3_world_bases.lua` (mundo já carregado) | atores de base/spawn/hospital: onde, time, vida, componentes (só classe e nome); bounds só-colidindo → `CFG.FWD.half` (600 cm provisório); `ItemHolder` real × "15 slots" | tabela anotada | — | BASES_AVANCADAS |
-| S7 | `run.sh pv4_io_os.lua` (cria/apaga 2 arquivos temporários ao lado do save) | linha `rename A -> B com B existente (DESTINO EXISTE)`; `seek end`; `remove inexistente` | todas as linhas OK; o retorno do rename é registrado (offline no Windows/lupa: `nil, "File exists"`) | `rename` devolve true sobrescrevendo: o remove prévio é inofensivo; `ERRO` em seek/write: **PERSISTENCIA reprova** (o código depende disso) | PERSISTENCIA "Medições pedidas" |
-| S8 | `run.sh pv4_cmd_match.lua` (= Shift+F6) e `run.sh pv4_state.lua` | caminhões 3 (`res` = `dead`, 2 `sup`), `bmat 40`, camisas 30, fuzis 10, reserva 100, `COLETA ativa`; cadeia inimiga `auditoria true`, frente `m2 c10` | como descrito; painel (13 linhas) | `Partida não iniciada: <motivo>` no log: HomeRegionW tem campo, refinaria, fábrica e os caminhões do mapa (README); registrar o motivo e seguir para H0 | COLETA 1; ECONOMIA |
-| S9 | ~15 s depois (trabalhadores nascem a partir de ~5 s, um a cada ~3 s): `pv4_state.lua`; **captura** do esquadrão | 3 trabalhadores (`ESQUADRAO trabalhadores 3`), camisas 27; sem T-pose (grip 0 sem arma), sem erro no log | nascimento limpo | T-pose/queda do hook de animação: `CFG.WEAPONS.worker.grip` e `anim.untrack`; **parar** | COLETA 2 |
-| S10 | Ter um ponto seu: `run.sh pv4_cmd_capture.lua` (PONTO "A"); esperar `pv4_state.lua` mostrar `PONTO … dono 1` | captura normal (10 s de neutro a dono por soldado) | ponto A é seu | demorou: repetir `pv4_cmd_capture.lua` | — |
-| S11 | **B1**: `run.sh pv4_B1_forwardbase.lua` (estágio 1, **cria 1 ator**); +15 s o mesmo arquivo (estágio 2); +60 s o mesmo (estágio 3); `run.sh pv4_B1_clean.lua`; ler `UE4SS.log` do T0 ao fim | `B1 SPAWN ms`, `B1 ATOR CodeName Health MaxHealth TeamId`, `B1 CONTRATO strict` (Health==MaxHealth==1725 e CodeName==ForwardBase1), posição/yaw como pedidos, `ainda_ativo_apos_destroy false`; no log: sem `Registry`, sem `Access violation`, sem respawn nativo | nasce íntegro e some sem residual; 60 s limpos | **strict falha**: registrar o valor real (Health? CodeName?); decidir `CFG.FWD.strict=false` ou ajuste; **classe não nasce/queda**: não há base (pular K) e plano B (malha) é task nova; `TeamId`: registrar 255 × 1 (hoje o mod não escreve) | BASES_AVANCADAS "Solicitar… spawn real da classe no hex" |
+| S1 | `restart.sh` with v4 published; `sha256sum` of the published file | RTS wait ≤ 4 min; in `UE4SS.log` the line `v0.9 carregado (... Shift+J base avançada ...)`; absence of `Registry`/`ERRO` | RTS on and the line present | launch failure (`restart.sh` exits with code ≠ 0 in ~1 s = Steam closed): open/log into Steam, do not wait 240 s | LABORATORIO "Publish… Check loading…" |
+| S2 | `run.sh pv4_state.lua` (no match) | `CFG` section: `COLETA.manualStart true`, `bmat0 40`, `DEPLOY.budget 1000`, `FWD cost 300 hp 1725 cap 15 max 3 confirm 4.0 pending 180.0 strict true ruin false teamId nil visual native`, `SPAWN.pointSpawn false startRifles 10`, `ECHAIN.free 5 trip 20.0`, `PERSIST.version 2 fwdVersion 1` | all equal | divergence: the published main is not v4; stop | INTEGRACAO |
+| S3 | `run.sh pv4_profile.lua` (zeroes the window) and, 60 s later, again | `mod: X ms/quadro … stratTick …` without a match | baseline recorded | — | per-frame cost (§7 C9) |
+| S4 | `run.sh A1_structure_columns.lua` | columns of `BPStructureDynamicData` beyond the 5 known ones; values of `ForwardBase1` (MaxHealth 1725? ResourceAmounts 300 bmat? StoredItemCapacity 15?) | no crash; values noted | crash: see §0; do not repeat the probe | BASES_AVANCADAS "Trace in the data" |
+| S5 | `run.sh A2_base_classes.lua` | does `BPForwardBase1_C` (**inferred** path) load? parent, CDO, properties `TeamId/Health/CodeName`, spawn/stock/damage UFunctions; `DestroyedForwardBase1` | the class loads and `CodeName/Health/MaxHealth/TeamId` show up | the class does not load: the `CFG.FWD.asset` path changes; without the class, there are no bases (skip all of K) | BASES_AVANCADAS (decides `visual="native"` and R1) |
+| S6 | `run.sh A3_world_bases.lua` (world already loaded) | base/spawn/hospital actors: where, team, health, components (class and name only); collision-only bounds → `CFG.FWD.half` (600 cm provisional); real `ItemHolder` × "15 slots" | table noted | — | BASES_AVANCADAS |
+| S7 | `run.sh pv4_io_os.lua` (creates/deletes 2 temporary files next to the save) | line `rename A -> B com B existente (DESTINO EXISTE)`; `seek end`; `remove inexistente` | all lines OK; the rename's return is recorded (offline on Windows/lupa: `nil, "File exists"`) | `rename` returns true overwriting: the prior remove is harmless; `ERRO` in seek/write: **PERSISTENCIA fails** (the code depends on it) | PERSISTENCIA "Measurements requested" |
+| S8 | `run.sh pv4_cmd_match.lua` (= Shift+F6) and `run.sh pv4_state.lua` | trucks 3 (`res` = `dead`, 2 `sup`), `bmat 40`, shirts 30, rifles 10, reserve 100, `COLETA ativa`; enemy chain `auditoria true`, front `m2 c10` | as described; panel (13 lines) | `Partida não iniciada: <motivo>` in the log: HomeRegionW has field, refinery, factory and the map's trucks (README); record the reason and go on to H0 | COLETA 1; ECONOMIA |
+| S9 | ~15 s later (workers spawn from ~5 s on, one every ~3 s): `pv4_state.lua`; **capture** of the squad | 3 workers (`ESQUADRAO trabalhadores 3`), shirts 27; no T-pose (grip 0 without a weapon), no error in the log | clean spawn | T-pose/animation hook crash: `CFG.WEAPONS.worker.grip` and `anim.untrack`; **stop** | COLETA 2 |
+| S10 | Get a point of yours: `run.sh pv4_cmd_capture.lua` (POINT "A"); wait for `pv4_state.lua` to show `PONTO … dono 1` | normal capture (10 s from neutral to owner per soldier) | point A is yours | took long: repeat `pv4_cmd_capture.lua` | — |
+| S11 | **B1**: `run.sh pv4_B1_forwardbase.lua` (stage 1, **creates 1 actor**); +15 s the same file (stage 2); +60 s the same (stage 3); `run.sh pv4_B1_clean.lua`; read `UE4SS.log` from T0 to the end | `B1 SPAWN ms`, `B1 ATOR CodeName Health MaxHealth TeamId`, `B1 CONTRATO strict` (Health==MaxHealth==1725 and CodeName==ForwardBase1), position/yaw as requested, `ainda_ativo_apos_destroy false`; in the log: no `Registry`, no `Access violation`, no native respawn | spawns whole and vanishes without residue; 60 s clean | **strict fails**: record the real value (Health? CodeName?); decide `CFG.FWD.strict=false` or an adjustment; **class does not spawn/crash**: no base (skip K) and plan B (mesh) is a new task; `TeamId`: record 255 × 1 (today the mod does not write it) | BASES_AVANCADAS "Request… real spawn of the class in the hex" |
 
-## 6. H0–H1 — CallumsCapeHex: trocar de mapa e implantar (10 min)
+## 6. H0–H1 — CallumsCapeHex: switch map and deploy (10 min)
 
-| ID | Passo / comando | Medir | PASS | FAIL | Fecha |
+| ID | Step / command | Measure | PASS | FAIL | Closes |
 |---|---|---|---|---|---|
-| H0 | Gravar em `…/ue4ss/Mods/FoxholeRTS/map.txt` a linha `/Game/Maps/Master/CallumsCapeHex` (padrão do lote 17); `restart.sh`; esperar RTS (hex grande: mais lento) | `pv4_state.lua` linha `MUNDO` mostra CallumsCape; `sv.worldPath` | RTS ligado no hex | — | PERSISTENCIA "mesma região" |
-| H1a | `run.sh A3_world_bases.lua` de novo (no hex) | bases/hospitais nativos e ruínas; `ForwardBase1` já existe no hex? | anotado | — | BASES_AVANCADAS |
-| H1b | `run.sh pv4_cmd_deploy.lua` (= Alt+L) | `ANTES/DEPOIS` com refinarias, fábricas, `BPTruckW_C`, carteira. **v4: custo 1000** (refinaria 400 + fábrica 400 + 2 caminhões de suprimento 100; **sem** o de recurso) | `IMPLANTAÇÃO: -1000 bmat do cenário; saldo 0`; 2 TruckW (Team 1, HP 900, `built` 4); repetir: `Cadeia já implantada` e contagens iguais | recusa por vaga/folga: motivo no log; falha forçada reverte sem débito | PERSISTENCIA L0 (versão v4); LABORATORIO |
-| H1c | `run.sh pv4_state.lua` | `ATORES ATIVOS` = 1 refinaria, 1 fábrica, 2 TruckW; nenhum `BPTruckC_C` | conferido | — | — |
+| H0 | Write to `…/ue4ss/Mods/FoxholeRTS/map.txt` the line `/Game/Maps/Master/CallumsCapeHex` (batch 17 pattern); `restart.sh`; wait for RTS (large hex: slower) | the `MUNDO` line of `pv4_state.lua` shows CallumsCape; `sv.worldPath` | RTS on in the hex | — | PERSISTENCIA "same region" |
+| H1a | `run.sh A3_world_bases.lua` again (in the hex) | native bases/hospitals and ruins; does `ForwardBase1` already exist in the hex? | noted | — | BASES_AVANCADAS |
+| H1b | `run.sh pv4_cmd_deploy.lua` (= Alt+L) | `ANTES/DEPOIS` with refineries, factories, `BPTruckW_C`, wallet. **v4: cost 1000** (refinery 400 + factory 400 + 2 supply trucks 100; **without** the resource one) | `IMPLANTAÇÃO: -1000 bmat do cenário; saldo 0`; 2 TruckW (Team 1, HP 900, `built` 4); repeat: `Cadeia já implantada` and equal counts | refusal for spot/clearance: reason in the log; a forced failure reverts without a debit | PERSISTENCIA L0 (v4 version); LABORATORIO |
+| H1c | `run.sh pv4_state.lua` | `ATORES ATIVOS` = 1 refinery, 1 factory, 2 TruckW; no `BPTruckC_C` | checked | — | — |
 
-## 7. C — Partida manual, coleta e economia (35 min)
+## 7. C — Manual match, collection and economy (35 min)
 
-Itens 1–9 de `manual_collection/LAB_SCRIPT.md` + a matriz de ECONOMIA. `run.sh pv4_cmd_match.lua` inicia; `pv4_state.lua` a cada ~30 s; **o `newGame` já liga as ondas automáticas** (como Shift+F6); para medir a coleta sem pressão (C1–C9) rode `pv4_cmd_mode.lua` com `MODO="sem_ondas"` **logo depois** da partida (a sonda só desliga se estiver ligada).
+Items 1–9 of `manual_collection/LAB_SCRIPT.md` + the ECONOMIA matrix. `run.sh pv4_cmd_match.lua` starts; `pv4_state.lua` every ~30 s; **`newGame` already turns automatic waves on** (like Shift+F6); to measure collection without pressure (C1–C9) run `pv4_cmd_mode.lua` with `MODO="sem_ondas"` **right after** the match (the probe only turns them off if they are on).
 
-| ID | Passo / comando | Medir | PASS | FAIL | Fecha |
+| ID | Step / command | Measure | PASS | FAIL | Closes |
 |---|---|---|---|---|---|
-| C1 | `pv4_cmd_match.lua` + `pv4_state.lua` (t=0) | custo 1000, 2 caminhões de suprimento, nenhum de recurso vivo, `bmat 40`, reserva 100, painel com `Fábrica | guarda 100 bmat para reconstruir caminhão (bmat 40)`, camisas 30 | como descrito | — | COLETA 1 |
-| C2 | t≈15 s (o 1º trabalhador aos ~5 s, os outros a cada ~3 s): `pv4_state.lua` + captura | 3 soldados **sem arma** perto da base; camisas 30→27; nada de crash (`UE4SS.log`, `Saved\Crashes`) | 3 trabalhadores, T-pose ausente | — | COLETA 2 |
-| C3 | Caminhada: `pv4_state.lua` a cada 30 s (seções `COLETA`, `LUGARES`, `DISTANCIAS`) | tempo da 1ª entrega na refinaria e do 1º caminhão; distância real campo–refinaria; algum trabalhador preso? (`leg` 180 s) | eles chegam, coletam, entregam; razão da coleta `true`; tempo comparável a 165 s (80 m) / 359 s (470 m) do harness | preso/perdido: `CFG.COLETA.fieldR/refR/stand/leg`; anotar onde | COLETA 3 |
-| C4 | Ordem do jogador (durante C3, ~60 s): `pv4_cmd_worker_order.lua`; `pv4_state.lua` logo depois e ~70 s depois | o trabalhador sai da coleta (carga em mãos descartada, log); ~60 s sem ordem (`CFG.COLETA.quiet`) volta sozinho | sai e volta | não volta: `colMaintain`/`quiet` | COLETA 5 |
-| C5 | Caminhão: quando bmat chega a 100 a fábrica constrói o de recurso | ele **aparece no campo, em pé no chão**, não preso; mensagem `caminhão de recurso pronto: coleta manual encerrada`; o painel perde a linha da coleta (`COLETA_PAINEL nil`); `ATORES ATIVOS BPTruckW_C` sobe | spawn válido (`logi.spawnTruck`), não em telhado | spawn recusado: segue como caminhão abstrato (log); anotar | COLETA 4 |
-| C6 | Perda do caminhão: `pv4_cmd_kill_truck.lua` com `KIND="res"`, `ZERAR=true` | sem bmat/sucata/caminhão a coleta **reativa** (`COLETA ativa true`, trabalhadores voltam, `COLETA MANUAL:` no log); a fábrica reconstrói o caminhão ao juntar 100 bmat | reativa e reconstrói | trava para sempre = regressão do v2 | COLETA 6; decisão do usuário |
-| C7 | Combate: `pv4_cmd_enemy.lua` (`ONDE="campo"`, `N=1`); depois `pv4_cmd_mode.lua` `MODO="limpar"` | trabalhadores pausam; se um morre, a base repõe **por 1 camisa** (`pv4_estado`: camisas −1) | pausa e reposição | — | COLETA 7 |
-| C8 | Salvar/continuar com trabalhadores em campo: `pv4_cmd_mode.lua` `MODO="ondas"` (religa; `sv.save` exige `combat.auto`); `pv4_cmd_save.lua`; `pv4_cmd_load.lua`; `pv4_state.lua` antes e depois | carga em mãos descartada (log `coleta manual: … descartada`), 3 trabalhadores, coleta recomeça; ms do save/load | `sv.save` true; `sv.load` true; mesmo esquadrão | — | COLETA 8; PERSISTENCIA |
-| C9 | Custo por quadro: `pv4_profile.lua` (zera) → 2 min **com** coleta ativa → `pv4_profile.lua`; depois repetir **sem** coleta (após C5) | `mod X ms/quadro`, `colStep` | diferença anotada (nenhum limite fixo; coleta é O(coletores)) | — | COLETA 9; INTERFACE (custo do painel) |
-| C10 | Economia (depois de C5): `pv4_cmd_prio.lua` com `VEZES=3` (fuzis) e deixar a fábrica produzir; `pv4_cmd_send.lua` `ONDE="base"`; ver `DEPOSITO base … fuzis`; repetir com `VEZES=1` seguidas até bandagens | receita → produção → transporte → depósito para os 4 produtos (caixa de fuzis = 20 un., bandagens = 50, camisas = 10); `Pronto | …` e `extraHud` coerentes; razão de bmat | os 4 produtos chegam ao depósito sem estoque artificial além de `startRifles 10` | produto some: `logi.moveCargo`/`returnCargo` | ECONOMIA "cadeia completa ao vivo" |
-| C11 | Recrutar fuzileiros até acabar os fuzis (`pv4_cmd_recruit.lua` `ROLE="rifle"`, `ONDE="base"`, `VEZES=11`) | os 10 primeiros gastam 1 camisa + 1 fuzil cada; o 11º é recusado (`sem fuzis em base; …`); mão de obra **não** cai; depois da produção/entrega volta a poder | recusa e retomada | recruta sem fuzil = regressão | ECONOMIA "recrutamento dependente de suprimento" |
-| C12 | Escassez/corte/retomada: `pv4_cmd_kill_truck.lua` `KIND="sup"` com bmat baixo; observar a reserva (`Fábrica | guarda 100 bmat…`) e a volta do caminhão (< 60 s se houver bmat); matar de novo | a fábrica não gasta os 100 de reserva em caixa (hipótese bmat×caminhão: 0/31 voltavam antes da reserva) | caminhão volta; razão fecha | caminhão nunca volta = reserva não vale ao vivo | IA_LOGISTICA acabamento 3; ECONOMIA "escassez, corte, retomada" |
-| C13 | Painel: **captura** com coleta ativa, depois com produção; `pv4_state.lua` seção `PAINEL` (linhas/largura) | 12–13 linhas, largura ≤ ~222 (offline); sobreposição, altura, a ajuda F5 e alertas nativos em vários zooms/resoluções; pausa; logística desligada | legível e sem cortar estoques/veículos; nada escondido silenciosamente | cortado: layout antes de aprovar (a INTERFACE avisa que o clipping é gate visual) | INTERFACE (laboratório) |
+| C1 | `pv4_cmd_match.lua` + `pv4_state.lua` (t=0) | cost 1000, 2 supply trucks, no live resource truck, `bmat 40`, reserve 100, panel with `Fábrica | guarda 100 bmat para reconstruir caminhão (bmat 40)`, shirts 30 | as described | — | COLETA 1 |
+| C2 | t≈15 s (the 1st worker at ~5 s, the others every ~3 s): `pv4_state.lua` + capture | 3 soldiers **without a weapon** near the base; shirts 30→27; no crash (`UE4SS.log`, `Saved\Crashes`) | 3 workers, no T-pose | — | COLETA 2 |
+| C3 | Walking: `pv4_state.lua` every 30 s (sections `COLETA`, `LUGARES`, `DISTANCIAS`) | time of the 1st delivery to the refinery and of the 1st truck; real field–refinery distance; is any worker stuck? (`leg` 180 s) | they arrive, collect, deliver; collection ledger `true`; time comparable to the harness's 165 s (80 m) / 359 s (470 m) | stuck/lost: `CFG.COLETA.fieldR/refR/stand/leg`; note where | COLETA 3 |
+| C4 | Player order (during C3, ~60 s): `pv4_cmd_worker_order.lua`; `pv4_state.lua` right after and ~70 s later | the worker leaves collection (cargo in hand discarded, log); ~60 s without an order (`CFG.COLETA.quiet`) they come back on their own | leaves and comes back | does not come back: `colMaintain`/`quiet` | COLETA 5 |
+| C5 | Truck: when bmat reaches 100 the factory builds the resource one | it **appears in the field, standing on the ground**, not stuck; message `caminhão de recurso pronto: coleta manual encerrada`; the panel loses the collection line (`COLETA_PAINEL nil`); `ATORES ATIVOS BPTruckW_C` goes up | valid spawn (`logi.spawnTruck`), not on a roof | spawn refused: continues as an abstract truck (log); note it | COLETA 4 |
+| C6 | Truck loss: `pv4_cmd_kill_truck.lua` with `KIND="res"`, `ZERAR=true` | with no bmat/salvage/truck collection **reactivates** (`COLETA ativa true`, workers come back, `COLETA MANUAL:` in the log); the factory rebuilds the truck when it gathers 100 bmat | reactivates and rebuilds | freezes forever = v2 regression | COLETA 6; user's decision |
+| C7 | Combat: `pv4_cmd_enemy.lua` (`ONDE="campo"`, `N=1`); then `pv4_cmd_mode.lua` `MODO="limpar"` | workers pause; if one dies, the base replaces them **for 1 shirt** (`pv4_state`: shirts −1) | pause and replacement | — | COLETA 7 |
+| C8 | Save/continue with workers in the field: `pv4_cmd_mode.lua` `MODO="ondas"` (turns them back on; `sv.save` requires `combat.auto`); `pv4_cmd_save.lua`; `pv4_cmd_load.lua`; `pv4_state.lua` before and after | cargo in hand discarded (log `coleta manual: … descartada`), 3 workers, collection restarts; save/load ms | `sv.save` true; `sv.load` true; same squad | — | COLETA 8; PERSISTENCIA |
+| C9 | Per-frame cost: `pv4_profile.lua` (zero) → 2 min **with** collection active → `pv4_profile.lua`; then repeat **without** collection (after C5) | `mod X ms/quadro`, `colStep` | difference noted (no fixed limit; collection is O(collectors)) | — | COLETA 9; INTERFACE (panel cost) |
+| C10 | Economy (after C5): `pv4_cmd_prio.lua` with `VEZES=3` (rifles) and let the factory produce; `pv4_cmd_send.lua` `ONDE="base"`; see `DEPOSITO base … fuzis`; repeat with `VEZES=1` in a row up to bandages | recipe → production → transport → depot for the 4 products (rifle crate = 20 units, bandages = 50, shirts = 10); `Pronto | …` and `extraHud` consistent; bmat ledger | the 4 products reach the depot without artificial stock beyond `startRifles 10` | a product vanishes: `logi.moveCargo`/`returnCargo` | ECONOMIA "complete chain live" |
+| C11 | Recruit riflemen until the rifles run out (`pv4_cmd_recruit.lua` `ROLE="rifle"`, `ONDE="base"`, `VEZES=11`) | the first 10 spend 1 shirt + 1 rifle each; the 11th is refused (`sem fuzis em base; …`); manpower does **not** drop; after production/delivery it can again | refusal and recovery | recruits without a rifle = regression | ECONOMIA "supply-dependent recruiting" |
+| C12 | Scarcity/cut/recovery: `pv4_cmd_kill_truck.lua` `KIND="sup"` with low bmat; watch the reserve (`Fábrica | guarda 100 bmat…`) and the truck coming back (< 60 s if there is bmat); kill it again | the factory does not spend the 100 reserve on crates (bmat×truck hypothesis: 0/31 came back before the reserve) | the truck comes back; the ledger closes | the truck never comes back = the reserve does not hold live | IA_LOGISTICA finishing 3; ECONOMIA "scarcity, cut, recovery" |
+| C13 | Panel: **capture** with collection active, then with production; `pv4_state.lua` section `PAINEL` (lines/width) | 12–13 lines, width ≤ ~222 (offline); overlap, height, F5 help and native alerts at several zooms/resolutions; pause; logistics off | readable and without cutting stocks/vehicles; nothing silently hidden | cut: layout before approving (INTERFACE warns that clipping is a visual gate) | INTERFACE (lab) |
 
-## 8. I — Cadeia inimiga e interdição (35 min; L1–L12 de `logistics_ai/LAB_SCRIPT.md`)
+## 8. I — Enemy chain and interdiction (35 min; L1–L12 of `logistics_ai/LAB_SCRIPT.md`)
 
-Mesma partida de C (ou nova com `pv4_cmd_match.lua`). Ondas: a partida nova já as liga; `pv4_cmd_mode.lua` `MODO="ondas"` só religa se estiverem desligadas. Sonda: `run.sh t_logistics_ai.lua` (ou `pv4_state.lua`, seção
-`CADEIA_INIMIGA`/`COMBOIO`). Calibração v2: `free 5`, `trip 20`, `front0 m2 c10`, `want 4/20`, piso grátis 5/onda.
+Same match as C (or a new one with `pv4_cmd_match.lua`). Waves: the new match already turns them on; `pv4_cmd_mode.lua` `MODO="ondas"` only turns them back on if they are off. Probe: `run.sh t_logistics_ai.lua` (or `pv4_state.lua`, section
+`CADEIA_INIMIGA`/`COMBOIO`). v2 calibration: `free 5`, `trip 20`, `front0 m2 c10`, `want 4/20`, free floor 5/wave.
 
-| ID | Passo | Medir | PASS | FAIL | Fecha |
+| ID | Step | Measure | PASS | FAIL | Closes |
 |---|---|---|---|---|---|
-| I1 | (L1) logo ao ligar a partida | `auditoria=true (razão fechado)`, `ativo=true`, frente `m2 c10`, retaguarda bmat 240, frota livre 2; HUD `INIMIGO: frente equipa 10`; sem erro Lua | como descrito | — | IA_LOGISTICA |
-| I2 | (L2) 1º comboio (20 s após o início das ondas + carga) | evento `comboio 1 saiu: N cx`; ator `BPTruckC` existe, `ator_ativo=true`; a retaguarda caiu exatamente a carga; alerta `COMBOIO INIMIGO … (carga)` | ator real válido | spawn recusado/em destruição: log | IA_LOGISTICA "caminhão real ao vivo" |
-| I3 | (L3) deixe chegar | um único `entregou na frente`; frente sobe por `units` (camisas = 10 por caixa); rodar a sonda 3× seguidas: nenhuma 2ª entrega; o caminhão some e a frota livre volta a 2; `auditoria=true` | única entrega | dupla entrega = bug | IA_LOGISTICA |
-| I4 | (L4) emboscada: `pv4_cmd_ambush.lua` com comboio carregado | `comboio N perdido (destruído): -X munição, -Y camisas` **uma** vez; alerta `COMBOIO INIMIGO DESTRUÍDO (+25)`; frente inalterada; `reconstruindo 1`; `auditoria=true` | uma perda, razão fecha | perda duplicada | IA_LOGISTICA "destruição/interdição reduz suprimento" |
-| I5 | (L5) morteiro nosso sobre comboio carregado: `pv4_cmd_mortar.lua` (= Ctrl+5, 40 de mão de obra, mira adiantada); depois, **com o comboio já destruído**, `REPETIR_NO_LUGAR = true` e rodar de novo | o mesmo de I4 (uma perda, alerta `+25`); o 2º morteiro sobre caminhão destruído **não** registra 2ª perda (`combat.convoysCut` não sobe) | uma perda só | 2ª perda = bug | IA_LOGISTICA |
-| I6 | (L6) esperar ≥ 30 s após a perda | `caminhão de comboio reconstruído (-100 bmat)` só quando bmat ≥ 100; a fábrica **inimiga** fica parada se não há caminhão livre e há reconstrução vencida | como descrito | — | IA_LOGISTICA "recuperação" |
-| I7 | (L7) ondas com a frente cheia e depois vazia: comparar `#enemies()` logo após cada spawn com o registro da onda (`eReport`) | `enviados` = soldados que nasceram; com a frente vazia `faltou suprimento ao inimigo: a onda vem com N a menos (…; K por comboios destruídos)`; piso de 3… **v2: piso grátis 5** | sem soldado a mais | — | IA_LOGISTICA "escassez" |
-| I8 | (L8) ponto inimigo com reforço (`ai.tick`) e frente seca, depois abastecida | sem material: nenhum `REFORÇO INIMIGO`; com material: 2–3 e a frente debitada pelo número que **nasceu** | como descrito | — | IA_LOGISTICA |
-| I9 | (L9) `pv4_cmd_save.lua` com comboio na estrada, `pv4_cmd_load.lua` (mesma sessão; o reinício completo é V) | evento `cadeia inimiga restaurada do save (reenviar …)`; pendente = carga que estava na estrada; `auditoria=true`; o próximo comboio leva o pendente; continuar 2× não duplica (compare inicial+produzido) | restaura sem duplicar | — | IA_LOGISTICA "continuidade"; PERSISTENCIA |
-| I10 | (L10) em sonda separada e registrada: `logi.foes[1].pawn:K2_DestroyActor()` | no quadro seguinte `perdido (ator do caminhão inválido)`, sem entrega, `auditoria=true`, sem crash/erro nativo | tratado | queda nativa: **parar** | IA_LOGISTICA |
-| I11 | (L11) Assalto: `pv4_cmd_mode.lua` `MODO="assalto"` | nenhum comboio; frente intacta; nenhum consumo (`ativo=false`); recrutar usa mão de obra (ramo legado) | como descrito | — | IA_LOGISTICA; BASES (K9) |
-| I12 | (L12) `pv4_cmd_match.lua` várias vezes e `MODO="limpar"` no meio | nenhum `BPTruckC_C` sobra (`ATORES ATIVOS`); `logi.en` novo; sem erro | sem resíduos | — | IA_LOGISTICA |
-| I13 | Pendência 4 do acabamento: editar `save.txt` (corromper `elogi`; trocar `["v"]=2` por outro) e `pv4_cmd_load.lua` | aviso `CADEIA INIMIGA REINICIADA (…): estoque de cenário` por 10 s; jogador intacto; próximo autosave grava de novo | só a seção cai | recusa o save inteiro = regressão do v2 | PERSISTENCIA; IA acabamento 4 |
-| I15 | **v4.1**: onda com trabalhadores. Com a coleta ativa (3 trabalhadores vivos), anotar `#squad`, soldados de combate (`rts.combatCount()`) e `#enemies()` logo após o spawn da 1ª onda; repetir com `CFG.COLETA.workers = 0` antes de uma partida nova (ou sem trabalhadores vivos) e o mesmo número de soldados de combate | O tamanho da onda depende só dos soldados de combate (harness: 6 de combate dão 6 com ou sem 3 trabalhadores; o aviso "próxima onda em … (esquadrão N …)" mostra os de combate; `pv4_state.lua`/canal: o ponto de saída da onda segue o esquadrão de combate, não o campo de sucata, pois `squadCenter()` só conta combatentes vivos) | onda maior com trabalhadores = regressão | — | decisão do orquestrador (v4.1) |
-| I14 | Pendência 1 do acabamento: cadência real das ondas (robô e humano) e `logi.eReport()` no fim | `byCut`, perdas, pressão por onda | números anotados para `TABELA_CALIBRACAO` | — | IA acabamento 1–2 |
+| I1 | (L1) right when the match starts | `auditoria=true (razão fechado)`, `ativo=true`, front `m2 c10`, rear bmat 240, free fleet 2; HUD `INIMIGO: frente equipa 10`; no Lua error | as described | — | IA_LOGISTICA |
+| I2 | (L2) 1st convoy (20 s after the waves start + cargo) | event `comboio 1 saiu: N cx`; actor `BPTruckC` exists, `ator_ativo=true`; the rear dropped exactly the cargo; alert `COMBOIO INIMIGO … (carga)` | valid real actor | spawn refused/being destroyed: log | IA_LOGISTICA "real truck live" |
+| I3 | (L3) let it arrive | a single `entregou na frente`; the front rises by `units` (shirts = 10 per crate); run the probe 3× in a row: no 2nd delivery; the truck vanishes and the free fleet goes back to 2; `auditoria=true` | single delivery | double delivery = bug | IA_LOGISTICA |
+| I4 | (L4) ambush: `pv4_cmd_ambush.lua` with a loaded convoy | `comboio N perdido (destruído): -X munição, -Y camisas` **once**; alert `COMBOIO INIMIGO DESTRUÍDO (+25)`; front unchanged; `reconstruindo 1`; `auditoria=true` | one loss, the ledger closes | duplicated loss | IA_LOGISTICA "destruction/interdiction reduces supply" |
+| I5 | (L5) our mortar on a loaded convoy: `pv4_cmd_mortar.lua` (= Ctrl+5, 40 manpower, leading aim); then, **with the convoy already destroyed**, `REPETIR_NO_LUGAR = true` and run again | the same as I4 (one loss, alert `+25`); the 2nd mortar on a destroyed truck does **not** record a 2nd loss (`combat.convoysCut` does not go up) | only one loss | 2nd loss = bug | IA_LOGISTICA |
+| I6 | (L6) wait ≥ 30 s after the loss | `caminhão de comboio reconstruído (-100 bmat)` only when bmat ≥ 100; the **enemy** factory stays idle if there is no free truck and a rebuild is due | as described | — | IA_LOGISTICA "recovery" |
+| I7 | (L7) waves with the front full and then empty: compare `#enemies()` right after each spawn with the wave record (`eReport`) | `enviados` = soldiers that spawned; with the front empty `faltou suprimento ao inimigo: a onda vem com N a menos (…; K por comboios destruídos)`; floor of 3… **v2: free floor 5** | no extra soldier | — | IA_LOGISTICA "scarcity" |
+| I8 | (L8) enemy point with reinforcement (`ai.tick`) and a dry front, then supplied | without material: no `REFORÇO INIMIGO`; with material: 2–3 and the front debited by the number that **spawned** | as described | — | IA_LOGISTICA |
+| I9 | (L9) `pv4_cmd_save.lua` with a convoy on the road, `pv4_cmd_load.lua` (same session; the complete restart is V) | event `cadeia inimiga restaurada do save (reenviar …)`; pending = the cargo that was on the road; `auditoria=true`; the next convoy carries the pending amount; continuing 2× does not duplicate (compare initial+produced) | restores without duplicating | — | IA_LOGISTICA "continuity"; PERSISTENCIA |
+| I10 | (L10) in a separate and recorded probe: `logi.foes[1].pawn:K2_DestroyActor()` | on the next frame `perdido (ator do caminhão inválido)`, no delivery, `auditoria=true`, no crash/native error | handled | native crash: **stop** | IA_LOGISTICA |
+| I11 | (L11) Assault: `pv4_cmd_mode.lua` `MODO="assalto"` | no convoy; front intact; no consumption (`ativo=false`); recruiting uses manpower (legacy branch) | as described | — | IA_LOGISTICA; BASES (K9) |
+| I12 | (L12) `pv4_cmd_match.lua` several times and `MODO="limpar"` in the middle | no `BPTruckC_C` left (`ATORES ATIVOS`); new `logi.en`; no error | no leftovers | — | IA_LOGISTICA |
+| I13 | Finishing pending item 4: edit `save.txt` (corrupt `elogi`; swap `["v"]=2` for something else) and `pv4_cmd_load.lua` | warning `CADEIA INIMIGA REINICIADA (…): estoque de cenário` for 10 s; player intact; the next autosave writes again | only the section drops | refuses the whole save = v2 regression | PERSISTENCIA; AI finishing 4 |
+| I15 | **v4.1**: wave with workers. With collection active (3 live workers), note `#squad`, combat soldiers (`rts.combatCount()`) and `#enemies()` right after the 1st wave spawns; repeat with `CFG.COLETA.workers = 0` before a new match (or with no live workers) and the same number of combat soldiers | The wave size depends only on combat soldiers (harness: 6 combat give 6 with or without 3 workers; the warning "próxima onda em … (esquadrão N …)" shows the combat ones; `pv4_state.lua`/channel: the wave's exit point follows the combat squad, not the salvage field, since `squadCenter()` only counts live combatants) | larger wave with workers = regression | — | orchestrator's decision (v4.1) |
+| I14 | Finishing pending item 1: real wave cadence (bot and human) and `logi.eReport()` at the end | `byCut`, losses, pressure per wave | numbers noted for `CALIBRATION_TABLE` | — | AI finishing 1–2 |
 
-## 9. K — Bases avançadas (45 min; ainda em CallumsCapeHex; **só se S5/S11 deixaram a classe nascer**)
+## 9. K — Forward bases (45 min; still in CallumsCapeHex; **only if S5/S11 let the class spawn**)
 
-Pré: partida logística ativa com ≥ 1 ponto seu longe da base (≥ 3000 cm) ou perto de ponto inimigo (≤ 4000 cm); bmat suficiente ou `CREDITAR=true` (registre).
+Pre: active logistics match with ≥ 1 point of yours far from the base (≥ 3000 cm) or near an enemy point (≤ 4000 cm); enough bmat or `CREDITAR=true` (record it).
 
-| ID | Passo / comando | Medir | PASS | FAIL | Fecha |
+| ID | Step / command | Measure | PASS | FAIL | Closes |
 |---|---|---|---|---|---|
-| K1 | `run.sh A4_ground_at_points.lua`; `run.sh pv4_bases_scene.lua` | por ponto: `fwdCheck`, `fwdPlace` (centro, saídas ≥ 3), `fwdPlace_ms`; `RESUMO elegiveis` | **≥ 1 ponto elegível por partida** no hex (L2: `minFromBase 3000` / `maxToEnemyPoint 4000`); ms de `fwdPlace` anotado | nenhum elegível: calibrar `half/clear/maxSlope/minExits/exitR` (A4 mede) | BASES (L2; footprint) |
-| K2 | Recusas (`pv4_cmd_base_shiftj.lua`, `TOQUES=1`/`2`): cursor num ponto neutro/inimigo/perto da base/com inimigo no anel (`pv4_cmd_enemy.lua` `ONDE=` nome) | mensagens `não é seu`, `perto demais da base`, `há inimigos no ponto X`; **nada criado, nada debitado** | recusas claras | cria algo = bug | BASES |
-| K3 | Construir: `PONTO=nil`, `TOQUES=2` (com bmat real; senão `CREDITAR=true`, anotar) | `toque 1 false`, `toque 2 true`; a base aparece no ponto; `pv4_state.lua`: `BASE … ator_vivo true classe BPForwardBase1_C hp_ator 1725/1725 saidas ≥3 razao true`; `bmat −300` **só depois** do ator validado; painel ganha `base A | camisas 0 | fuzis 0 | slots 0/15 | reforça: NÃO (sem camisas)` | íntegra, 1 ator por base | `strict` recusa (log `vida inicial/CodeName/rotação divergiu`): ver S11 | BASES "Solicitar… spawn real" |
-| K4 | Pedido pendente: sem bmat, `TOQUES=2`; painel; esperar ou `TOQUES=2` de novo em 4 s para cancelar | `pedido de base avançada em X registrado`; painel `Fábrica | guarda 300 bmat para base avançada em X (bmat N)` (depois da reserva do caminhão: o caminhão tem prioridade); constrói sozinha quando junta; cancela em 180 s, se o ponto deixa de ser seu, com inimigo no anel, ou com o 2º Shift+J | como descrito; **sem fome de munição** (a fábrica não para munição indefinidamente) | fome de munição prolongada: ajustar `pending` | BASES |
-| K5 | Entrega por caminhão: `pv4_cmd_send.lua` `ONDE="A"` (base); esperar | só o que cabe nos 15 slots (caixa parcial = 1 slot); camisas e fuzis **só** vão a base principal ou avançada ativa; ponto sem base recebe só munição e bandagens; razão por base fecha | respeita slots | estoura 15 slots = bug | BASES "entrega de camisas por caminhão" |
-| K6 | Recrutar: `pv4_cmd_recruit.lua` `ROLE="rifle"`, `ONDE="A"` (dentro da base) e depois `ONDE="longe"`; `ROLE="mg"` | nasce **na saída** da base (`saida de base A a ~0 cm`, não em telhado/parede), gasta 1 camisa + 1 fuzil (mg: só camisa), mão de obra intacta; base sem estoque dentro dela → recusa com motivo, **sem** cair noutra; fora → a base mais perto do cursor/esquadrão com estoque | como descrito | nasce em telhado/parede: `exits`/`parkingGround` | BASES |
-| K7 | Ponto sem base (ainda seu): `pv4_cmd_recruit.lua` `ONDE=` ponto sem base | **não** reforça (nasce na base principal); com `CFG.SPAWN.pointSpawn=true` voltaria ao antigo | confirmado | — | BASES |
-| K8 | Perda: `pv4_cmd_base_loss.lua` `MODO="morteiro"` (8 morteiros inimigos), depois `"captura"` noutra base | alerta `BASE AVANÇADA X destruída/capturada: perdeu N camisas e M fuzis` **uma vez**; ator destruído, **sem** residual (`BPForwardBase1_C` ativos = bases vivas); estoque zerado; recapturar o ponto não traz a base; razão fecha; painel perde a linha; ponto neutralizado = `INATIVA (ponto neutro)` com estoque preservado | uma perda, sem ator residual | ator residual: `fwdLose` | BASES |
-| K9 | Limites e Assalto: construir até 3, tentar a 4ª (`limite de bases avançadas (3)`); `pv4_cmd_mode.lua` `MODO="assalto"`: Shift+J recusa (`só numa partida com logística (fora do Assalto)`) e `recruit` usa mão de obra | como descrito | — | — | BASES |
-| K10 | Pausa: o jogo pausado (`rts.togglePause()` via canal) durante os 4 s do 2º toque | `GetRealTimeSeconds` continua correndo (item 12 do relatório da etapa 2) | confirmar que é o desejado | decisão do usuário | BASES R12 |
-| K11 | Derrota por falta de tropa (ramo logístico): sem soldados de combate **e** sem camisa em base/fábrica/caminhão | só então `DERROTA` | não perde com camisas na fábrica/caminhão | — | BASES |
+| K1 | `run.sh A4_ground_at_points.lua`; `run.sh pv4_bases_scene.lua` | per point: `fwdCheck`, `fwdPlace` (center, exits ≥ 3), `fwdPlace_ms`; `RESUMO elegiveis` | **≥ 1 eligible point per match** in the hex (L2: `minFromBase 3000` / `maxToEnemyPoint 4000`); `fwdPlace` ms noted | none eligible: calibrate `half/clear/maxSlope/minExits/exitR` (A4 measures) | BASES (L2; footprint) |
+| K2 | Refusals (`pv4_cmd_base_shiftj.lua`, `TOQUES=1`/`2`): cursor on a neutral/enemy point/near the base/with an enemy in the ring (`pv4_cmd_enemy.lua` `ONDE=` name) | messages `não é seu`, `perto demais da base`, `há inimigos no ponto X`; **nothing created, nothing debited** | clear refusals | creates something = bug | BASES |
+| K3 | Build: `PONTO=nil`, `TOQUES=2` (with real bmat; otherwise `CREDITAR=true`, note it) | `toque 1 false`, `toque 2 true`; the base appears at the point; `pv4_state.lua`: `BASE … ator_vivo true classe BPForwardBase1_C hp_ator 1725/1725 saidas ≥3 razao true`; `bmat −300` **only after** the validated actor; the panel gains `base A | camisas 0 | fuzis 0 | slots 0/15 | reforça: NÃO (sem camisas)` | whole, 1 actor per base | `strict` refuses (log `vida inicial/CodeName/rotação divergiu`): see S11 | BASES "Request… real spawn" |
+| K4 | Pending order: without bmat, `TOQUES=2`; panel; wait or `TOQUES=2` again within 4 s to cancel | `pedido de base avançada em X registrado`; panel `Fábrica | guarda 300 bmat para base avançada em X (bmat N)` (after the truck's reserve: the truck has priority); builds on its own when it has enough; cancels in 180 s, if the point stops being yours, with an enemy in the ring, or with the 2nd Shift+J | as described; **no ammo starvation** (the factory does not stop ammo indefinitely) | prolonged ammo starvation: adjust `pending` | BASES |
+| K5 | Delivery by truck: `pv4_cmd_send.lua` `ONDE="A"` (base); wait | only what fits in the 15 slots (partial crate = 1 slot); shirts and rifles go **only** to the main base or an active forward base; a point without a base receives only ammo and bandages; the per-base ledger closes | respects slots | overflows 15 slots = bug | BASES "delivery of shirts by truck" |
+| K6 | Recruit: `pv4_cmd_recruit.lua` `ROLE="rifle"`, `ONDE="A"` (inside the base) and then `ONDE="longe"`; `ROLE="mg"` | spawns **at the base's exit** (`saida de base A a ~0 cm`, not on a roof/wall), spends 1 shirt + 1 rifle (mg: only the shirt), manpower intact; a base without stock with the cursor inside it → refusal with a reason, **without** falling back to another; outside → the base closest to the cursor/squad with stock | as described | spawns on a roof/wall: `exits`/`parkingGround` | BASES |
+| K7 | Point without a base (still yours): `pv4_cmd_recruit.lua` `ONDE=` point without a base | does **not** reinforce (spawns at the main base); with `CFG.SPAWN.pointSpawn=true` it would go back to the old behavior | confirmed | — | BASES |
+| K8 | Loss: `pv4_cmd_base_loss.lua` `MODO="morteiro"` (8 enemy mortars), then `"captura"` on another base | alert `BASE AVANÇADA X destruída/capturada: perdeu N camisas e M fuzis` **once**; actor destroyed, **without** residue (active `BPForwardBase1_C` = live bases); stock zeroed; recapturing the point does not bring the base back; the ledger closes; the panel loses the line; a neutralized point = `INATIVA (ponto neutro)` with stock kept | one loss, no residual actor | residual actor: `fwdLose` | BASES |
+| K9 | Limits and Assault: build up to 3, try a 4th (`limite de bases avançadas (3)`); `pv4_cmd_mode.lua` `MODO="assalto"`: Shift+J refuses (`só numa partida com logística (fora do Assalto)`) and `recruit` uses manpower | as described | — | — | BASES |
+| K10 | Pause: the game paused (`rts.togglePause()` through the channel) during the 4 s of the 2nd press | `GetRealTimeSeconds` keeps running (item 12 of the stage 2 report) | confirm that is what is wanted | user's decision | BASES R12 |
+| K11 | Defeat by lack of troops (logistics branch): no combat soldiers **and** no shirt at a base/factory/truck | only then `DERROTA` | does not lose with shirts in the factory/truck | — | BASES |
 
-## 10. V — Persistência (50 min; hex; **2 reinícios do jogo**) e T — 10 min com 3 bases (15 min)
+## 10. V — Persistence (50 min; hex; **2 game restarts**) and T — 10 min with 3 bases (15 min)
 
-Roteiro de `persistence/LAB_SCRIPT.md` **com os números da v4**: implantação **1000** (2 estruturas + **2** TruckW), `spent 1000`, **4** registros `built`,
-**4** spawns na restauração (refinaria 2700, fábrica 2000, 2 TruckW 900, Team 1) — o roteiro original fala em 1100/3 TruckW/5 spawns (pilha sem coleta). Sonda de
-estado: `pv4_state.lua` (e `t_persist_state.lua`, que lê o mesmo razão da persistência) **antes** e **depois**; comparar com `diff`.
+Script of `persistence/LAB_SCRIPT.md` **with v4's numbers**: deployment **1000** (2 structures + **2** TruckW), `spent 1000`, **4** `built` records,
+**4** spawns on restore (refinery 2700, factory 2000, 2 TruckW 900, Team 1) — the original script speaks of 1100/3 TruckW/5 spawns (stack without collection). State
+probe: `pv4_state.lua` (and `t_persist_state.lua`, which reads the same persistence ledger) **before** and **after**; compare with `diff`.
 
-| ID | Passo | Medir | PASS | FAIL | Fecha |
+| ID | Step | Measure | PASS | FAIL | Closes |
 |---|---|---|---|---|---|
-| V0 | Carga 1: `pv4_cmd_deploy.lua`, `pv4_cmd_match.lua` (liga as ondas; `MODO="ondas"` só garante); deixar ≥ 90 s com logística e (idealmente) 1 base avançada e 1 comboio; `pv4_state.lua` | 2 instalações + 2 TruckW; carteira `0/1000` com 4 `built` | base de comparação | — | PERSISTENCIA L0 |
-| V1 | `pv4_cmd_save.lua` com caminhão em `toDep` e job em curso | `true`; `save.txt` começa com `return {`, ASCII, sem `function`/`load`; `.bak` só a partir do 2º save; SHA256, tamanho e **ms** do `sv.save` | atômico | tempo alto (> 1 quadro): anotar | PERSISTENCIA L1 |
-| V2 | Ler o arquivo fora do jogo: `PYTHONPATH=D:/tools/pylibs python data/parallel/package_v4/read_save.py <cópia do save.txt>` (usa o `sv.decode`/`sv.parseSave` do main; não escreve nada) | decodifica; `world` = caminho do hex; **sem endereço de ator**; seção `fwd` com índice de ponto/XYZ/yaw/hp/estoque por depósito | aceito | — | PERSISTENCIA L2 |
-| V3 | **Reiniciar o jogo** (`restart.sh`), mesmo hex, **sem** Alt+L | ruínas visíveis outra vez; nenhuma refinaria/fábrica/TruckW ativa (a infra não sobrevive sozinha); nenhuma base avançada | prova de que a infra não persiste | — | PERSISTENCIA L3 |
-| V4 | `pv4_cmd_load.lua` (= Ctrl+F6) | `true`; **4 spawns** (refinaria 2700, fábrica 2000, 2 TruckW 900, Team 1) + a(s) base(s) avançada(s) refeitas no mesmo lugar; ruínas ocultas/sem colisão; carteira `0/1000` (sem débito novo); estoques, job, carga em trânsito, pontos/donos, soldados, fortificações = V1 (caminhões voltam ao estacionamento validado); ms | `pv4_estado` depois = antes | recusa: motivo no log; **a partida e o arquivo ficam** | PERSISTENCIA L4; BASES 11h |
-| V5 | `pv4_cmd_load.lua` de novo | nenhum spawn novo, mesma contagem de atores, estoques não dobram, **uma** base por ponto | idempotente | duplicou = bug | PERSISTENCIA L5 |
-| V6 | 60 s depois | o caminhão salvo em `toDep` replaneja e entrega **uma** vez; a fábrica conclui o job sem debitar bmat de novo | entrega única | — | PERSISTENCIA L6 |
-| V7 | Autosave (30 s) e `pv4_cmd_save.lua`; listar arquivos | `.bak` = save anterior, `.tmp` ausente | rotação ok | — | PERSISTENCIA L7 |
-| V8 | **Reiniciar o jogo**; **antes** de continuar, `pv4_cmd_deploy.lua` e depois `pv4_cmd_load.lua` | Alt+L cobra da carteira nova; `sv.load` reconhece a implantação idêntica, não cria nada, a carteira volta à do save (`0/1000`) | sem cobrança dupla | — | PERSISTENCIA L8 |
-| V9 | Recusas com sessão viva (partida rodando): (a) save de outra região (copiar o do HomeRegionW), (b) `save.txt` truncado à metade sem `.bak`, (c) `["v"]=3`, (d) `fwd` adulterado (x do ponto fora do raio / `hp` > 1725 / código errado), (e) ruína movida: pular | `false`; `Continuar recusado (partida atual e save preservados)`; soldados/estoques da sessão iguais; arquivos com o mesmo SHA256 | nada muda | muda algo = bug grave | PERSISTENCIA L9 |
-| V10 | Falha pós-preflight é difícil de provocar sem hotpatch: **não forçar**. Só registrar se aparecer `INCOMPLETA … autosave suspenso` espontâneo | log | — | — | PERSISTENCIA L10 |
-| V11 | Vitória/derrota (ou `sv.clear()` pelo canal no fim) | `save.txt`, `.tmp`, `.bak`, `.corrupt` removidos | limpo | — | PERSISTENCIA L11 |
-| V12 | Fim: restaurar os arquivos de save do P2 | SHA256 igual ao inicial | restaurado | — | PERSISTENCIA L12 |
-| V13 | Medições: ms de `sv.save`/`sv.load` (game thread), retorno de `os.rename/remove/io.open("wb")/f:seek` (já em S7), `World:GetFullName()` no hex e após o reinício, ruína/rotação idênticas entre cargas (≤ 2 m, ≤ 1°) | números no relatório | — | — | PERSISTENCIA |
-| T1 | **10 min com 3 bases**: construir 3 bases (K3, `CREDITAR` registrado), `pv4_profile.lua` aos 0/5/10 min, ondas ligadas, `pv4_cmd_send.lua` alternando bases; `UE4SS.log` | PID vivo 10 min; `mod ms/quadro` vs linha de base (S3/C9); painel com principal + 3 bases + pedido (até +4 linhas); atores `BPForwardBase1_C` = 3; sem `Registry`/`Access violation` | estável, custo anotado | queda: **parar**, é achado de estabilidade, não "ajuste" | BASES (10 min com 3 bases); ESTABILIDADE |
+| V0 | Load 1: `pv4_cmd_deploy.lua`, `pv4_cmd_match.lua` (turns waves on; `MODO="ondas"` only makes sure); leave ≥ 90 s with logistics and (ideally) 1 forward base and 1 convoy; `pv4_state.lua` | 2 installations + 2 TruckW; wallet `0/1000` with 4 `built` | comparison baseline | — | PERSISTENCIA L0 |
+| V1 | `pv4_cmd_save.lua` with a truck in `toDep` and a job running | `true`; `save.txt` starts with `return {`, ASCII, no `function`/`load`; `.bak` only from the 2nd save; SHA256, size and **ms** of `sv.save` | atomic | high time (> 1 frame): note it | PERSISTENCIA L1 |
+| V2 | Read the file outside the game: `PYTHONPATH=D:/tools/pylibs python data/parallel/package_v4/read_save.py <copy of save.txt>` (uses the main's `sv.decode`/`sv.parseSave`; writes nothing) | decodes; `world` = the hex's path; **no actor address**; `fwd` section with point index/XYZ/yaw/hp/stock per depot | accepted | — | PERSISTENCIA L2 |
+| V3 | **Restart the game** (`restart.sh`), same hex, **without** Alt+L | ruins visible again; no active refinery/factory/TruckW (the infra does not survive by itself); no forward base | proof that the infra does not persist | — | PERSISTENCIA L3 |
+| V4 | `pv4_cmd_load.lua` (= Ctrl+F6) | `true`; **4 spawns** (refinery 2700, factory 2000, 2 TruckW 900, Team 1) + the forward base(s) rebuilt in the same place; ruins hidden/without collision; wallet `0/1000` (no new debit); stocks, job, cargo in transit, points/owners, soldiers, fortifications = V1 (trucks go back to the validated parking); ms | `pv4_state` after = before | refusal: reason in the log; **the match and the file stay** | PERSISTENCIA L4; BASES 11h |
+| V5 | `pv4_cmd_load.lua` again | no new spawn, same actor count, stocks do not double, **one** base per point | idempotent | duplicated = bug | PERSISTENCIA L5 |
+| V6 | 60 s later | the truck saved in `toDep` replans and delivers **once**; the factory finishes the job without debiting bmat again | single delivery | — | PERSISTENCIA L6 |
+| V7 | Autosave (30 s) and `pv4_cmd_save.lua`; list the files | `.bak` = previous save, `.tmp` absent | rotation ok | — | PERSISTENCIA L7 |
+| V8 | **Restart the game**; **before** continuing, `pv4_cmd_deploy.lua` and then `pv4_cmd_load.lua` | Alt+L charges the new wallet; `sv.load` recognizes the identical deployment, creates nothing, the wallet goes back to the save's (`0/1000`) | no double charge | — | PERSISTENCIA L8 |
+| V9 | Refusals with a live session (match running): (a) save from another region (copy the HomeRegionW one), (b) `save.txt` truncated in half without `.bak`, (c) `["v"]=3`, (d) tampered `fwd` (point x outside the radius / `hp` > 1725 / wrong code), (e) moved ruin: skip | `false`; `Continuar recusado (partida atual e save preservados)`; the session's soldiers/stocks equal; files with the same SHA256 | nothing changes | something changes = serious bug | PERSISTENCIA L9 |
+| V10 | A post-preflight failure is hard to provoke without a hotpatch: **do not force it**. Only record it if `INCOMPLETA … autosave suspenso` appears spontaneously | log | — | — | PERSISTENCIA L10 |
+| V11 | Victory/defeat (or `sv.clear()` through the channel at the end) | `save.txt`, `.tmp`, `.bak`, `.corrupt` removed | clean | — | PERSISTENCIA L11 |
+| V12 | End: restore the save files from P2 | SHA256 equal to the initial one | restored | — | PERSISTENCIA L12 |
+| V13 | Measurements: ms of `sv.save`/`sv.load` (game thread), return of `os.rename/remove/io.open("wb")/f:seek` (already in S7), `World:GetFullName()` in the hex and after the restart, identical ruin/rotation between loads (≤ 2 m, ≤ 1°) | numbers in the report | — | — | PERSISTENCIA |
+| T1 | **10 min with 3 bases**: build 3 bases (K3, `CREDITAR` recorded), `pv4_profile.lua` at 0/5/10 min, waves on, `pv4_cmd_send.lua` alternating bases; `UE4SS.log` | PID alive 10 min; `mod ms/quadro` vs the baseline (S3/C9); panel with main + 3 bases + order (up to +4 lines); `BPForwardBase1_C` actors = 3; no `Registry`/`Access violation` | stable, cost noted | crash: **stop**, it is a stability finding, not an "adjustment" | BASES (10 min with 3 bases); ESTABILIDADE |
 
-## 11. R — Regressão prolongada com o robô (opcional; +70 a +90 min no mínimo)
+## 11. R — Long regression with the bot (optional; +70 to +90 min at least)
 
-`logistics_ai/LAB_SCRIPT.md`, matriz B0–B3. **Antes de usar o robô na v4 (R0)**: `D:/tools/foxhole-lab/t_bot.lua` está defasado — recruta com `economy.manpower >= 45`
-(na logística a mão de obra não limita mais), manda **todo** o esquadrão (inclusive os trabalhadores) de volta ao ponto A com `m.target`, não constrói bases nem usa `L`, e
-`t_bot0.lua` usa `newGame()` (agora com 3 trabalhadores e sem caminhão de recurso). Adaptação mínima (fora do repositório, do LABORATORIO): excluir `m.role=="worker"` do laço "volta para A"
-e aceitar que `recruit` pode recusar por falta de fuzil. Sem isso, B0–B3 medem o robô, não a v4. Com o robô ligado: **não** usar o canal (esperar com `until grep -q "auto<TAB>false" botrun.log`).
+`logistics_ai/LAB_SCRIPT.md`, matrix B0–B3. **Before using the bot on v4 (R0)**: `D:/tools/foxhole-lab/t_bot.lua` (now `tools/lab/t_bot.lua`) is outdated — it recruits with `economy.manpower >= 45`
+(under logistics manpower no longer limits), sends the **whole** squad (including the workers) back to point A with `m.target`, does not build bases nor use `L`, and
+`t_bot0.lua` uses `newGame()` (now with 3 workers and no resource truck). Minimal adaptation (by LABORATORIO): exclude `m.role=="worker"` from the "back to A" loop
+and accept that `recruit` may refuse for lack of a rifle. Without it, B0–B3 measure the bot, not v4. With the bot on: do **not** use the channel (wait with `until grep -q "auto<TAB>false" botrun.log`).
 
-| Célula | Build | Interdição | Registrar |
+| Cell | Build | Interdiction | Record |
 |---|---|---|---|
-| B0 | main **sem** IA_LOGISTICA (só estabilidade + economia): guardar a fonte 33d6c7e5… (`pre_integration_base/`) e publicá-la só para esta célula | a do robô | vitória/derrota, onda final, abates/perdas, duração, comboios |
-| B1 | v4 | a do robô | o mesmo + `logi.eReport()` no fim + `auditoria` |
-| B2 | v4 | forçada: manter o esquadrão na rota dos comboios | o mesmo; comparar ondas 4–10 com B1 |
-| B3 | v4 com `CFG.ECHAIN.free = 5` (já é o padrão v2; para variar: 3 ou 7 via canal **antes** de ligar o robô) | como B2 | calibrar o piso |
+| B0 | main **without** IA_LOGISTICA (only stability + economy): keep the 33d6c7e5… source (`pre_integration_base/`) and publish it only for this cell | the bot's | victory/defeat, final wave, kills/losses, duration, convoys |
+| B1 | v4 | the bot's | the same + `logi.eReport()` at the end + `auditoria` |
+| B2 | v4 | forced: keep the squad on the convoy route | the same; compare waves 4–10 with B1 |
+| B3 | v4 with `CFG.ECHAIN.free = 5` (already the v2 default; to vary: 3 or 7 through the channel **before** turning the bot on) | like B2 | calibrate the floor |
 
-Mínimo: 3 partidas por célula na dificuldade normal (+1 fácil, +1 difícil). Aprovação técnica: `auditoria=true` ao fim de **toda** partida; nenhum erro Lua/crash em ≥ 30 min; `BPTruckC` ativos ≤ 2.
-Efeito rastreável: em B2, perdas > 0, ondas com `byCut` > 0, ondas 4–10 menores que B1; quando a interdição cessa, alguma onda volta a `faltaram 0`.
-Equilíbrio é decisão do usuário (histórico B0: lote 12 vitória 111/24; lote 13 derrota onda 10, 83/38). Amostrador de quadro: `LoopInGameThreadWithDelay(100)` gravando em `_G`, não pelo canal.
+Minimum: 3 matches per cell at normal difficulty (+1 easy, +1 hard). Technical approval: `auditoria=true` at the end of **every** match; no Lua error/crash in ≥ 30 min; active `BPTruckC` ≤ 2.
+Traceable effect: in B2, losses > 0, waves with `byCut` > 0, waves 4–10 smaller than B1; when the interdiction stops, some wave goes back to `faltaram 0`.
+Balance is the user's decision (B0 history: batch 12 victory 111/24; batch 13 defeat at wave 10, 83/38). Frame sampler: `LoopInGameThreadWithDelay(100)` writing to `_G`, not through the channel.
 
-## 12. Z — Encerramento (10 min)
+## 12. Z — Closing (10 min)
 
-1. `pv4_cmd_mode.lua` `limpar` e `sv.clear()` se o save de teste não for mais necessário; **restaurar** `save.txt*` do P2 (SHA256 igual).
-2. Remover `map.txt` temporário (padrão HomeRegionW).
-3. Reunir as saídas (`saida_*.txt`), capturas, hashes e PIDs numa pasta fora do repositório; preencher `MODLOG_DRAFT.md` (`[preencher no laboratório]`).
-4. **Encerrar só o PID da cópia** (`D:\FoxholeLab\Foxhole`); não fechar o Steam. Não deixar o jogo aberto "pronto para testar".
+1. `pv4_cmd_mode.lua` `limpar` and `sv.clear()` if the test save is no longer needed; **restore** `save.txt*` from P2 (equal SHA256).
+2. Remove the temporary `map.txt` (default HomeRegionW).
+3. Gather the outputs (`output_*.txt`), captures, hashes and PIDs in a folder outside the repository; fill in `MODLOG_DRAFT.md` (`[fill in at the lab]`).
+4. **Close only the copy's PID** (`D:\FoxholeLab\Foxhole`); do not close Steam. Do not leave the game open "ready to test".
 
-## 13. Rastreio: de onde vem cada item (nada foi descartado)
+## 13. Traceability: where each item comes from (nothing was discarded)
 
-| Origem | Itens | Onde está aqui |
+| Origin | Items | Where it is here |
 |---|---|---|
-| `logistics_ai/LAB_SCRIPT.md` | L1–L12 | I1–I12 (L5 pelo canal com `pv4_cmd_morteiro`; a tecla Ctrl+5 real, no TESTE_MANUAL; L9 também em V) |
-| idem | B0–B3, aprovação técnica/efeito/equilíbrio | §11 R (+ R0 do robô) |
-| `logistics_ai/finishing/REPORT.md` §6 | 1 cadência/ciclo do caminhão; 2 `eReport`; 3 matar caminhão sob consumo + aviso `fábrica guarda…`; 4 `elogi` corrompido; 5 `io/os`, BPTruckC real, rota, desempenho | I14; I14/R; C12; I13; S7/I2 |
+| `logistics_ai/LAB_SCRIPT.md` | L1–L12 | I1–I12 (L5 through the channel with `pv4_cmd_mortar`; the real Ctrl+5 key, in MANUAL_TEST; L9 also in V) |
+| same | B0–B3, technical/effect/balance approval | §11 R (+ the bot's R0) |
+| `logistics_ai/finishing/REPORT.md` §6 | 1 cadence/truck cycle; 2 `eReport`; 3 kill a truck under consumption + warning `fábrica guarda…`; 4 corrupted `elogi`; 5 `io/os`, real BPTruckC, route, performance | I14; I14/R; C12; I13; S7/I2 |
 | `manual_collection/LAB_SCRIPT.md` | 1–9 | C1–C9 |
-| `manual_collection/REPORT.md` §6 | A* real, animação sem arma, `spawnTruck`, custo por quadro, fluxo humano, veículos/terreno | C3, S9, C5, C9, C4/TESTE_MANUAL, C7 |
-| `persistence/LAB_SCRIPT.md` | L0–L12 + medições + "não validado" (rotas, equilíbrio, queda entre renames, UI) | V0–V12, V13; os "não validados" ficam fora (§14) |
-| `forward_bases/stage2/REPORT.md` §6 | A1/A2, A3, A4, B1, L2, L4–L10, calibração, Shift+J não dispara J | S4/S5, S6/H1a, K1, S11, K1, K2–K11/V4/T1, DECISOES, TESTE_MANUAL |
-| `forward_bases` etapa 1 (`probes/A1–A4`, `ESPECIFICACAO`) | sondas só leitura, R1 (respawn nativo), R10 (`ItemHolder`) | S4–S6, S11 |
-| `interface/REPORT.md` | painel em partida ativa/pausa/logística desligada/mapa novo/depósito perdido/caminhão morto; sondas UMG da caixa de seleção | C13 + captura em cada estado; a **caixa de seleção** não faz parte do lote (§14) |
-| `economy/REPORT.md` | cadeia completa sem estoque fictício; escassez/corte/retomada; rifle recrutado/bandagem tratada; save | C10–C12, C8/V; bandagem tratada → TESTE_MANUAL |
-| `stability/crash_control.md`, `audit.md` | A1/B1/B2/A2; matriz A–J | G1–G4, G5 |
-| `roads/*` | rede de estradas, trajetos | **fora** (§14) |
-| `COLETA`/`ECONOMIA`/`PERSIST` "medições" | `ms` de save/load, `rename`, `GetFullName` | S7, V13 |
+| `manual_collection/REPORT.md` §6 | real A*, animation without a weapon, `spawnTruck`, per-frame cost, human flow, vehicles/terrain | C3, S9, C5, C9, C4/MANUAL_TEST, C7 |
+| `persistence/LAB_SCRIPT.md` | L0–L12 + measurements + "not validated" (routes, balance, crash between renames, UI) | V0–V12, V13; the "not validated" stay out (§14) |
+| `forward_bases/stage2/REPORT.md` §6 | A1/A2, A3, A4, B1, L2, L4–L10, calibration, Shift+J does not fire J | S4/S5, S6/H1a, K1, S11, K1, K2–K11/V4/T1, DECISIONS, MANUAL_TEST |
+| `forward_bases` stage 1 (`probes/A1–A4`, `SPEC`) | read-only probes, R1 (native respawn), R10 (`ItemHolder`) | S4–S6, S11 |
+| `interface/REPORT.md` | panel in an active match/pause/logistics off/new map/lost depot/dead truck; UMG probes for the selection box | C13 + a capture in each state; the **selection box** is not part of the batch (§14) |
+| `economy/REPORT.md` | complete chain without fictitious stock; scarcity/cut/recovery; recruited rifleman/treated bandage; save | C10–C12, C8/V; treated bandage → MANUAL_TEST |
+| `stability/crash_control.md`, `audit.md` | A1/B1/B2/A2; matrix A–J | G1–G4, G5 |
+| `roads/*` | road network, paths | **out** (§14) |
+| `COLETA`/`ECONOMIA`/`PERSIST` "measurements" | save/load `ms`, `rename`, `GetFullName` | S7, V13 |
 
-## 14. Fora deste lote (não vale como falta)
+## 14. Outside this batch (does not count as missing)
 
-- **ESTRADAS**: a pilha não contém o driver; caminhões continuam em reta e sem colisão. Gates próprios (schema de `Connections/Points`, cardinalidade, geometria,
-  trajetos ao vivo, água/pontes) em `roads/DELIVERY.md`, `SCHEMA_EVIDENCE.md`, `ENVELOPE_GATE.md`. Antes de integrar o adaptador, corrigir o crédito de `factory.ammo/shirts`
-  para `logi.fac` via `logi.moveCargo` (`HOW_TO_INTEGRATE.md` §8).
-- Caixa de seleção visível ao arrastar (INTERFACE): sondas UMG/projeção/DPI ainda não executadas; não está na pilha.
-- Plano B visual da base avançada (malha do mod) e ruína nativa (`CFG.FWD.ruin`): só depois do S11.
-- Todos os itens com **entrada real** (teclas, mouse, legibilidade, equilíbrio de jogo): `MANUAL_TEST_DRAFT.md` e `OPEN_DECISIONS.md`.
-- Queda entre os dois `rename` do salvamento (só offline) e rotas por estrada.
+- **ESTRADAS**: the stack does not contain the driver; trucks keep going straight and without collision. Its own gates (schema of `Connections/Points`, cardinality, geometry,
+  live paths, water/bridges) in `roads/DELIVERY.md`, `SCHEMA_EVIDENCE.md`, `ENVELOPE_GATE.md`. Before integrating the adapter, fix the `factory.ammo/shirts` credit
+  to `logi.fac` through `logi.moveCargo` (`HOW_TO_INTEGRATE.md` §8).
+- Selection box visible while dragging (INTERFACE): UMG/projection/DPI probes not run yet; not in the stack.
+- The forward base's visual plan B (mod mesh) and native ruin (`CFG.FWD.ruin`): only after S11.
+- All items with **real input** (keys, mouse, readability, game balance): `MANUAL_TEST_DRAFT.md` and `OPEN_DECISIONS.md`.
+- A crash between the save's two `rename`s (offline only) and road routes.

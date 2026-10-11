@@ -1,122 +1,123 @@
-# TESTE_MANUAL_RASCUNHO — itens novos e alterados para entrada real (pilha v4)
+# MANUAL_TEST_DRAFT — new and changed items for real input (v4 stack)
 
-Rascunho para a task INTEGRACAO fundir em `MANUAL_TEST.md` **depois** do laboratório. Nada foi aplicado lá. Texto, teclas e mensagens conferidos contra o candidato
-(candidato **v4.1** `62245d23…598f` = `candidate_v4` `025e3b80…aab0` + `v4_1/v4_1.patch`). Como em `AGENTS.md`, o agente **não** injeta teclado nem mouse: tudo abaixo é do usuário. O laboratório já cobre pelo canal
-(`BATCH_SCRIPT.md`) a lógica por trás de cada item; aqui fica o que só a entrada real mostra (tecla, cursor, mouse, câmera, aparência, tempo de jogo real).
+Draft for the INTEGRACAO task to merge into `MANUAL_TEST.md` **after** the lab. Nothing was applied there. Text, keys and messages checked against the candidate
+(candidate **v4.1** `62245d23…598f` = `candidate_v4` `025e3b80…aab0` + `v4_1/v4_1.patch`). As in `AGENTS.md`, the agent does **not** inject keyboard or mouse: everything below belongs to the user. The lab already covers through the channel
+(`BATCH_SCRIPT.md`) the logic behind each item; here is what only real input shows (key, cursor, mouse, camera, appearance, real game time).
+In-game messages are quoted in Portuguese, as they appear on screen.
 
-Como ler as colunas: **Esperado** é o que deve aparecer; **Falha se** é o que conta como defeito (anotar a mensagem exata do painel e a hora; o log fica em
-`D:\FoxholeLab\Foxhole\War\Binaries\Win64\ue4ss\UE4SS.log`, linhas `[FoxholeRTS]`; toda mensagem de `notify` também vai para o log). O que é **decisão de balanço** (e não defeito) está em
+How to read the columns: **Expected** is what should appear; **Fails if** is what counts as a defect (note the exact panel message and the time; the log is in
+`D:\FoxholeLab\Foxhole\War\Binaries\Win64\ue4ss\UE4SS.log`, lines `[FoxholeRTS]`; every `notify` message also goes to the log). What is a **balance decision** (and not a defect) is in
 `OPEN_DECISIONS.md`.
 
-## Preparação acrescentada ao topo do arquivo (SUBSTITUI o parágrafo "Preparação")
+## Preparation added to the top of the file (REPLACES the "Preparation" paragraph)
 
-Abra a cópia de laboratório (Steam aberto). O mod entra no mapa e liga o modo RTS sozinho; a ajuda de teclas aparece no canto inferior esquerdo por 40 s (F5).
-Os testes da cadeia usam HomeRegionW; as bases avançadas e o Continuar com instalações pagas usam CallumsCapeHex (o laboratório troca o mapa com `map.txt`; peça o mapa certo
-antes de começar). Num hex sem instalações ativas, Alt+L implanta refinaria, fábrica e os 2 caminhões de suprimento; Shift+F6/Alt+F6 recusam a partida sem isso
-("Partida não iniciada: …"), o que **não** significa que os prédios não existam como ruínas.
+Open the lab copy (Steam open). The mod enters the map and turns RTS mode on by itself; the key help appears in the bottom-left corner for 40 s (F5).
+The chain tests use HomeRegionW; the forward bases and Continue with paid installations use CallumsCapeHex (the lab swaps the map with `map.txt`; ask for the right map
+before starting). In a hex without active installations, Alt+L deploys refinery, factory and the 2 supply trucks; Shift+F6/Alt+F6 refuse the match without it
+("Partida não iniciada: …"), which does **not** mean the buildings do not exist as ruins.
 
-**O que mudou no começo da partida:** a partida logística (Shift+F6) já **não** tem caminhão de recurso. Começa com bmat 40, 30 camisas, 10 fuzis e 6 caixas de munição, e
-**3 trabalhadores desarmados** (a partir de ~5 s) coletam a sucata a pé até a fábrica juntar 100 bmat e construir o caminhão. A **mão de obra** só paga morteiro, barreira, trincheira,
-caixa, posto de socorro e arame (e o recrutamento **no Assalto**). Recrutar numa partida logística custa camisa (e fuzil, para o fuzileiro).
+**What changed at the start of the match:** the logistics match (Shift+F6) **no longer** has a resource truck. It starts with bmat 40, 30 shirts, 10 rifles and 6 ammo crates, and
+**3 unarmed workers** (from ~5 s on) collect salvage on foot until the factory gathers 100 bmat and builds the truck. **Manpower** only pays for mortar, barrier, trench,
+crate, aid post and wire (and recruiting **in Assault**). Recruiting in a logistics match costs a shirt (and a rifle, for the rifleman).
 
-Tempo real: a partida de estoque 40 bmat leva **vários minutos** até o 1º caminhão de recurso, e uma base avançada (300 bmat) leva mais; reserve ~15 min só para chegar aos itens 11c–11h
-sem ajuda. Se o laboratório já preparou um estado (bmat creditado), a nota diz.
-
----
-
-## A. Itens existentes que MUDAM (cada linha SUBSTITUI a linha de mesmo número em `MANUAL_TEST.md`)
-
-| # | Faça | Esperado | Falha se | OK? |
-|---|---|---|---|---|
-| 2 | Shift+F6 (em HomeRegionW, ou em CallumsCapeHex depois de Alt+L) | Alerta "NOVA PARTIDA (…): vença 10 ondas…" e `ondas automaticas: true` (o Shift+F6 já liga as ondas); 6 soldados selecionados com contorno amarelo; três anéis (A, B, C). Aos ~5 s aparece o **1º trabalhador** (soldado **sem arma**, perto da base) e os outros dois a cada ~3 s, cada um **gastando 1 camisa** (camisas 30 → 27 no painel). Painel: `Fábrica \| guarda 100 bmat para reconstruir caminhão (bmat 40)` e uma linha `coleta manual: N trabalhadores \| x/100 bmat para o caminhão \| y sucata em mãos` | trabalhador em T-pose, com arma, preso no chão/telhado ou sem contorno ao selecionar; mais de 3; camisas não baixam; **a partida recusa sem motivo** | |
-| 8 | Ctrl+1 / Ctrl+2 / Ctrl+3 / Ctrl+4 (cursor no chão, longe de bases) | Recruta fuzileiro / metralhador / atirador / médico **na base principal**, perto da saída; o alerta diz `recrutado … em base (-1 camisa, -1 fuzil) \| camisas N, fuzis M` (o fuzil só para o fuzileiro; metralhador, atirador e médico gastam só a camisa). **A mão de obra do painel não muda.** Com 0 fuzis: Ctrl+1 recusa (`sem fuzis em base …`) e Ctrl+2/3/4 ainda funcionam | desconta mão de obra; nasce em telhado/parede; recruta sem estoque; recusa sem mensagem | |
-| 9 | Ctrl+1 com o cursor dentro de um ponto seu **sem** base avançada | **Não** nasce no ponto: nasce na base principal (um ponto comum não reforça; `CFG.SPAWN.pointSpawn=false`). Mensagem de nascimento cita a base, não o ponto | o recruta nasce no ponto | |
-| 11 | J com o cursor no chão livre (sem Shift) | Novo ponto de controle (anel), até 5 | não cria; cria com Shift apertado (ver 11a) | |
-| 12e | Jogar ≥ 90 s (as ondas automáticas já ligam sozinhas com Shift+F6; Shift+F4 as **desliga**), com trabalhadores em campo, fechar o jogo, reabrir e apertar Ctrl+F6. **Antes do Ctrl+F6, em CallumsCapeHex, não repita Alt+L** | Alerta "há uma partida salva (…): Ctrl+F6 continua, Shift+F6 começa outra" ao ligar o RTS; Ctrl+F6 traz soldados, pontos, construções, estoques e a **infraestrutura paga** (refinaria, fábrica e caminhões voltam de graça, sem débito novo). Os trabalhadores voltam e retomam a coleta (a carga que levavam foi descartada, aparece só no log) | duplica soldados/caminhões ao repetir o Ctrl+F6; cobra bmat de novo; recusa um save bom | |
-| 12s | Nova partida (Shift+F6), depois Ctrl+L várias vezes | A câmera passa por fábrica, refinaria, campo de sucata e **cada caminhão que existe**. Ao início só há os 2 de suprimento; o de recurso entra na lista quando a fábrica o constrói. Ctrl+L **não** visita bases avançadas (use Q/E, que passam pelos pontos) | câmera vai ao vazio, ou para num caminhão destruído | |
-| 12t | L com o cursor num ponto seu; olhar a 2ª linha do painel; repetir com o cursor dentro de uma base avançada (11e) | Painel: "próximo caminhão vai para o ponto X"; depois `caminhão entregou em X: N munição, N camisas, N fuzis, N bandagens` e o estoque sobe. **Ponto comum recebe só munição e bandagens** (camisas e fuzis só chegam à base principal e à avançada) | camisas/fuzis aparecem num ponto sem base; estoura 15 slots numa base | |
-| 12u | Shift+L (várias vezes) | Prioridade da fábrica cicla: `automático` → `munição` → `camisas` → `fuzis` → `bandagens` → `automático` (painel, linha `LOGÍSTICA \| … \| prioridade …`). O painel de estoque mostra `Fuzis: fábrica N caixas \| bandagens: fábrica N caixas` na última linha | só cicla 3 estados; produto fora da lista | |
-| 12v | Nova partida (as ondas já ligam); no alerta "COMBOIO INIMIGO a caminho da frente (…)", Espaço e mandar soldados para o meio da rota | Soldados atiram no caminhão; `COMBOIO INIMIGO DESTRUÍDO (+25): …`; na onda seguinte `faltou suprimento ao inimigo: a onda vem com N a menos (…)`. O 1º comboio sai ~20 s depois do início das ondas. Ver também 12v2 | a perda é contada duas vezes; comboio sem carga; bounty repetido | |
-| 12x | No laboratório em CallumsCapeHex **sem** implantar: Shift+F6 e Alt+F6 | Os dois recusam: `Partida não iniciada: … Alt+L tenta implantação nos locais nativos.` (falta de instalações/caminhões ativos); não apagam soldados existentes nem iniciam uma cadeia fictícia (o Assalto também precisa da cadeia: `logi.ready`) | apaga a partida atual; inicia sem cadeia | |
-| 12y | Em CallumsCapeHex, antes da partida: Alt+L; repetir; depois Shift+F6 | `IMPLANTAÇÃO: -1000 bmat do cenário; saldo 0` (a v4 cobra **1000**, não 1100: refinaria 400 + fábrica 400 + **2** caminhões de suprimento 100; o de recurso nasce da coleta). Repetir: `Cadeia já implantada`. A partida inicia com refinaria, fábrica e 2 caminhões reais | cobra 1100, repete a cobrança, ou cria 3 caminhões | |
-| 12l | Deixar um soldado cair abaixo de 30% com um posto de socorro (Ctrl+8) por perto | Alerta "ferido recua sozinho"; ele vai à barraca e volta a lutar curado. **Se não houver barraca, vai ao ponto seu mais perto** (o ponto cura 2 HP/s sem supressão) | | |
+Real time: a match starting at 40 bmat takes **several minutes** until the 1st resource truck, and a forward base (300 bmat) takes longer; set aside ~15 min just to reach items 11c–11h
+without help. If the lab already prepared a state (credited bmat), the note says so.
 
 ---
 
-## B. Itens NOVOS
+## A. Existing items that CHANGE (each row REPLACES the row with the same number in `MANUAL_TEST.md`)
 
-### B1. Shift+J: base avançada (11a–11h; colunas iguais às de cima)
-
-Pré-condição: partida logística em CallumsCapeHex com **um ponto seu a ≥ 30 m da base principal** (ou a ≤ 40 m de um ponto inimigo) e nenhum inimigo no anel do ponto. Para
-chegar aqui, capture um dos pontos (item 7). "Dentro" de um ponto ou de uma base = a ≤ 5 m do centro (`CFG.POINT_RADIUS` 500 cm). A construção usa **dois toques em até 4 s de relógio real** (a pausa do jogo **não** pára esse relógio).
-
-| # | Faça | Esperado | Falha se | OK? |
+| # | Do | Expected | Fails if | OK? |
 |---|---|---|---|---|
-| 11a | Shift+J com o cursor no chão livre, depois sobre um ponto **neutro** ou **inimigo**, depois dentro de um ponto seu | Chão livre: `Shift+J: ponha o cursor dentro de um ponto de controle seu`. Ponto neutro/inimigo: `o ponto X não é seu`. Dentro do seu: custo e instrução (11c). **Nenhum ponto novo** aparece (só J cria ponto) e o número de anéis não muda | cria um anel (o `plain()` não segurou o J); debita bmat numa recusa | |
-| 11b | Shift+J em ponto seu **perto da base principal** (< 30 m) e sem ponto inimigo a ≤ 40 m | `ponto X perto demais da base (mín. 30 m) e longe de pontos inimigos (40 m)`; nada criado | cria a base | |
-| 11c | Com bmat livre ≥ 300 (descontados 100 por caminhão destruído): Shift+J sobre um ponto seu longe da base (1º toque); de novo em ≤ 4 s | 1º: `Base avançada em X: 300 bmat (fábrica tem N). Shift+J de novo em 4 s para construir`. 2º: `BASE AVANÇADA X construída (-300 bmat; fábrica N). Mande caminhões com camisas e fuzis (L sobre ela)`. A construção nativa (estrutura de 1725 HP) aparece no ponto, **de pé no chão, de frente para a base ou para o ponto inimigo**, sem afundar nem flutuar. Painel ganha `base X \| camisas 0 \| fuzis 0 \| slots 0/15 \| reforça: NÃO (sem camisas)` | passados 4 s o 2º toque vale como 1º; ator torto, enterrado, sem colisão; bmat debitado sem a base; duas bases no mesmo ponto | |
-| 11d | Com **pouco** bmat: Shift+J + Shift+J | `Base avançada em X: 300 bmat, faltam N …` e depois `pedido de base avançada em X registrado: …; a fábrica guarda 300 bmat (até 180 s)`. Painel: `Fábrica \| guarda 300 bmat para base avançada em X (bmat N)` (se também há caminhão destruído: `… para reconstruir caminhão e base avançada em X`; **o caminhão tem prioridade**). Constrói sozinha ao juntar 300 livres. Shift+J no mesmo ponto: `pedido pendente em X (a fábrica guarda 300 bmat). Shift+J de novo em 4 s cancela`; repetido: `pedido de base avançada cancelado: a fábrica volta a produzir`. Cancela sozinho em 180 s (tempo de jogo), se o ponto deixa de ser seu ou com inimigo no anel | a fábrica fica **sem produzir munição** durante os 180 s e a base não vem; o pedido não cancela | |
-| 11e | Quando houver a base: L com o cursor sobre ela; esperar a entrega. Depois Ctrl+1 com o cursor **dentro da base** | Caminhão leva o que cabe nos 15 slots (caixa parcial = 1 slot); camisas e fuzis sobem na linha do painel. O recruta nasce **na saída da base** (não em telhado/parede), gasta 1 camisa e 1 fuzil **dela** e a linha passa a `reforça: tudo`. Shift+J sobre um ponto que **já tem** base só mostra a linha dela (`BASE AVANÇADA X: base X \| camisas … \| slots …`), sem construir | nasce longe, na base principal, com o cursor dentro da base avançada; gasta estoque de outra | |
-| 11f | Com 1+ base avançada de pé: Ctrl+1 com o cursor **fora** de qualquer base; depois num ponto seu **sem** base | Fora: nasce na base **mais próxima do cursor ou do esquadrão com estoque** (principal ou avançada). Ponto sem base: nasce na principal; **o ponto não reforça**. Com o cursor **dentro** de uma base **sem estoque**: recusa com motivo (`sem camisas em base avançada X; mova o cursor para fora das bases …`), **sem cair em silêncio** noutra | cai noutra base sem avisar | |
-| 11g | Perda: deixar um inimigo tomar o ponto da base avançada, ou o morteiro inimigo cair em cima | Alerta `BASE AVANÇADA X capturada: perdeu N camisas e M fuzis` (ou `destruída`) **uma vez**; a estrutura **some** (sem ruína, sem ator residual); o painel perde a linha; retomar o ponto **não** traz a base de volta. Sob morteiro antes de cair: `base avançada X sob fogo` | a estrutura fica no mapa; alerta repetido; estoque continua | |
-| 11h | Com 1+ base avançada: jogar ≥ 90 s, fechar, abrir, Ctrl+F6 | Base de volta no **mesmo lugar**, mesma vida e estoque, **uma só** por ponto. Repetir Ctrl+F6: nada duplica. Se a posição não valida mais: `Continuar recusado: base avançada salva não foi refeita (…); nada mudou` e a partida atual e o save ficam | duplica a base; sobe sem estoque; recusa e apaga o que existia | |
-| 11i | Pausa (Pause) entre o 1º e o 2º toque do Shift+J, esperar > 4 s, apertar o 2º | O 2º toque vale como **1º** (o relógio é de tempo real, não de jogo). Decisão aberta em `OPEN_DECISIONS.md`; anotar o que preferir | | |
-| 11j | Alt+F6 (Assalto), Shift+J num ponto seu | `bases avançadas só numa partida com logística (fora do Assalto)`; recrutar usa mão de obra | | |
-
-### B2. Coleta manual e trabalhadores (C1–C8 do roteiro)
-
-| # | Faça | Esperado | Falha se | OK? |
-|---|---|---|---|---|
-| 12z | Partida nova: acompanhar os 3 trabalhadores até o 1º caminhão de recurso | Eles caminham ao campo de sucata, **ficam parados coletando** (mãos vazias, sem arma), voltam à refinaria e entregam; a linha `coleta manual: …` mostra `x/100 bmat para o caminhão` subindo e `y sucata em mãos`. Quando bmat chega a 100 a fábrica **constrói o caminhão de recurso**, que aparece no campo, **no chão**, e a mensagem `caminhão de recurso pronto: coleta manual encerrada` dispara; a linha da coleta some do painel e os trabalhadores ficam soltos no esquadrão. Anote o tempo total e as distâncias reais (decide `OPEN_DECISIONS.md`) | trabalhador em T-pose, com arma, parado na base, preso numa parede/neve ou em fila infinita; caminhão em telhado | |
-| 12z2 | Selecionar **um trabalhador** (clique) e dar ordem de marcha (botão direito) | Ele **larga a coleta** (a carga que levava se perde; log `coleta manual: trabalhador sai da coleta (…)`), anda ao ponto e para. **Depois de ~60 s sem ordem nova** ele volta sozinho à coleta (se ela ainda for necessária) | volta antes dos 60 s e anula a ordem; fica parado para sempre | |
-| 12z3 | Caixa de seleção (arrastar) que pega trabalhadores e soldados; botão direito no chão | Todos marcham; os trabalhadores saem da coleta (um aviso de perda de carga no log por quem a levava) | trabalhador atira, ou não se mexe | |
-| 12z4 | Durante a coleta, deixar o 1º inimigo (F4) chegar perto do campo | Os trabalhadores **pausam** (e largam a carga após ~60 s seguidos de combate) e voltam quando a área fica calma (sem tiro há 8 s, inimigo a > 35 m). Se um morre, a base repõe outro por **1 camisa** | foge e nunca volta; mais de 3 vivos por vez | |
-| 12z5 | Matar o caminhão de recurso (morteiro inimigo ou soldados; `Ctrl+5` perto dele destrói também) com bmat/sucata zerados | A coleta manual **reativa** (`COLETA MANUAL: sem caminhão de recurso; trabalhadores da base coletam sucata até a fábrica fazer o caminhão`); a fábrica reserva 100 bmat e reconstrói | a partida trava sem bmat e sem caminhão | |
-| 12z6 | Ctrl+0 selecionar todos (inclui trabalhadores); olhar o contorno e o painel de seleção | Trabalhadores selecionáveis como qualquer soldado; contorno amarelo igual; ao deselecionar, apaga | contorno amarelo permanece em quem não está selecionado | |
-| 12z7 | Derrota por falta de tropa: perder todos os soldados de **combate** com 0 camisas na base/fábrica/caminhões (opcional, difícil de provocar; o laboratório testa pelo canal) | Os 3 trabalhadores **não** contam como combate; `DERROTA` só quando não resta soldado de combate **e** nenhuma camisa (nenhuma base, fábrica ou caminhão). Com camisas, **não** perde | derrota com camisas na fábrica | |
-
-### B3. Cadeia do jogador: produtos e médico
-
-| # | Faça | Esperado | Falha se | OK? |
-|---|---|---|---|---|
-| 12aa | Shift+L até `fuzis`, esperar a produção, mandar o caminhão (L) à base; repetir com `bandagens` | Receita → produção → transporte → depósito para os 4 produtos. Unidades: caixa de fuzis = 20, de bandagens = 50, de camisas = 10. A última linha do painel mostra `Fuzis: fábrica … \| bandagens: fábrica …`, e por depósito `N fuzis, M bandagens` | produto some no transporte; o painel não mostra o estoque | |
-| 12ab | Ctrl+4 (médico) com **0 bandagens** na base; ferir um soldado (deixar levar tiro) e ficar com o médico ao lado | O médico **vai até o ferido mas não trata** (não há bandagem). Depois de produzir/entregar bandagens num depósito a ≤ 5 m do médico (base, base avançada ou ponto seu: `CFG.POINT_RADIUS` = 500 cm), ele cura (+12 por tratamento, a cada 1,5 s) e o estoque de bandagens do painel **cai 1 por tratamento** | cura sem bandagem; cura longe (> 5 m) de qualquer depósito com bandagens | |
-| 12ac | Com a fábrica em `automático`, observar 3–5 min | A fábrica **não gasta os 100 bmat de reserva** do caminhão destruído em caixa; o caminhão volta quando há 100; a fábrica **não** para de fazer munição por tempo indefinido por causa do pedido de base (180 s no máximo) | fome de munição prolongada | |
-
-### B4. Painel
-
-| # | Faça | Esperado | Falha se | OK? |
-|---|---|---|---|---|
-| 12ad | Olhar o painel com logística ativa em vários zooms e resoluções; abrir e fechar a ajuda (F5); pausar | Painel de **várias linhas** (cerca de 12–13: logística, fábrica, pronto, um depósito por local, uma linha `base …`/`base X …` por base, caminhões, `INIMIGO …`, `coleta manual …`, atalhos), **sem cortar** estoques nem veículos, sem sobrepor a ajuda nem os alertas nativos do jogo. Pausado: prefixo `PAUSADO \|`; velocidade 2x/3x: prefixo `2x \|` | texto cortado, em cima da ajuda, ou escondido silenciosamente | |
-| 12ae | Painel durante a cadeia inimiga | Linha `INIMIGO: …` mostra `frente equipa N`, carga do comboio e `piso grátis 5/onda` | linha ausente com ondas ligadas | |
-
-### B5. Salvar e continuar, recusas (V1–V12 do roteiro)
-
-| # | Faça | Esperado | Falha se | OK? |
-|---|---|---|---|---|
-| 12af | Ctrl+F6 **com a partida rodando**, mesmo save, duas vezes seguidas | Idempotente: nenhum soldado, caminhão ou base a mais; estoques não dobram | duplica | |
-| 12ag | Trocar `save.txt` por um arquivo corrompido ou de outra região (peça ao laboratório, ou use o `save.txt.bak` de outro mapa) e apertar Ctrl+F6 **durante uma partida** | `Continuar recusado (partida atual e save preservados): motivo`; **nada** da partida atual muda; o arquivo continua como está | apaga a partida atual; some o save | |
-| 12ah | Save com a seção `elogi` removida/adulterada (laboratório) e Ctrl+F6 | O jogo abre normalmente, com `CADEIA INIMIGA REINICIADA (motivo): estoque de cenário` por 10 s; o resto (soldados, estoques, bases) volta | recusa o save inteiro | |
-| 12ai | Fechar o jogo durante um autosave não é testável à mão; em vez disso, **perder** (ou vencer) a partida e olhar a pasta `FoxholeRTS` | `save.txt`, `.tmp`, `.bak` e `.corrupt` removidos | sobra algum | |
-| 12aj | Ver `INCOMPLETA: …; autosave suspenso` só se aparecer sozinho; **não provocar** | Se aparecer, Ctrl+F6 tenta de novo; Shift+F6 começa outra; o autosave não sobrescreve o save bom | o autosave grava por cima | |
-
-### B6. Outros
-
-| # | Faça | Esperado | Falha se | OK? |
-|---|---|---|---|---|
-| 12v2 | Ctrl+5 (morteiro) com o cursor sobre um **comboio inimigo carregado** | Aviso, 3 explosões após ~2,5 s; `COMBOIO INIMIGO DESTRUÍDO (+25)` **uma vez**; um 2º morteiro sobre o caminhão já destruído não conta de novo | perda dupla | |
-| 12ak | Alt+F6 (Assalto, depois de Alt+L no hex) e recrutar | Recrutar usa **mão de obra** (como na v0.9; gasta também a camisa do depósito), sem comboio inimigo e sem Shift+J. A cadeia do jogador roda como na partida normal, então a **coleta manual com trabalhadores também vale no Assalto** (o código permite o trabalhador nesse modo; **[laboratório]** não visto ao vivo, anotar) | comboio inimigo no Assalto; Shift+J constrói | |
-| 12al | Partida nova, deixar a 1ª onda chegar (as ondas já ligam sozinhas) e contar os inimigos | O tamanho da onda usa **só os soldados de combate** (v4.1): os 3 trabalhadores não a aumentam, e o aviso "próxima onda em … (esquadrão N …)" mostra N sem eles. Anotar quantos inimigos nasceram e quantos soldados de combate seus havia (compare com o mesmo número sem trabalhadores) | onda maior por causa dos trabalhadores; aviso conta os trabalhadores | |
-| 12al2 | Com os 3 trabalhadores no campo de sucata (longe do esquadrão de combate) e o esquadrão num ponto, deixar chegar uma onda e um reforço inimigo | As ondas e o reforço vêm do lado/pontos inimigos em relação ao **esquadrão de combate** (v4.1: `squadCenter()` só conta combatentes); os trabalhadores no campo não puxam as ondas para lá. Sem nenhum combatente vivo, vale o centro de todos | ondas aparecendo sempre perto do campo de sucata | |
-| 12am | F11 (limpar) com trabalhadores e uma base avançada de pé; depois Shift+F6 | F11 remove soldados, inimigos, barreiras, pontos **e** destrói a base avançada (sem ator residual no mapa); a partida nova começa sem resíduo | estrutura da base ou trabalhador sobra no mapa | |
+| 2 | Shift+F6 (in HomeRegionW, or in CallumsCapeHex after Alt+L) | Alert "NOVA PARTIDA (…): vença 10 ondas…" and `ondas automaticas: true` (Shift+F6 already turns the waves on); 6 soldiers selected with a yellow outline; three rings (A, B, C). At ~5 s the **1st worker** appears (a soldier **without a weapon**, near the base) and the other two every ~3 s, each **spending 1 shirt** (shirts 30 → 27 in the panel). Panel: `Fábrica \| guarda 100 bmat para reconstruir caminhão (bmat 40)` and a line `coleta manual: N trabalhadores \| x/100 bmat para o caminhão \| y sucata em mãos` | worker in T-pose, with a weapon, stuck in the ground/on a roof or without an outline when selected; more than 3; shirts do not go down; **the match refuses without a reason** | |
+| 8 | Ctrl+1 / Ctrl+2 / Ctrl+3 / Ctrl+4 (cursor on the ground, far from bases) | Recruits rifleman / machine gunner / marksman / medic **at the main base**, near the exit; the alert says `recrutado … em base (-1 camisa, -1 fuzil) \| camisas N, fuzis M` (the rifle only for the rifleman; machine gunner, marksman and medic spend only the shirt). **The panel's manpower does not change.** With 0 rifles: Ctrl+1 refuses (`sem fuzis em base …`) and Ctrl+2/3/4 still work | deducts manpower; spawns on a roof/wall; recruits without stock; refuses without a message | |
+| 9 | Ctrl+1 with the cursor inside one of your points **without** a forward base | Does **not** spawn at the point: spawns at the main base (a plain point does not reinforce; `CFG.SPAWN.pointSpawn=false`). The spawn message mentions the base, not the point | the recruit spawns at the point | |
+| 11 | J with the cursor on free ground (without Shift) | New control point (ring), up to 5 | does not create; creates with Shift pressed (see 11a) | |
+| 12e | Play ≥ 90 s (automatic waves already turn on by themselves with Shift+F6; Shift+F4 turns them **off**), with workers in the field, close the game, reopen and press Ctrl+F6. **Before Ctrl+F6, in CallumsCapeHex, do not repeat Alt+L** | Alert "há uma partida salva (…): Ctrl+F6 continua, Shift+F6 começa outra" when RTS turns on; Ctrl+F6 brings back soldiers, points, constructions, stocks and the **paid infrastructure** (refinery, factory and trucks come back for free, with no new debit). The workers come back and resume collection (the cargo they carried was discarded, shown only in the log) | duplicates soldiers/trucks when repeating Ctrl+F6; charges bmat again; refuses a good save | |
+| 12s | New match (Shift+F6), then Ctrl+L several times | The camera goes through factory, refinery, salvage field and **every truck that exists**. At the start there are only the 2 supply ones; the resource one enters the list when the factory builds it. Ctrl+L does **not** visit forward bases (use Q/E, which go through the points) | camera goes to empty space, or stops on a destroyed truck | |
+| 12t | L with the cursor on one of your points; look at the 2nd panel line; repeat with the cursor inside a forward base (11e) | Panel: "próximo caminhão vai para o ponto X"; then `caminhão entregou em X: N munição, N camisas, N fuzis, N bandagens` and the stock rises. **A plain point receives only ammo and bandages** (shirts and rifles only reach the main base and the forward one) | shirts/rifles show up at a point without a base; overflows 15 slots at a base | |
+| 12u | Shift+L (several times) | The factory priority cycles: `automático` → `munição` → `camisas` → `fuzis` → `bandagens` → `automático` (panel, line `LOGÍSTICA \| … \| prioridade …`). The stock panel shows `Fuzis: fábrica N caixas \| bandagens: fábrica N caixas` on the last line | only cycles 3 states; a product outside the list | |
+| 12v | New match (waves already on); at the alert "COMBOIO INIMIGO a caminho da frente (…)", Space and send soldiers to the middle of the route | Soldiers fire at the truck; `COMBOIO INIMIGO DESTRUÍDO (+25): …`; on the next wave `faltou suprimento ao inimigo: a onda vem com N a menos (…)`. The 1st convoy leaves ~20 s after the waves start. See also 12v2 | the loss is counted twice; convoy without cargo; repeated bounty | |
+| 12x | In the lab in CallumsCapeHex **without** deploying: Shift+F6 and Alt+F6 | Both refuse: `Partida não iniciada: … Alt+L tenta implantação nos locais nativos.` (missing active installations/trucks); they do not erase existing soldiers nor start a fictitious chain (Assault also needs the chain: `logi.ready`) | erases the current match; starts without a chain | |
+| 12y | In CallumsCapeHex, before the match: Alt+L; repeat; then Shift+F6 | `IMPLANTAÇÃO: -1000 bmat do cenário; saldo 0` (v4 charges **1000**, not 1100: refinery 400 + factory 400 + **2** supply trucks 100; the resource one is born from collection). Repeat: `Cadeia já implantada`. The match starts with refinery, factory and 2 real trucks | charges 1100, repeats the charge, or creates 3 trucks | |
+| 12l | Let a soldier drop below 30% with an aid post (Ctrl+8) nearby | Alert "ferido recua sozinho"; they go to the tent and come back to fight healed. **If there is no tent, they go to your nearest point** (the point heals 2 HP/s without suppression) | | |
 
 ---
 
-## C. Itens do arquivo atual que continuam como estão
+## B. NEW items
 
-1, 1b, 3, 3b, 4, 5, 6, 6b, 7, 10, 12 (Ctrl+5 no Assalto/normal), 12b–12d, 12f–12k, 12m–12r, 12w, 13–17 (nenhum depende do que a v4 mexe). A v4 **não** altera o contorno, a animação nem a câmera
-(diff por função, 105 hunks); a estabilidade de 3 ciclos de contorno **continua pendente** do gate do `HOW_TO_INTEGRATE.md` §2, não deste arquivo.
+### B1. Shift+J: forward base (11a–11h; same columns as above)
 
-## D. Registro
+Precondition: a logistics match in CallumsCapeHex with **one of your points ≥ 30 m from the main base** (or ≤ 40 m from an enemy point) and no enemy in the point's ring. To
+get here, capture one of the points (item 7). "Inside" a point or a base = ≤ 5 m from the center (`CFG.POINT_RADIUS` 500 cm). Construction uses **two presses within 4 s of real clock** (pausing the game does **not** stop that clock).
 
-Quando cada item for executado, marque na coluna OK? e cole as mensagens exatas das falhas. O laboratório preenche também `MODLOG_DRAFT.md` com os números medidos.
+| # | Do | Expected | Fails if | OK? |
+|---|---|---|---|---|
+| 11a | Shift+J with the cursor on free ground, then over a **neutral** or **enemy** point, then inside one of your points | Free ground: `Shift+J: ponha o cursor dentro de um ponto de controle seu`. Neutral/enemy point: `o ponto X não é seu`. Inside yours: cost and instruction (11c). **No new point** appears (only J creates a point) and the number of rings does not change | creates a ring (`plain()` did not hold J back); debits bmat on a refusal | |
+| 11b | Shift+J on one of your points **near the main base** (< 30 m) and with no enemy point within ≤ 40 m | `ponto X perto demais da base (mín. 30 m) e longe de pontos inimigos (40 m)`; nothing created | creates the base | |
+| 11c | With free bmat ≥ 300 (minus 100 per destroyed truck): Shift+J over one of your points far from the base (1st press); again within ≤ 4 s | 1st: `Base avançada em X: 300 bmat (fábrica tem N). Shift+J de novo em 4 s para construir`. 2nd: `BASE AVANÇADA X construída (-300 bmat; fábrica N). Mande caminhões com camisas e fuzis (L sobre ela)`. The native construction (a 1725 HP structure) appears at the point, **standing on the ground, facing the base or the enemy point**, without sinking or floating. The panel gains `base X \| camisas 0 \| fuzis 0 \| slots 0/15 \| reforça: NÃO (sem camisas)` | after 4 s the 2nd press counts as the 1st; crooked, buried actor, without collision; bmat debited without the base; two bases at the same point | |
+| 11d | With **little** bmat: Shift+J + Shift+J | `Base avançada em X: 300 bmat, faltam N …` and then `pedido de base avançada em X registrado: …; a fábrica guarda 300 bmat (até 180 s)`. Panel: `Fábrica \| guarda 300 bmat para base avançada em X (bmat N)` (if there is also a destroyed truck: `… para reconstruir caminhão e base avançada em X`; **the truck has priority**). Builds on its own when 300 free are gathered. Shift+J on the same point: `pedido pendente em X (a fábrica guarda 300 bmat). Shift+J de novo em 4 s cancela`; repeated: `pedido de base avançada cancelado: a fábrica volta a produzir`. Cancels on its own in 180 s (game time), if the point stops being yours or with an enemy in the ring | the factory goes **without producing ammo** during the 180 s and the base does not come; the order does not cancel | |
+| 11e | Once the base exists: L with the cursor over it; wait for the delivery. Then Ctrl+1 with the cursor **inside the base** | The truck carries what fits in the 15 slots (partial crate = 1 slot); shirts and rifles go up in the panel line. The recruit spawns **at the base's exit** (not on a roof/wall), spends 1 shirt and 1 rifle **from it** and the line turns to `reforça: tudo`. Shift+J over a point that **already has** a base only shows its line (`BASE AVANÇADA X: base X \| camisas … \| slots …`), without building | spawns far away, at the main base, with the cursor inside the forward base; spends another one's stock | |
+| 11f | With 1+ forward base standing: Ctrl+1 with the cursor **outside** any base; then on one of your points **without** a base | Outside: spawns at the base **closest to the cursor or to the squad with stock** (main or forward). Point without a base: spawns at the main one; **the point does not reinforce**. With the cursor **inside** a base **without stock**: refuses with a reason (`sem camisas em base avançada X; mova o cursor para fora das bases …`), **without silently falling back** to another | falls back to another base without warning | |
+| 11g | Loss: let an enemy take the forward base's point, or let the enemy mortar land on it | Alert `BASE AVANÇADA X capturada: perdeu N camisas e M fuzis` (or `destruída`) **once**; the structure **vanishes** (no ruin, no residual actor); the panel loses the line; retaking the point does **not** bring the base back. Under mortar before falling: `base avançada X sob fogo` | the structure stays on the map; repeated alert; the stock remains | |
+| 11h | With 1+ forward base: play ≥ 90 s, close, open, Ctrl+F6 | Base back in the **same place**, same health and stock, **only one** per point. Repeat Ctrl+F6: nothing duplicates. If the position no longer validates: `Continuar recusado: base avançada salva não foi refeita (…); nada mudou` and the current match and the save stay | duplicates the base; comes up without stock; refuses and erases what existed | |
+| 11i | Pause (Pause) between the 1st and 2nd press of Shift+J, wait > 4 s, press the 2nd | The 2nd press counts as the **1st** (the clock is real time, not game time). Open decision in `OPEN_DECISIONS.md`; note what you prefer | | |
+| 11j | Alt+F6 (Assault), Shift+J on one of your points | `bases avançadas só numa partida com logística (fora do Assalto)`; recruiting uses manpower | | |
+
+### B2. Manual collection and workers (C1–C8 of the script)
+
+| # | Do | Expected | Fails if | OK? |
+|---|---|---|---|---|
+| 12z | New match: follow the 3 workers until the 1st resource truck | They walk to the salvage field, **stand still collecting** (empty hands, no weapon), go back to the refinery and deliver; the line `coleta manual: …` shows `x/100 bmat para o caminhão` rising and `y sucata em mãos`. When bmat reaches 100 the factory **builds the resource truck**, which appears in the field, **on the ground**, and the message `caminhão de recurso pronto: coleta manual encerrada` fires; the collection line vanishes from the panel and the workers become free in the squad. Note the total time and the real distances (decides `OPEN_DECISIONS.md`) | worker in T-pose, with a weapon, standing at the base, stuck on a wall/snow or in an endless queue; truck on a roof | |
+| 12z2 | Select **one worker** (click) and give a march order (right click) | They **drop collection** (the cargo they carried is lost; log `coleta manual: trabalhador sai da coleta (…)`), walk to the point and stop. **After ~60 s without a new order** they go back to collection on their own (if it is still needed) | comes back before 60 s and cancels the order; stays still forever | |
+| 12z3 | Selection box (drag) that takes workers and soldiers; right click on the ground | All march; the workers leave collection (a cargo loss warning in the log for whoever carried it) | a worker fires, or does not move | |
+| 12z4 | During collection, let the 1st enemy (F4) get close to the field | The workers **pause** (and drop the cargo after ~60 s of continuous combat) and come back when the area is calm (no fire for 8 s, enemy > 35 m away). If one dies, the base replaces them for **1 shirt** | flees and never comes back; more than 3 alive at once | |
+| 12z5 | Kill the resource truck (enemy mortar or soldiers; `Ctrl+5` near it also destroys) with bmat/salvage at zero | Manual collection **reactivates** (`COLETA MANUAL: sem caminhão de recurso; trabalhadores da base coletam sucata até a fábrica fazer o caminhão`); the factory reserves 100 bmat and rebuilds | the match freezes without bmat and without a truck | |
+| 12z6 | Ctrl+0 select all (includes workers); look at the outline and the selection panel | Workers selectable like any soldier; same yellow outline; when deselected, it goes away | the yellow outline remains on someone not selected | |
+| 12z7 | Defeat by lack of troops: lose all **combat** soldiers with 0 shirts at the base/factory/trucks (optional, hard to provoke; the lab tests it through the channel) | The 3 workers do **not** count as combat; `DERROTA` only when no combat soldier is left **and** no shirt (no base, factory or truck). With shirts, it does **not** lose | defeat with shirts in the factory | |
+
+### B3. The player's chain: products and medic
+
+| # | Do | Expected | Fails if | OK? |
+|---|---|---|---|---|
+| 12aa | Shift+L to `fuzis`, wait for production, send the truck (L) to the base; repeat with `bandagens` | Recipe → production → transport → depot for the 4 products. Units: a rifle crate = 20, bandages = 50, shirts = 10. The panel's last line shows `Fuzis: fábrica … \| bandagens: fábrica …`, and per depot `N fuzis, M bandagens` | a product vanishes in transport; the panel does not show the stock | |
+| 12ab | Ctrl+4 (medic) with **0 bandages** at the base; wound a soldier (let them take fire) and keep the medic next to them | The medic **goes to the wounded but does not treat** (no bandage). After producing/delivering bandages to a depot within ≤ 5 m of the medic (base, forward base or one of your points: `CFG.POINT_RADIUS` = 500 cm), they heal (+12 per treatment, every 1.5 s) and the panel's bandage stock **drops 1 per treatment** | heals without a bandage; heals far (> 5 m) from any depot with bandages | |
+| 12ac | With the factory on `automático`, watch for 3–5 min | The factory **does not spend the 100 bmat reserve** for the destroyed truck on crates; the truck comes back when there are 100; the factory does **not** stop making ammo indefinitely because of the base order (180 s at most) | prolonged ammo starvation | |
+
+### B4. Panel
+
+| # | Do | Expected | Fails if | OK? |
+|---|---|---|---|---|
+| 12ad | Look at the panel with active logistics at several zooms and resolutions; open and close the help (F5); pause | **Multiline** panel (about 12–13: logistics, factory, ready, one depot per location, one `base …`/`base X …` line per base, trucks, `INIMIGO …`, `coleta manual …`, shortcuts), **without cutting** stocks or vehicles, without overlapping the help nor the game's native alerts. Paused: prefix `PAUSADO \|`; speed 2x/3x: prefix `2x \|` | text cut, on top of the help, or silently hidden | |
+| 12ae | Panel during the enemy chain | The `INIMIGO: …` line shows `frente equipa N`, the convoy's cargo and `piso grátis 5/onda` | line missing with waves on | |
+
+### B5. Save and continue, refusals (V1–V12 of the script)
+
+| # | Do | Expected | Fails if | OK? |
+|---|---|---|---|---|
+| 12af | Ctrl+F6 **with the match running**, same save, twice in a row | Idempotent: no extra soldier, truck or base; stocks do not double | duplicates | |
+| 12ag | Swap `save.txt` for a corrupted file or one from another region (ask the lab, or use `save.txt.bak` from another map) and press Ctrl+F6 **during a match** | `Continuar recusado (partida atual e save preservados): motivo`; **nothing** of the current match changes; the file stays as it is | erases the current match; the save vanishes | |
+| 12ah | Save with the `elogi` section removed/tampered (lab) and Ctrl+F6 | The game opens normally, with `CADEIA INIMIGA REINICIADA (motivo): estoque de cenário` for 10 s; the rest (soldiers, stocks, bases) comes back | refuses the whole save | |
+| 12ai | Closing the game during an autosave cannot be tested by hand; instead, **lose** (or win) the match and look at the `FoxholeRTS` folder | `save.txt`, `.tmp`, `.bak` and `.corrupt` removed | any of them left over | |
+| 12aj | See `INCOMPLETA: …; autosave suspenso` only if it shows up on its own; **do not provoke it** | If it appears, Ctrl+F6 tries again; Shift+F6 starts another; the autosave does not overwrite the good save | the autosave writes over it | |
+
+### B6. Others
+
+| # | Do | Expected | Fails if | OK? |
+|---|---|---|---|---|
+| 12v2 | Ctrl+5 (mortar) with the cursor over a **loaded enemy convoy** | Warning, 3 explosions after ~2.5 s; `COMBOIO INIMIGO DESTRUÍDO (+25)` **once**; a 2nd mortar on the already destroyed truck does not count again | double loss | |
+| 12ak | Alt+F6 (Assault, after Alt+L in the hex) and recruit | Recruiting uses **manpower** (as in v0.9; also spends the depot's shirt), without an enemy convoy and without Shift+J. The player's chain runs as in the normal match, so **manual collection with workers also applies in Assault** (the code allows the worker in that mode; **[lab]** not seen live, note it) | enemy convoy in Assault; Shift+J builds | |
+| 12al | New match, let the 1st wave arrive (waves turn on by themselves) and count the enemies | The wave size uses **only combat soldiers** (v4.1): the 3 workers do not increase it, and the warning "próxima onda em … (esquadrão N …)" shows N without them. Note how many enemies spawned and how many combat soldiers of yours there were (compare with the same number without workers) | larger wave because of the workers; the warning counts the workers | |
+| 12al2 | With the 3 workers in the salvage field (far from the combat squad) and the squad at a point, let a wave and an enemy reinforcement arrive | Waves and reinforcement come from the enemy side/points relative to the **combat squad** (v4.1: `squadCenter()` only counts combatants); the workers in the field do not pull the waves there. With no live combatant, the center of everyone applies | waves always appearing near the salvage field | |
+| 12am | F11 (clear) with workers and a forward base standing; then Shift+F6 | F11 removes soldiers, enemies, barriers, points **and** destroys the forward base (no residual actor on the map); the new match starts without leftovers | the base's structure or a worker is left on the map | |
+
+---
+
+## C. Items of the current file that stay as they are
+
+1, 1b, 3, 3b, 4, 5, 6, 6b, 7, 10, 12 (Ctrl+5 in Assault/normal), 12b–12d, 12f–12k, 12m–12r, 12w, 13–17 (none depends on what v4 changes). v4 does **not** change the outline, the animation nor the camera
+(per-function diff, 105 hunks); the stability of 3 outline cycles **remains pending** on the gate of `HOW_TO_INTEGRATE.md` §2, not on this file.
+
+## D. Record
+
+When each item is run, mark the OK? column and paste the exact messages of the failures. The lab also fills in `MODLOG_DRAFT.md` with the measured numbers.
