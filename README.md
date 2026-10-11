@@ -51,7 +51,7 @@ Every percentage comes from the item checklist in [`PROGRESS.md`](PROGRESS.md)
 - Back up `%LOCALAPPDATA%\Foxhole` before each modded launch.
 
 `tools/lab.ps1` (Windows PowerShell 5.1) automates the safety checks, the copy preparation,
-UE4SS install/removal and launching. Read its header and `COMO_FAZER_O_MOD.md` first;
+UE4SS install/removal and launching. Read its header and `HOW_TO_MAKE_THE_MOD.md` first;
 the default paths (`D:\...`) are the author's, pass your own with `-SteamGame`, `-LabGame` and `-Ue4ssDir`.
 
 ## Install
@@ -77,12 +77,12 @@ Full controls and mechanics: [`mod/README.md`](mod/README.md) (Portuguese).
 | `mod/FoxholeRTS/Scripts/main.lua` | The whole mod (single Lua file) |
 | `mod/README.md` | Controls, mechanics, install details |
 | `tools/` | Offline tests (`test_orders.py` and friends), probes, cost exporter, `lab.ps1` |
-| `dados/` | Data and traces recorded from the game; `dados/paralel/` holds parallel agent work, patches and reports |
+| `data/` | Data and traces recorded from the game; `data/parallel/` holds parallel agent work, patches and reports |
 | `MODLOG.md` | Development diary, newest first. Read "Como retomar" before working |
 | `ROADMAP.md` | Where the project is going and what is broken now |
 | `AGENTS.md` | Rules and pitfalls for AI agents (and humans) working on the code |
-| `TESTE_MANUAL.md` | Manual test checklist |
-| `ESTUDO_MECANICAS.md` | Game mechanics extracted from the game data |
+| `MANUAL_TEST.md` | Manual test checklist |
+| `MECHANICS_STUDY.md` | Game mechanics extracted from the game data |
 
 **Most docs are in Portuguese.** Issues and PRs in English or Portuguese are both welcome.
 
@@ -102,7 +102,7 @@ Foxhole players who want a logistics RTS in this world, this is for you. Useful 
   explosives, the PlayerState/UniqueId crash for AI-controlled characters.
 - **Logistics**: trucks following the native road network instead of straight lines, bridges, water.
 - **AI**: enemy supply chain and front decisions.
-- **Testing**: run the lab, follow `TESTE_MANUAL.md`, report crashes with `UE4SS.log` and the crash folder
+- **Testing**: run the lab, follow `MANUAL_TEST.md`, report crashes with `UE4SS.log` and the crash folder
   from `%LOCALAPPDATA%\Foxhole\Saved\Crashes`.
 - **Foxhole knowledge**: real logistics numbers, recipes, how things should feel.
 

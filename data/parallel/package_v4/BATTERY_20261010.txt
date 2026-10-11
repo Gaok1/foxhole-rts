@@ -1,0 +1,35 @@
+alvo: D:\GitHub\foxhole-rts\dados\paralel\package_v4\v4_1\candidato\main.lua
+SHA256: 62245d23af36160f589707fe422b6fb167abaa58482ef7f58a49cd39021b598f
+raiz: D:\GitHub\foxhole-rts
+base (main anterior, so para as pilhas alternativas dos testes antigos): D:\GitHub\foxhole-rts\dados\paralel\package_v4\pre_integration_base\main_actual_33d6c7e5.lua
+PASS  estatico/sintaxe Lua 5.4 e 5.5 + limite de 200 locais (0.3 s)  -> lua54 folga 22 locais; lua55 folga 22 locais (v4: 22)
+PASS  estatico/tools/check_globals.py (0.2 s)
+PASS  estatico/sem residuos do contrato antigo (cargo0/perWave/ECONVOY.cut, load(txt, ESTRADAS) (0.0 s)
+PASS  tools/test_costs.py (0.1 s)
+PASS  tools/test_inventory_probe.py (0.1 s)
+PASS  tools/test_orders.py (versao v4, em memoria; teclas incl. SHIFT+J) (0.1 s)  -> tools/test_orders.py em disco ainda NAO adaptado: rode apply_test_orders.py --write
+PASS  bases/test_construction.py (0.4 s)
+PASS  bases/test_recruitment.py (0.4 s)
+PASS  bases/test_loss.py (2.4 s)
+PASS  bases/test_workers.py (0.7 s)
+PASS  bases/test_persistence_bases.py (2.0 s)
+PASS  bases/test_key_panel.py (0.3 s)
+PASS  bases/test_collection_over_v4.py (23.1 s)
+PASS  v4_1/test_v4_1.py (trabalhadores fora da escala das ondas) (0.4 s)
+PASS  pilha/05 economy/test_integration.py contra o candidato (0.0 s)
+PASS  pilha/06 finishing/test_logistics_ai_v2.py contra o candidato (25x600 passos aleatorios + partidas) (0.6 s)
+PASS  pilha/06b finishing/test_elogi.py contra o candidato v3 (politica unica do elogi; 5.4 e 5.5; sem modulo; numeros da (2.3 s)
+PASS  pilha/06b-L finishing/test_elogi.py contra o candidato v3 com manualStart=false (suite so com a adaptacao V4 pointS (1.6 s)
+PASS  pilha/06c finishing/test_truck_bmat.py (reserva de bmat; pilha completa = candidato v2) (1.7 s)
+PASS  pilha/07a interface/test_interface.py original (painel.lua da INTERFACE, mock proprio) (0.0 s)
+PASS  pilha/07b interface/test_interface.py com o logi.hudLine do CANDIDATO (mock proprio, sem extraHud/eHud) (0.0 s)
+PASS  pilha/07c painel no candidato completo: estados, fuzis/bandagens, returnCargo, linha INIMIGO da IA, so leitura (0.0 s)
+PASS  pilha/07d painel v2: reserva de bmat ('guarda N bmat ...') e linha INIMIGO com o piso gratis (free=5) (0.0 s)
+PASS  pilha/09 contrato ESTRADAS: driver true so na chegada / routeStatus (jogador, returnCargo, comboio inimigo) (0.0 s)
+PASS  pilha/08 persistencia_v2 contra o candidato v3 (Lua 5.4 e 5.5, 9 cenarios; numeros da implantacao manual) (3.2 s)
+PASS  pilha/08-L persistencia_v2 contra o candidato v3 com manualStart=false (suite so com a adaptacao V4 pointSpawn=true; (3.1 s)
+PASS  bases/sensitivity_bases.py (21 mutantes) (25.1 s)
+PASS  alvo intacto ao fim (SHA256 igual) (0.0 s)  -> 62245d23af36
+
+RESUMO: 28 itens, 28 PASS, 0 FAIL
+(offline: lupa Lua 5.4 e 5.5; nao prova fisica Unreal, rota real, entrada, equilibrio nem desempenho)

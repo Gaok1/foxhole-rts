@@ -5,7 +5,7 @@ import sys
 import tempfile
 
 root = Path(__file__).resolve().parents[1]
-baseline = (root / 'dados/rastro_batch_mvp_integrado.txt').read_text(encoding='utf-8')
+baseline = (root / 'data/trace_batch_mvp_integrated.txt').read_text(encoding='utf-8')
 synthetic = baseline.replace('DELIVERED\t0\t', 'DELIVERED\t120\t').replace('BMAT\t40.0\t', 'BMAT\t100.0\t')
 dead = 'PLAYER_TRUCK\tres\tdead\t0\tPAWN\tfalse'
 live = 'PLAYER_TRUCK\tres\ttoField\t900\tPAWN\ttrue'

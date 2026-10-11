@@ -2563,7 +2563,7 @@ local function pointsTick()
     end
 end
 
--- Logistica v1 (lote 12; ESTUDO_MECANICAS.md). Cadeia: campo de sucata -> caminhao de recurso -> refinaria
+-- Logistica v1 (lote 12; MECHANICS_STUDY.md). Cadeia: campo de sucata -> caminhao de recurso -> refinaria
 -- (2 sucata = 1 bmat) -> fabrica (caixas com o custo e o tempo da tabela do jogo x LOGI.time) -> caminhoes de
 -- suprimento -> depositos (base e pontos nossos). Recrutar gasta uma camisa do deposito onde o soldado nasce;
 -- recarregar gasta caixas de municao do deposito. Lugares: os predios do proprio mapa (o mais perto da base);
@@ -2585,7 +2585,7 @@ CFG.LOGI = {
 logi.on, logi.prio = false, "auto"
 -- COLETA MANUAL (CLAUDE_COLETA_MANUAL, 2026-10-09). Comeco normal da partida estilo "aldeoes": sem caminhao de recurso
 -- vivo, soldados livres do jogador coletam sucata a pe (campo -> refinaria) ate a fabrica produzir o caminhao
--- (LOGI.truckCost bmat). Valores de rate/cap/max sao PROPOSTA de design (nao ha numero do jogo em dados/); equilibrio
+-- (LOGI.truckCost bmat). Valores de rate/cap/max sao PROPOSTA de design (nao ha numero do jogo em data/); equilibrio
 -- e do usuario. Tudo em CFG.COLETA e na tabela logi (nenhum local de topo novo).
 CFG.COLETA = {
     -- Busca regional exclusiva da coleta; inclinacao conservadora de44 graus (nativo44.765).
@@ -2620,8 +2620,8 @@ CFG.SPAWN = CFG.SPAWN or {}
 CFG.SPAWN.roles = CFG.SPAWN.roles or {}
 CFG.SPAWN.roles.worker = { shirts = 1, sites = { "base" } }
 CFG.SPAWN.startRifles = CFG.SPAWN.startRifles or 10
--- BASES AVANCADAS (CLAUDE_BASES_AVANCADAS etapa 2, 2026-10-09; ESPECIFICACAO.md + DECISOES.md). Tudo em CFG.FWD, CFG.SPAWN, S e na
--- tabela logi (nenhum local de topo novo). Valores de custo/vida/estoque vem de dados/custos_do_jogo.txt (ForwardBase1: 300 bmat,
+-- BASES AVANCADAS (CLAUDE_BASES_AVANCADAS etapa 2, 2026-10-09; SPEC.md + DECISIONS.md). Tudo em CFG.FWD, CFG.SPAWN, S e na
+-- tabela logi (nenhum local de topo novo). Valores de custo/vida/estoque vem de data/game_costs.txt (ForwardBase1: 300 bmat,
 -- 1725 de vida, StoredItemCapacity 15 lido como 15 slots de caixa: PROVISORIO ate as sondas A3/B1). O resto e PROPOSTA de design.
 -- pointSpawn=false: no ramo logistico (fora do Assalto) ponto de controle sem base nao e local de reforco (true restaura o antigo).
 CFG.SPAWN.pointSpawn = false
@@ -3823,7 +3823,7 @@ end
 -- (tudo em CFG.ECHAIN e na tabela logi). Mesmas regras do jogador: sucata por viagem (LOGI.trip), refinaria
 -- LOGI.refine/s a LOGI.ratio:1, receitas de CFG.LOGI.recipes (custo/tempo da tabela do jogo x LOGI.time; debito
 -- ao iniciar, caixa ao concluir), caminhao de LOGI.cap caixas que custa LOGI.truckCost bmat para reconstruir
--- (TruckC: Cloth100, 900 HP, carga 15 em dados/custos_do_jogo.txt). Producao fica na retaguarda fora do mapa;
+-- (TruckC: Cloth100, 900 HP, carga 15 em data/game_costs.txt). Producao fica na retaguarda fora do mapa;
 -- o trecho retaguarda -> frente e um caminhao real (BPTruckC) movido por logi.drive, o mesmo contrato de rota do
 -- jogador (ESTRADAS troca o driver; chegada so com drive == true). Unidades: caixas na retaguarda e na carga;
 -- unidades de produto na frente (municao: caixa; camisas: LOGI.recipes.shirts.units).
@@ -3832,7 +3832,7 @@ end
 CFG.ECHAIN = {
     kinds = { "ammo", "shirts" },             -- o que a frente inimiga consome (receitas reais em CFG.LOGI.recipes)
     shirts = 1,                               -- camisas por soldado pago (= recrutamento do jogador)
-    free = 5,                                 -- BONUS ABSTRATO explicito: guarnicao minima gratuita por onda = piso com a cadeia cortada (v1: 3; calibrado em acabamento/RELATORIO.md)
+    free = 5,                                 -- BONUS ABSTRATO explicito: guarnicao minima gratuita por onda = piso com a cadeia cortada (v1: 3; calibrado em finishing/REPORT.md)
     trip = 20.0,                              -- s por viagem do caminhao de recurso da retaguarda (v1: 25; > 25 ja enfraquece a onda SEM corte: a refinaria satura em 25 s)
     bmat0 = 240, front0 = { ammo = 2, shirts = 10 },  -- estoque de cenario (entra no razao como "inicial")
     want = { ammo = 4, shirts = 20 },         -- alvo da frente em unidades (~20 soldados; a fabrica para em 2x; v1: 6/30)
@@ -4583,7 +4583,7 @@ local function shell(st)
     end
 end
 
--- Candidato offline: tempo/dados do jogo, balistica/movimento/dano/FX nativos.
+-- Candidato offline: tempo/data do jogo, balistica/movimento/dano/FX nativos.
 -- Lease pertence ao chamador ate nativeTrack transferi-la ao acompanhamento.
 function rts.grenadeNumber(v)
     return type(v) == "number" and v == v and v > -math.huge and v < math.huge

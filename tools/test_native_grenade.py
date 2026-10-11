@@ -94,5 +94,5 @@ state,result=run()
 assert result and state.loadedClass=='/Game/Blueprints/Items/BPGrenadeW.BPGrenadeW_C'
 lua=LuaRuntime()
 assert lua.eval('load')(source) is not None
-print('PASS: 24 cenarios de granada, classes/dados por equipe, Owner/Instigator antes Finish, lease/falhas/cooldown; sintaxe')
+print('PASS: 24 cenarios de granada, classes/data por equipe, Owner/Instigator antes Finish, lease/falhas/cooldown; sintaxe')
 print('NAO prova Unreal, owner/equipe, trajetoria, soldierdeath ou estabilidade')

@@ -2,7 +2,7 @@
 from pathlib import Path
 import sys
 
-path = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).resolve().parents[1] / 'dados/rastro_mvp_ciclo.txt'
+path = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).resolve().parents[1] / 'data/trace_mvp_cycle.txt'
 lines = path.read_text(encoding='utf-8-sig').splitlines()
 rows = []
 for line in lines:

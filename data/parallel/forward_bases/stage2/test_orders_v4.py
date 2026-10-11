@@ -1,0 +1,104 @@
+"""BASES_AVANCADAS: COPIA ADAPTADA de tools/test_orders.py (suite do mod) executada contra o candidate_v4 (copia em memoria; o original nao
+e editado), com o bloco 'enemy convoy' trocado pelo da IA v2 (como o ensaio de integracao e a coleta fazem) e as ADAPTACOES da coleta
+manual (v3, implantacao sem caminhao de recurso: 1000 / 2 vagas / 4 atores). Alem delas, o teste de teclas ganha Shift+J:
+
+  * "SHIFT+J" registrada e fora de GAME_KEYS (nao colide com tecla do jogo), "J" continua registrada e fora de GAME_KEYS;
+  * Shift+J nao colide com as teclas do proprio mod (a lista registrada nao tem duplicatas por construcao: dicionario `bindings`).
+
+Qualquer outra falha e regressao.
+
+  cd /d/GitHub/foxhole-rts && PYTHONPATH=D:/tools/pylibs PYTHONDONTWRITEBYTECODE=1 \
+      python data/parallel/forward_bases/stage2/test_orders_v4.py
+"""
+import re
+import sys
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parents[3]
+sys.path.insert(0, str(HERE))
+import harness_bases as H  # noqa: E402
+
+ACAB = ROOT / "data/parallel/logistics_ai/finishing"
+ORDERS_SRC_LINE = 'source = (Path(__file__).resolve().parents[1] / "mod/FoxholeRTS/Scripts/main.lua").read_text(encoding="utf-8")'
+CONVOY_START = "-- enemy convoy: missing cargo shrinks the wave; arriving adds cargo; our soldiers nearby destroy it\n"
+CONVOY_END = 'assert(cv2.state == "dead" and api.combat.convoysCut == cut0 + 1)\n'
+
+# (trecho original, substituto, motivo). As seis primeiras vem da coleta manual (candidate_v3); a ultima e de Shift+J.
+ADAPTACOES = [
+    ("""L.salvage, L.bmat = 100, 0
+L.tick(); clock = clock + 0.5; L.tick()
+""",
+     """-- ADAPTACAO coleta manual: a partida nova comeca SEM caminhao de recurso (reserva de 100 bmat, fabrica parada). O resto deste
+-- bloco testa o fluxo refinaria -> fabrica -> caminhao de suprimento com o de recurso vivo: torna-o vivo explicitamente.
+assert(L.trucks[1].kind == 'res' and L.trucks[1].state == 'dead' and L.bmat == api.CFG.COLETA.bmat0 and L.rebuildReserve() == 100)
+L.trucks[1].state, L.trucks[1].hp = 'idle', api.CFG.LOGI.hp
+L.salvage, L.bmat = 100, 0
+L.tick(); clock = clock + 0.5; L.tick()
+""",
+     "(coleta) start() deixa o caminhao de recurso por construir; o teste do fluxo da fabrica o torna vivo"),
+    ("assert(plan.cost==1100 and #plan.builds==2 and #plan.parking==3 and spawned==0)",
+     "assert(plan.cost==1000 and #plan.builds==2 and #plan.parking==2 and spawned==0)  -- ADAPTACAO: sem caminhao de recurso na implantacao",
+     "(coleta) implantacao: 400+400+2x100 = 1000 e 2 vagas (antes 1100 e 3)"),
+    ("api.S.deploy.bmat=1099\n", "api.S.deploy.bmat=999  -- ADAPTACAO: falta 1 para o novo custo 1000\n", "(coleta) um a menos que o custo (1000)"),
+    ("api.S.deploy.bmat=1100\n", "api.S.deploy.bmat=1000  -- ADAPTACAO: orcamento 1000\n", "(coleta) carteira cheia agora vale 1000"),
+    ("assert(not L.deploy() and api.S.deploy.bmat==1100 and api.S.deploy.spent==0)",
+     "assert(not L.deploy() and api.S.deploy.bmat==1000 and api.S.deploy.spent==0)  -- ADAPTACAO: orcamento 1000", "(coleta) rollback preserva a carteira de 1000"),
+    ("assert(L.deploy() and spawned==5 and L.scan() and api.S.deploy.bmat==0 and api.S.deploy.spent==1100)",
+     "assert(L.deploy() and spawned==4 and L.scan() and api.S.deploy.bmat==0 and api.S.deploy.spent==1000)  -- ADAPTACAO: 2 estruturas + 2 caminhoes",
+     "(coleta) implantacao gasta 1000 e cria 4 atores"),
+    ('    assert(tr.X==tr.pawn.position.X and tr.Y==tr.pawn.position.Y, "preserve actual parking at startup")',
+     '    if tr.pawn then assert(tr.X==tr.pawn.position.X and tr.Y==tr.pawn.position.Y, "preserve actual parking at startup")\n'
+     '    else assert(tr.kind=="res" and tr.state=="dead" and not tr.X, "ADAPTACAO: o de recurso ainda nao existe") end',
+     "(coleta) so os 2 caminhoes de suprimento tem ator no inicio; o de recurso nasce quando a fabrica o constroi"),
+    ('assert(L.deploy() and spawned==5 and api.S.deploy.spent==1100, "idempotent;',
+     'assert(L.deploy() and spawned==4 and api.S.deploy.spent==1000, "idempotent;', "(coleta) idempotencia com 4 atores / 1000"),
+    ('assert not clash, f"mod keys collide with game bindings: {clash}"\n',
+     'assert not clash, f"mod keys collide with game bindings: {clash}"\n'
+     '# ADAPTACAO bases avancadas: Shift+J (construir base avancada) existe, nao colide com tecla do jogo e J continua livre\n'
+     'assert "SHIFT+J" in registered and "SHIFT+J" not in GAME_KEYS and "J" not in GAME_KEYS and "J" in registered, registered\n'
+     'assert not [k for k in registered if k.endswith("+J") and k != "SHIFT+J"], "so Shift+J usa J com modificador"\n'
+     'print("teclas: SHIFT+J registrada, fora de GAME_KEYS; J livre no jogo")\n',
+     "(bases) Shift+J registrada e sem colisao com as teclas do jogo"),
+]
+
+
+def swap_once(text, old, new, what):
+    assert text.count(old) == 1, "%s: ancora nao unica (%d): %r" % (what, text.count(old), old[:70])
+    return text.replace(old, new, 1)
+
+
+def build_source():
+    s = (ROOT / "tools/test_orders.py").read_text(encoding="utf-8")
+    s = swap_once(s, ORDERS_SRC_LINE, "source = __CANDIDATE", "tools/test_orders.py")
+    assert s.count(CONVOY_START) == 1 and s.count(CONVOY_END) == 1, "bloco do comboio mudou na suite"
+    a = s.index(CONVOY_START)
+    b = s.index(CONVOY_END, a) + len(CONVOY_END)
+    s = s[:a] + (ACAB / "test_orders_convoy_block_v2.lua").read_text(encoding="utf-8") + s[b:]
+    for old, new, why in ADAPTACOES:
+        s = swap_once(s, old, new, why)
+        print("adaptacao: " + why)
+    return s
+
+
+def main(candidate_text):
+    s = build_source()
+    try:
+        exec(compile(s, "tools/test_orders.py[candidato v4]", "exec"),
+             {"__file__": str(ROOT / "tools/test_orders.py"), "__name__": "__main__", "__CANDIDATE": candidate_text})
+    except Exception as e:  # noqa: BLE001  (diagnostico: mostra o trecho Lua da falha)
+        m = re.search(r"\]:(\d+):", str(e))
+        if m:
+            n = int(m.group(1))
+            for blk in s.split("lua.execute('''")[1:]:
+                ls = blk.split("\n")
+                if len(ls) >= n:
+                    print("--- trecho Lua perto da linha %d:" % n)
+                    for i in range(max(0, n - 6), min(len(ls), n + 2)):
+                        print("%4d %s%s" % (i + 1, "> " if i + 1 == n else "  ", ls[i][:200]))
+                    break
+        raise
+
+
+if __name__ == "__main__":
+    main(H.TEXT_V4)

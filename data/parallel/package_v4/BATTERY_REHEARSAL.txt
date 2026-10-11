@@ -1,0 +1,100 @@
+ENSAIO_BATERIA - registro do ensaio geral da bateria pos-integracao (PACOTE_V4, 2026-10-10)
+
+O que e: copia do repositorio no scratchpad do agente (<scratchpad>/ensaio) com o candidate_v4 no lugar do main.lua,
+`apply_test_orders.py --write` aplicado nela e `post_integration_battery.py` rodada de la. Nada foi gravado nas pastas
+dos outros agentes nem no main real (SHA256 33d6c7e5... antes e depois). Comando:
+  cd <scratchpad>/ensaio
+  PYTHONPATH=D:/tools/pylibs PYTHONDONTWRITEBYTECODE=1 python data/parallel/package_v4/post_integration_battery.py --main mod/FoxholeRTS/Scripts/main.lua
+Offline: lupa Lua 5.4 e 5.5. Nao prova fisica Unreal, rota real, entrada, equilibrio nem desempenho.
+
+=== 1. Candidato v4 (025e3b80...) ===
+alvo: <scratchpad>\ensaio\mod\FoxholeRTS\Scripts\main.lua
+SHA256: 025e3b80f76c5f13c4f2ed5ea83e04acfa7de79873c4308642badc5d072aaab0
+raiz: <scratchpad>\ensaio
+base (main anterior, so para as pilhas alternativas dos testes antigos): <scratchpad>\ensaio\dados\paralel\package_v4\pre_integration_base\main_actual_33d6c7e5.lua
+PASS  estatico/sintaxe Lua 5.4 e 5.5 + limite de 200 locais (0.2 s)  -> lua54 folga 22 locais; lua55 folga 22 locais (v4: 22)
+PASS  estatico/tools/check_globals.py (0.2 s)
+PASS  estatico/sem residuos do contrato antigo (cargo0/perWave/ECONVOY.cut, load(txt, ESTRADAS) (0.0 s)
+PASS  tools/test_costs.py (0.1 s)
+PASS  tools/test_inventory_probe.py (0.1 s)
+PASS  tools/test_orders.py (versao v4, em memoria; teclas incl. SHIFT+J) (0.0 s)  -> tools/test_orders.py em disco ja esta adaptado
+PASS  tools/test_orders.py em disco (processo separado) (0.1 s)
+PASS  bases/test_construction.py (0.3 s)
+PASS  bases/test_recruitment.py (0.3 s)
+PASS  bases/test_loss.py (1.5 s)
+PASS  bases/test_workers.py (0.3 s)
+PASS  bases/test_persistence_bases.py (1.0 s)
+PASS  bases/test_key_panel.py (0.2 s)
+PASS  bases/test_collection_over_v4.py (16.2 s)
+PASS  pilha/05 economy/test_integration.py contra o candidato (0.0 s)
+PASS  pilha/06 finishing/test_logistics_ai_v2.py contra o candidato (25x600 passos aleatorios + partidas) (0.3 s)
+PASS  pilha/06b finishing/test_elogi.py contra o candidato v3 (politica unica do elogi; 5.4 e 5.5; sem modulo; numeros da (1.3 s)
+PASS  pilha/06b-L finishing/test_elogi.py contra o candidato v3 com manualStart=false (suite so com a adaptacao V4 pointS (1.3 s)
+PASS  pilha/06c finishing/test_truck_bmat.py (reserva de bmat; pilha completa = candidato v2) (1.3 s)
+PASS  pilha/07a interface/test_interface.py original (painel.lua da INTERFACE, mock proprio) (0.0 s)
+PASS  pilha/07b interface/test_interface.py com o logi.hudLine do CANDIDATO (mock proprio, sem extraHud/eHud) (0.0 s)
+PASS  pilha/07c painel no candidato completo: estados, fuzis/bandagens, returnCargo, linha INIMIGO da IA, so leitura (0.0 s)
+PASS  pilha/07d painel v2: reserva de bmat ('guarda N bmat ...') e linha INIMIGO com o piso gratis (free=5) (0.0 s)
+PASS  pilha/09 contrato ESTRADAS: driver true so na chegada / routeStatus (jogador, returnCargo, comboio inimigo) (0.0 s)
+PASS  pilha/08 persistencia_v2 contra o candidato v3 (Lua 5.4 e 5.5, 9 cenarios; numeros da implantacao manual) (2.5 s)
+PASS  pilha/08-L persistencia_v2 contra o candidato v3 com manualStart=false (suite so com a adaptacao V4 pointSpawn=true; (2.5 s)
+PASS  alvo intacto ao fim (SHA256 igual) (0.0 s)  -> 025e3b80f76c
+
+RESUMO: 27 itens, 27 PASS, 0 FAIL
+(offline: lupa Lua 5.4 e 5.5; nao prova fisica Unreal, rota real, entrada, equilibrio nem desempenho)
+
+real	0m30.234s
+user	0m0.000s
+sys	0m0.000s
+
+=== 2. Controle negativo ===
+Mesmo ensaio, mas com `--main` apontando para uma copia do candidato com `cost = 300` -> `cost = 301` (base avancada) e
+`free = 5` -> `free = 4` (cadeia inimiga). A bateria tem de reprovar; reprovou (so as linhas FAIL e o resumo; o resto passou):
+FAIL  bases/test_construction.py (0.2 s)  -> rc=1; FAIL  [lua54] construcao ok (2 toques): LuaError: [string "<python>"]:17: mensagem de custo | FAIL  [lua54] recusas: LuaError: [string "<python>"]:82: assertion failed! | FAIL  [lua54] rollback de spawn: LuaError: [string "<python>"]:23: assertion failed!
+FAIL  bases/test_recruitment.py (0.3 s)  -> rc=1; FAIL  [lua54] spawnSite pura: LuaError: [string "<python>"]:178: faltam 1 bmat (fábrica tem 300) | FAIL  [lua54] mais proxima do cursor com estoque, saidas: LuaError: [string "<python>"]:178: faltam 1 bmat (fábrica tem 300) | FAIL  [lua54] selecao explicita sem fallback, base inativa: LuaError: [string "<python>"]:178: faltam 1 bmat (fábrica tem 300)
+FAIL  bases/test_loss.py (1.5 s)  -> rc=1; FAIL  [lua54] corte de abastecimento: LuaError: [string "<python>"]:178: faltam 1 bmat (fábrica tem 300) | FAIL  [lua54] destruicao/captura/recaptura: LuaError: [string "<python>"]:178: faltam 1 bmat (fábrica tem 300) | FAIL  [lua54] morteiro inimigo: LuaError: [string "<python>"]:178: faltam 1 bmat (fábrica tem 300)
+FAIL  bases/test_key_panel.py (0.2 s)  -> rc=1; FAIL  [lua54] logi.fwdLine: LuaError: [string "<python>"]:178: faltam 1 bmat (fábrica tem 300) | FAIL  [lua54] hudLine: LuaError: [string "<python>"]:178: faltam 1 bmat (fábrica tem 300) | FAIL  [lua54] teclas Shift+J: LuaError: [string "<python>"]:28: assertion failed!
+FAIL  pilha/07d painel v2: reserva de bmat ('guarda N bmat ...') e linha INIMIGO com o piso gratis (free=5) (0.0 s)  -> LuaError: [string "<python>"]:48: calibracao v2
+RESUMO: 26 itens, 21 PASS, 5 FAIL
+
+
+=== 3. v4.1 final (62245d23..., 4 trocas incl. squadCenter) no lugar do main, mesma copia de ensaio ===
+alvo: <scratchpad>\ensaio\mod\FoxholeRTS\Scripts\main.lua
+SHA256: 62245d23af36160f589707fe422b6fb167abaa58482ef7f58a49cd39021b598f
+raiz: <scratchpad>\ensaio
+base (main anterior, so para as pilhas alternativas dos testes antigos): <scratchpad>\ensaio\dados\paralel\package_v4\pre_integration_base\main_actual_33d6c7e5.lua
+PASS  estatico/sintaxe Lua 5.4 e 5.5 + limite de 200 locais (0.2 s)  -> lua54 folga 22 locais; lua55 folga 22 locais (v4: 22)
+PASS  estatico/tools/check_globals.py (0.2 s)
+PASS  estatico/sem residuos do contrato antigo (cargo0/perWave/ECONVOY.cut, load(txt, ESTRADAS) (0.0 s)
+PASS  tools/test_costs.py (0.1 s)
+PASS  tools/test_inventory_probe.py (0.1 s)
+PASS  tools/test_orders.py (versao v4, em memoria; teclas incl. SHIFT+J) (0.0 s)  -> tools/test_orders.py em disco ja esta adaptado
+PASS  tools/test_orders.py em disco (processo separado) (0.1 s)
+PASS  bases/test_construction.py (0.3 s)
+PASS  bases/test_recruitment.py (0.3 s)
+PASS  bases/test_loss.py (1.5 s)
+PASS  bases/test_workers.py (0.4 s)
+PASS  bases/test_persistence_bases.py (1.0 s)
+PASS  bases/test_key_panel.py (0.2 s)
+PASS  bases/test_collection_over_v4.py (17.1 s)
+PASS  v4_1/test_v4_1.py (trabalhadores fora da escala das ondas) (0.4 s)
+PASS  pilha/05 economy/test_integration.py contra o candidato (0.0 s)
+PASS  pilha/06 finishing/test_logistics_ai_v2.py contra o candidato (25x600 passos aleatorios + partidas) (0.3 s)
+PASS  pilha/06b finishing/test_elogi.py contra o candidato v3 (politica unica do elogi; 5.4 e 5.5; sem modulo; numeros da (1.3 s)
+PASS  pilha/06b-L finishing/test_elogi.py contra o candidato v3 com manualStart=false (suite so com a adaptacao V4 pointS (1.3 s)
+PASS  pilha/06c finishing/test_truck_bmat.py (reserva de bmat; pilha completa = candidato v2) (1.3 s)
+PASS  pilha/07a interface/test_interface.py original (painel.lua da INTERFACE, mock proprio) (0.0 s)
+PASS  pilha/07b interface/test_interface.py com o logi.hudLine do CANDIDATO (mock proprio, sem extraHud/eHud) (0.0 s)
+PASS  pilha/07c painel no candidato completo: estados, fuzis/bandagens, returnCargo, linha INIMIGO da IA, so leitura (0.0 s)
+PASS  pilha/07d painel v2: reserva de bmat ('guarda N bmat ...') e linha INIMIGO com o piso gratis (free=5) (0.0 s)
+PASS  pilha/09 contrato ESTRADAS: driver true so na chegada / routeStatus (jogador, returnCargo, comboio inimigo) (0.0 s)
+PASS  pilha/08 persistencia_v2 contra o candidato v3 (Lua 5.4 e 5.5, 9 cenarios; numeros da implantacao manual) (2.5 s)
+PASS  pilha/08-L persistencia_v2 contra o candidato v3 com manualStart=false (suite so com a adaptacao V4 pointSpawn=true; (2.5 s)
+PASS  alvo intacto ao fim (SHA256 igual) (0.0 s)  -> 62245d23af36
+
+RESUMO: 28 itens, 28 PASS, 0 FAIL
+(offline: lupa Lua 5.4 e 5.5; nao prova fisica Unreal, rota real, entrada, equilibrio nem desempenho)
+
+--sensibilidade --rapido:
+PASS  bases/sensitivity_bases.py (21 mutantes) (20.0 s)
+RESUMO: 26 itens, 26 PASS, 0 FAIL (--rapido: IA 25x600 e persistencia_v2 NAO rodaram)

@@ -2,7 +2,7 @@
 from pathlib import Path
 import sys
 
-path = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).resolve().parents[1] / 'dados/rastro_batch_nativo_integrado.txt'
+path = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).resolve().parents[1] / 'data/trace_native_batch_integrated.txt'
 lines = [line.split('\t') for line in path.read_text(encoding='utf-8-sig').splitlines()]
 results = {row[1]: dict(zip(row[2::2], row[3::2])) for row in lines if row[0] == 'RESULT'}
 expected = {'native_refusals', 'W_collision_on', 'W_collision_off', 'C_collision_on',

@@ -245,7 +245,7 @@ HomeRegionW é bancada de teste. O destino é uma cadeia curta em CallumsCapeHex
   Desmarcar, morrer ou sair do RTS remove ambos. Sem círculo no pé nem bolinhas de unidades/caminhões.
   Inclui casaco, cabeça, capacete, mãos, pernas, mochila e arma. Compartilha a pose com quatro cópias por peça
   visível (28 atores no soldado atual). **Experimental:** aparência aprovada pelo usuário, mas houve quedas
-  nativas UE4SS após ampliar às peças; estabilidade/GC/reseleção/morte e seleção grande ainda pendentes.
+  nativas UE4SS após ampliar às peças; stability/GC/reseleção/morte e seleção grande ainda pendentes.
   A retomada acrescentou proteções para pawn/clone/câmera em destruição e fonte inválida, incluindo a
   limpeza de CustomDepth. Regressão offline passou; isso não identifica nem certifica a correção das quedas nativas.
   Otimização integrada: uma transformação nativa completa por cópia substitui três setters; conversão de rotação
@@ -259,10 +259,10 @@ HomeRegionW é bancada de teste. O destino é uma cadeia curta em CallumsCapeHex
   Retomada de 10/10: repetição limpa com seis selecionados/168 cópias passou 195 s;
   controle sem seleção passou 201 s. A causa antiga não foi reproduzida nem isolada;
   isso não libera o lote logístico candidato. Contorno mediu ~11–12 ms/quadro em stratTick,
-  contra ~0,5 ms sem seleção. Evidências em `dados/paralel/estabilidade/RETOMADA_20261010.md`.
+  contra ~0,5 ms sem seleção. Evidências em `data/parallel/stability/RESUME_20261010.md`.
   Outra carga limpa completou 620 s com seis selecionados/168 cópias, seguida de GC/morte/recriação
   e mais 186 s sem queda observada. Entrada real e causa antiga continuam pendentes;
-  gate manual de dez minutos em `TESTE_MANUAL.md`.
+  gate manual de dez minutos em `MANUAL_TEST.md`.
   **Gate manual reprovado em 10/10:** fatal error durante teste dos números, após log de grupo1.
   A build continua experimental; os ensaios automáticos não cobriram essa falha com interação real.
   Variante de diagnóstico: as teclas agora entram numa fila Lua drenada pelo loop persistente
@@ -272,7 +272,7 @@ HomeRegionW é bancada de teste. O destino é uma cadeia curta em CallumsCapeHex
   Também passaram 100 ciclos de des/reseleção e 20 mortes/recriações; GC deixou 168 cópias
   rastreadas e zero atores em destruição. O cache de componentes da unidade viva desmarcada
   permanece intencionalmente para limpar o CustomDepth que o jogo reativa; na morte é removido.
-  Ver `dados/rastro_selecao.txt`. Se pesar, o próximo caminho é shader de borda, não voltar aos discos.
+  Ver `data/trace_selection.txt`. Se pesar, o próximo caminho é shader de borda, não voltar aos discos.
 - **Alertas de frente:** ponto seu sob ataque, ponto perdido, onda chegando e baixa entram numa fila (até 8) com o
   lugar; o painel mostra "! N alertas (Espaço)". Espaço leva a câmera ao mais novo; apertado de novo, aos
   anteriores. O mesmo alerta no mesmo lugar não se repete por 20 s.
@@ -298,7 +298,7 @@ fica onde o comandante estava ao ligar o RTS.
   aparece por cima e precisa ser fechado com o mouse (seta).
 - Cada mecânica até a v0.8 foi validada no jogo pelo canal de comandos e por capturas de tela, e partidas
   inteiras foram jogadas por um "jogador-robô" scriptado. Teclas e mouse ainda **não foram testados com
-  entrada real**: o roteiro está em `TESTE_MANUAL.md`.
+  entrada real**: o roteiro está em `MANUAL_TEST.md`.
 - Desempenho medido: o mod gasta ~1,5–4 ms por quadro com ~25 soldados; o resto do custo é dos
   personagens do próprio jogo (com 12 soldados, ~60 ms por quadro na máquina de teste, janela sem foco).
 - A escolha automática do lugar dos pontos foi ajustada em HomeRegionW; em outros mapas,

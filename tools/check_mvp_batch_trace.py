@@ -3,7 +3,7 @@ from pathlib import Path
 import sys
 import math
 
-path = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).resolve().parents[1] / 'dados/rastro_batch_mvp_integrado.txt'
+path = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).resolve().parents[1] / 'data/trace_batch_mvp_integrated.txt'
 lines = [line.split('\t') for line in path.read_text(encoding='utf-8-sig').splitlines()]
 rows = [dict(zip(row[2::2], row[3::2])) for row in lines if row[0] == 'MVP']
 assert rows and any('CallumsCapeHex' in '\t'.join(row) for row in lines), 'sem ciclo no hex'

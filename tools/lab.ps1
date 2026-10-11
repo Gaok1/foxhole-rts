@@ -9,7 +9,7 @@ Foxhole RTS - laboratorio isolado (Windows PowerShell 5.1).
   .\tools\lab.ps1 ue4ss-remove
   .\tools\lab.ps1 log                        # ultimas linhas uteis do War.log
 
-Regras (COMO_FAZER_O_MOD.md, secao 5): UE4SS nunca na instalacao Steam; a copia nunca
+Regras (HOW_TO_MAKE_THE_MOD.md, secao 5): UE4SS nunca na instalacao Steam; a copia nunca
 conecta em servidor oficial; backup antes de cada sessao modificada.
 #>
 param(

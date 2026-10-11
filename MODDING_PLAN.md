@@ -3,14 +3,14 @@
 > Atualização 2026-10-07: o planejamento abaixo preserva hipóteses históricas.
 > O estado executado está no MODLOG: v0.3 validada anteriormente; v0.3.1 adiciona
 > parada por grupo (H), com testes offline aprovados e teste no jogo pendente.
-> Uso e avaliação do toolkit: UNIVERSAL_MODDER_NOTAS.md. Rifles reais pendentes.
+> Uso e avaliação do toolkit: UNIVERSAL_MODDER_NOTES.md. Rifles reais pendentes.
 > Atualização 2026-10-07 (noite): decisão de ficar totalmente offline com modelo próprio.
 > v0.4 validada no jogo: parada H corrigida, classes com armas na mão, recrutamento e economia.
 > Rifles via inventário/RPC saíram do caminho crítico.
 
 Data: 2026-10-06. Status: investigação; nenhuma rota RTS demonstrada.
 
-Atualização (rodada 2): o executável do cliente contém código de servidor (listen server via `?listen`, `ASimGameMode`, ReplicationGraph). O bloqueio provável é a dependência do backend `FExternalWarService`. Não há rota pública (offline, servidor privado, SDK). Detalhes em `RECON_AMBIENTE.md` (seção Rodada 2). Próximo passo: medir essa dependência por decompilação no Ghidra, sem executar o jogo.
+Atualização (rodada 2): o executável do cliente contém código de servidor (listen server via `?listen`, `ASimGameMode`, ReplicationGraph). O bloqueio provável é a dependência do backend `FExternalWarService`. Não há rota pública (offline, servidor privado, SDK). Detalhes em `ENVIRONMENT_RECON.md` (seção Rodada 2). Próximo passo: medir essa dependência por decompilação no Ghidra, sem executar o jogo.
 
 ## Instalação verificada
 
@@ -48,11 +48,11 @@ Condições, todas ainda não satisfeitas:
 Alternativas, se a rota cair:
 - (a) mod só visual/UI via pak, tolerado mas sem simulação;
 - (b) painel RTS-like sobre a War API, só leitura;
-- (c) perguntar à Siege Camp (rascunho em `RECON_AMBIENTE.md`).
+- (c) perguntar à Siege Camp (rascunho em `ENVIRONMENT_RECON.md`).
 
 ## Próximas verificações
 
-O documento operacional agora é `COMO_FAZER_O_MOD.md`: arquitetura, limitações e protocolo de testes T0–T9. Resumo do estado:
+O documento operacional agora é `HOW_TO_MAKE_THE_MOD.md`: arquitetura, limitações e protocolo de testes T0–T9. Resumo do estado:
 
 1. **Feito (estático):**
    - boot direto no mapa por linha de comando;

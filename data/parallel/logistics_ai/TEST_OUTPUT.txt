@@ -1,0 +1,43 @@
+# Saída dos testes offline IA_LOGISTICA — 2026-10-09 18:37 (lupa, PYTHONPATH=D:/tools/pylibs; logs [FoxholeRTS] filtrados)
+
+$ python data/parallel/logistics_ai/build_patch.py
+patches gerados (HUD trocado); main.lua intacto
+
+$ sintaxe + locais de topo + check_globals (main+ECONOMIA+IA e main+IA)
+main atual sintaxe OK | locais de topo 178
+main+IA sintaxe OK | locais de topo 178
+main+ECONOMIA+IA sintaxe OK | locais de topo 178
+check_globals main+ECONOMIA+IA: OK (sem saída)
+check_globals main+IA: OK (sem saída)
+
+$ python data/parallel/logistics_ai/test_logistics_ai.py
+== main+IA: PASS (custos do jogo, cenario, fail-closed, producao, comboio sem fantasma, entrega unica, perda unica + reconstrucao, ator invalido, rota ausente, onda/commit, reforco, assalto/sem logistica, save/continue, 25x600 passos aleatorios com razao fechado, partida completa)
+controle                                 venceu=true lost(m=0,c=0) convoys=5 cut=0 | ondas enviados/pedidos: 1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:10/10 8:11/11 9:12/12 10:13/13
+interdicao total                         venceu=true lost(m=8,c=40) convoys=4 cut=4 | ondas enviados/pedidos: 1:6/6 2:6/6 3:7/7 4:3/8[i5] 5:3/9[i6] 6:3/10[i7] 7:3/10[i7] 8:3/11[i5] 9:3/12[i9] 10:3/13[i1]
+interdicao 0-420 s, depois livre         venceu=true lost(m=6,c=30) convoys=4 cut=3 | ondas enviados/pedidos: 1:6/6 2:6/6 3:7/7 4:3/8[i5] 5:3/9[i6] 6:3/10[i7] 7:3/10[i7] 8:3/11[i5] 9:3/12 10:13/13
+escassez (retaguarda sem bmat/sucata)    venceu=true lost(m=0,c=0) convoys=0 cut=0 | ondas enviados/pedidos: 1:6/6 2:6/6 3:7/7 4:3/8 5:3/9 6:3/10 7:3/10 8:3/11 9:3/12 10:3/13
+== main+ECONOMIA+IA: PASS (custos do jogo, cenario, fail-closed, producao, comboio sem fantasma, entrega unica, perda unica + reconstrucao, ator invalido, rota ausente, onda/commit, reforco, assalto/sem logistica, save/continue, 25x600 passos aleatorios com razao fechado, partida completa)
+controle                                 venceu=true lost(m=0,c=0) convoys=5 cut=0 | ondas enviados/pedidos: 1:6/6 2:6/6 3:7/7 4:8/8 5:9/9 6:10/10 7:10/10 8:11/11 9:12/12 10:13/13
+interdicao total                         venceu=true lost(m=8,c=40) convoys=4 cut=4 | ondas enviados/pedidos: 1:6/6 2:6/6 3:7/7 4:3/8[i5] 5:3/9[i6] 6:3/10[i7] 7:3/10[i7] 8:3/11[i5] 9:3/12[i9] 10:3/13[i1]
+interdicao 0-420 s, depois livre         venceu=true lost(m=6,c=30) convoys=4 cut=3 | ondas enviados/pedidos: 1:6/6 2:6/6 3:7/7 4:3/8[i5] 5:3/9[i6] 6:3/10[i7] 7:3/10[i7] 8:3/11[i5] 9:3/12 10:13/13
+escassez (retaguarda sem bmat/sucata)    venceu=true lost(m=0,c=0) convoys=0 cut=0 | ondas enviados/pedidos: 1:6/6 2:6/6 3:7/7 4:3/8 5:3/9 6:3/10 7:3/10 8:3/11 9:3/12 10:3/13
+PASS: test_ia_logistica (2 candidatos)
+exit 0
+
+$ python data/parallel/logistics_ai/test_orders_candidate.py
+== main puro (controle)
+PASS: syntax, lab map case matching, H gating, selected/all orders, repeated braking, resume, dead/invalid units, native death cleanup/cache/corpse TTL, authority guards, empty squad, click/box selection, attack order, hold, path planning (sync + async job + strict no-fallback terrain access), suppression, medic, victory, capture points (progress, contest, objective, defeat, domination), order queue, veterancy, retreat, mortar refusals, build refusals, recruit refusals, ammo, supply crates, trenches, enemy economy, save/continue, area fire, barbed wire, aid tent, assault mode, officer aura, enemy area fire, medevac, morale, difficulty, front alerts, groups 1-5, logistics (real hidden actors, refused startup preserves state, regional spawn), enemy convoy (no phantom spawn), no key clashes with the game
+== main+IA
+PASS: syntax, lab map case matching, H gating, selected/all orders, repeated braking, resume, dead/invalid units, native death cleanup/cache/corpse TTL, authority guards, empty squad, click/box selection, attack order, hold, path planning (sync + async job + strict no-fallback terrain access), suppression, medic, victory, capture points (progress, contest, objective, defeat, domination), order queue, veterancy, retreat, mortar refusals, build refusals, recruit refusals, ammo, supply crates, trenches, enemy economy, save/continue, area fire, barbed wire, aid tent, assault mode, officer aura, enemy area fire, medevac, morale, difficulty, front alerts, groups 1-5, logistics (real hidden actors, refused startup preserves state, regional spawn), enemy convoy (no phantom spawn), no key clashes with the game
+== main+ECONOMIA+IA
+PASS: syntax, lab map case matching, H gating, selected/all orders, repeated braking, resume, dead/invalid units, native death cleanup/cache/corpse TTL, authority guards, empty squad, click/box selection, attack order, hold, path planning (sync + async job + strict no-fallback terrain access), suppression, medic, victory, capture points (progress, contest, objective, defeat, domination), order queue, veterancy, retreat, mortar refusals, build refusals, recruit refusals, ammo, supply crates, trenches, enemy economy, save/continue, area fire, barbed wire, aid tent, assault mode, officer aura, enemy area fire, medevac, morale, difficulty, front alerts, groups 1-5, logistics (real hidden actors, refused startup preserves state, regional spawn), enemy convoy (no phantom spawn), no key clashes with the game
+== ECONOMIA test_integracao sobre main+ECONOMIA+IA
+PASS: complete main.lua candidate executed in memory; production/trucks/recruit/medic/save/memento
+PASS: 4 execucoes: main puro (controle), main+IA, main+ECONOMIA+IA, economy/test_integracao
+exit 0
+
+$ python tools/test_costs.py (controle, não depende do patch)
+PASS: ProductionResource e CodeNameSmallQuantity distintos; custos primario/secundario e zero real
+
+$ python data/parallel/logistics_ai/test_base_audit.py (main atual, sem patch)
+PASS: auditoria do main atual (A1 carga do nada, A2 corte abstrato, A3 save sem carga, A4 municao inimiga infinita, A5 ondas/reforcos sem custo material, A6 morteiro/fortificacao gratis)

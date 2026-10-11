@@ -22,11 +22,11 @@ Want to pick an item? Open an issue with the item name so nobody duplicates work
 - [~] Yellow selection outline (looks approved; native crashes when selecting many units still open)
 - [~] Units and structures stay visible at high RTS zoom
 - [ ] Visible drag-selection rectangle
-- [ ] Full manual test pass with real input (`TESTE_MANUAL.md`)
+- [ ] Full manual test pass with real input (`MANUAL_TEST.md`)
 
 ## Phase 2: Study the game's mechanics (from the game's own data)
 
-- [x] Item and structure costs exported (`dados/custos_do_jogo.txt`, `tools/export_costs.lua`)
+- [x] Item and structure costs exported (`data/game_costs.txt`, `tools/export_costs.lua`)
 - [x] Refinery, factory and forward base classes and costs
 - [x] Local recon of regions: what loads offline in Deadlands and Callum's Cape
 - [x] Road network of a region exported (405 control points, 431 segments)

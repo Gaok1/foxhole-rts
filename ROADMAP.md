@@ -29,7 +29,7 @@ As entradas históricas abaixo não substituem os resultados atuais:
 - **Implementado:** implantação de refinaria/fábrica, coleta manual, refino/produção,
   caminhões, depósitos, recrutamento por estoque, bases avançadas, economia inimiga,
   ordens/grupos/alertas e save. Transporte continua reto/sem colisão, não por estrada.
-- **Granadas integradas e testadas:** Warden/Colonial usam classes/dados nativos;
+- **Granadas integradas e testadas:** Warden/Colonial usam classes/data nativos;
   Owner/Instigator, fuse4, dano, reset em voo, classes simultâneas, contexto emprestado/
   trocado e GC em voo passaram no lote. Friendlyfire foi observado (soldado100→1).
   Não comprovada morte nativa do soldado/lançador nem estabilidade geral prolongada.
@@ -74,8 +74,8 @@ em vez de tratar silêncio como sucesso. Treze testes offline PASS.
 4. Repetir ciclo integrado com critérios de coleta/refino/produção/transporte/
    consumo/corte/expansão. Mais UI, refinamento e mundo só depois do núcleo funcionar.
 
-Evidências: `dados/rastro_batch_nativo_integrado.txt` e
-`dados/rastro_batch_mvp_integrado.txt`; verificadores estritos retornam1 pelos gates
+Evidências: `data/trace_native_batch_integrated.txt` e
+`data/trace_batch_mvp_integrated.txt`; verificadores estritos retornam1 pelos gates
 não aprovados. Uma publicação/run, sem crash observado; laboratório encerrado e
 Steam preservado. Fonte publicada SHA256 ACB6ADFD3AE05828AB50C3D26CC3970673B09184E8FCD4BBCB3D010042CEFA64.
 
@@ -87,12 +87,12 @@ e contabiliza carga perdida uma vez, sem esconder/destruir antecipadamente o cas
 DPS abstrato de emboscadas e dano próprio de morteiro contra veículos removidos.
 Não entregue como combate completo: fuzil local, colisão das granadas com caminhões
 e persistência de ferimentos pendentes. Nove scripts de teste offline PASS;
-sem publicação. Gates vivos acumulados em `BATCH_NATIVO.md`, uma única sessão futura.
+sem publicação. Gates vivos acumulados em `NATIVE_BATCH.md`, uma única sessão futura.
 
 **Correção explícita do usuário:** MVP pouco refinado NÃO autoriza reinventar dano,
 tiros e veículos já existentes no jogo. Prioridade antes de calibrar emboscadas:
 rastrear disparo/projétil/impacto/dano nativo de veículo, provar execução local e
-reutilizar o fluxo. IA/ordens/economia próprias continuam; sistemas de engine do
+reutilizar o fluxo. IA/ordens/economy próprias continuam; sistemas de engine do
 jogo não devem ser substituídos por DPS abstrato sem demonstrar a impossibilidade.
 Ramo atual logi.hit/logi.blast/convoyTick é dívida de implementação, não direção aceita.
 
@@ -106,8 +106,8 @@ Não criar rede/RPC, alterar CDO, desligar proteção ou inventar fórmulas.
 **Gate vivo 11/10:** defaults e binding PASS; ApplyDamage45Explosive em caminhão
 exclusivo deu retorno31.5/HP900→869 com settings recém-criada/associada imediatamente,
 contra0/900 sem settings. Restore e cleanup PASS. Dano genérico comprovado; falta
-integração/lifetime ancorado, morte e disparo nativo. Rastro `dados/rastro_dano_settings_fresh.txt`.
-Oracle posterior (`dados/rastro_dano_nativo_repetido.txt`) comprovou Light/Heavy/Explosive
+integração/lifetime ancorado, morte e disparo nativo. Rastro `data/trace_damage_settings_fresh.txt`.
+Oracle posterior (`data/trace_damage_native_repeated.txt`) comprovou Light/Heavy/Explosive
 e HP até0 sem crash, com restore/cleanup. Wreck/destruição completa e rifle ainda não provados;
 ator de teste foi removido manualmente só no cleanup, não creditar isso como morte nativa.
 Usuário confirmou visualmente explosão e algo dropado nesse teste; registrar como
@@ -122,7 +122,7 @@ PASS. Integração de lançamento/fuse real/atribuição ainda pendente; não é
 120sucata entregue/perda0, reconstrução de caminhão, produção/entrega na base,
 reabastecimento em combate,4entregas inimigas/13camisas consumidas e derrota na onda4
 com apenas3trabalhadores vivos. Conservação conferida em36amostras.
-`tools/check_mvp_trace.py` verifica `dados/rastro_mvp_ciclo.txt`.
+`tools/check_mvp_trace.py` verifica `data/trace_mvp_cycle.txt`.
 Corte de comboio, expansão/base avançada em combate e vitória ainda não provados nesse ciclo.
 
 Usuário pediu provar o conceito, aceitando implementação grossa e pouco refinada.
@@ -134,7 +134,7 @@ acesso físico por estrada. Crashes e visibilidade que impedem jogar não viram 
 ### Refinamentos adiados, não bloqueiam o MVP
 - [ ] Trabalhadores chegarem a um acesso/ponto de entrega e depois esperarem em local seguro,
   em vez de parar no trilho por entrar no raio de entrega de 15 m.
-  Sondas: dados/rastro_acesso_refinaria.txt e dados/rastro_area_uso_refinaria.txt;
+  Sondas: data/trace_access_refinery.txt e data/trace_area_use_refinery.txt;
   UseAreaBox/TransferLocation nativos encontrados, sem integração nem interação nativa.
 - [ ] Marcha/medevac dos soldados já presos em saves antigos; não confundir unidade sem ordem
   com falha de rota, nem usar sucesso da coleta para declarar navegação geral resolvida.
@@ -168,7 +168,7 @@ Rede da região exportada (405 controles/431 segmentos), mas superfície/envelop
 
 **Navegação da coleta:** fallback cego removido só desse ramo e recusa/frenagem validadas no jogo.
 Ainda falta encontrar a passagem real ao redor do muro e completar entrega sem auxílio do usuário.
-Rastro: dados/rastro_path_coleta.txt. Limite de inclinação do planner difere do nativo, mas ampliar limites sozinho não resolveu.
+Rastro: data/trace_path_collection.txt. Limite de inclinação do planner difere do nativo, mas ampliar limites sozinho não resolveu.
 
 Direção do usuário (2026-10-09): o mundo do Foxhole é enorme, então começamos numa **região pequena**,
 melhoramos até ficar bom, e só depois vamos para o mundo todo. No Foxhole **a guerra é a parte pequena da
@@ -177,10 +177,10 @@ com veículos, navios e aviões. O RTS precisa ter isso como centro, não só o 
 
 ## Fase 1 — Frente pequena (agora: HomeRegionW)
 Combate de esquadrão, pontos, ondas, assalto, fortificação, tempo, câmera e ferramentas de várias frentes
-(lotes 1–11). Falta: os testes com entrada real do usuário (`TESTE_MANUAL.md`).
+(lotes 1–11). Falta: os testes com entrada real do usuário (`MANUAL_TEST.md`).
 
 ## Fase 2 — Estudo das mecânicas do jogo (pelos dados do próprio jogo)
-**Primeira leitura feita (2026-10-09): `ESTUDO_MECANICAS.md`.** HomeRegionW tem campos, refinarias,
+**Primeira leitura feita (2026-10-09): `MECHANICS_STUDY.md`.** HomeRegionW tem campos, refinarias,
 fábrica e caminhões para prototipar a cadeia, mas é a ilha de treinamento/embarque dos Wardens,
 não uma região da guerra. O laboratório não substitui a validação num mapa `Maps/Master/*Hex`.
 Ler em tempo de execução (UE4SS) o que o Foxhole já define, para que os números do mod venham do jogo:
@@ -212,7 +212,7 @@ será do mod. O que dá para ganhar de graça é o que vem depois da decisão (a
 
 **Primeiro contrato validado (lote 14): morte.** `ApplyDamage` no host zerava HP sem acionar o ragdoll;
 `OnRep_Health` faz a transição visual nativa. O mod agora para o movimento, devolve os valores originais e
-retira o cache de animação antes dessa chamada. Rastro antes/depois: `dados/rastro_morte.txt`.
+retira o cache de animação antes dessa chamada. Rastro antes/depois: `data/trace_death.txt`.
 
 ## Interface e retorno visual (pedidos do usuário, 2026-10-09)
 Vale em qualquer fase; entra quando a mecânica correspondente estiver firme.
@@ -238,7 +238,7 @@ Vale em qualquer fase; entra quando a mecânica correspondente estiver firme.
   `M_OccludedOutline` mostrou preenchimento de partes encobertas, não borda visível; mantido também só na
   seleção. Corpo/cabeça/mãos/pernas/equipamento têm CustomDepth separado. Contorno completo usa cópias aderentes
   com MasterPose, sem IA/física; aparência aprovada, mas quedas nativas UE4SS ao ampliar às peças ainda NÃO
-  resolvidas. Prioridade ao retomar: estabilidade/GC/reseleção/morte; depois seleção grande/zoom alto. Shader cooked é
+  resolvidas. Prioridade ao retomar: stability/GC/reseleção/morte; depois seleção grande/zoom alto. Shader cooked é
   alternativa caso o custo das cópias pese. Não expandir interface neste encerramento autorizado.
 - **Mais interface, quando fizer sentido:** painel de logística (fábrica, depósitos, caminhões) em vez de linha de
   texto; ícones de ordem; barra de produção; mini-mapa da região; botões clicáveis para quem não decora teclas.
@@ -257,12 +257,12 @@ terreno, estradas, campos e estruturas realmente presentes. Ter o `.umap` no cli
 a população de uma guerra exista offline. Escolher uma região com uma cadeia curta após esse inventário.
 Descobrir a rede por mundo carregado, sem reutilizar coordenadas/cache do lobby. Se faltar uma instalação
 ou acesso, indicar a ausência; não considerar uma entrega concluída nem inventar uma instalação silenciosa.
-**Primeiro reconhecimento local:** `dados/rastro_regioes.txt`. Deadlands carregou com estradas e instalações
+**Primeiro reconhecimento local:** `data/trace_regions.txt`. Deadlands carregou com estradas e instalações
 em ruínas; CallumsCape tem um campo de sucata ativo e ruínas de refinaria/fábricas próximas, mas não caminhões
 ativos nas sondas. Candidata à cadeia pequena **após** rastrear reconstrução nos locais nativos e criar
 veículos reais do cenário. Não concluir ausência por imagem: LOS/oclusão pode esconder estruturas e veículos.
 
-**Lote 16 — contrato parcial:** `dados/rastro_reconstrucao.txt`. Corrigido o schema dos custos:
+**Lote 16 — contrato parcial:** `data/trace_rebuild.txt`. Corrigido o schema dos custos:
 refinaria/fábrica 400 bmat cada, TruckW 100. Spawn das classes ativas na transformação da ruína validou
 classe/HP, mas não é conclusão nativa de construção. Canteiro cru veio sem alvo; estacionamento ingênuo
 pegou telhado e ator já em destruição.
@@ -293,7 +293,7 @@ A IA inimiga roda a mesma cadeia: cortar a estrada dela vira estratégia.
 soldado é um jogador que renasce numa estrutura de spawn e gasta camisas (Soldier Supplies) do estoque dela. O RTS
 segue esse modelo, sem andar do fundo do mapa até a frente (o mapa é grande demais):
 - **Pontos de spawn = estruturas:** a base principal e **bases avançadas** construídas perto da frente (classe real
-  `ForwardBase1`, 300 bmat, estoque 15, em `dados/custos_do_jogo.txt`; outras classes de spawn só depois de rastrear).
+  `ForwardBase1`, 300 bmat, estoque 15, em `data/game_costs.txt`; outras classes de spawn só depois de rastrear).
 - **Recrutar gasta o estoque do ponto:** 1 camisa por soldado, mais a arma da função (fuzil para fuzileiro etc.).
   Nasce no ponto abastecido mais próximo do cursor/frente; sem estoque ali, recusa com aviso (sem mão de obra mágica).
   Na partida com logística a mão de obra abstrata deixa de ser o limite; ela continua no modo Assalto.

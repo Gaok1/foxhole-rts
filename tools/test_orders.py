@@ -764,7 +764,7 @@ assert(rifle.ammo == full and math.abs(L.base.ammo - (1 - 1 / api.CFG.LOGI.reloa
 L.base.ammo = 0; rifle.ammo = 0
 api.resupply(rifle, 1.0, 1.0, L.base)
 assert(rifle.ammo == 0 and L.base.dryT)
--- VARIANTE v2 (acabamento) de ia_logistica/test_orders_bloco_comboio.lua: as expectativas numericas leem CFG.ECHAIN
+-- VARIANTE v2 (acabamento) de logistics_ai/test_orders_convoy_block.lua: as expectativas numericas leem CFG.ECHAIN
 -- (free/front0) em vez de assumir free 3 (calibracao v2: free 5). Mesma logica do bloco original.
 -- Proposta para tools/test_orders.py (IA_LOGISTICA): substitui o bloco "enemy convoy" (do comentario
 -- "-- enemy convoy: missing cargo shrinks the wave..." ate "assert(cv2.state == "dead" ...)").

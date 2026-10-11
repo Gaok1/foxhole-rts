@@ -48,7 +48,7 @@
 ## 2026-10-11 — Repositório público no GitHub
 
 - Pasta virou repositório git e foi publicada em github.com/Gaok1/foxhole-rts (público, MIT) para chamar
-  colaboradores da comunidade de Foxhole. Subiu tudo, inclusive `dados/paralel/`.
+  colaboradores da comunidade de Foxhole. Subiu tudo, inclusive `data/parallel/`.
 - `README.md` da raiz em inglês (aviso de não afiliação à Siege Camp, sem arquivos do jogo, nunca online).
 - `PROGRESS.md`: checklist pública por fase ([x] = 1, [~] = 0,5, [ ] = 0); `tools/progress.py` recalcula
   as barras do README. Ponto de partida: fase 1 65%, fase 2 71%, fase 3 54%, fase 4 20%, fase 5 0%, MVP 62%.
@@ -108,7 +108,7 @@
   LocalPlayer com derivados cujos wrappers escrevem vtable inline. Check anterior
   FAIL, sete classes PASS após correção. Slots usados no diagnóstico do crash
   foram reconferidos e permanecem os mesmos. Continua heurístico, não prova live.
-- Rastro próprio em dados/rastro_crash_logistics2_20261011.txt; scripts/check e
+- Rastro próprio em data/trace_crash_logistics2_20261011.txt; scripts/check e
   decompilação externos. Nenhuma mudança de main, publicação ou nova run.
 
 ## 2026-10-11 — Contrato local dos bots; sonda de roster preparada offline
@@ -135,7 +135,7 @@
 - Diagnóstico offline readOnly/noanalysis confirmou PlayerState.UniqueId como
   origem dos pares compartilhados que chegam ao helper do crash, via consulta de
   proximidade e GameState.PlayerArray. Metadados em
-  dados/rastro_crash_logistics2_20261011.txt; código protegido apenas externo.
+  data/trace_crash_logistics2_20261011.txt; código protegido apenas externo.
 - PlayerSaveGame.bVoiceChatEnabled (+0x48, setter gerado confirmado) controla
   somente consulta próxima, NÃO o loop PlayerArray posterior. Desligar voz não
   resolve por evidência e pode continuar acumulando IDs vazios.
@@ -165,7 +165,7 @@
   Não aprova medevac, contratação sob ameaça, entrega ou reconstrução no Unreal.
 - PID ausente/WMI confirmado, canal timeout30s. Crash DE679306…/17:36:33 preservado
   externamente em logistics2-crash; UE4SSlog copiado. Stack/metadata própria
-  em dados/rastro_crash_logistics2_20261011.txt, sem minidump/código protegido no repo.
+  em data/trace_crash_logistics2_20261011.txt, sem minidump/código protegido no repo.
 - Minidump mostra RVA0xb2b5f7/Rcx0: instrução mov rax,[rcx] em140b2b5a0.
   PCallStack inicia acima com1427c66cb; não confundir retorno do caller com fault.
   RE readOnly/noanalysis exit0 liga frame ao processamento de lista compartilhada
@@ -218,7 +218,7 @@
 - Guard142407030 não lê Role como142405420: resolve contexto/world e encaminha
   helper que retorna3 ou1/2. Não chamar timer guardado por3 de Authority sem prova;
   consistente com apresentação/NetMode, ainda sem validação dinâmica.
-- dados/rastro_disparo_investigacao.md atualizado com endereços/limites e próximo
+- data/trace_firing_investigation.md atualizado com endereços/limites e próximo
   recorte autoritativo. Sem mudança/publicação de main.lua ou outra sessão de jogo.
   Executor local de rifle segue pendente; não substituir por DPS/ApplyDamage temporal.
 
@@ -282,13 +282,13 @@
   jogador",39,9 por morte; reposição esgotou camisas. Causa completa não isolada.
   check_mvp_batch_trace.py retorna1 para coleta/refino/reconstrução, não exige
   derrota nem dá PASS ao MVP só porque houve combate. Falhas vão ao próximo lote.
-- Rastros próprios em dados/rastro_batch_{nativo,mvp}_integrado.txt. Scripts e
+- Rastros próprios em data/rastro_batch_{nativo,mvp}_integrado.txt. Scripts e
   log completo externos D:/tools/foxhole-lab/t_batch_*.lua/native-batch-ue4ss.log.
   Relatórios/fixtures limpos entre cenários. Check final: squad0/enemies0/logi false/
   context false/settings false/sem relatório pendente. PID19324 encerrado;
   após3s WMI/processos confirmam nenhum processo do laboratório, Steam16104 mantido.
   map.txt temporário removido (baseline ausente). Não houve segundo restart.
-- ROADMAP atualizado com prioridade real: coleta fresca, colisão/estradas e executor
+- ROADMAP atualizado com prioridade real: coleta fresca, colisão/roads e executor
   nativo de tiro/perda. Build publicada experimental, não estável. README/BATCH e
   universal-modder atualizados com evidência/limites; sem PR.
 
@@ -299,7 +299,7 @@
 - Conferidos offline getter Instigator1422d9d90 e Controller1422d9da0 no binário;
   PostInitialize WarProjectile140dbe460 ignora Instigator e deriva MyController;
   BeginPlay140da4a70 ignora Owner/peças. Contrato próprio (sem fonte protegida)
-  em dados/contrato_granada_nativa.md. Nenhum offset executado.
+  em data/contract_native_grenade.md. Nenhum offset executado.
 - Corrigido uso de granada Warden para todo mundo: lançador Colonial usa Grenade_C,
   identidade GrenadeC e seus próprios limites (max1200 vs1100 Warden), cache por
   identidade. Equipe desconhecida/row ausente recusam sem gastar lease/cooldown.
@@ -340,7 +340,7 @@
   test_orders atualizado: ator mock com Health, sem expectativa de DPS fictício.
   Logs externos em D:/tools/foxhole-lab/offline-test_*.log. Backup fonte antes desta
   alteração: D:/tools/foxhole-lab/main-before-native-health.lua.
-- `BATCH_NATIVO.md` atualizado: colisão dos caminhões está DESLIGADA pelo transporte;
+- `NATIVE_BATCH.md` atualizado: colisão dos caminhões está DESLIGADA pelo transporte;
   não presumir overlap explosivo funcional. Instigator antes FinishSpawning já
   consta no candidato de granada, mas equipe/atribuição/colisão exigem gate vivo.
   Não considerar lote pronto/publicado/estável; próxima etapa resolve esse contrato
@@ -361,7 +361,7 @@
 - tools/test_native_context.py PASS e tools/test_native_grenade.py20cenários PASS
   na fonte ATUAL; test_orders/globals PASS. Nenhum teste vivo/publicação neste lote.
   Backup externo main-before-native-grenades.lua; alterações ainda sem gate integrado.
-- BATCH_NATIVO.md reúne critérios/cenários numa única sessão futura. Antes dela faltam
+- NATIVE_BATCH.md reúne critérios/cenários numa única sessão futura. Antes dela faltam
   Instigator/Owner/colisão do lançador e reação logística ao HP real. Sub-agente estuda
   esse contrato offline; não confundir oráculos anteriores com teste desse main.
 - README atualizado; métrica antiga de dano da granada não imprime zero enganoso.
@@ -375,7 +375,7 @@
   critérios preparados antes, uma publicação e sessão compartilhada, cleanup entre
   cenários. Ideias novas vão ao próximo lote; exceções somente por impedimento concreto.
 - Cenário já em andamento concluiu restore/cleanup; laboratório encerrado. Sem
-  novos testes ao vivo agora. Trajetória nativa registrada em dados/rastro_trajetoria_granada_nativa.txt;
+  novos testes ao vivo agora. Trajetória nativa registrada em data/trace_trajectory_native_grenade.txt;
   integração e seus cenários deverão ser desenvolvidos offline antes do próximo lote.
 
 ## 2026-10-11 — Granada nativa explodiu e causou dano pelo próprio timer
@@ -384,7 +384,7 @@
   SpawnActor BPGrenadeW a180cm do centro, FuseTimer default20, bExplodedfalse.
   Settings fresca mantida por GI.ServerSettings durante espera; sem ownerpatch.
 - Após27s: caminhãoHealth780, granada não presente entre atores vivos; restore
-  original nulo/cleanup PASS. dados/rastro_granada_nativa_inicio.txt e fim.txt.
+  original nulo/cleanup PASS. data/trace_native_grenade_start.txt e fim.txt.
   NENHUMA ApplyDamage/manual, HPwrite, HitInfoLua, RPC, fórmula ou debugtoggle.
   Timer do próprio projétil construiu impacto e executou dano/FX nativos.
 - Isso prova explosivo local independente de inventário, não lançamento pelo
@@ -396,7 +396,7 @@
 ## 2026-10-11 — Projéteis explosivos nativos: schema e CDOs confirmados
 
 - tools/probe_native_projectiles.lua syntaxPASS e leitura viva PID22020 HomeRegionW.
-  dados/esquema_projectiles_nativos.txt. Sem spawn/detonar/RPC/escrita de CDO.
+  data/schema_projectiles_native.txt. Sem spawn/detonar/RPC/escrita de CDO.
 - WarProjectile.Detonate e ApplyExplosiveDamageAndSpawnFx recebem HitResult
   StructProperty (estático ProjectileHitInfo_NetQuantize, NÃO montar tabela Lua).
   MyController WeakObjectProperty, ExplosiveCodeName NameProperty; templates reais.
@@ -436,7 +436,7 @@
   imediatamente e mantida por UProperty durante todas as chamadas.
 - LightKinetic45 retornou27/HP900→873; HeavyKinetic55 retornou33/HP873→840;
   Explosive1500 (sobrecarga de TESTE, não munição/fórmula do mod) retornou1050/HP840→0.
-  dados/rastro_dano_nativo_repetido.txt. Nenhuma escrita de HP, offset/RPC/debugtoggle.
+  data/trace_damage_native_repeated.txt. Nenhuma escrita de HP, offset/RPC/debugtoggle.
 - Health0 é comprovado, NÃO lifecycle completo de destruição/wreck: ator ainda
   não estava bActorIsBeingDestroyed no retorno, e cleanup removeu-o depois.
   Restore original nulo/cleanup PASS, sem crash nesse oracle. Não extrapolar rifle.
@@ -452,7 +452,7 @@
 - No mesmo chunk: baseline ApplyDamage45Explosive sem settings retornou0/HP900;
   constructor NOVO + associação imediata GI.ServerSettings + mesma chamada
   retornou31.5 e Health900→869. Não houve escrita de HP, fórmula própria, RPC,
-  mudança de debug/proteção ou offsets. dados/rastro_dano_settings_fresh.txt.
+  mudança de debug/proteção ou offsets. data/trace_damage_settings_fresh.txt.
 - Restore original nulo PASS; ator exclusivo removido, cleanup true. Isto prova
   aplicação nativa GENÉRICA no veículo, NÃO disparo de fuzil, morte ou integração
   nas emboscadas do mod. Fonte main.lua continua inalterada.
@@ -489,7 +489,7 @@
   HomeRegionW; apenas canal, sem entrada de teclado/mouse por agente.
 - tools/probe_native_settings.lua PASS vivo: instância própria ServerSettings,
   todos os cinco defaults corretos e binding aninhado WarTweakables funcional.
-  GI.ServerSettings permaneceu nulo. dados/rastro_settings_defaults_vivo.txt.
+  GI.ServerSettings permaneceu nulo. data/trace_settings_defaults_live.txt.
 - Oracle separado: caminhão exclusivo900HP, Team0, Authoritytrue. Após12s,
   script comparava ApplyDamage45Explosive antes/depois de associação temporária
   dos settings, com restauração/limpeza ao fim. O processo caiu nativamente;
@@ -497,7 +497,7 @@
   qual das duas chamadas caiu; não afirmar dano ou restauração comprovados.
 - Crash UE4CC-Windows-608B38A24B507F2999BD40955C73B6EF_0000, access violation;
   stack inclui RVAs b5d5bc,b64277,d613df,d82713,d96e1c (TakeDamage),2550198.
-  dados/rastro_settings_dano_crash.txt. Não repetir sem isolar callback/contexto.
+  data/trace_settings_damage_crash.txt. Não repetir sem isolar callback/contexto.
   Sub-agente de dano investigando offline; decomp permanece externo.
 - Laboratório ausente após crash, confirmado; Steam preservado. main.lua sem
   alteração. Configuração própria não foi persistida; não integrar combate ainda.
@@ -519,7 +519,7 @@
   com mocks, cobrindo contexto original nulo/válido e recusas de ancestral,
   constructor inválido e default divergente. PASS; teste NÃO prova binding UE4SS
   nem dano vivo. Sonda agora também confere identidade do contexto preservado.
-  test_orders.py PASS. Relatório próprio dados/rastro_contexto_local_settings.md
+  test_orders.py PASS. Relatório próprio data/trace_context_local_settings.md
   registra constructor/passividade/defaults/perfis; struct aninhada ainda sem gate vivo.
 - restart.sh fez check de sintaxe/locais e recusou iniciar: Steam não está aberto.
   Não abriu Steam nem realizou login. Nenhum laboratório iniciado nesta tentativa.
@@ -540,10 +540,10 @@
 - Sonda SOMENTE leitura tools/preflight_native_damage.lua: PID22084 HomeRegionW,
   BPWarGameInstance vivo, ServerSettings nulo. Guard estático retorna0 nessa condição;
   explica recusa observada nesse laboratório, não impossibilidade geral de dano nativo.
-  dados/rastro_contexto_dano_nativo.txt. Nenhum objeto de servidor/settings criado ou alterado.
+  data/trace_context_damage_native.txt. Nenhum objeto de servidor/settings criado ou alterado.
 - tools/export_damage_types.lua executado no engine: CDOs Types1/2/7/3/8/18 para
   light/heavy/explosive/AT/HE/fire; bypassSpawnfalse emtodos. AT Armourtrue/Penetratefalse,
-  demais Armourfalse/Penetratetrue. Rastro dados/rastro_export_tipos_dano.txt; syntaxPASS.
+  demais Armourfalse/Penetratetrue. Rastro data/trace_export_types_damage.txt; syntaxPASS.
 - Correção importante no relatório disparo: ramo autoritativo localizado é HMG, NÃO fuzil.
   AuthorityRole3 -> hit válido -> DamageableActor interface com DamageAttributes -> dano;
   fallback nativo usa PointDamage/TakeDamage. ABI/instância equipada/rifle ainda pendentes.
@@ -564,14 +564,14 @@
   identificados em decomp existente. PlayerFire é ParticleSystemComponent, NÃO arma.
   Refletidas ServerStartInvoke/OnRep_SimulatedHitNotify, mas RPC não foi invocada e callback de
   efeito não prova dano. ABI/contexto owner/equip ainda pendentes; offsets não executados.
-  Relatório dados/rastro_disparo_investigacao.md, decomp protegido permanece externo.
+  Relatório data/trace_firing_investigation.md, decomp protegido permanece externo.
 - FindAllOf(Class/ScriptStruct) deu0; enumeração inadequada, não ausência. StaticFindObject
-  por nomes comprovados achou classes e structs WeaponInvoke/HitNotify; schemas em dados/.
+  por nomes comprovados achou classes e structs WeaponInvoke/HitNotify; schemas em data/.
   FindAllOf HitScanWeaponComponent/ProjectileItemComponent/HMG deu0 instâncias no HomeRegionW.
   Não mexer em inventário/RPC para fabricar uma prova.
 - Dano: fluxo estático ApplyDamage -> TakeDamage real de SimVehicle -> interface embutida,
   não UObject componente. Guards autoridade/mundo/SimDamageType e proteção adicional encontrados;
-  relatório dados/rastro_dano_veiculo_investigacao.md. Receive*Damage são callbacks, não aplicação.
+  relatório data/trace_damage_vehicle_investigation.md. Receive*Damage são callbacks, não aplicação.
 - PID19220 HomeRegionW: truck exclusivo900HP/bCanBeDamagedtrue. ApplyDamage45 com tipos reais
   lightkin/heavykin/explosive retornou0 e manteve900; Radial75 retornoutrue, HP900. Cada ator removido.
   setTeam foi chamado incorretamente com ator, helper espera membro; Team255 permaneceu, não contraste.
@@ -597,7 +597,7 @@
 - Tentativa posterior de contraste no engine recusada por falta de trabalhador vivo;
   não rodou nem substituiu listas/estoques. Portanto teste específico de worker é offline,
   publicação/compilação e marcha/dano em comboio real passaram, mas isolamento vivo não.
-  dados/rastro_mvp_emboscada.txt. Não declarar interdição aprovada por esse ensaio.
+  data/trace_mvp_ambush.txt. Não declarar interdição aprovada por esse ensaio.
 - Robô terminou; apenas PID12944 encerrado, ausência conferida, map temporário removido.
   Próximo teste precisa posicionar emboscada ANTES da passagem, não perseguir caminhão.
 
@@ -608,7 +608,7 @@
   teleporte, alteração de tempo ou entrada na janela. Base começa30camisas/10fuzis, bmat40.
 - Robô limitado36passos/10s reais: recruta usando estoque, marcha de combatentes ao pontoA;
   NÃO reatribui trabalhadores nem sobrepõe ordens em andamento. Sem morteiro/buff/dano artificial.
-  Rastro dados/rastro_mvp_ciclo.txt; scripts externos t_mvp0/t_mvp_step/t_mvp_final.
+  Rastro data/trace_mvp_cycle.txt; scripts externos t_mvp0/t_mvp_step/t_mvp_final.
 - 403.50s: derrota na onda4,26abates/23perdas; leitura final27abates (simulação segue brevemente
   após resultado). Três trabalhadores sobreviventes não impediram derrota, como contrato v4.1.
   Coleta120 entregue/perda0; bmat40->84.69 antes de reconstrução; caminhão de recurso voltou.
@@ -635,14 +635,14 @@
 - Fonte597BAF948F82EFA079A3DFA79340D2F878E75AAE84F42F494712AE2A3E73E1CC:
   bateria29/29 PASS/21mutantes. CallumsCape PID19492, nova partida na base correta:
   coleta120/entrega120/perda0, audittrue; reconstrução criou ator real900HP não destruindo.
-  dados/rastro_coleta_capsula50_final.txt. Isso prova crédito por raio, NÃO chegada à porta:
+  data/trace_collection_capsule50_final.txt. Isso prova crédito por raio, NÃO chegada à porta:
   usuário observou três trabalhadores pararem no trilho; sem ordem/velocidade0 após entrega.
 - Caminhão sobe estruturas: drive em reta e place sem sweep; trace central da fábrica/refinaria
   bate nos telhados Z1389/1382, não terreno600. Box candidato450/210/230 em Zatual penetra piso;
   elevar250 limpa o teste, mas NÃO certifica envelope/suporte. Não integrar essa caixa como prova.
 - Refinaria tem UseAreaBox centro8477/-45794/Z856, extents750/825/256, yaw-23.49;
   TransferLocation8684/-47155/Z630. Sondas de piso/cápsula encontraram pontos exteriores e na
-  área nativa, mas sem comprovar rota/porta. Dados/rastro_area_uso_refinaria.txt.
+  área nativa, mas sem comprovar rota/porta. Dados/trace_area_use_refinery.txt.
 - Usuário adiou refinamento dos trabalhadores: quer MVP grosso provando conceito. Tarefa
   de chegada/espera registrada no ROADMAP; próximo lote deve avançar cadeia jogável, não polir
   esse ponto. Caminhões sem colisão continuam limitação explícita, não cadeia física aprovada.
@@ -664,8 +664,8 @@
   Final PID19956: base16104/-54440, olho3123/-51134, nova partida nasceu a372cm da base, não no olho.
 - Fonte final F53D35A1FEDB9BC0931EB73AE0AC11A3ACB1F0461B6FC79E0225E1F954ADE2E8 publicada.
   Bateria29/29 PASS/21mutantes + tools/test_visibility.py PASS (funções reais, VSync/base/pausa).
-  Rastro dados/rastro_visibilidade_rts.txt. Visibilidade em toda tela, neve/estruturas/ângulos NÃO aprovada.
-- Usuário reforçou soldados presos. Rastro atual dados/rastro_presos_atual.txt: três trabalhadores no
+  Rastro data/trace_visibility_rts.txt. Visibilidade em toda tela, neve/estruturas/ângulos NÃO aprovada.
+- Usuário reforçou soldados presos. Rastro atual data/trace_stuck_current.txt: três trabalhadores no
   trecho13k/-50k; coleta inativa/logística suspensa por nossa sonda visual, um alvo de volta à base e
   um com velocidadeZ-400. Não atribuir imobilidade dessa sonda à autonomia nem descartar relato.
   Rodada intermediária ECF06A81:120 entregue/perda0/ator900HP, porém partida nasceu no foco da câmera;
@@ -687,7 +687,7 @@
   logística congelada, caminhão orientado yaw0 e colisão habilitada só nele; sem entrada real.
   Bounds de componentes e scan1166raios/10por quadro: hits CharacterMesh0 ultrapassam caixa400/162/140
   (X até427.70, Z até-206.22). Flags StartPenetrating em todos os hits: NÃO validar hull por esses hits.
-  Rastro dados/rastro_envelope_caminhao.txt; bounds completos externos road-bounds.txt.
+  Rastro data/trace_envelope_truck.txt; bounds completos externos road-bounds.txt.
   Envelope integral/superfície/água/sweep continuam pendentes; nenhuma aresta autorizada.
 
 
@@ -701,7 +701,7 @@
   truckStep reutilizou o mesmo ator, debitou100 e ativou idle. Crédito100 apenas nessa sonda isolada.
 - Nova partida sem ondas/crédito/intervenção: coleta120/entrega120/perda0; estoque40 inicial refinou
   até100, comprou caminhão e avançou toField/loading/toRef com ator900HP. O ator físico da sonda foi
-  reaproveitado na mesma carga: NÃO prova segundo spawn limpo. Rastro em dados/rastro_reconstrucao_transacional.txt.
+  reaproveitado na mesma carga: NÃO prova segundo spawn limpo. Rastro em data/trace_rebuild_transactional.txt.
   Transporte continua reto/sem colisão: não aprovar estrada, equilíbrio ou cadeia regional completa.
 - Encerrado somente PID11924 com caminho verificado; removidos map temporários, Steam preservado.
   Próximo lote: acesso/rota física dos caminhões pela rede nativa, sem confundir estado abstrato com percurso.
@@ -726,13 +726,13 @@
 - Fonte F39518364CDFEDD88C7008561F1AD2576B0C9B0BDE003A77670AF573CE472F35, bateria29/29 PASS.
   PID12460, restore/nova partida/sem ondas/intervenção. Três coletores entregaram120, perda0,
   rotas reais passaram por X11666/Y-53k a-50k, não pelo vão na rocha. Sem micro-resgates.
-  dados/rastro_coleta_50cm.txt e dados/rastro_rotas_50cm.txt. Caminhada até refinaria aprovada neste cenário.
+  data/trace_collection_50cm.txt e data/trace_routes_50cm.txt. Caminhada até refinaria aprovada neste cenário.
 - NÃO aprovar cadeia completa: recursoTruck mudou para loading/toField/toRef mas pawnfalse.
   Fabrica debitou100 antes de spawnTruck silencioso; coletores saíram porque estado abstrato parecia vivo.
   Dados confirmam risco já anotado: economia do transporte seguinte é abstrata, não prova caminhão real.
 - Diagnóstico spawnTruck explícito:pcall true/nil e nenhum pawn. Sonda no local fixo campo+400/+300:
   classe válida/chão1000, SpawnActor válido porém bActorIsBeingDestroyed=true/Health300.
-  Nenhum veículo íntegro criado. dados/rastro_spawn_recurso.txt; não creditar este diagnóstico como reconstrução.
+  Nenhum veículo íntegro criado. data/trace_spawn_resource.txt; não creditar este diagnóstico como reconstrução.
 - Próximo: reutilizar parking/preflight da implantação, verificar ator íntegro antes de débito/estado vivo,
   falha mantém morto/estoque e alerta, testar spawn falho e sucesso físico. Depois caminhões pela estrada real.
 - Laboratório encerrado PID12460 verificado; map temporário removido; Steam/firewall mantidos.
@@ -747,7 +747,7 @@
 - PID9648 carregou variante pré-cache, SEM partida/teste; reinício deliberado pela alteração de fonte,
   não por timeout. PID2368 publicou final, restore/nova partida/sem ondas. Ensaio novamente entrega40,
   fábrica60, recursoTruck morto, ZERO resgates, dois presos com6tentativas. Não resolveu o caso.
-  dados/rastro_resgate_capsula_final.txt; usuário confirmou insistência nas rochas e dois presos.
+  data/trace_rescue_capsule_final.txt; usuário confirmou insistência nas rochas e dois presos.
 - Mudança seguinte ainda offline: kneeClear da coleta amostra chão a cada50cm, limita subida proporcional
   à distância e desvios da linha de interpolação a45cm. Antes amostrava300cm e tolerava290cm por amostra,
   inclusive nos atalhos simplificados. Perfil de combate/caminhões sem sample permanece igual.
@@ -761,14 +761,14 @@
 - Candidato AF6720F17189... publicado, PID13132, restore e nova partida sem ondas/intervenção.
   360 amostras: entrega40, perda80, fábrica60, recursoTruck morto/pawnfalse. Resgates zero;
   dois presos esgotaram seis tentativas. Movimento oscilante do terceiro não ativa detector imóvel.
-  Auditoria fecha mas cadeia continua NÃO aprovada. dados/rastro_micro_resgate.txt.
+  Auditoria fecha mas cadeia continua NÃO aprovada. data/trace_micro_rescue.txt.
 - Oracle real: floor vizinho normal.863 com subida68.89cm; limite45 recusa. Muitos traços devolvem
   ponto igual ao início (delta135cm/normal1): começam penetrando rocha, NÃO piso seguro.
 - Sonda de sweep ao destino de subida68.89: retorno false, bBlockingHit=true, bStartPenetrating=true,
   posição inalterada. Portanto aumentar só altura NÃO basta: cápsula já está penetrando geometria.
 - CapsuleTraceSingle refletida funciona: raio32/halfHeight90 no destino detectou penetração.
   Scan8direções80cm rejeitou pisos iniciais penetrados; nenhum candidato seguro demonstrado.
-  Arquivo dados/rastro_resgate_capsula.txt. Sem teleporte inseguro aplicado.
+  Arquivo data/trace_rescue_capsule.txt. Sem teleporte inseguro aplicado.
 - Próximo: resgate curto com cápsula de destino livre e piso real, rejeitando bStartPenetrating;
   usuário aceita teleporte excepcional, mas não tratar saída ocupada como livre nem creditar carga.
   Laboratório encerrado PIDexato13132 após sondas; map temporário removido, Steam/firewall mantidos.
@@ -783,7 +783,7 @@
 - tools/test_orders PASS: imobilidade/espera, sweep obrigatório/distância limitada, colisão bloqueada
   não vira sucesso, teto de tentativas, carga/prazo preservados e planner ativo cancela observação.
   Candidato ainda NÃO publicado/validado ao vivo. Não afirmar que esse resgate sai do buraco.
-- Rastro anterior capturado em dados/rastro_rotas_rocha.txt: trajetórias aprovadas com waypoints
+- Rastro anterior capturado em data/trace_routes_rock.txt: trajetórias aprovadas com waypoints
   sobre rochas Z1350–1377; trabalhadores acabaram Z790–894 no vão. Uma entrega40, cadeia incompleta.
   Instrumentação não altera ordens. Laboratório PID4328 encerrado após captura; Steam mantido.
 - Próximo: bateria completa e lote único ao vivo, medir sweep/progresso real e recuperação sem crédito.
@@ -801,7 +801,7 @@
   Dois retornos e uma nova ida continuaram presos. Cadeia NÃO aprovada.
 - Usuário informou intervenção acidental e que uma ordem por clique contornou o muro na volta.
   Ensaio contaminado: não atribuir entrega40 a autonomia sem confirmar instante da intervenção.
-  Evidência em dados/rastro_coleta_regional.txt. Próximo: comparar destino/parâmetros/replanejamento
+  Evidência em data/trace_collection_regional.txt. Próximo: comparar destino/parâmetros/replanejamento
   da ordem por clique com colGo (ambos usam routeTo), antes de outro solver ou aumentos cegos.
 - Também auditar reconstrução do caminhão: spawnTruck pode deixar estado abstrato vivo após falha
   de spawn; exigir pawn real válido antes de declarar cadeia completa.
@@ -834,7 +834,7 @@
   HUD '1 sem rota', auditoria coleta true. É teste de recusa, NÃO viagem natural concluída.
 - Uma sonda enviada antes do fim do carregamento recusou partida e instalou callback sem logi.col;
   cancelada e corrigida com assert antes de instalar. Repetição só depois de RTS pronto passou; não reiniciar por timeout.
-- Rastro numérico em dados/rastro_path_coleta.txt; scripts/logs completos em D:/tools/foxhole-lab/.
+- Rastro numérico em data/trace_path_collection.txt; scripts/logs completos em D:/tools/foxhole-lab/.
   Laboratório encerrado pelo PID exato, map.txt temporário removido, Steam/firewall mantidos.
 - Próximo: achar e validar passagem contornando o fim do muro, com ponto de chegada acessível na refinaria,
   depois provar coleta→entrega→caminhão sem intervenção. Não trocar o objetivo por 'agora ficam parados'.
@@ -856,10 +856,10 @@
   Repetição 303 ms, sem duplicar/débito adicional. Carga em mãos de trabalhadores não persiste por desenho.
 - Exportação fatiada de estradas desta região concluída: 405 CP, 431 segmentos, 391 assets de estrada,
   4013 nós com curvas, nenhuma incidência rejeitada; todas as arestas continuam NÃO validadas fisicamente.
-  Snapshot e relatório em dados/paralel/estradas/callums-*.json; não reutilizar epoch/coords no lobby.
+  Snapshot e relatório em data/parallel/roads/callums-*.json; não reutilizar epoch/coords no lobby.
 - build_snapshot.py agora aceita --input/--output/--report sem sobrescrever o snapshot do lobby.
   test_snapshot.py cobre as duas regiões; testes snapshot/roads/adapter PASS. Não é transporte integrado.
-- Rastro das ações/360 amostras: dados/rastro_logistica_v41_hex.txt. Logs completos e export bruto externos
+- Rastro das ações/360 amostras: data/trace_logistics_v41_hex.txt. Logs completos e export bruto externos
   em D:/tools/foxhole-lab/v41-hex-*.log e callums-roads-export-live.txt.
 - Laboratório encerrado pelo PID exato; map.txt temporário removido, Steam/firewall mantidos.
 
@@ -880,7 +880,7 @@
 - Duas sondas tiveram erros Lua corrigidos (nome fwd.bases em vez de fwd.list; flatDist não exportado no env).
   Não foram erros da feature; as ações interrompidas foram repetidas, sem declarar PASS da saída incompleta.
 - Colisão nativa TruckW lida antes do motorista: VehicleCollision extents 400/162/140, Camera/Visibility 2/2,
-  mas meshes também bloqueiam; caixa ainda não prova envelope integral. Ver dados/paralel/estradas/VALORES_CAMINHAO_20261010.md.
+  mas meshes também bloqueiam; caixa ainda não prova envelope integral. Ver data/parallel/roads/TRUCK_VALUES_20261010.md.
 - Evidências externas v41-*-load*, v41-recruit-base.txt, v41-fixed-base-save-live.log em D:/tools/foxhole-lab/.
   Laboratório encerrado pelo PID exato. Falta validar implantação/carteira no hex, transporte e combate prolongado.
   Crashes/efeito amarelo continuam adiados conforme pedido do usuário; não afirmar estabilidade geral.
@@ -907,7 +907,7 @@
   máscara permanece: hipótese para fill piscando relatado pelo usuário.
 - test_stencil_clear.py extrai helper real e reproduz residual; troca em memória para
   stencil0ao desmarcar PASS, incluindo reseleção1/idempotência/guard. Não aplicada.
-  STENCIL_PROPOSTA.md documenta candidato e gate visual/ordem de quadro.
+  STENCIL_PROPOSAL.md documenta candidato e gate visual/ordem de quadro.
 - Não comprova shader/flicker nem resolve crash; não misturar no ensaio da fila.
   Universal-modder consultado/Gotcha52/check local, semPR.
 
@@ -997,7 +997,7 @@
   registrar traceback/contexto completo se erro voltar, sem atribuir corrupção por leitura estática.
 - NoPE compatível,2c6b92 é retorno do ramo tabela antes de discard_value; corresponde à escrita
   tabelaLua->struct. Isso afunila uma pilha mas não identificaUProperty/UFunction/causa.
-  Detalhes/links primários acrescentados em dados/paralel/estabilidade/SIMBOLOS_20261010.md.
+  Detalhes/links primários acrescentados em data/parallel/stability/SYMBOLS_20261010.md.
 - Nenhum patch especulativo nem expansão de feature; próxima ação útil é gate de interação real
   do usuário e/ou símbolos exatos/instrução com contexto. Universal-modder/check local, semPR.
 
@@ -1012,7 +1012,7 @@
   push_structproperty;0xb99c75 emLua::call_function;0xb9d34c emprocess_lua_function.
   Aceitos nomes só quando export começa exatamente no início do intervalo correspondente.
   Export anterior mais próximo NÃO identifica funções privadas (heurística descartada).
-- Evidência/limites em dados/paralel/estabilidade/SIMBOLOS_20261010.md e JSONs ao lado.
+- Evidência/limites em data/parallel/stability/SYMBOLS_20261010.md e JSONs ao lado.
   Nomes de frames não provam causa/propriedade/callback culpado; Registry continua não isolado.
   Scripts/dumps/binários externos; nenhum loader novo/download grande/fonte main alterada.
   PróximoRE: fonte do commit exato ouPDBGUID/Age compatível; não simbolizar com outra build.
@@ -1025,7 +1025,7 @@
   des/reselecionar seguidos de20mortes porHealth0/remoção normal/recriação,329,256s.
 - Verificado a cada etapa:0clones/fontes e CustomDepthfalse ao desmarcar;28cópias por vivo
   ao remarcar; cache de contorno/animAddr/entrada anim.units removidos antes de repor morto.
-  Sem Registry/fatal no log consultado. Saída em dados/paralel/estabilidade/CYCLES_20261010.txt.
+  Sem Registry/fatal no log consultado. Saída em data/parallel/stability/CYCLES_20261010.txt.
 - Primeiro assert da SONDA errou ao exigir outlinePartsnil numa unidade viva desmarcada:
   setOutline chama outlineDepthfalse e repopula esse cache para impedir brilho nativo.
   Corrigida só a sonda, mantendo fonte/hash e processo; ciclo1 refeito. Não é bug do mod nem
@@ -1048,7 +1048,7 @@
   Registry/fatal no log consultado. Fonte não alterada; custo continua gate independente.
 - Depois: CollectGarbage nativo, des/reseleção, morte de um soldado, remoção/cache limpo,
   recriação PASS. Nova janela186,372s,6sel/168cópias; stratTick10,39/10,40/10,88ms.
-- Saídas preservadas em dados/paralel/estabilidade/LONG_20261010.txt e LONG_TRANSITIONS_20261010.txt;
+- Saídas preservadas em data/parallel/stability/LONG_20261010.txt e LONG_TRANSITIONS_20261010.txt;
   logs integrais em D:/tools/foxhole-lab/crash-long-*.log. Nenhuma causa antiga isolada.
 - TESTE_MANUAL atualizado com gate10min de seleção/grupos/zoom/teclas exclusivamente pelo usuário;
   pergunta enviada, sem presumir aprovação/execução. Próximos controles: repetição de100transições,
@@ -1068,8 +1068,8 @@
 - Depois de A2, seleção/desseleção/reseleção, GC nativo, morte/remoção/cache limpo e recriação PASS.
   Nova janela219,164s/6sel/168cópias, stratTick11,07–11,34ms, sem queda/Registry observado.
   Controles negativos NÃO isolam causa nem corrigem falha antiga; desempenho permanece caro.
-- Evidências: dados/paralel/estabilidade/RETOMADA_20261010.md e saídas ao lado;
-  bateria em dados/paralel/pacote_v4/BATERIA_20261010.txt. Logs integrais externos preservados.
+- Evidências: data/parallel/stability/RESUME_20261010.md e saídas ao lado;
+  bateria em data/parallel/package_v4/BATTERY_20261010.txt. Logs integrais externos preservados.
   Sem hotpatch/entrada injetada/novo callback/RPC; candidato logístico não publicado.
 - Laboratório fechado por PID/path verificado ao fim, Steam22164 preservado. README atualizado;
   Gotcha48 local, um kb check PASS60notas, sem PR. Próximo: duração maior/isolamento se reproduzir,
@@ -1077,15 +1077,15 @@
 
 ## 2026-10-10 — Lote offline Claude: pilha v4.1 pronta para integrar (nada no jogo)
 
-- Subagentes Claude (Opus/Sonnet) entregaram offline, em `dados/paralel/`, sem tocar `main.lua` (33d6c7e5…e679) nem laboratório:
+- Subagentes Claude (Opus/Sonnet) entregaram offline, em `data/parallel/`, sem tocar `main.lua` (33d6c7e5…e679) nem laboratório:
   cadeia logística inimiga real com interdição (IA_LOGISTICA + calibração v2), save v2 seguro (PERSISTENCIA; seção inimiga
   inválida descarta só ela), reserva de bmat para reconstruir caminhão, início estilo aldeões (sem caminhão de recurso; 3
   trabalhadores sem arma coletam sucata; a fábrica faz o caminhão), bases avançadas (Shift+J, ForwardBase1, 300 bmat; recrutar
   gasta o estoque do ponto; mão de obra só no Assalto) e v4.1 (trabalhadores fora da onda e do centro do esquadrão).
-- Decisões de design (delegadas pelo usuário): ROADMAP.md fase 3 "de onde vêm os soldados" e `dados/paralel/bases_avancadas/DECISOES.md`.
-- Candidato: `dados/paralel/pacote_v4/v4_1/candidato/main.lua` (62245d23…598f). Integração, rascunhos de README/TESTE_MANUAL,
-  roteiro único de laboratório (~5h40, gate de estabilidade primeiro) e gotchas em `dados/paralel/pacote_v4/`. Estado por task:
-  `PARALEL_AGENTS`. Tudo PASS só offline; nenhuma afirmação ao vivo. Gate de estabilidade continua bloqueando a publicação.
+- Decisões de design (delegadas pelo usuário): ROADMAP.md fase 3 "de onde vêm os soldados" e `data/parallel/forward_bases/DECISIONS.md`.
+- Candidato: `data/parallel/package_v4/v4_1/candidate/main.lua` (62245d23…598f). Integração, rascunhos de README/TESTE_MANUAL,
+  roteiro único de laboratório (~5h40, gate de estabilidade primeiro) e gotchas em `data/parallel/package_v4/`. Estado por task:
+  `PARALLEL_AGENTS`. Tudo PASS só offline; nenhuma afirmação ao vivo. Gate de estabilidade continua bloqueando a publicação.
 
 ## 2026-10-09 — Controle A1 sem seleção: 184s completos
 
@@ -1094,12 +1094,12 @@
   nenhum clone persistente; animação/demais sistemas mantidos, ondas desligadas, semGC/hotpatch/inputagente.
 - Checkpoints61,01/122,06/184,00s:6unidades/0sel/0clones todos. Mod1,31/1,25/1,24ms,
   stratTick0,50/0,48/0,46ms. Log consultado sem Registry/fatal/roda/seleção.
-  Sobrevivência de um controle curto não certifica; plano4cargas A1/B1/B2/A2 em controle_crash.md.
+  Sobrevivência de um controle curto não certifica; plano4cargas A1/B1/B2/A2 em crash_control.md.
 - Após encerrar janela, sonda de metadata collisionTruckW executada separadamente; saída externa
   truck-collision-schema-live.txt. PróximoB1 carga limpa mesmafonte,6selecionados180s sem entrada.
 ## 2026-10-09 — Auditoria Registry e correção independente de retry de animação
 
-- Comparados3CrashContext no artefato dados/paralel/estabilidade/crashes_comparados.json:
+- Comparados3CrashContext no artefato data/parallel/stability/crashes_compared.json:
   cabeçalhos diferentes apesar de PCallStackHash igual. XML97D8antigo registra read0x08,
   DF9Aread0xffffffff, novo18BCEread0x63. Não concluir mesma instrução pelo hash.
 - Wheel e seleção são polling do frame, não wrapper onGame: eventos não provam culpa de keybind.
@@ -1109,7 +1109,7 @@
   falha/retry/semduplicação, ordens/globals fonte integrada PASS. Não atribuir crash a esse defeito.
 - Fila de keybind no callback persistente preparada e testada offline somente como experimento separado;
   NÃO integrada/não prova sincronização nativa. Próximo teste deve alterar um fator por carga.
-  Laboratório fechado, nenhuma validação ao vivo nova. Economia/estradas continuam separadas.
+  Laboratório fechado, nenhuma validação ao vivo nova. Economia/roads continuam separadas.
 ## 2026-10-09 — Queda nativa no segundo lote: estabilidade ainda reprovada
 
 - PID4408 terminou durante janela60s com6sel/168cópias, após descarte331quadros stratTick11,67ms.
@@ -1142,7 +1142,7 @@
   PASS Translation/Scale3D/Quaternion com sinal alinhado, erro último3,58e-07. Proposta reduz57->36calls,
   ainda não integrada/publicada; não alegar ganho de ms antes medição.
 - Revisão ECONOMIA pediu preservar retorno físico após destino perdido no restore; patch ainda separado.
-- Reservadas exclusivamente ao Claude do usuário IA_LOGISTICA e PERSISTENCIA no PARALEL_AGENTS;
+- Reservadas exclusivamente ao Claude do usuário IA_LOGISTICA e PERSISTENCIA no PARALLEL_AGENTS;
   nenhum Codex assume. Minimapa registrado futuro junto à UI, sem prioridade atual.
 - Laboratório PID2832 encerrado ao passar ao trabalho offline; Steam preservado. Sem callback export ativo
   nem robô. Próximo lote: transformação por componente e guards de máscara, testes offline antes carga limpa.
@@ -1156,7 +1156,7 @@
 - Snapshot real HomeRegionW:127CP/122segmentos/468nós;95assets estrada,27não-estrada bloqueados.
   Incidências sem ambiguidade neste snapshot; duas componentes de estrada desconectadas, sem link inventado.
   Todas arestas físicas ainda validated=false; instalações/paradas ainda não conectadas.
-  Snapshot/teste/relatório em dados/paralel/estradas/; teste reproduzido PASS.
+  Snapshot/teste/relatório em data/parallel/roads/; teste reproduzido PASS.
 - CONTRAPROVA: apósGC/reseleção6, nova janela1873quadros mediu stratTick16,40ms/mod17,46ms,
   95,42s desde início. Ganho inicial~53% NÃO sustentado nesta repetição; investigar recriação/acúmulo
   e condições de medição antes de alegar otimização temporal. README corrigido; agente notificado.
@@ -1176,7 +1176,7 @@
   Não inferir transitabilidade física do asset. Economia ampliada permanece proposta offline/teste PASS, sem integração.
 ## 2026-10-09 — Integração das primeiras entregas paralelas (validação ao vivo em curso)
 
-- Agentes independentes prepararam estabilidade, estradas e interface; artefatos e estado em PARALEL_AGENTS.
+- Agentes independentes prepararam estabilidade, estradas e interface; artefatos e estado em PARALLEL_AGENTS.
 - Integrados somente guards de outlineDepth/updateOutline: recusar pawn/clone/câmera em destruição,
   fontes inválidas/ausentes e limpar referências sem acessar CustomDepth do pawn em destruição.
   Não é prova da causa ou solução das quedas nativas; contorno continua experimental.
@@ -1260,7 +1260,7 @@
   Extensão ao soldado completo caiu13:22:45/PID7088 durante sonda, depois novamente13:26:51/PID9600
   após renderizar 28 cópias corretamente. Ambas acesso nativo UE4SS/read0xffffffff, sem causa isolada;
   pcall não protege. Último log também mostrou `Lua::Registry::get_function_ref: Ref was not function`.
-  Não atribuir conclusivamente a MasterPose, GC ou hotpatch. Contrato e limites em `dados/rastro_selecao.txt`.
+  Não atribuir conclusivamente a MasterPose, GC ou hotpatch. Contrato e limites em `data/trace_selection.txt`.
   Offline PASS não substitui teste prolongado/GC/morte/reseleção no engine. Não considerar feature estável
   nem continuar features antes de isolar essa queda numa próxima sessão autorizada.
 - **Encerramento:** usuário pediu parar após aprovar aparência. Fonte final publicada, sem logs temporários,
@@ -1273,14 +1273,14 @@
 
 - **Correção de dados, não mudança de equilíbrio:** a sonda antiga lia `ItemCodeName` em custos de
   estrutura/veículo; o tipo real é `CodeNameSmallQuantity.CodeName`. O `pcall` engolia o erro e exportava
-  vazio. Reexportados `dados/custos_do_jogo.txt`: 281 itens, 592 estruturas, 184 veículos, 64 munições.
+  vazio. Reexportados `data/game_costs.txt`: 281 itens, 592 estruturas, 184 veículos, 64 munições.
   Refinaria e fábrica custam 400 bmat cada; TruckW custa 100. Receitas de caixas não mudaram.
   Exportador reproduzível `tools/export_costs.lua` (erro interrompe, não vira zero) e teste `tools/test_costs.py`.
 - **Sondas temporárias em CallumsCape:** classes ativas de refinaria/fábrica nasceram nas transformações das
   ruínas, HP2700/2000, TeamId1 e BaseStructureClass correspondentes. Um canteiro cru veio com alvo `None`
   e requisitos zero: isso **não** conclui construção. Reflexão + Ghidra read-only ainda não acharam/validaram
   uma chamada pública de conclusão. Não perseguido inventário/RPC. Contrato parcial e limites em
-  `dados/rastro_reconstrucao.txt`; não há ainda reconstrução jogável nem cadeia pronta no hex.
+  `data/trace_rebuild.txt`; não há ainda reconstrução jogável nem cadeia pronta no hex.
 - **Falha de estacionamento medida:** trace vertical pegou telhado de armazém, não chão; outro TruckW
   retornou IsValid com HP300/posição zero e foi rejeitado pelo inventário ativo (2/3). Bounds da fábrica
   incluem volumes gigantes, não são seu footprint. Próxima construção exige orçamento explícito, rollback,
@@ -1306,7 +1306,7 @@
   596 pontos de controle, 23 PlayerStart e fábrica em ruínas; nenhuma instância ativa nas classes de campo,
   refinaria, fábrica e caminhões pesquisadas. CallumsCape carregou com 431 segmentos/405 pontos, um campo
   de sucata ativo, duas fábricas e uma refinaria em ruínas, nenhum PlayerStart ou caminhão pesquisado.
-  Rastro em `dados/rastro_regioes.txt`, sonda reutilizável `tools/inspect_region.lua`. São estados locais
+  Rastro em `data/trace_regions.txt`, sonda reutilizável `tools/inspect_region.lua`. São estados locais
   carregados, **não** prova de ausência no mapa/servidor. Pesquisa incluiu histograma das classes derivadas.
 - **Alerta do usuário persistido:** estruturas podem ficar invisíveis conforme ângulo/oclusão, veículos por LOS.
   Nunca transformar falta na captura em falta no inventário. Regra em AGENTS, README/estudo/roteiro atualizados.
@@ -1382,7 +1382,7 @@
 - **Validação:** testes offline + `check_globals.py` passaram; publicado pelo `restart.sh`. Ao vivo, morto
   marchando a 500 cm/s passou a velocidade zero, valores originais de movimento, cache vazio, física da malha
   ativa e AnimInstance inválido. Captura `D:/tools/foxhole-lab/death-fixed_small.png` conferida: corpo caído.
-  Contrato persistido em `dados/rastro_morte.txt`; sondas/rastros e decompilação ficam fora do repositório.
+  Contrato persistido em `data/trace_death.txt`; probes/rastros e decompilação ficam fora do repositório.
 - **Cuidado nas sondas:** nunca consultar pawn após o TTL nem AnimInstance após ligar o ragdoll; `IsValid`
   pode mentir até o GC. Loop de amostragem precisa de guarda `active` (o `return true` não encerrou a sonda).
   Uma sonda tardia sem essa proteção deixou o canal sem resposta; recuperado com reinício, não Ctrl+R.
@@ -1436,8 +1436,8 @@
 
 ## 2026-10-09 (madrugada, 12) — Estudo das mecânicas do jogo
 
-- Índice do pak (v8, sem criptografia) → `dados/arquivos_do_pak.txt`; tabelas de custo/vida/combustível/carga
-  lidas com `DataTable:ForEachRow` → `dados/custos_do_jogo.txt`; resumo em `ESTUDO_MECANICAS.md`.
+- Índice do pak (v8, sem criptografia) → `data/pak_files.txt`; tabelas de custo/vida/combustível/carga
+  lidas com `DataTable:ForEachRow` → `data/game_costs.txt`; resumo em `MECHANICS_STUDY.md`.
 - Um dump genérico de todas as colunas derrubou o jogo em `BPAirDynamicData` (crash nativo); a leitura por colunas
   conhecidas funcionou. Regra: ler só colunas de tipo simples.
 - HomeRegionW tem campos de sucata/componentes/enxofre/petróleo, refinarias, fábrica, base avançada e caminhões:
@@ -2187,10 +2187,10 @@ Primeiro lote no novo fluxo (várias features, um teste só no laboratório).
   Listagem de regras filtrada por Foxhole/War-Win64 encontrou apenas permissões
   de entrada para War.exe oficial; nenhuma regra específica bloqueando a cópia.
   Não houve lançamento. Foi solicitada ao usuário uma regra de saída para o exe
-  exato do laboratório, com comando e conferência em UNIVERSAL_MODDER_NOTAS.md.
+  exato do laboratório, com comando e conferência em UNIVERSAL_MODDER_NOTES.md.
 - Assembly de 0x140a5c3e0 confirmou RCX preservado até a chamada 0x140a622d0:
   o holder é repassado, ao contrário do que parecia no pseudocódigo. Não é
-  evidência de aquisição do item. RIFLES_INVESTIGACAO.md atualizado.
+  evidência de aquisição do item. RIFLES_INVESTIGATION.md atualizado.
 - Próximo passo depende da medição no jogo: confirmar isolamento, executar o
   probe de inventário e validar H. Não acrescentar novos hooks por hipótese.
 
@@ -2202,7 +2202,7 @@ Primeiro lote no novo fluxo (várias features, um teste só no laboratório).
 - Encontrada limitação do helper de vtables: PlayerCharacter sobrescreve a tabela
   depois do construtor base; o helper retorna a base. Comparados os dois slots:
   mesmos destinos, logo isso não explica sozinho o inventário vazio.
-- Criado `RIFLES_INVESTIGACAO.md` com fontes e hipóteses delimitadas, e
+- Criado `RIFLES_INVESTIGATION.md` com fontes e hipóteses delimitadas, e
   `tools/probe_inventory.lua`, somente leitura, para medir pré-condições e os
   dois arrays (inventário/equipamento). Nenhuma RPC nova ou alteração de flags.
 - Decompilações/PE permaneceram no laboratório; nenhum lançamento ou input.
@@ -2226,7 +2226,7 @@ Primeiro lote no novo fluxo (várias features, um teste só no laboratório).
 - Skills usadas: mod-any-game, reverse-engineering, game-automation e playbook Unreal.
   `um kb search foxhole` recuperou a nota; `um publish check` inicialmente apontou
   README ausente; README adicionado ao pacote.
-- Guia de uso/avaliação: `UNIVERSAL_MODDER_NOTAS.md`, com comandos e limitações.
+- Guia de uso/avaliação: `UNIVERSAL_MODDER_NOTES.md`, com comandos e limitações.
 - Sem processo War encontrado. Consulta de firewall negada pelo Windows;
   isolamento não pôde ser confirmado. Não relancei, não copiei v0.3.1 para o lab
   e não usei input. Próximo passo: confirmar isolamento e seguir o teste H do guia.
@@ -2255,7 +2255,7 @@ Isso não prova impossibilidade técnica de uma conversão, mas tampouco comprov
 
 ### Próxima ação
 
-Quando o usuário confirmar que a instalação terminou, localizar e inspecionar o jogo em modo somente leitura. Seguir `PRIMEIROS_PASSOS.md`.
+Quando o usuário confirmar que a instalação terminou, localizar e inspecionar o jogo em modo somente leitura. Seguir `FIRST_STEPS.md`.
 
 ### Decisões em aberto
 
@@ -2287,7 +2287,7 @@ Quando o usuário confirmar que a instalação terminou, localizar e inspecionar
 - Consultadas fontes primárias: FAQ oficial, War API, FDE e tutorial de texturas.
 - War API é de consulta; FDE extrai dados, não hospeda o jogo. Nenhuma dessas ferramentas resolve a simulação RTS.
 - Resultado: rota offline/controlada ainda não encontrada. Não confundir ausência de evidência com impossibilidade.
-- Detalhes e pergunta sugerida aos desenvolvedores registrados em `RECON_AMBIENTE.md`. Nenhuma mensagem enviada e nada publicado.
+- Detalhes e pergunta sugerida aos desenvolvedores registrados em `ENVIRONMENT_RECON.md`. Nenhuma mensagem enviada e nada publicado.
 - Próximo passo: esclarecer disponibilidade e autorização de um ambiente isolado antes de instrumentar o cliente.
 
 ## 2026-10-06 — Rodada 2: investigação com agentes paralelos
@@ -2307,7 +2307,7 @@ Quando o usuário confirmar que a instalação terminou, localizar e inspecionar
 - O usuário re-registrou o MCP `ghidra-mcp` apontando para D:.
 - Análise automática headless em andamento no projeto `D:\tools\ghidra-projects\Foxhole`.
 - Nada executado, injetado, extraído ou alterado no jogo.
-- **Próximo passo:** decompilar o caminho `?listen` e `ASimGameMode` ↔ `FExternalWarService`, e decidir a rota normativa com o usuário. Detalhes em `RECON_AMBIENTE.md` (Rodada 2) e `MODDING_PLAN.md`.
+- **Próximo passo:** decompilar o caminho `?listen` e `ASimGameMode` ↔ `FExternalWarService`, e decidir a rota normativa com o usuário. Detalhes em `ENVIRONMENT_RECON.md` (Rodada 2) e `MODDING_PLAN.md`.
 
 ### Discussão: rota normativa (proposta pendente)
 
@@ -2328,7 +2328,7 @@ Quando o usuário confirmar que a instalação terminou, localizar e inspecionar
 Objetivo da rodada: documentar como fazer o mod (rota, limitações, caminhos) e testar o que fosse possível. A validação foi feita pelo agente.
 
 ### Feito e verificado
-- **`COMO_FAZER_O_MOD.md`:** documento principal com rota, arquitetura em camadas 0–5, limitações, regras do laboratório, protocolo de testes T0–T9 e perguntas respondidas/abertas.
+- **`HOW_TO_MAKE_THE_MOD.md`:** documento principal com rota, arquitetura em camadas 0–5, limitações, regras do laboratório, protocolo de testes T0–T9 e perguntas respondidas/abertas.
 - **Índice do PAK** (agente Sonnet): 25.898 entradas, 0 comprimidas/criptografadas, SHA1 conferido.
   - 316 mapas; não há mapa de treino/teste.
   - `HomeRegionW` (48 MB) é o menor jogável.
@@ -2363,7 +2363,7 @@ Objetivo da rodada: documentar como fazer o mod (rota, limitações, caminhos) e
 - Editar `~/.claude.json` (o usuário re-registrou o MCP manualmente).
 
 ### Próximo passo (com o usuário presente)
-T0 → T1 → T2/T3 do protocolo em `COMO_FAZER_O_MOD.md`. O log do T2 confirma se o host fica parado no perfil, como previsto. Depois decidir o stub de perfil (T6), UE4SS (T4–T5) e o primeiro soldado (T7).
+T0 → T1 → T2/T3 do protocolo em `HOW_TO_MAKE_THE_MOD.md`. O log do T2 confirma se o host fica parado no perfil, como previsto. Depois decidir o stub de perfil (T6), UE4SS (T4–T5) e o primeiro soldado (T7).
 
 ## 2026-10-06 (noite) — Primeiros testes em execução
 
@@ -2462,20 +2462,20 @@ T0 → T1 → T2/T3 do protocolo em `COMO_FAZER_O_MOD.md`. O log do T2 confirma 
   controles A/B repetidos,620s selecionados e100ciclos/20mortes passaram com fonte33D6C7E5.
   Causa nativa antiga não isolada; candidato logístico v4.1 continua separado/não publicado.
   Usuário pode fazer gate de entrada real depois do ensaio; laboratório fechado, combinar início.
-- **Onde estamos:** `ROADMAP.md`. Fase 1 (frente pequena) pronta; fase 2 (estudo, `ESTUDO_MECANICAS.md` + `dados/`)
+- **Onde estamos:** `ROADMAP.md`. Fase 1 (frente pequena) pronta; fase 2 (estudo, `MECHANICS_STUDY.md` + `data/`)
   com a primeira leitura feita; **fase 3 em protótipo, agora com cadeia curta validada em CallumsCapeHex**,
   não só no lobby. Alt+L implanta instalações/caminhões reais com carteira1100, valida chão/folga e rollback.
   Em65,21s produziu três caixas e entregou munição/camisas, com três caminhões íntegros; sem ondas/estoque
-  inicial, NÃO teste de equilíbrio. Dados: `dados/rastro_implantacao.txt` e topo deste diário.
+  inicial, NÃO teste de equilíbrio. Dados: `data/trace_deployment.txt` e topo deste diário.
 - **Primeiro ao retomar:** respeitar pausa; só trabalhar após novo pedido. Contorno completo foi aprovado
   visualmente, mas duas quedas UE4SS após extensão às peças e erro Lua Registry continuam pendentes.
-  Ler `dados/rastro_selecao.txt`, reproduzir/isolar por componente/GC/reseleção antes de novas features.
+  Ler `data/trace_selection.txt`, reproduzir/isolar por componente/GC/reseleção antes de novas features.
   Fonte experimental continua com contorno ligado; não apresentar como build estável. Laboratório fechado.
 - **Próximos passos da fase 3 (depois da estabilidade):** caminhões seguindo a estrada
   descoberta por região (hoje andam em reta, sem colisão, atravessam
-  prédios); mais tipos de caixa (armas, granadas, médico; custos já em `dados/custos_do_jogo.txt`); cadeia
+  prédios); mais tipos de caixa (armas, granadas, médico; custos já em `data/game_costs.txt`); cadeia
   inimiga mais completa; talvez trocar a "mão de obra" por material. Depois: fase 4 (veículos como unidades).
-- **Contrato de construção:** `dados/rastro_reconstrucao.txt`. Refinaria/fábrica ativas podem nascer na transformação
+- **Contrato de construção:** `data/trace_rebuild.txt`. Refinaria/fábrica ativas podem nascer na transformação
   nativa com HP/classe-base corretos, mas canteiro cru não tem alvo; não foi validada conclusão nativa.
   Custos corrigidos: 400/400/100 bmat. Orçamento explícito/rollback/superfície/folga implementados no lote17:
   `groundZ` pode acertar telhado; `SpawnActor` pode retornar ator já sendo destruído; bounds totais incluem volumes.
@@ -2499,13 +2499,13 @@ T0 → T1 → T2/T3 do protocolo em `COMO_FAZER_O_MOD.md`. O log do T2 confirma 
   dump genérico derrubou o jogo em `BPAirDynamicData`). O cliente tem as 54 regiões do mundo (`Maps/Master/*Hex`).
 - **Captura:** `cd D:/GitHub/universal-modder && UM_HOME=D:/tools/um-home python -m um win shot --title '^War' --scale 0.5 <saida.png>`
   (câmera olha para +X: topo da tela = X maior, direita = Y maior).
-- **Pendências do usuário:** demais testes com teclado/mouse reais (`TESTE_MANUAL.md`); aparência completa aprovada
+- **Pendências do usuário:** demais testes com teclado/mouse reais (`MANUAL_TEST.md`); aparência completa aprovada
   nesta sessão, sem certificar integração de todas as teclas nem estabilidade prolongada.
 - **Interface pedida pelo usuário** (`ROADMAP.md`, "Interface e retorno visual"): caixa de seleção visível ao
   arrastar; silhueta/contorno no selecionado (o jogo tem `M_OccludedOutline`); mais UI quando fizer sentido.
 - **Morte corrigida (lote 14):** `ApplyDamage` zerava HP sem notificar a morte visual no host. O `reap` agora
   tira marcadores/cache, para e restaura movimento, então chama `OnRep_Health` (ragdoll nativo). Contrato
-  medido em `dados/rastro_morte.txt`; não acessar AnimInstance após a notificação nem corpo após o TTL.
+  medido em `data/trace_death.txt`; não acessar AnimInstance após a notificação nem corpo após o TTL.
 
 ## 2026-10-07 — Retomada com universal-modder
 

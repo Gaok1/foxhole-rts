@@ -6,8 +6,8 @@ Tudo o que um agente precisa saber fica **neste repositório** (não em memória
 que vale para a próxima sessão, escreva aqui, no `MODLOG.md` ou no `ROADMAP.md`.
 
 **Antes de trabalhar, leia em `MODLOG.md` a seção "Como retomar"** (meio do arquivo; procure por esse
-título). Entradas novas do diário ficam no topo. Teste manual pendente do usuário: `TESTE_MANUAL.md`.
-Dados extraídos do jogo: `ESTUDO_MECANICAS.md` e `dados/`.
+título). Entradas novas do diário ficam no topo. Teste manual pendente do usuário: `MANUAL_TEST.md`.
+Dados extraídos do jogo: `MECHANICS_STUDY.md` e `data/`.
 
 ## Regras do usuário
 - Totalmente offline, com sistemas próprios do mod. Não perseguir RPC, inventário ou servidor do jogo.
@@ -54,7 +54,7 @@ Dados extraídos do jogo: `ESTUDO_MECANICAS.md` e `dados/`.
 - Robô de regressão: `sh D:/tools/foxhole-lab/botloop.sh` em segundo plano. O que ele faz e não faz: `MODLOG.md`.
 - Captura: `cd D:/GitHub/universal-modder && UM_HOME=D:/tools/um-home python -m um win shot --title '^War' --scale 0.5 <png>`.
 - Depois de cada mudança: validar ao vivo, registrar no topo do `MODLOG.md`, atualizar `mod/README.md`
-  e, se houver tecla nova, `TESTE_MANUAL.md` e o teste de teclas em `tools/test_orders.py`.
+  e, se houver tecla nova, `MANUAL_TEST.md` e o teste de teclas em `tools/test_orders.py`.
 - Quando um item do roteiro mudar de estado (`[ ]` → `[~]` → `[x]`, só `[x]` com validação ao vivo), atualizar
   `PROGRESS.md` e rodar `python tools/progress.py`, que recalcula as barras do `README.md`.
 
